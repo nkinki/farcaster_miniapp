@@ -32,7 +32,7 @@ export default function Home() {
       setFavorites(JSON.parse(savedFavorites))
     }
 
-    // Fetch miniapp data - use current domain
+    // Fetch miniapp data - use current domain (updated for Vercel deployment)
     const apiUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/api/miniapps?limit=246`
       : '/api/miniapps?limit=246'
