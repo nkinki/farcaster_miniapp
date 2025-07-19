@@ -1,3 +1,4 @@
+// Vercel rebuild trigger - TypeScript types fixed
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
