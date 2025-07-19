@@ -1,14 +1,15 @@
-# 🚀 Farcaster Miniapp Demo
+# 🚀 Farcaster Daily Miniapp Tracker
 
-Ez egy interaktív Farcaster miniapp demonstráció, amely a [Farcaster dokumentáció](https://docs.farcaster.xyz/) alapján készült. A miniapp egy egyszerű kockadobó játékot tartalmaz, statisztikákat és reward rendszert.
+Ez egy interaktív Farcaster miniapp követő és elemző alkalmazás, amely a [Farcaster dokumentáció](https://docs.farcaster.xyz/) alapján készült. A miniapp napi ranglistákat, statisztikákat és kategória elemzéseket jelenít meg.
 
 ## ✨ Funkciók
 
-- 🎲 **Kockadobó**: Véletlenszerű számok generálása
-- 📊 **Statisztikák**: Játékos teljesítmény követése
-- 🎁 **Reward Rendszer**: Token és jutalom rendszer
-- 🔄 **Interaktív Frame**: Farcaster Frame API integráció
-- 📱 **Reszponzív Design**: Mobil és asztali optimalizált
+- 📊 **Top 10 Miniapps**: Napi ranglista a legnépszerűbb miniappokról
+- 📈 **Daily Statistics**: Részletes statisztikák és metrikák
+- 🏆 **Category Rankings**: Kategóriák szerinti elemzés
+- 🔄 **Real-time Updates**: Frissített adatok és rangváltozások
+- 📱 **Interactive Frame**: Farcaster Frame API integráció
+- 🎨 **Responsive Design**: Mobil és asztali optimalizált
 
 ## 🛠️ Technológiai Stack
 
@@ -23,24 +24,24 @@ Ez egy interaktív Farcaster miniapp demonstráció, amely a [Farcaster dokument
 ### Előfeltételek
 
 - Node.js 18+ 
-- npm vagy yarn
+- pnpm (ajánlott) vagy npm
 
 ### Telepítés
 
 1. **Repository klónozása:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/nkinki/farcaster_miniapp.git
 cd farcaster_miniapp
 ```
 
 2. **Függőségek telepítése:**
 ```bash
-npm install
+pnpm install
 ```
 
 3. **Fejlesztői szerver indítása:**
 ```bash
-npm run dev
+pnpm dev
 ```
 
 4. **Böngészőben megnyitás:**
@@ -69,9 +70,9 @@ A miniapp a következő Frame meta tag-eket használja:
 ```html
 <meta property="fc:frame" content="vNext" />
 <meta property="fc:frame:image" content="..." />
-<meta property="fc:frame:button:1" content="🎲 Roll Dice" />
-<meta property="fc:frame:button:2" content="📊 View Stats" />
-<meta property="fc:frame:button:3" content="🎁 Claim Reward" />
+<meta property="fc:frame:button:1" content="📊 Top 10 Miniapps" />
+<meta property="fc:frame:button:2" content="📈 Daily Stats" />
+<meta property="fc:frame:button:3" content="🏆 Rankings" />
 <meta property="fc:frame:button:4" content="🔄 Refresh" />
 <meta property="fc:frame:post_url" content="..." />
 ```
@@ -105,8 +106,39 @@ farcaster_miniapp/
 - Válasz: Frame konfiguráció JSON formátumban
 
 **GET** - Frame inicializálás
-- `action`: Opcionális akció paraméter
+- `action`: Opcionális akció paraméter (top10, stats, rankings, refresh)
 - Válasz: Alapértelmezett Frame konfiguráció
+
+## 📊 Adatstruktúra
+
+### Top Miniapps
+```typescript
+{
+  rank: number,
+  name: string,
+  change: string, // "+2", "-1", "+0"
+  users: string   // "45.2K"
+}
+```
+
+### Daily Statistics
+```typescript
+{
+  totalMiniapps: number,
+  newToday: number,
+  activeUsers: string,
+  avgRating: string
+}
+```
+
+### Categories
+```typescript
+{
+  name: string,
+  count: number,
+  color: string
+}
+```
 
 ## 🎨 Testreszabás
 
@@ -133,8 +165,8 @@ A placeholder képeket lecserélheted saját képekre:
 A Frame gombokat a `src/app/page.tsx` metadata részében módosíthatod:
 
 ```tsx
-'fc:frame:button:1': '🎲 Roll Dice',
-'fc:frame:button:2': '📊 View Stats',
+'fc:frame:button:1': '📊 Top 10 Miniapps',
+'fc:frame:button:2': '📈 Daily Stats',
 ```
 
 ## 🚀 Deploy
@@ -145,8 +177,8 @@ A Frame gombokat a `src/app/page.tsx` metadata részében módosíthatod:
 ```bash
 git init
 git add .
-git commit -m "Initial commit"
-git remote add origin <your-repo-url>
+git commit -m "Initial commit: Daily miniapp tracker"
+git remote add origin https://github.com/YOUR_USERNAME/farcaster_miniapp.git
 git push -u origin main
 ```
 
@@ -161,8 +193,8 @@ git push -u origin main
 ### Manuális Deploy
 
 ```bash
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
 
 ## 🧪 Tesztelés
@@ -171,13 +203,13 @@ npm start
 
 ```bash
 # Fejlesztői szerver
-npm run dev
+pnpm dev
 
 # Build tesztelés
-npm run build
+pnpm build
 
 # Lint ellenőrzés
-npm run lint
+pnpm lint
 ```
 
 ### Frame Validator
@@ -205,8 +237,8 @@ Ez a projekt MIT licenc alatt áll. Lásd a [LICENSE](LICENSE) fájlt részletek
 
 ## 📞 Kapcsolat
 
-- **GitHub Issues**: [Projekt Issues](https://github.com/your-username/farcaster_miniapp/issues)
-- **Email**: your-email@example.com
+- **GitHub Issues**: [Projekt Issues](https://github.com/nkinki/farcaster_miniapp/issues)
+- **Repository**: https://github.com/nkinki/farcaster_miniapp
 
 ---
 
