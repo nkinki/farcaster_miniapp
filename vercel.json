@@ -1,10 +1,4 @@
 {
-  "cron": [
-    {
-      "path": "/api/cron/update",
-      "schedule": "0 2,14 * * *"
-    }
-  ],
   "env": {
     "FARCASTER_BEARER_TOKEN": "@farcaster_bearer_token",
     "NEON_DB_URL": "@neon_db_url"
