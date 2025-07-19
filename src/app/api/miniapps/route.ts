@@ -2,8 +2,37 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
+// Define types for miniapp data
+interface MiniappData {
+  rank: number
+  rank72hChange?: number
+  miniApp: {
+    name: string
+    domain: string
+    description?: string
+    subtitle?: string
+    primaryCategory?: string
+    iconUrl: string
+    homeUrl: string
+    author: {
+      username: string
+      displayName: string
+      followerCount: number
+    }
+  }
+}
+
+interface CategoryCount {
+  [key: string]: number
+}
+
+interface CategoryInfo {
+  name: string
+  count: number
+}
+
 // Load real miniapp data
-function loadMiniappData() {
+function loadMiniappData(): MiniappData[] {
   try {
     const dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
     const data = fs.readFileSync(dataPath, 'utf8')
@@ -24,7 +53,7 @@ export async function GET(request: NextRequest) {
     const miniapps = allMiniapps.slice(offset, offset + limit)
 
     // Transform data for the frontend
-    const transformedMiniapps = miniapps.map((item: any) => ({
+    const transformedMiniapps = miniapps.map((item: MiniappData) => ({
       rank: item.rank,
       name: item.miniApp.name,
       domain: item.miniApp.domain,
@@ -42,16 +71,16 @@ export async function GET(request: NextRequest) {
 
     // Calculate statistics
     const totalMiniapps = allMiniapps.length
-    const categories = allMiniapps.reduce((acc: any, item: any) => {
+    const categories = allMiniapps.reduce((acc: CategoryCount, item: MiniappData) => {
       const category = item.miniApp.primaryCategory || 'other'
       acc[category] = (acc[category] || 0) + 1
       return acc
     }, {})
 
     const topCategories = Object.entries(categories)
-      .sort(([,a]: any, [,b]: any) => b - a)
+      .sort(([,a]: [string, number], [,b]: [string, number]) => b - a)
       .slice(0, 4)
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]): CategoryInfo => ({ name, count }))
 
     const stats = {
       totalMiniapps,

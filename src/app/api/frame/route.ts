@@ -2,8 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
+// Define types for miniapp data
+interface Miniapp {
+  miniApp: {
+    name: string
+    primaryCategory?: string
+  }
+}
+
+interface CategoryCount {
+  [key: string]: number
+}
+
+interface CategoryInfo {
+  name: string
+  count: number
+}
+
 // Load real miniapp data
-function loadMiniappData() {
+function loadMiniappData(): Miniapp[] {
   try {
     const dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
     const data = fs.readFileSync(dataPath, 'utf8')
@@ -28,16 +45,16 @@ export async function POST(request: NextRequest) {
     
     // Calculate statistics
     const totalMiniapps = allMiniapps.length
-    const categories = allMiniapps.reduce((acc: any, item: any) => {
+    const categories = allMiniapps.reduce((acc: CategoryCount, item: Miniapp) => {
       const category = item.miniApp.primaryCategory || 'other'
       acc[category] = (acc[category] || 0) + 1
       return acc
     }, {})
 
     const topCategories = Object.entries(categories)
-      .sort(([,a]: any, [,b]: any) => b - a)
+      .sort(([,a]: [string, number], [,b]: [string, number]) => b - a)
       .slice(0, 4)
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]): CategoryInfo => ({ name, count }))
 
     // Create different responses based on button clicked
     let imageUrl = ''
@@ -46,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     switch (buttonIndex) {
       case 1: // Top 10 Miniapps
-        const top3Names = top10.slice(0, 3).map((item: any) => item.miniApp.name).join('+')
+        const top3Names = top10.slice(0, 3).map((item: Miniapp) => item.miniApp.name).join('+')
         imageUrl = `https://via.placeholder.com/1200x630/8b5cf6/ffffff?text=Top+10+Miniapps:+${top3Names}`
         buttons = [
           { label: '📈 Daily Stats', action: 'post' },
@@ -69,7 +86,7 @@ export async function POST(request: NextRequest) {
         break
 
       case 3: // Rankings
-        const categoryText = topCategories.map((cat: any) => `${cat.name}+${cat.count}`).join('+%7C+')
+        const categoryText = topCategories.map((cat: CategoryInfo) => `${cat.name}+${cat.count}`).join('+%7C+')
         imageUrl = `https://via.placeholder.com/1200x630/f59e0b/ffffff?text=Rankings:+${categoryText}`
         buttons = [
           { label: '📊 Top 10 Miniapps', action: 'post' },
@@ -131,16 +148,16 @@ export async function GET(request: NextRequest) {
   // Load real data for dynamic responses
   const allMiniapps = loadMiniappData()
   const top10 = allMiniapps.slice(0, 10)
-  const categories = allMiniapps.reduce((acc: any, item: any) => {
+  const categories = allMiniapps.reduce((acc: CategoryCount, item: Miniapp) => {
     const category = item.miniApp.primaryCategory || 'other'
     acc[category] = (acc[category] || 0) + 1
     return acc
   }, {})
 
   const topCategories = Object.entries(categories)
-    .sort(([,a]: any, [,b]: any) => b - a)
+    .sort(([,a]: [string, number], [,b]: [string, number]) => b - a)
     .slice(0, 4)
-    .map(([name, count]) => ({ name, count }))
+    .map(([name, count]): CategoryInfo => ({ name, count }))
 
   let imageUrl = 'https://via.placeholder.com/1200x630/6366f1/ffffff?text=Daily+Miniapp+Tracker'
   const buttons = [
@@ -152,12 +169,12 @@ export async function GET(request: NextRequest) {
 
   // Customize based on action parameter
   if (action === 'top10') {
-    const top3Names = top10.slice(0, 3).map((item: any) => item.miniApp.name).join('+')
+    const top3Names = top10.slice(0, 3).map((item: Miniapp) => item.miniApp.name).join('+')
     imageUrl = `https://via.placeholder.com/1200x630/8b5cf6/ffffff?text=Top+10+Miniapps:+${top3Names}`
   } else if (action === 'stats') {
     imageUrl = `https://via.placeholder.com/1200x630/10b981/ffffff?text=Daily+Stats:+${allMiniapps.length}+Total+%7C+${Math.floor(Math.random() * 50) + 10}+New+Today+%7C+${Math.floor(Math.random() * 100) + 20}K+Users`
   } else if (action === 'rankings') {
-    const categoryText = topCategories.map((cat: any) => `${cat.name}+${cat.count}`).join('+%7C+')
+    const categoryText = topCategories.map((cat: CategoryInfo) => `${cat.name}+${cat.count}`).join('+%7C+')
     imageUrl = `https://via.placeholder.com/1200x630/f59e0b/ffffff?text=Rankings:+${categoryText}`
   } else if (action === 'refresh') {
     imageUrl = 'https://via.placeholder.com/1200x630/6366f1/ffffff?text=Daily+Miniapp+Tracker+Refreshed'

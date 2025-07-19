@@ -1,32 +1,12 @@
 {
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "outputDirectory": ".next",
-  "regions": ["iad1"],
-  "functions": {
-    "src/app/api/frame/route.ts": {
-      "maxDuration": 10
-    }
-  },
-  "headers": [
+  "cron": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
+      "path": "/api/cron/update",
+      "schedule": "0 2,14 * * *"
     }
-  ]
+  ],
+  "env": {
+    "FARCASTER_BEARER_TOKEN": "@farcaster_bearer_token",
+    "NEON_DB_URL": "@neon_db_url"
+  }
 } 
