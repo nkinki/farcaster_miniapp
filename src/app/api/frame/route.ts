@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { untrustedData, trustedData } = body
+    const { untrustedData } = body
 
     // Get the button index that was clicked
     const buttonIndex = untrustedData?.buttonIndex || 1
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     // Create different responses based on button clicked
     let imageUrl = ''
-    let buttons = []
+    let buttons: Array<{ label: string; action: string }> = []
     let postUrl = ''
 
     switch (buttonIndex) {
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
   const action = searchParams.get('action')
 
   let imageUrl = 'https://via.placeholder.com/1200x630/6366f1/ffffff?text=Farcaster+Miniapp'
-  let buttons = [
+  const buttons = [
     { label: '🎲 Roll Dice', action: 'post' },
     { label: '📊 View Stats', action: 'post' },
     { label: '🎁 Claim Reward', action: 'post' },
