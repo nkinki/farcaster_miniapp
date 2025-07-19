@@ -47,4 +47,4 @@ NEON_DB_URL=your_neon_database_url
 
 ---
 
-**Utolsó frissítés:** 2025-01-19
+**Utolsó frissítés:** 2025-01-19 15:30 UTC - Auto deploy teszt
