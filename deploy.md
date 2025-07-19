@@ -40,8 +40,8 @@ git push -u origin main
 4. **Environment Variables**
    - Kattints a "Environment Variables" fülre
    - Add hozzá:
-     - **Name**: `NEXT_PUBLIC_BASE_URL`
-     - **Value**: `https://your-project-name.vercel.app` (a deploy után kapott URL)
+     - **Name**: `FARCASTER_BEARER_TOKEN`
+     - **Value**: `your_bearer_token_here`
 
 5. **Deploy**
    - Kattints a "Deploy" gombra

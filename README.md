@@ -15,7 +15,6 @@
 - **Next.js 14** - React framework
 - **TypeScript** - Típusbiztonság
 - **Tailwind CSS** - Styling
-- **Neon PostgreSQL** - Adatbázis
 - **Vercel** - Deployment
 - **GitHub Actions** - Cron jobs
 
@@ -24,18 +23,18 @@
 - **Farcaster API** - Valós miniapp adatok
 - **Bearer Token** - Biztonságos API hozzáférés
 - **Automatikus frissítés** - Naponta 2x
+- **JSON fájl tárolás** - Statikus adatfájlok
 
 ## 🔧 Környezeti változók
 
 ```env
 FARCASTER_BEARER_TOKEN=your_bearer_token
-NEON_DB_URL=your_neon_database_url
 ```
 
 ## 🎯 Cron Job
 
 - **GitHub Actions** - Naponta 2:00 AM és 2:00 PM UTC
-- **Automatikus adatfrissítés** - Neon DB-ben
+- **Automatikus adatfrissítés** - JSON fájlokban
 - **Valós idejű adatok** - Mindig naprakész
 
 ## 📱 Használat
