@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import fs from 'fs'
+import path from 'path'
 
 // Demo miniapp data (no Bearer token required)
 function generateDemoData() {
@@ -101,9 +103,6 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Demo data generated: ${miniappsData.length} miniapps`)
     
     // Save demo data to public folder for frontend
-    const fs = require('fs')
-    const path = require('path')
-    
     const dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
     const demoDataForFrontend = miniappsData.map(item => ({
       rank: item.rank,
