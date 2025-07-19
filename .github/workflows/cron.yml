@@ -1,0 +1,41 @@
+name: Farcaster Miniapp Update Cron
+
+on:
+  schedule:
+    # Run at 2:00 AM and 2:00 PM UTC daily
+    - cron: '0 2,14 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-miniapps:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run database update
+      env:
+        FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
+        NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
+      run: |
+        # Call the cron API endpoint
+        curl -X GET "https://farcaster-miniapp.vercel.app/api/cron/update" \
+          -H "Authorization: Bearer ${{ secrets.FARCASTER_BEARER_TOKEN }}" \
+          -H "Content-Type: application/json"
+          
+    - name: Notify success
+      if: success()
+      run: echo "✅ Miniapp update completed successfully"
+      
+    - name: Notify failure
+      if: failure()
+      run: echo "❌ Miniapp update failed" 
