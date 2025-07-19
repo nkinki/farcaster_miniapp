@@ -22,14 +22,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Run database update
-      env:
-        FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
-        NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
+    - name: Run data update
       run: |
-        # Call the cron API endpoint
+        # Call the cron API endpoint with a simple test token
         curl -X GET "https://farcaster-miniapp.vercel.app/api/cron/update" \
-          -H "Authorization: Bearer ${{ secrets.FARCASTER_BEARER_TOKEN }}" \
+          -H "Authorization: Bearer test-token" \
           -H "Content-Type: application/json"
           
     - name: Notify success
