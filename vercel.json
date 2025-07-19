@@ -1,2 +1,5 @@
 {
+  "env": {
+    "FARCASTER_BEARER_TOKEN": "@farcaster_bearer_token"
+  }
 } 
