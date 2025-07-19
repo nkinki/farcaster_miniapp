@@ -47,4 +47,4 @@ NEON_DB_URL=your_neon_database_url
 
 ---
 
-**Utolsó frissítés:** 2025-01-19 15:30 UTC - Auto deploy teszt
+**Utolsó frissítés:** 2025-01-19 15:45 UTC - Bearer token configured, production deploy
