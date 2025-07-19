@@ -20,22 +20,20 @@
 
 ## 📊 Adatforrás
 
-- **Farcaster API** - Valós miniapp adatok
-- **Bearer Token** - Biztonságos API hozzáférés
+- **top_miniapps.json** - Statikus miniapp adatok
 - **Automatikus frissítés** - Naponta 2x
-- **JSON fájl tárolás** - Statikus adatfájlok
+- **JSON fájl tárolás** - Public mappában
+- **Valós adatok** - Farcaster API-ból származó
 
 ## 🔧 Környezeti változók
 
-```env
-FARCASTER_BEARER_TOKEN=your_bearer_token
-```
+Nincs szükség környezeti változókra - a projekt a `top_miniapps.json` fájlt használja.
 
 ## 🎯 Cron Job
 
 - **GitHub Actions** - Naponta 2:00 AM és 2:00 PM UTC
 - **Automatikus adatfrissítés** - JSON fájlokban
-- **Valós idejű adatok** - Mindig naprakész
+- **Egyszerű token** - Test token használata
 
 ## 📱 Használat
 
@@ -44,6 +42,12 @@ FARCASTER_BEARER_TOKEN=your_bearer_token
 3. **Megnyitás** - Közvetlen link a miniapp-hoz
 4. **Megosztás** - Social media megosztás
 
+## 🚀 Deployment
+
+- **Vercel** - Automatikus deployment GitHub-ról
+- **GitHub Actions** - Cron job automation
+- **Statikus adatok** - Nincs szükség API kulcsokra
+
 ---
 
-**Utolsó frissítés:** 2025-01-19 15:45 UTC - Bearer token configured, production deploy
+**Utolsó frissítés:** 2025-01-19 23:45 UTC - Clean version without demo data or Bearer token dependencies
