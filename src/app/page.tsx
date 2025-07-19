@@ -32,11 +32,16 @@ export default function Home() {
       setFavorites(JSON.parse(savedFavorites))
     }
 
-    // Fetch miniapp data
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/miniapps?limit=246`)
+    // Fetch miniapp data - use current domain
+    const apiUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/api/miniapps?limit=246`
+      : '/api/miniapps?limit=246'
+    
+    fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
-        setMiniapps(data.miniapps)
+        console.log('API response:', data) // Debug log
+        setMiniapps(data.miniapps || [])
         setLastUpdate(new Date().toLocaleTimeString('hu-HU'))
         setLoading(false)
       })
