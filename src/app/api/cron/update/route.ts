@@ -1,201 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
 
-// Neon DB connection
-const pool = new Pool({
-  connectionString: process.env.NEON_DB_URL,
-})
-
-// Farcaster API headers
-function getApiHeaders() {
-  const bearerToken = process.env.FARCASTER_BEARER_TOKEN
-  if (!bearerToken) {
-    throw new Error('FARCASTER_BEARER_TOKEN environment variable not set')
-  }
-  
-  return {
-    "authorization": `Bearer ${bearerToken}`,
-    "origin": "https://farcaster.xyz",
-    "referer": "https://farcaster.xyz/",
-    "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-    "accept": "*/*",
-    "content-type": "application/json; charset=utf-8"
-  }
-}
-
-// Download latest miniapp data from Farcaster API
-async function downloadLatestRankings() {
-  const url = "https://client.farcaster.xyz/v1/top-mini-apps?limit=100"
-  const headers = getApiHeaders()
-  
-  const allMiniapps = []
-  let cursor = null
-  
-  console.log("📥 Downloading miniapp rankings...")
-  
-  while (true) {
-    const fullUrl: string = cursor ? `${url}&cursor=${cursor}` : url
-    const response = await fetch(fullUrl, { headers })
-    
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`)
+// Demo miniapp data (no Bearer token required)
+function generateDemoData() {
+  const demoMiniapps = [
+    {
+      rank: 1,
+      rank72hChange: 0,
+      miniApp: {
+        id: "demo-1",
+        shortId: "demo1",
+        name: "Demo Miniapp 1",
+        domain: "demo1.farcaster.xyz",
+        homeUrl: "https://demo1.farcaster.xyz",
+        iconUrl: "https://via.placeholder.com/64",
+        imageUrl: "https://via.placeholder.com/400x200",
+        splashImageUrl: "https://via.placeholder.com/800x400",
+        splashBackgroundColor: "#8b5cf6",
+        buttonTitle: "Launch Demo 1",
+        supportsNotifications: true,
+        primaryCategory: "Social",
+        author: {
+          fid: 12345,
+          username: "demo_user1",
+          displayName: "Demo User 1",
+          followerCount: 15000,
+          followingCount: 500
+        }
+      }
+    },
+    {
+      rank: 2,
+      rank72hChange: 2,
+      miniApp: {
+        id: "demo-2",
+        shortId: "demo2",
+        name: "Demo Miniapp 2",
+        domain: "demo2.farcaster.xyz",
+        homeUrl: "https://demo2.farcaster.xyz",
+        iconUrl: "https://via.placeholder.com/64",
+        imageUrl: "https://via.placeholder.com/400x200",
+        splashImageUrl: "https://via.placeholder.com/800x400",
+        splashBackgroundColor: "#10b981",
+        buttonTitle: "Launch Demo 2",
+        supportsNotifications: false,
+        primaryCategory: "Gaming",
+        author: {
+          fid: 67890,
+          username: "demo_user2",
+          displayName: "Demo User 2",
+          followerCount: 8500,
+          followingCount: 300
+        }
+      }
+    },
+    {
+      rank: 3,
+      rank72hChange: -1,
+      miniApp: {
+        id: "demo-3",
+        shortId: "demo3",
+        name: "Demo Miniapp 3",
+        domain: "demo3.farcaster.xyz",
+        homeUrl: "https://demo3.farcaster.xyz",
+        iconUrl: "https://via.placeholder.com/64",
+        imageUrl: "https://via.placeholder.com/400x200",
+        splashImageUrl: "https://via.placeholder.com/800x400",
+        splashBackgroundColor: "#f59e0b",
+        buttonTitle: "Launch Demo 3",
+        supportsNotifications: true,
+        primaryCategory: "Finance",
+        author: {
+          fid: 11111,
+          username: "demo_user3",
+          displayName: "Demo User 3",
+          followerCount: 22000,
+          followingCount: 800
+        }
+      }
     }
-    
-    const data = await response.json()
-    const miniapps = data.miniApps || []
-    allMiniapps.push(...miniapps)
-    
-    console.log(`   Downloaded: ${miniapps.length} miniapps`)
-    
-    // Next page
-    const nextCursor = data.next?.cursor
-    if (nextCursor) {
-      cursor = nextCursor
-      console.log(`   Pagination, next cursor: ${cursor}`)
-    } else {
-      break
-    }
-  }
+  ]
   
-  console.log(`✅ Total downloaded: ${allMiniapps.length} miniapps`)
-  return allMiniapps
-}
-
-// Define types for miniapp data
-interface MiniappData {
-  miniApp: {
-    id: string
-    shortId: string
-    name: string
-    domain: string
-    homeUrl: string
-    iconUrl: string
-    imageUrl: string
-    splashImageUrl: string
-    splashBackgroundColor: string
-    buttonTitle: string
-    supportsNotifications?: boolean
-    primaryCategory: string
-    author?: {
-      fid: number
-      username: string
-      displayName: string
-      followerCount: number
-      followingCount: number
-    }
-  }
-  rank: number
-  rank72hChange: number
-}
-
-// Update database with new data
-async function updateDatabase(miniappsData: MiniappData[]) {
-  const client = await pool.connect()
-  
-  try {
-    const today = new Date().toISOString().split('T')[0]
-    let insertedMiniapps = 0
-    let insertedRankings = 0
-    
-    console.log("💾 Updating database...")
-    
-    // Process data
-    for (const item of miniappsData) {
-      const miniapp = item.miniApp
-      const rank = item.rank
-      const rank72hChange = item.rank72hChange
-      
-      // 1. Insert/update miniapp metadata
-      await client.query(`
-        INSERT INTO miniapps (
-          id, short_id, name, domain, home_url, icon_url, image_url,
-          splash_image_url, splash_background_color, button_title,
-          supports_notifications, primary_category, author_fid,
-          author_username, author_display_name, author_follower_count,
-          author_following_count
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-        ON CONFLICT (id) DO UPDATE SET
-          name = EXCLUDED.name,
-          domain = EXCLUDED.domain,
-          home_url = EXCLUDED.home_url,
-          icon_url = EXCLUDED.icon_url,
-          image_url = EXCLUDED.image_url,
-          splash_image_url = EXCLUDED.splash_image_url,
-          splash_background_color = EXCLUDED.splash_background_color,
-          button_title = EXCLUDED.button_title,
-          supports_notifications = EXCLUDED.supports_notifications,
-          primary_category = EXCLUDED.primary_category,
-          author_fid = EXCLUDED.author_fid,
-          author_username = EXCLUDED.author_username,
-          author_display_name = EXCLUDED.author_display_name,
-          author_follower_count = EXCLUDED.author_follower_count,
-          author_following_count = EXCLUDED.author_following_count
-      `, [
-        miniapp.id,
-        miniapp.shortId,
-        miniapp.name,
-        miniapp.domain,
-        miniapp.homeUrl,
-        miniapp.iconUrl,
-        miniapp.imageUrl,
-        miniapp.splashImageUrl,
-        miniapp.splashBackgroundColor,
-        miniapp.buttonTitle,
-        miniapp.supportsNotifications || false,
-        miniapp.primaryCategory,
-        miniapp.author?.fid,
-        miniapp.author?.username,
-        miniapp.author?.displayName,
-        miniapp.author?.followerCount,
-        miniapp.author?.followingCount
-      ])
-      insertedMiniapps++
-      
-      // 2. Insert daily ranking
-      await client.query(`
-        INSERT INTO miniapp_rankings (
-          miniapp_id, ranking_date, rank, rank_72h_change
-        ) VALUES ($1, $2, $3, $4)
-        ON CONFLICT (miniapp_id, ranking_date) DO UPDATE SET
-          rank = EXCLUDED.rank,
-          rank_72h_change = EXCLUDED.rank_72h_change
-      `, [
-        miniapp.id,
-        today,
-        rank,
-        rank72hChange
-      ])
-      insertedRankings++
-    }
-    
-    // 3. Save complete snapshot
-    await client.query(`
-      INSERT INTO ranking_snapshots (
-        snapshot_date, total_miniapps, raw_json
-      ) VALUES ($1, $2, $3)
-      ON CONFLICT (snapshot_date) DO UPDATE SET
-        total_miniapps = EXCLUDED.total_miniapps,
-        raw_json = EXCLUDED.raw_json
-    `, [
-      today,
-      miniappsData.length,
-      JSON.stringify(miniappsData)
-    ])
-    
-    console.log(`✅ Database updated!`)
-    console.log(`   - Miniapps: ${insertedMiniapps}`)
-    console.log(`   - Rankings: ${insertedRankings}`)
-    console.log(`   - Snapshot: ${today}`)
-    
-  } finally {
-    client.release()
-  }
+  return demoMiniapps
 }
 
 // Main cron job function
 export async function GET(request: NextRequest) {
   try {
-    console.log("=== CRON JOB: Farcaster Miniapp Update ===")
+    console.log("=== CRON JOB: Farcaster Miniapp Update (Demo) ===")
     console.log(`Time: ${new Date().toISOString()}`)
     
     // Check if this is a cron job call
@@ -204,17 +95,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
-    // Download latest data
-    const miniappsData = await downloadLatestRankings()
+    // Generate demo data instead of downloading from API
+    const miniappsData = generateDemoData()
     
-    // Update database
-    await updateDatabase(miniappsData)
+    console.log(`✅ Demo data generated: ${miniappsData.length} miniapps`)
     
-    console.log("✅ Cron job completed successfully!")
+    // Save demo data to public folder for frontend
+    const fs = require('fs')
+    const path = require('path')
+    
+    const dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
+    const demoDataForFrontend = miniappsData.map(item => ({
+      rank: item.rank,
+      rank72hChange: item.rank72hChange,
+      miniApp: {
+        name: item.miniApp.name,
+        domain: item.miniApp.domain,
+        description: `Demo miniapp ${item.rank} - ${item.miniApp.primaryCategory}`,
+        primaryCategory: item.miniApp.primaryCategory,
+        iconUrl: item.miniApp.iconUrl,
+        homeUrl: item.miniApp.homeUrl,
+        author: item.miniApp.author
+      }
+    }))
+    
+    // Ensure directory exists
+    const dir = path.dirname(dataPath)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    
+    // Save demo data
+    fs.writeFileSync(dataPath, JSON.stringify(demoDataForFrontend, null, 2))
+    
+    console.log("✅ Demo data saved to public/data/top_miniapps.json")
     
     return NextResponse.json({
       success: true,
-      message: 'Database updated successfully',
+      message: 'Demo data updated successfully',
       miniappsCount: miniappsData.length,
       timestamp: new Date().toISOString()
     })
