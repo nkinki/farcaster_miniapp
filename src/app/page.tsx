@@ -201,29 +201,29 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 w-full bg-black/80 border-t border-purple-700/40 z-50 flex justify-center items-stretch py-3 backdrop-blur-md">
-        <div className="flex flex-row w-full max-w-4xl">
+      {/* Bottom Navigation Bar - Modern Glassmorphism Floating Pill */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex justify-center w-full pointer-events-none">
+        <div className="flex flex-row items-stretch rounded-full bg-white/10 backdrop-blur-md shadow-2xl border-2 border-cyan-300 px-1 py-1 pointer-events-auto max-w-xl w-full" style={{maxWidth: '420px'}}>
           <button
-            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === 'daily' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === 'daily' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
             onClick={() => setFilter('daily')}
           >
-            Daily
+            1d
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-t-2 border-b-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === '72h' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === '72h' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
             onClick={() => setFilter('72h')}
           >
-            72h
+            3d
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-t-2 border-b-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === 'weekly' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === 'weekly' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
             onClick={() => setFilter('weekly')}
           >
-            Weekly
+            7d
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-t-2 border-b-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === '30d' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === '30d' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
             onClick={() => setFilter('30d')}
           >
             30d
@@ -232,7 +232,7 @@ export default function Home() {
             href="https://farcaster-chess.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col justify-center items-center px-2 py-1 min-w-[70px] border-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 text-[10px] leading-tight font-bold rounded-none ml-0 hover:bg-cyan-900/60 hover:text-white transition-all duration-200"
+            className="flex flex-col justify-center items-center px-2 py-1 min-w-[70px] rounded-full border-none text-cyan-200 text-[10px] leading-tight font-bold ml-1 hover:bg-cyan-900/60 hover:text-white transition-all duration-200"
             style={{lineHeight: '1.1'}}
           >
             <span>Play $CHESS</span>
