@@ -23,12 +23,45 @@ export const MiniappUserProfile: React.FC = () => {
         const isInMiniapp = await sdk.isInMiniApp()
         
         if (isInMiniapp) {
-          // Try to get user data from context
-          const context = sdk.context
-          console.log('Miniapp context:', context)
+          console.log('In miniapp environment, trying to get user data...')
           
-          // For now, we'll show that we're in a miniapp environment
-          // The actual user data will be available when the miniapp is properly integrated
+          // Try to get user data using quickAuth
+          try {
+            const token = await sdk.quickAuth.getToken()
+            console.log('QuickAuth token:', token)
+            
+            if (token) {
+              // Try to fetch user profile using the token
+              const response = await sdk.quickAuth.fetch('https://api.farcaster.xyz/v2/me', {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              })
+              
+              if (response.ok) {
+                const userData = await response.json()
+                console.log('User data from API:', userData)
+                
+                if (userData.result && userData.result.user) {
+                  const profile = userData.result.user
+                  setUser({
+                    fid: profile.fid,
+                    username: profile.username || '',
+                    displayName: profile.displayName || '',
+                    pfp: profile.pfp || '',
+                    followerCount: profile.followerCount || 0,
+                    followingCount: profile.followingCount || 0
+                  })
+                  return
+                }
+              }
+            }
+          } catch (authError) {
+            console.log('QuickAuth error:', authError)
+          }
+          
+          // Fallback: show miniapp environment info
           setUser({
             fid: 0,
             username: 'miniapp_user',
@@ -39,9 +72,11 @@ export const MiniappUserProfile: React.FC = () => {
           })
         } else {
           console.log('Not in miniapp environment')
+          setUser(null)
         }
       } catch (error) {
         console.error('Error loading miniapp user data:', error)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
