@@ -203,34 +203,34 @@ export default function Home() {
         </div>
       </div>
       {/* Bottom Navigation Bar - Category Filters */}
-      <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-stretch py-3 px-4">
-        <div className="flex flex-row items-stretch w-full max-w-4xl bg-gray-900/95 backdrop-blur-md shadow-2xl border border-gray-700 rounded-lg">
+      <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-stretch py-2 px-1 bg-transparent">
+        <div className="flex flex-row items-stretch w-full max-w-4xl bg-gray-900/95 backdrop-blur-md shadow-2xl border border-gray-700 rounded-lg overflow-x-auto scrollbar-hide whitespace-nowrap">
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 ${filter === 'all' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`px-2 py-2 font-semibold text-xs min-w-fit whitespace-nowrap transition-all duration-200 text-gray-300 ${filter === 'all' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('all')}
           >
             All
           </button>
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'games' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`px-2 py-2 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'games' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('games')}
           >
             Games
           </button>
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'social' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`px-2 py-2 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'social' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('social')}
           >
             Social
           </button>
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'utility' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`px-2 py-2 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'utility' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('utility')}
           >
             Utility
           </button>
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'finance' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`px-2 py-2 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'finance' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('finance')}
           >
             Finance
@@ -239,7 +239,7 @@ export default function Home() {
             href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col justify-center items-center px-3 py-2 min-w-[80px] border-l border-gray-700 text-gray-300 text-[10px] leading-tight font-semibold hover:bg-gray-800 hover:text-white transition-all duration-200"
+            className="flex flex-col justify-center items-center px-2 py-1 min-w-[70px] border-l border-gray-700 text-gray-300 text-[10px] leading-tight font-semibold hover:bg-gray-800 hover:text-white transition-all duration-200 whitespace-nowrap"
             style={{lineHeight: '1.1'}}
           >
             <span>Play $CHESS</span>
