@@ -201,29 +201,29 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Bottom Navigation Bar - Modern Glassmorphism Floating Pill */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex justify-center w-full pointer-events-none">
-        <div className="flex flex-row items-stretch rounded-full bg-white/10 backdrop-blur-md shadow-2xl border-2 border-cyan-300 px-1 py-1 pointer-events-auto max-w-xl w-full" style={{maxWidth: '420px'}}>
+      {/* Bottom Navigation Bar - Modern 3D Minimal Rectangle */}
+      <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-stretch py-3 px-4">
+        <div className="flex flex-row items-stretch w-full max-w-4xl bg-gray-900/95 backdrop-blur-md shadow-2xl border border-gray-700 rounded-lg">
           <button
-            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === 'daily' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 ${filter === 'daily' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('daily')}
           >
             1d
           </button>
           <button
-            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === '72h' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === '72h' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('72h')}
           >
             3d
           </button>
           <button
-            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === 'weekly' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'weekly' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('weekly')}
           >
             7d
           </button>
           <button
-            className={`flex-1 px-4 py-2 rounded-full font-bold text-base transition-all duration-200 border-none text-cyan-200 ${filter === '30d' ? 'bg-cyan-900/80 text-white shadow-[0_0_12px_2px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300' : 'hover:bg-cyan-900/30'}`}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === '30d' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
             onClick={() => setFilter('30d')}
           >
             30d
@@ -232,7 +232,7 @@ export default function Home() {
             href="https://farcaster-chess.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col justify-center items-center px-2 py-1 min-w-[70px] rounded-full border-none text-cyan-200 text-[10px] leading-tight font-bold ml-1 hover:bg-cyan-900/60 hover:text-white transition-all duration-200"
+            className="flex flex-col justify-center items-center px-3 py-2 min-w-[80px] border-l border-gray-700 text-gray-300 text-[10px] leading-tight font-semibold hover:bg-gray-800 hover:text-white transition-all duration-200"
             style={{lineHeight: '1.1'}}
           >
             <span>Play $CHESS</span>
