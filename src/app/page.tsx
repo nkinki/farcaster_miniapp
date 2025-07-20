@@ -132,9 +132,7 @@ export default function Home() {
                   <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}> 
                     {/* Category position counter (only for category filter) */}
                     {filter !== 'all' && (
-                      <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold bg-blue-900 text-blue-200 mr-1 border border-blue-400/60">
-                        {idx + 1}
-                      </div>
+                      <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right'}}>{idx + 1}</span>
                     )}
                     {/* Rank badge */}
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 ${rankBg} ${rankText}`}>{app.rank}</div>
@@ -238,7 +236,7 @@ export default function Home() {
             Finance
           </button>
           <a
-            href="https://farcaster-chess.vercel.app/"
+            href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col justify-center items-center px-3 py-2 min-w-[80px] border-l border-gray-700 text-gray-300 text-[10px] leading-tight font-semibold hover:bg-gray-800 hover:text-white transition-all duration-200"
