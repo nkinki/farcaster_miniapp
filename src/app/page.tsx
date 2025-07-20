@@ -30,7 +30,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<string>('')
-  const [filter, setFilter] = useState<'daily' | '72h' | 'weekly' | '30d'>('daily')
+  const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -74,13 +74,10 @@ export default function Home() {
     localStorage.setItem('farcaster-favorites', JSON.stringify(newFavorites))
   }
 
-  // Filter logic
+  // Filter logic - by category instead of time
   const filteredMiniapps = miniapps.filter(app => {
-    if (filter === 'daily') return true;
-    if (filter === '72h') return Math.abs(app.rank72hChange) > 0;
-    if (filter === 'weekly') return Math.abs(app.rankWeeklyChange || 0) > 0;
-    if (filter === '30d') return Math.abs(app.rank30dChange || 0) > 0;
-    return true;
+    if (filter === 'all') return true;
+    return app.category.toLowerCase() === filter.toLowerCase();
   });
 
   // Favorited apps first
@@ -201,32 +198,38 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Bottom Navigation Bar - Modern 3D Minimal Rectangle */}
+      {/* Bottom Navigation Bar - Category Filters */}
       <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-stretch py-3 px-4">
         <div className="flex flex-row items-stretch w-full max-w-4xl bg-gray-900/95 backdrop-blur-md shadow-2xl border border-gray-700 rounded-lg">
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 ${filter === 'daily' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
-            onClick={() => setFilter('daily')}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 ${filter === 'all' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            onClick={() => setFilter('all')}
           >
-            1d
+            All
           </button>
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === '72h' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
-            onClick={() => setFilter('72h')}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'games' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            onClick={() => setFilter('games')}
           >
-            3d
+            Games
           </button>
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'weekly' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
-            onClick={() => setFilter('weekly')}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'social' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            onClick={() => setFilter('social')}
           >
-            7d
+            Social
           </button>
           <button
-            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === '30d' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
-            onClick={() => setFilter('30d')}
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'utility' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            onClick={() => setFilter('utility')}
           >
-            30d
+            Utility
+          </button>
+          <button
+            className={`flex-1 px-4 py-3 font-semibold text-sm transition-all duration-200 text-gray-300 border-l border-gray-700 ${filter === 'finance' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            onClick={() => setFilter('finance')}
+          >
+            Finance
           </button>
           <a
             href="https://farcaster-chess.vercel.app/"
