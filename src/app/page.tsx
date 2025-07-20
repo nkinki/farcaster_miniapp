@@ -99,7 +99,7 @@ export default function Home() {
         {/* Header */}
         <div className="mb-6 text-center">
           <div className="flex justify-center items-center mb-2">
-            <span className="inline-flex items-center justify-center w-44 h-14 bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)]">
+            <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
               <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
             </span>
           </div>
