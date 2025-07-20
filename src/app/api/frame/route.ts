@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       message: 'Frame interaction received',
       data: body
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Invalid request' },
       { status: 400 }
@@ -25,7 +25,7 @@ export async function GET() {
     imageUrl: 'https://farcaster-miniapp-rangsor.vercel.app/og-image.png',
     buttons: [
       {
-        label: '🏆 Nézd meg a toplistát',
+        label: '🏆 View Rankings',
         action: 'post',
       },
     ],

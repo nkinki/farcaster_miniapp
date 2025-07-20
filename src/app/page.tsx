@@ -134,7 +134,7 @@ export default function Home() {
                   .filter(app => (app.rank24hChange || 0) > 0)
                   .sort((a, b) => (b.rank24hChange || 0) - (a.rank24hChange || 0))
                   .slice(0, 5)
-                  .map((app, index) => (
+                  .map((app) => (
                     <div key={app.rank} className="flex justify-between items-center p-2 bg-green-100 rounded border border-green-200">
                       <span className="text-sm font-medium text-gray-800 truncate">{app.name}</span>
                       <span className="text-sm text-green-700 font-bold">+{app.rank24hChange || 0}</span>
@@ -151,7 +151,7 @@ export default function Home() {
                   .filter(app => app.rank72hChange > 0)
                   .sort((a, b) => b.rank72hChange - a.rank72hChange)
                   .slice(0, 5)
-                  .map((app, index) => (
+                  .map((app) => (
                     <div key={app.rank} className="flex justify-between items-center p-2 bg-green-100 rounded border border-green-200">
                       <span className="text-sm font-medium text-gray-800 truncate">{app.name}</span>
                       <span className="text-sm text-green-700 font-bold">+{app.rank72hChange}</span>
@@ -168,7 +168,7 @@ export default function Home() {
                   .filter(app => (app.rankWeeklyChange || 0) > 0)
                   .sort((a, b) => (b.rankWeeklyChange || 0) - (a.rankWeeklyChange || 0))
                   .slice(0, 5)
-                  .map((app, index) => (
+                  .map((app) => (
                     <div key={app.rank} className="flex justify-between items-center p-2 bg-green-100 rounded border border-green-200">
                       <span className="text-sm font-medium text-gray-800 truncate">{app.name}</span>
                       <span className="text-sm text-green-700 font-bold">+{app.rankWeeklyChange || 0}</span>
@@ -203,7 +203,7 @@ export default function Home() {
         {/* Main Ranking List */}
         <div className="bg-white rounded-2xl shadow-2xl p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Today's Top {miniapps.length}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Today&apos;s Top {miniapps.length}</h2>
             <div className="flex space-x-2">
               <button className="px-4 py-2 bg-purple-700 text-white rounded-lg text-sm font-medium">
                 List
