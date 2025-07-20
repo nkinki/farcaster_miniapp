@@ -202,31 +202,43 @@ export default function Home() {
         </div>
       </div>
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 w-full bg-black/80 border-t border-purple-700/40 z-50 flex justify-center gap-4 py-3 backdrop-blur-md" style={{position: 'sticky', bottom: 0}}>
-        <button
-          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === 'daily' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
-          onClick={() => setFilter('daily')}
-        >
-          Daily
-        </button>
-        <button
-          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === '72h' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
-          onClick={() => setFilter('72h')}
-        >
-          72h
-        </button>
-        <button
-          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === 'weekly' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
-          onClick={() => setFilter('weekly')}
-        >
-          Weekly
-        </button>
-        <button
-          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === '30d' ? 'bg-cyan-500 text-white shadow-lg' : 'bg-purple-900 text-cyan-300 hover:bg-cyan-800'}`}
-          onClick={() => setFilter('30d')}
-        >
-          30d
-        </button>
+      <div className="fixed bottom-0 left-0 w-full bg-black/80 border-t border-purple-700/40 z-50 flex justify-center items-stretch py-3 backdrop-blur-md">
+        <div className="flex flex-row w-full max-w-4xl">
+          <button
+            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === 'daily' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            onClick={() => setFilter('daily')}
+          >
+            Daily
+          </button>
+          <button
+            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-t-2 border-b-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === '72h' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            onClick={() => setFilter('72h')}
+          >
+            72h
+          </button>
+          <button
+            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-t-2 border-b-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === 'weekly' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            onClick={() => setFilter('weekly')}
+          >
+            Weekly
+          </button>
+          <button
+            className={`flex-1 px-3 py-2 rounded-none font-bold text-base transition-all duration-200 border-t-2 border-b-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 ${filter === '30d' ? 'bg-cyan-900/60 text-white' : 'hover:bg-cyan-900/30'}`}
+            onClick={() => setFilter('30d')}
+          >
+            30d
+          </button>
+          <a
+            href="https://farcaster-chess.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col justify-center items-center px-2 py-1 min-w-[70px] border-2 border-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.3)] bg-black/40 text-cyan-200 text-[10px] leading-tight font-bold rounded-none ml-0 hover:bg-cyan-900/60 hover:text-white transition-all duration-200"
+            style={{lineHeight: '1.1'}}
+          >
+            <span>Play $CHESS</span>
+            <span className="text-[9px]">Claim free 10k $CHESS</span>
+          </a>
+        </div>
       </div>
     </div>
   )
