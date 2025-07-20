@@ -130,6 +130,12 @@ export default function Home() {
                     </div>
                   )}
                   <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}> 
+                    {/* Category position counter (only for category filter) */}
+                    {filter !== 'all' && (
+                      <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold bg-blue-900 text-blue-200 mr-1 border border-blue-400/60">
+                        {idx + 1}
+                      </div>
+                    )}
                     {/* Rank badge */}
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 ${rankBg} ${rankText}`}>{app.rank}</div>
                     {/* App logo */}
