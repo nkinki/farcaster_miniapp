@@ -122,6 +122,18 @@ export default function Home() {
                   <div className="w-6 h-6 bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-full flex items-center justify-center font-bold text-xs border border-purple-400/30">
                     #{app.rank}
                   </div>
+                  {app.iconUrl ? (
+                    <img
+                      src={app.iconUrl}
+                      alt={app.name + ' logo'}
+                      className="w-6 h-6 rounded-md object-cover border border-purple-700/30 bg-white"
+                      onError={e => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs bg-purple-700/60 text-white border border-purple-700/30">
+                      {app.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-purple-200 text-xs truncate">{app.name}</h3>
                     <p className="text-[10px] text-purple-300 font-medium truncate">{app.domain}</p>
