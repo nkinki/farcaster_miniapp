@@ -200,21 +200,21 @@ export default function Home() {
         </div>
       </div>
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 w-full bg-black/80 border-t border-purple-700/40 z-50 flex justify-center gap-4 py-3 backdrop-blur-md">
+      <div className="fixed bottom-0 left-0 w-full bg-black/80 border-t border-purple-700/40 z-50 flex justify-center gap-4 py-3 backdrop-blur-md" style={{position: 'sticky', bottom: 0}}>
         <button
-          className={`px-6 py-2 rounded-full font-bold text-base transition-all duration-200 ${filter === 'daily' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
+          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === 'daily' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
           onClick={() => setFilter('daily')}
         >
           Daily
         </button>
         <button
-          className={`px-6 py-2 rounded-full font-bold text-base transition-all duration-200 ${filter === '72h' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
+          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === '72h' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
           onClick={() => setFilter('72h')}
         >
           72h
         </button>
         <button
-          className={`px-6 py-2 rounded-full font-bold text-base transition-all duration-200 ${filter === 'weekly' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
+          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === 'weekly' ? 'bg-purple-600 text-white shadow-lg' : 'bg-purple-900 text-purple-300 hover:bg-purple-800'}`}
           onClick={() => setFilter('weekly')}
         >
           Weekly
