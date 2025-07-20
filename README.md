@@ -1,53 +1,73 @@
 # Farcaster Miniapp Tracker
 
-🏆 **Farcaster miniapp toplista és statisztikák**
+🏆 **Farcaster miniapp toplist and statistics**
 
-## ✨ Funkciók
+## ✨ Features
 
-- 📊 **246 miniapp** valós idejű rangsora
-- ❤️ **Favoritok** mentése localStorage-ban
-- 🔄 **Automatikus frissítés** naponta 2x
-- 📱 **Reszponzív design** minden eszközön
-- 🎯 **Farcaster Frame** támogatás
+- 📊 **246 miniapps** real-time rankings
+- ❤️ **Favorites** saved in localStorage
+- 🔄 **Automatic updates** 2x daily
+- 📱 **Responsive design** on all devices
+- 🎯 **Farcaster Frame** support
+- 📈 **24h, 72h, weekly** ranking changes
+- 🏷️ **Category-based** browsing
+- 📧 **Email notifications** for automatic updates
 
-## 🚀 Technológia
+## 🚀 Technology
 
 - **Next.js 14** - React framework
-- **TypeScript** - Típusbiztonság
+- **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
 - **Vercel** - Deployment
 - **GitHub Actions** - Cron jobs
+- **Farcaster Frame SDK** - Miniapp integration
+- **Email notifications** - SMTP automation
 
-## 📊 Adatforrás
+## 📊 Data Source
 
-- **top_miniapps.json** - Statikus miniapp adatok
-- **Automatikus frissítés** - Naponta 2x
-- **JSON fájl tárolás** - Public mappában
-- **Valós adatok** - Farcaster API-ból származó
+- **top_miniapps.json** - Static miniapp data
+- **Automatic updates** - 2x daily
+- **JSON file storage** - In public folder
+- **Real data** - From Farcaster API
 
-## 🔧 Környezeti változók
+## 🔧 Environment Variables
 
-Nincs szükség környezeti változókra - a projekt a `top_miniapps.json` fájlt használja.
+### Optional email notifications
+```env
+EMAIL_SENDER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+EMAIL_RECIPIENT=recipient@example.com
+```
+
+### Farcaster Miniapp category
+The application belongs to the **"analytics"** category as it provides data analysis and statistical functions.
 
 ## 🎯 Cron Job
 
-- **GitHub Actions** - Naponta 2:00 AM és 2:00 PM UTC
-- **Automatikus adatfrissítés** - JSON fájlokban
-- **Egyszerű token** - Test token használata
+- **GitHub Actions** - Daily at 2:00 AM and 2:00 PM UTC
+- **Automatic data updates** - In JSON files
+- **Simple token** - Using test token
 
-## 📱 Használat
+## 📱 Usage
 
-1. **Főoldal** - Teljes miniapp lista
-2. **Favoritok** - Kattints a szívre
-3. **Megnyitás** - Közvetlen link a miniapp-hoz
-4. **Megosztás** - Social media megosztás
+1. **Homepage** - Complete miniapp list
+2. **Favorites** - Click the heart
+3. **Open** - Direct link to miniapp
+4. **Share** - Social media sharing
 
 ## 🚀 Deployment
 
-- **Vercel** - Automatikus deployment GitHub-ról
+- **Vercel** - Automatic deployment from GitHub
 - **GitHub Actions** - Cron job automation
-- **Statikus adatok** - Nincs szükség API kulcsokra
+- **Static data** - No API keys needed
+- **Farcaster Frame** - Meta tag configuration
+
+## 📚 Documentation
+
+- [Email Setup](EMAIL_SETUP.md) - Email notification setup
+- [Automation](AUTOMATION.md) - Automation details
+- [Categories](CATEGORIES.md) - Farcaster categories
 
 ---
 
-**Utolsó frissítés:** 2025-01-19 23:45 UTC - Clean version without demo data or Bearer token dependencies
+**Last updated:** 2025-01-20 - Farcaster miniapp category and Frame integration

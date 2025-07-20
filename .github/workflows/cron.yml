@@ -58,8 +58,18 @@ jobs:
         
     - name: Notify success
       if: success()
-      run: echo "✅ Miniapp update completed successfully"
+      run: |
+        echo "✅ Miniapp update completed successfully"
+        python -c "
+        from email_notifications import send_success_notification
+        send_success_notification(246, '<ul><li>Automatikus frissítés sikeres</li></ul>')
+        "
       
     - name: Notify failure
       if: failure()
-      run: echo "❌ Miniapp update failed" 
+      run: |
+        echo "❌ Miniapp update failed"
+        python -c "
+        from email_notifications import send_error_notification
+        send_error_notification('GitHub Actions hiba', 'Automatikus frissítés sikertelen')
+        " 

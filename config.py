@@ -18,6 +18,23 @@ FARCASTER_API_URL = "https://client.farcaster.xyz/v1/top-mini-apps"
 # Alapértelmezett limit (maximum 100)
 DEFAULT_LIMIT = 100
 
+# Email konfiguráció
+# Állítsd be ezeket az értékeket a saját email címeddel és app jelszavaddal
+
+# Gmail SMTP konfiguráció
+EMAIL_SENDER = "nkinki2014@gmail.com"  # GitHub email cím
+EMAIL_PASSWORD = "rnox qetx aytt geeo"   # Gmail app jelszó
+EMAIL_RECIPIENT = "nkinki2014@gmail.com"  # GitHub email cím
+
+# Email beállítások teszteléshez
+def get_email_config():
+    """Visszaadja az email konfigurációt"""
+    return {
+        "sender": EMAIL_SENDER,
+        "password": EMAIL_PASSWORD,
+        "recipient": EMAIL_RECIPIENT
+    }
+
 # Headers template
 def get_api_headers():
     """Visszaadja az API fejléceket"""

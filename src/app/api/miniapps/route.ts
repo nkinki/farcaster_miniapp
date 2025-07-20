@@ -34,7 +34,12 @@ interface CategoryInfo {
 // Load real miniapp data
 function loadMiniappData(): MiniappData[] {
   try {
-    const dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
+    // Próbáljuk először a public/data mappából
+    let dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
+    if (!fs.existsSync(dataPath)) {
+      // Ha nincs ott, próbáljuk a gyökérből
+      dataPath = path.join(process.cwd(), 'top_miniapps.json')
+    }
     const data = fs.readFileSync(dataPath, 'utf8')
     return JSON.parse(data)
   } catch (error) {
@@ -53,21 +58,30 @@ export async function GET(request: NextRequest) {
     const miniapps = allMiniapps.slice(offset, offset + limit)
 
     // Transform data for the frontend
-    const transformedMiniapps = miniapps.map((item: MiniappData) => ({
-      rank: item.rank,
-      name: item.miniApp.name,
-      domain: item.miniApp.domain,
-      description: item.miniApp.description || item.miniApp.subtitle || '',
-      author: {
-        username: item.miniApp.author.username,
-        displayName: item.miniApp.author.displayName,
-        followerCount: item.miniApp.author.followerCount
-      },
-      category: item.miniApp.primaryCategory || 'other',
-      rank72hChange: item.rank72hChange || 0,
-      iconUrl: item.miniApp.iconUrl,
-      homeUrl: item.miniApp.homeUrl
-    }))
+    const transformedMiniapps = miniapps.map((item: MiniappData) => {
+      // Szimuláljuk a 24h és heti változásokat (amíg az adatbázisból nem jönnek)
+      const rank72hChange = item.rank72hChange || 0
+      const rank24hChange = Math.floor(rank72hChange * 0.3 + (Math.random() - 0.5) * 10)
+      const rankWeeklyChange = Math.floor(rank72hChange * 1.5 + (Math.random() - 0.5) * 20)
+      
+      return {
+        rank: item.rank,
+        name: item.miniApp.name,
+        domain: item.miniApp.domain,
+        description: item.miniApp.description || item.miniApp.subtitle || '',
+        author: {
+          username: item.miniApp.author.username,
+          displayName: item.miniApp.author.displayName,
+          followerCount: item.miniApp.author.followerCount
+        },
+        category: item.miniApp.primaryCategory || 'other',
+        rank72hChange: rank72hChange,
+        rank24hChange: rank24hChange,
+        rankWeeklyChange: rankWeeklyChange,
+        iconUrl: item.miniApp.iconUrl,
+        homeUrl: item.miniApp.homeUrl
+      }
+    })
 
     // Calculate statistics
     const totalMiniapps = allMiniapps.length

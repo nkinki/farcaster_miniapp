@@ -15,6 +15,8 @@ interface Miniapp {
   }
   category: string
   rank72hChange: number
+  rank24hChange?: number
+  rankWeeklyChange?: number
   iconUrl: string
   homeUrl: string
 }
@@ -42,7 +44,7 @@ export default function Home() {
       .then(data => {
         console.log('API response:', data) // Debug log
         setMiniapps(data.miniapps || [])
-        setLastUpdate(new Date().toLocaleTimeString('hu-HU'))
+        setLastUpdate(new Date().toLocaleTimeString('en-US'))
         setLoading(false)
       })
       .catch(error => {
@@ -74,73 +76,102 @@ export default function Home() {
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-white mb-2">
-            🏆 Miniapps Rangsor
+            🏆 Miniapps Rankings
           </h1>
-          <p className="text-purple-200 text-lg mb-2">
-            Farcaster miniapp toplista és statisztikák
+          <p className="text-purple-100 text-lg mb-2 font-medium">
+            Farcaster miniapp toplist and statistics
           </p>
-          <p className="text-purple-200 text-sm">
-            {new Date().toLocaleDateString('hu-HU')} Frissítve: {lastUpdate}
+          <p className="text-purple-100 text-sm font-medium">
+            {new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}
           </p>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg p-4 text-center shadow-lg">
-            <div className="text-3xl font-bold text-blue-600">{miniapps.length}</div>
-            <div className="text-gray-600">Összes Miniapp</div>
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+          <div className="bg-white rounded-lg p-4 text-center shadow-lg border border-gray-200">
+            <div className="text-2xl font-bold text-blue-700">{miniapps.length}</div>
+            <div className="text-gray-700 text-sm font-medium">Total</div>
           </div>
-          <div className="bg-white rounded-lg p-4 text-center shadow-lg">
-            <div className="text-3xl font-bold text-blue-600">+{favorites.length}</div>
-            <div className="text-gray-600">Favoritok</div>
+          <div className="bg-white rounded-lg p-4 text-center shadow-lg border border-gray-200">
+            <div className="text-2xl font-bold text-purple-700">+{favorites.length}</div>
+            <div className="text-gray-700 text-sm font-medium">Favorites</div>
           </div>
-          <div className="bg-white rounded-lg p-4 text-center shadow-lg">
-            <div className="text-3xl font-bold text-green-600">
+          <div className="bg-white rounded-lg p-4 text-center shadow-lg border border-gray-200">
+            <div className="text-2xl font-bold text-green-700">
+              {miniapps.filter(app => (app.rank24hChange || 0) > 0).length}
+            </div>
+            <div className="text-gray-700 text-sm font-medium">Rising (24h)</div>
+          </div>
+          <div className="bg-white rounded-lg p-4 text-center shadow-lg border border-gray-200">
+            <div className="text-2xl font-bold text-green-700">
               {miniapps.filter(app => app.rank72hChange > 0).length}
             </div>
-            <div className="text-gray-600">Emelkedők (72h)</div>
+            <div className="text-gray-700 text-sm font-medium">Rising (72h)</div>
           </div>
-          <div className="bg-white rounded-lg p-4 text-center shadow-lg">
-            <div className="text-3xl font-bold text-red-600">
+          <div className="bg-white rounded-lg p-4 text-center shadow-lg border border-gray-200">
+            <div className="text-2xl font-bold text-green-700">
+              {miniapps.filter(app => (app.rankWeeklyChange || 0) > 0).length}
+            </div>
+            <div className="text-gray-700 text-sm font-medium">Rising (7d)</div>
+          </div>
+          <div className="bg-white rounded-lg p-4 text-center shadow-lg border border-gray-200">
+            <div className="text-2xl font-bold text-red-700">
               {miniapps.filter(app => app.rank72hChange < 0).length}
             </div>
-            <div className="text-gray-600">Esők (72h)</div>
+            <div className="text-gray-700 text-sm font-medium">Falling (72h)</div>
           </div>
         </div>
 
         {/* Statistics Section */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">📊 Statisztikák</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Top Risers */}
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">📊 Statistics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* 24h Top Risers */}
             <div>
-              <h3 className="text-lg font-semibold text-green-600 mb-3">📈 Legnagyobb emelkedők (72h)</h3>
+              <h3 className="text-lg font-semibold text-green-700 mb-3">📈 Top Risers (24h)</h3>
+              <div className="space-y-2">
+                {miniapps
+                  .filter(app => (app.rank24hChange || 0) > 0)
+                  .sort((a, b) => (b.rank24hChange || 0) - (a.rank24hChange || 0))
+                  .slice(0, 5)
+                  .map((app, index) => (
+                    <div key={app.rank} className="flex justify-between items-center p-2 bg-green-100 rounded border border-green-200">
+                      <span className="text-sm font-medium text-gray-800 truncate">{app.name}</span>
+                      <span className="text-sm text-green-700 font-bold">+{app.rank24hChange || 0}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* 72h Top Risers */}
+            <div>
+              <h3 className="text-lg font-semibold text-green-700 mb-3">📈 Top Risers (72h)</h3>
               <div className="space-y-2">
                 {miniapps
                   .filter(app => app.rank72hChange > 0)
                   .sort((a, b) => b.rank72hChange - a.rank72hChange)
                   .slice(0, 5)
                   .map((app, index) => (
-                    <div key={app.rank} className="flex justify-between items-center p-2 bg-green-50 rounded">
-                      <span className="text-sm font-medium">{app.name}</span>
-                      <span className="text-sm text-green-600 font-bold">+{app.rank72hChange}</span>
+                    <div key={app.rank} className="flex justify-between items-center p-2 bg-green-100 rounded border border-green-200">
+                      <span className="text-sm font-medium text-gray-800 truncate">{app.name}</span>
+                      <span className="text-sm text-green-700 font-bold">+{app.rank72hChange}</span>
                     </div>
                   ))}
               </div>
             </div>
 
-            {/* Top Fallers */}
+            {/* Weekly Top Risers */}
             <div>
-              <h3 className="text-lg font-semibold text-red-600 mb-3">📉 Legnagyobb esők (72h)</h3>
+              <h3 className="text-lg font-semibold text-green-700 mb-3">📈 Top Risers (7d)</h3>
               <div className="space-y-2">
                 {miniapps
-                  .filter(app => app.rank72hChange < 0)
-                  .sort((a, b) => a.rank72hChange - b.rank72hChange)
+                  .filter(app => (app.rankWeeklyChange || 0) > 0)
+                  .sort((a, b) => (b.rankWeeklyChange || 0) - (a.rankWeeklyChange || 0))
                   .slice(0, 5)
                   .map((app, index) => (
-                    <div key={app.rank} className="flex justify-between items-center p-2 bg-red-50 rounded">
-                      <span className="text-sm font-medium">{app.name}</span>
-                      <span className="text-sm text-red-600 font-bold">{app.rank72hChange}</span>
+                    <div key={app.rank} className="flex justify-between items-center p-2 bg-green-100 rounded border border-green-200">
+                      <span className="text-sm font-medium text-gray-800 truncate">{app.name}</span>
+                      <span className="text-sm text-green-700 font-bold">+{app.rankWeeklyChange || 0}</span>
                     </div>
                   ))}
               </div>
@@ -148,7 +179,7 @@ export default function Home() {
 
             {/* Categories */}
             <div>
-              <h3 className="text-lg font-semibold text-purple-600 mb-3">🏷️ Kategóriák</h3>
+              <h3 className="text-lg font-semibold text-purple-700 mb-3">🏷️ Categories</h3>
               <div className="space-y-2">
                 {Object.entries(
                   miniapps.reduce((acc, app) => {
@@ -159,9 +190,9 @@ export default function Home() {
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 5)
                   .map(([category, count]) => (
-                    <div key={category} className="flex justify-between items-center p-2 bg-purple-50 rounded">
-                      <span className="text-sm font-medium capitalize">{category}</span>
-                      <span className="text-sm text-purple-600 font-bold">{count}</span>
+                    <div key={category} className="flex justify-between items-center p-2 bg-purple-100 rounded border border-purple-200">
+                      <span className="text-sm font-medium text-gray-800 capitalize truncate">{category}</span>
+                      <span className="text-sm text-purple-700 font-bold">{count}</span>
                     </div>
                   ))}
               </div>
@@ -172,17 +203,17 @@ export default function Home() {
         {/* Main Ranking List */}
         <div className="bg-white rounded-2xl shadow-2xl p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Mai Top {miniapps.length}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Today's Top {miniapps.length}</h2>
             <div className="flex space-x-2">
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">
-                Lista
+              <button className="px-4 py-2 bg-purple-700 text-white rounded-lg text-sm font-medium">
+                List
               </button>
             </div>
           </div>
 
           <div className="space-y-3">
             {miniapps.map((app: Miniapp) => (
-              <div key={app.rank} className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200 hover:shadow-md transition-shadow">
+              <div key={app.rank} className="flex items-center justify-between bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4 border border-purple-300 hover:shadow-md transition-shadow">
                 <div className="flex items-center space-x-4">
                   {/* Rank */}
                   <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
@@ -196,64 +227,72 @@ export default function Home() {
                   
                   {/* App info */}
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 text-lg">{app.name}</h3>
-                    <p className="text-sm text-gray-600">{app.domain}</p>
-                    <p className="text-xs text-gray-500">@{app.author.username}</p>
+                    <h3 className="font-semibold text-gray-900 text-lg">{app.name}</h3>
+                    <p className="text-sm text-gray-700 font-medium">{app.domain}</p>
+                    <p className="text-xs text-gray-600 font-medium">@{app.author.username}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-4">
-                  {/* Rank change */}
-                  <div className="text-right">
-                    <span className={`text-lg font-semibold ${
-                      app.rank72hChange > 0 ? 'text-green-600' : 
-                      app.rank72hChange < 0 ? 'text-red-600' : 'text-gray-600'
-                    }`}>
-                      {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
-                    </span>
-                    <div className="text-sm text-gray-500">
-                      {app.author.followerCount.toLocaleString()} követő
+                  {/* Rank changes */}
+                  <div className="text-right space-y-1">
+                    <div className="flex space-x-2 text-xs">
+                      <span className={`font-semibold ${
+                        (app.rank24hChange || 0) > 0 ? 'text-green-700' : 
+                        (app.rank24hChange || 0) < 0 ? 'text-red-700' : 'text-gray-700'
+                      }`}>
+                        {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
+                      </span>
+                      <span className="text-gray-600 font-medium">24h</span>
+                    </div>
+                    <div className="flex space-x-2 text-xs">
+                      <span className={`font-semibold ${
+                        app.rank72hChange > 0 ? 'text-green-700' : 
+                        app.rank72hChange < 0 ? 'text-red-700' : 'text-gray-700'
+                      }`}>
+                        {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
+                      </span>
+                      <span className="text-gray-600 font-medium">72h</span>
+                    </div>
+                    <div className="flex space-x-2 text-xs">
+                      <span className={`font-semibold ${
+                        (app.rankWeeklyChange || 0) > 0 ? 'text-green-700' : 
+                        (app.rankWeeklyChange || 0) < 0 ? 'text-red-700' : 'text-gray-700'
+                      }`}>
+                        {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
+                      </span>
+                      <span className="text-gray-600 font-medium">7d</span>
+                    </div>
+                    <div className="text-xs text-gray-600 font-medium">
+                      {app.author.followerCount.toLocaleString()} followers
                     </div>
                   </div>
-                  
+
                   {/* Favorite button */}
                   <button
-                    onClick={() => toggleFavorite(app.rank.toString())}
-                    className={`text-2xl transition-colors ${
-                      favorites.includes(app.rank.toString()) 
-                        ? 'text-red-500 hover:text-red-600' 
-                        : 'text-gray-400 hover:text-red-500'
+                    onClick={() => toggleFavorite(app.domain)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                      favorites.includes(app.domain)
+                        ? 'bg-red-500 text-white'
+                        : 'bg-gray-200 text-gray-600 hover:bg-red-100'
                     }`}
                   >
-                    {favorites.includes(app.rank.toString()) ? '❤️' : '🤍'}
+                    ❤️
                   </button>
-                  
-                  {/* Action buttons */}
-                  <div className="flex space-x-2">
-                    {app.homeUrl && (
-                      <a 
-                        href={app.homeUrl} 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                      >
-                        Megnyitás
-                      </a>
-                    )}
-                    <button className="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                      Megosztás
-                    </button>
-                  </div>
+
+                  {/* Visit button */}
+                  <a
+                    href={app.homeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Visit
+                  </a>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="mt-8 text-center text-purple-200">
-          <p className="text-sm">
-            Favoritok: {favorites.length} | Összesen: {miniapps.length} miniapp
-          </p>
         </div>
       </div>
     </div>

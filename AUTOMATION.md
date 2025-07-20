@@ -77,6 +77,25 @@ FARCASTER_BEARER_TOKEN=...
 - Legnagyobb esők (24h, 72h, 7d)
 - Összesített statisztikák
 
+## 📧 Email Értesítések
+
+### Email Típusok
+- **Sikeres frissítés** - Minden automatikus frissítés után
+- **Hiba értesítés** - Ha valami hiba történik
+- **Napi összefoglaló** - Reggeli frissítés után (02:00 UTC)
+
+### Email Beállítás
+1. **Gmail App Password** létrehozása
+2. **GitHub Secrets** beállítása:
+   - `EMAIL_SENDER`: your-email@gmail.com
+   - `EMAIL_PASSWORD`: your-app-password
+   - `EMAIL_RECIPIENT`: your-email@gmail.com
+
+### Email Tesztelés
+```bash
+python test_email.py
+```
+
 ## 🔧 Hibaelhárítás
 
 ### Gyakori problémák:
@@ -84,10 +103,12 @@ FARCASTER_BEARER_TOKEN=...
 2. **API hiba** - Farcaster API állapot ellenőrzése
 3. **Adatbázis kapcsolat** - Neon DB állapot
 4. **Git push hiba** - GitHub token ellenőrzése
+5. **Email küldési hiba** - SMTP konfiguráció ellenőrzése
 
 ### Tesztelés:
 ```bash
 python test_automation.py
+python test_email.py
 ```
 
 ## 📅 Ütemezés

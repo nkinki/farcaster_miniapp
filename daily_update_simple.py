@@ -3,9 +3,10 @@ import os
 import requests
 import psycopg2
 import psycopg2.extras
-from datetime import date
+from datetime import date, datetime
 from dotenv import load_dotenv
 from config import get_api_headers, FARCASTER_API_URL, DEFAULT_LIMIT
+from email_notifications import send_success_notification, send_error_notification, send_daily_summary
 
 load_dotenv()
 NEON_DB_URL = os.getenv("NEON_DB_URL")
@@ -224,8 +225,40 @@ def update_database(miniapps_data):
         print(f"   - Rankings: {inserted_rankings}")
         print(f"   - Snapshot: {today}")
         
+        # Email értesítés küldése
+        try:
+            # Top változások összegyűjtése
+            top_changes = ""
+            for i, item in enumerate(miniapps_data[:5], 1):
+                miniapp = item['miniApp']
+                rank_change = item.get('rank72hChange', 0)
+                change_str = f"({rank_change:+d})" if rank_change != 0 else ""
+                top_changes += f"<li>#{i} {miniapp['name']} {change_str}</li>"
+            
+            if top_changes:
+                top_changes = f"<ul>{top_changes}</ul>"
+            else:
+                top_changes = "<p>Nincs jelentős változás</p>"
+            
+            # Sikeres frissítés értesítése
+            send_success_notification(len(miniapps_data), top_changes)
+            
+            # Napi összefoglaló (csak reggel)
+            if datetime.now().hour < 12:  # Csak reggel
+                send_daily_summary(miniapps_data)
+                
+        except Exception as email_error:
+            print(f"Email küldési hiba: {email_error}")
+        
     except Exception as e:
         print(f"Database error: {e}")
+        
+        # Hiba értesítés küldése
+        try:
+            send_error_notification(str(e), str(e))
+        except Exception as email_error:
+            print(f"Email küldési hiba: {email_error}")
+            
     finally:
         if conn:
             conn.close()
