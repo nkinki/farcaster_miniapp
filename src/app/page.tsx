@@ -150,8 +150,22 @@ export default function Home() {
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-white text-sm truncate">{app.name}</div>
                       <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
+                      <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
+                        <span className="text-xs">👥</span>
+                        <span>{app.author.followerCount}</span>
+                      </div>
                     </div>
-                    {/* Rank changes mini-table */}
+                    {/* Favorite button - moved next to app info */}
+                    <button
+                      onClick={() => toggleFavorite(app.domain)}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ml-2 ${favorites.includes(app.domain)
+                        ? 'bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]'
+                        : 'bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700'}`}
+                      title={favorites.includes(app.domain) ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      {favorites.includes(app.domain) ? '❤️' : '🤍'}
+                    </button>
+                    {/* Rank changes mini-table - moved to far right */}
                     <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
                       <div className="flex gap-1 items-center">
                         <span className={`font-semibold text-xs ${
@@ -178,16 +192,6 @@ export default function Home() {
                         <span className="text-[10px] text-purple-400">7d</span>
                       </div>
                     </div>
-                    {/* Favorite button */}
-                    <button
-                      onClick={() => toggleFavorite(app.domain)}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ml-2 ${favorites.includes(app.domain)
-                        ? 'bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]'
-                        : 'bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700'}`}
-                      title={favorites.includes(app.domain) ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                      {favorites.includes(app.domain) ? '❤️' : '🤍'}
-                    </button>
                   </div>
                 </>
               );
