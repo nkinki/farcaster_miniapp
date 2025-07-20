@@ -109,14 +109,6 @@ export default function Home() {
 
         {/* Main Ranking List - Compact Grid */}
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-4 border border-purple-500/30">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">
-              {filter === 'daily' && "Today's Top"}
-              {filter === '72h' && "Top Movers (72h)"}
-              {filter === 'weekly' && "Top Movers (7d)"}
-              {' '}{sortedMiniapps.length}
-            </h2>
-          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             {sortedMiniapps.map((app: Miniapp) => (
               <div key={app.rank} className={`flex flex-col justify-between bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-lg p-2 border border-purple-500/30 hover:border-purple-400/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-300 ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}>
