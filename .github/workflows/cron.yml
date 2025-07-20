@@ -35,6 +35,9 @@ jobs:
       run: |
         echo "NEON_DB_URL=${{ secrets.NEON_DB_URL }}" > .env
         echo "FARCASTER_BEARER_TOKEN=${{ secrets.FARCASTER_BEARER_TOKEN }}" >> .env
+        echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" >> .env
+        echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
+        echo "EMAIL_RECIPIENT=${{ secrets.EMAIL_RECIPIENT }}" >> .env
         
     - name: Download latest data
       run: |
@@ -61,8 +64,12 @@ jobs:
       run: |
         echo "✅ Miniapp update completed successfully"
         python -c "
+        import os
         from email_notifications import send_success_notification
-        send_success_notification(246, '<ul><li>Automatikus frissítés sikeres</li></ul>')
+        try:
+            send_success_notification(246, '<ul><li>Automatikus frissítés sikeres</li></ul>')
+        except Exception as e:
+            print(f'Email notification failed: {e}')
         "
       
     - name: Notify failure
@@ -70,6 +77,10 @@ jobs:
       run: |
         echo "❌ Miniapp update failed"
         python -c "
+        import os
         from email_notifications import send_error_notification
-        send_error_notification('GitHub Actions hiba', 'Automatikus frissítés sikertelen')
+        try:
+            send_error_notification('GitHub Actions hiba', 'Automatikus frissítés sikertelen')
+        except Exception as e:
+            print(f'Error notification failed: {e}')
         " 

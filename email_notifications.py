@@ -17,12 +17,22 @@ def send_email_notification(subject, body, recipient_email=None):
     
     # Ha nincs .env, használjuk a config.py-t
     if not sender_email or not sender_password:
-        email_config = get_email_config()
-        sender_email = email_config["sender"]
-        sender_password = email_config["password"]
+        try:
+            email_config = get_email_config()
+            sender_email = email_config["sender"]
+            sender_password = email_config["password"]
+        except Exception as e:
+            print(f"❌ Email config error: {e}")
+            return False
     
     if not recipient_email:
-        recipient_email = os.getenv("EMAIL_RECIPIENT", email_config.get("recipient", sender_email))
+        recipient_email = os.getenv("EMAIL_RECIPIENT")
+        if not recipient_email:
+            try:
+                email_config = get_email_config()
+                recipient_email = email_config.get("recipient", sender_email)
+            except:
+                recipient_email = sender_email
     
     if not sender_email or not sender_password:
         print("❌ Email konfiguráció hiányzik")
