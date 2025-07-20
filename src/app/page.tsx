@@ -99,9 +99,9 @@ export default function Home() {
         {/* Header */}
         <div className="mb-6 text-center">
           <div className="flex justify-center items-center mb-2">
-            <span className="text-xl font-bold tracking-tight text-purple-400 uppercase letter-spacing-widest">APPRANK</span>
+            <span className="text-2xl font-bold text-white uppercase tracking-[.7em]" style={{letterSpacing: '0.7em', fontWeight: 700, fontFamily: 'inherit', paddingLeft: '0.35em', paddingRight: '0.35em'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
           </div>
-          <p className="text-purple-300 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
+          <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
           <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
         </div>
 
