@@ -35,22 +35,69 @@ export const MiniappUserProfile: React.FC = () => {
             if (token) {
               console.log('Token received:', typeof token)
               
-              // Try to fetch user profile using the token
-              console.log('Making API call to Farcaster...')
-              const response = await sdk.quickAuth.fetch('https://api.farcaster.xyz/v2/me', {
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
+              // First, try to get user data from context
+              console.log('Checking miniapp context...')
+              const context = await sdk.context
+              console.log('Context keys:', Object.keys(context || {}))
+              console.log('Full context:', context)
+              
+              // Try to get user data from context first
+              if (context && context.user) {
+                console.log('Found user in context:', context.user)
+                const profile = context.user
+                setUser({
+                  fid: profile.fid || 0,
+                  username: profile.username || '',
+                  displayName: profile.displayName || '',
+                  pfp: profile.pfpUrl || '',
+                  followerCount: 0, // Not available in UserContext
+                  followingCount: 0  // Not available in UserContext
+                })
+                setError(null)
+                return
+              }
+              
+              // If no user in context, try API calls
+              console.log('No user in context, trying API calls...')
+              
+              // Try multiple API endpoints
+              const endpoints = [
+                'https://api.farcaster.xyz/v1/user',
+                'https://api.farcaster.xyz/v2/me',
+                'https://api.farcaster.xyz/v1/me'
+              ]
+              
+              let userData = null
+              let successfulEndpoint = null
+              
+              for (const endpoint of endpoints) {
+                try {
+                  console.log(`Trying endpoint: ${endpoint}`)
+                  const response = await sdk.quickAuth.fetch(endpoint, {
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    }
+                  })
+                  
+                  console.log(`Endpoint ${endpoint} - status:`, response.status)
+                  
+                  if (response.ok) {
+                    userData = await response.json()
+                    successfulEndpoint = endpoint
+                    console.log(`Success with endpoint: ${endpoint}`)
+                    console.log('API Response:', JSON.stringify(userData, null, 2))
+                    break
+                  } else {
+                    const errorText = await response.text()
+                    console.log(`Endpoint ${endpoint} failed:`, response.status, errorText)
+                  }
+                } catch (endpointError) {
+                  console.log(`Endpoint ${endpoint} error:`, endpointError)
                 }
-              })
+              }
               
-              console.log('API Response status:', response.status)
-              console.log('API Response ok:', response.ok)
-              
-              if (response.ok) {
-                const userData = await response.json()
-                console.log('Full API response:', JSON.stringify(userData, null, 2))
-                
+              if (userData) {
                 // Try different response formats
                 let profile = null
                 
@@ -63,6 +110,9 @@ export const MiniappUserProfile: React.FC = () => {
                 } else if (userData.fid) {
                   // Direct user object
                   profile = userData
+                } else if (userData.result && userData.result.fid) {
+                  // Direct result object
+                  profile = userData.result
                 }
                 
                 if (profile) {
@@ -70,21 +120,21 @@ export const MiniappUserProfile: React.FC = () => {
                   setUser({
                     fid: profile.fid || 0,
                     username: profile.username || profile.username || '',
-                    displayName: profile.displayName || profile.display_name || '',
-                    pfp: profile.pfp || profile.pfp_url || '',
-                    followerCount: profile.followerCount || profile.followers_count || 0,
-                    followingCount: profile.followingCount || profile.following_count || 0
+                    displayName: profile.displayName || profile.display_name || profile.name || '',
+                    pfp: profile.pfp || profile.pfp_url || profile.avatar_url || '',
+                    followerCount: profile.followerCount || profile.followers_count || profile.followers || 0,
+                    followingCount: profile.followingCount || profile.following_count || profile.following || 0
                   })
                   setError(null)
                   return
                 } else {
-                  console.log('No user profile found in response')
-                  setError('Felhasználói profil nem található a válaszban')
+                  console.log('No user profile found in response from', successfulEndpoint)
+                  console.log('Available keys in response:', Object.keys(userData))
+                  setError(`Felhasználói profil nem található a válaszban (${successfulEndpoint})`)
                 }
               } else {
-                const errorText = await response.text()
-                console.log('API Error response:', errorText)
-                setError(`API hiba: ${response.status} - ${errorText}`)
+                console.log('All API endpoints failed')
+                setError('Minden API endpoint sikertelen volt')
               }
             } else {
               console.log('No token received')
