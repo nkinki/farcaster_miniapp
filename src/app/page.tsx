@@ -97,16 +97,12 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-purple-400 mb-2 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
-            🏆 Miniapps Rankings
-          </h1>
-          <p className="text-purple-300 text-lg mb-2 font-medium">
-            Farcaster miniapp toplist and statistics
-          </p>
-          <p className="text-purple-200 text-sm font-medium">
-            {new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}
-          </p>
+        <div className="mb-6 text-center">
+          <div className="flex justify-center items-center mb-2">
+            <span className="text-xl font-bold tracking-tight text-purple-400 uppercase letter-spacing-widest">APPRANK</span>
+          </div>
+          <p className="text-purple-300 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
+          <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
         </div>
 
         {/* Main Ranking List - Compact Grid */}

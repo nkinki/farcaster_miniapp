@@ -13,17 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "🏆 Miniapps Rankings - Farcaster Toplist",
-  description: "Farcaster miniapp toplist and statistics - View the most popular miniapps and track ranking changes",
+  title: "APPRANK",
+  description: "APPRANK - Farcaster miniapp toplist and statistics",
   openGraph: {
-    title: "🏆 Miniapps Rankings - Farcaster Toplist",
+    title: "APPRANK",
     description: "Farcaster miniapp toplist and statistics",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Miniapps Rankings",
+        alt: "APPRANK",
       },
     ],
   },
@@ -56,8 +56,8 @@ export default function RootLayout({
         {/* Farcaster Miniapp Meta Tags */}
         <meta name="farcaster:app" content="miniapp" />
         <meta name="farcaster:category" content="analytics" />
-        <meta name="farcaster:title" content="🏆 Miniapps Rankings" />
-        <meta name="farcaster:description" content="Farcaster miniapp toplist and statistics" />
+        <meta name="farcaster:title" content="APPRANK" />
+        <meta name="farcaster:description" content="APPRANK - Farcaster miniapp toplist and statistics" />
         <meta name="farcaster:image" content="https://farcaster-miniapp-rangsor.vercel.app/og-image.png" />
         <meta name="farcaster:url" content="https://farcaster-miniapp-rangsor.vercel.app" />
       </head>
