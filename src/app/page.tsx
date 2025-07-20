@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk';
 import Image from 'next/image';
+import { FarcasterAuthProvider, useFarcasterAuth } from '../components/FarcasterAuthProvider';
+import { AuthButton } from '../components/AuthButton';
+import { UserProfile } from '../components/UserProfile';
 
 // Define types for miniapp data
 interface Miniapp {
@@ -26,12 +29,13 @@ interface Miniapp {
   points?: number; // Added for new list style
 }
 
-export default function Home() {
+function HomeContent() {
   const [miniapps, setMiniapps] = useState<Miniapp[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<string>('')
   const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
+  const { user, isAuthenticated } = useFarcasterAuth()
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -108,6 +112,14 @@ export default function Home() {
           <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
           <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
         </div>
+
+        {/* Auth Button */}
+        <div className="flex justify-end mb-4">
+          <AuthButton />
+        </div>
+
+        {/* User Profile */}
+        <UserProfile />
 
         {/* Main Ranking List - Modern List Style */}
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
@@ -248,5 +260,13 @@ export default function Home() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Home() {
+  return (
+    <FarcasterAuthProvider>
+      <HomeContent />
+    </FarcasterAuthProvider>
   )
 }
