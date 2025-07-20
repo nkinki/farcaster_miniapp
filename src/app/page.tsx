@@ -138,11 +138,9 @@ export default function Home() {
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
                     {/* App logo */}
                     {app.iconUrl ? (
-                      <Image
+                      <img
                         src={app.iconUrl}
                         alt={app.name + ' logo'}
-                        width={32}
-                        height={32}
                         className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
                         onError={e => { e.currentTarget.style.display = 'none'; }}
                       />
