@@ -137,14 +137,12 @@ def update_database(miniapps_data):
             ))
             inserted_rankings += 1
         
-        # 3. Save complete snapshot
+        # 3. Save complete snapshot (force update with new timestamp)
+        cursor.execute("DELETE FROM ranking_snapshots WHERE snapshot_date = %s", (today,))
         cursor.execute("""
             INSERT INTO ranking_snapshots (
                 snapshot_date, total_miniapps, raw_json
             ) VALUES (%s, %s, %s)
-            ON CONFLICT (snapshot_date) DO UPDATE SET
-                total_miniapps = EXCLUDED.total_miniapps,
-                raw_json = EXCLUDED.raw_json
         """, (
             today,
             len(miniapps_data),
