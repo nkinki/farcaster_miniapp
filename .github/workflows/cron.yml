@@ -42,7 +42,7 @@ jobs:
         
     - name: Update database
       run: |
-        python daily_update.py
+        python daily_update_simple.py
         
     - name: Copy data to Next.js
       run: |

@@ -14,7 +14,7 @@ def test_data_download():
     print("🔄 Tesztelés: Adatok letöltése...")
     
     try:
-        result = subprocess.run([sys.executable, "update_ranking.py"], 
+        result = subprocess.run([sys.executable, "update_ranking_simple.py"], 
                               capture_output=True, text=True, timeout=60)
         
         if result.returncode == 0:
@@ -45,7 +45,7 @@ def test_database_update():
     print("🔄 Tesztelés: Adatbázis frissítése...")
     
     try:
-        result = subprocess.run([sys.executable, "daily_update.py"], 
+        result = subprocess.run([sys.executable, "daily_update_simple.py"], 
                               capture_output=True, text=True, timeout=120)
         
         if result.returncode == 0:
