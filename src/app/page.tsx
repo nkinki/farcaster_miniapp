@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk';
+import Image from 'next/image';
 
 // Define types for miniapp data
 interface Miniapp {
@@ -112,9 +113,6 @@ export default function Home() {
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
           <div className="flex flex-col gap-2">
             {sortedMiniapps.map((app: Miniapp, idx: number) => {
-              // Always use default rank badge color for category position
-              let rankBg = 'bg-gray-700';
-              let rankText = 'text-white';
               // Highlight top 50
               const highlight = idx < 50 ? 'bg-[#23283a]/80' : 'bg-[#181c23]';
               return (
@@ -140,9 +138,11 @@ export default function Home() {
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
                     {/* App logo */}
                     {app.iconUrl ? (
-                      <img
+                      <Image
                         src={app.iconUrl}
                         alt={app.name + ' logo'}
+                        width={32}
+                        height={32}
                         className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
                         onError={e => { e.currentTarget.style.display = 'none'; }}
                       />
