@@ -18,6 +18,7 @@ interface Miniapp {
   rank72hChange: number
   rank24hChange?: number
   rankWeeklyChange?: number
+  rank30dChange?: number // <-- add this
   iconUrl: string
   homeUrl: string
   rankScore?: number; // Added for new list style
@@ -29,7 +30,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<string>('')
-  const [filter, setFilter] = useState<'daily' | '72h' | 'weekly'>('daily')
+  const [filter, setFilter] = useState<'daily' | '72h' | 'weekly' | '30d'>('daily')
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -78,6 +79,7 @@ export default function Home() {
     if (filter === 'daily') return true;
     if (filter === '72h') return Math.abs(app.rank72hChange) > 0;
     if (filter === 'weekly') return Math.abs(app.rankWeeklyChange || 0) > 0;
+    if (filter === '30d') return Math.abs(app.rank30dChange || 0) > 0;
     return true;
   });
 
@@ -191,6 +193,14 @@ export default function Home() {
                         </span>
                         <span className="text-[10px] text-purple-400">7d</span>
                       </div>
+                      <div className="flex gap-1 items-center">
+                        <span className={`font-semibold text-xs ${
+                          (app.rank30dChange || 0) > 0 ? 'text-green-400' : (app.rank30dChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                        }`}>
+                          {(app.rank30dChange || 0) > 0 ? '+' : ''}{app.rank30dChange || 0}
+                        </span>
+                        <span className="text-[10px] text-cyan-300">30d</span>
+                      </div>
                     </div>
                   </div>
                 </>
@@ -218,6 +228,12 @@ export default function Home() {
           onClick={() => setFilter('weekly')}
         >
           Weekly
+        </button>
+        <button
+          className={`px-6 py-2 rounded-md font-bold text-base transition-all duration-200 ${filter === '30d' ? 'bg-cyan-500 text-white shadow-lg' : 'bg-purple-900 text-cyan-300 hover:bg-cyan-800'}`}
+          onClick={() => setFilter('30d')}
+        >
+          30d
         </button>
       </div>
     </div>
