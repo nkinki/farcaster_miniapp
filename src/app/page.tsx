@@ -20,6 +20,8 @@ interface Miniapp {
   rankWeeklyChange?: number
   iconUrl: string
   homeUrl: string
+  rankScore?: number; // Added for new list style
+  points?: number; // Added for new list style
 }
 
 export default function Home() {
@@ -107,34 +109,47 @@ export default function Home() {
           <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
         </div>
 
-        {/* Main Ranking List - Compact Grid */}
-        <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-4 border border-purple-500/30">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-            {sortedMiniapps.map((app: Miniapp) => (
-              <div key={app.rank} className={`flex flex-col justify-between bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-lg p-2 border border-purple-500/30 hover:border-purple-400/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-300 ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}>
-                <div className="flex items-center space-x-1 mb-1">
-                  <div className="w-6 h-6 bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-full flex items-center justify-center font-bold text-xs border border-purple-400/30">
-                    #{app.rank}
-                  </div>
+        {/* Main Ranking List - Modern List Style */}
+        <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
+          <div className="flex flex-col gap-2">
+            {sortedMiniapps.map((app: Miniapp, idx: number) => {
+              // Rank badge color
+              let rankBg = 'bg-gray-700';
+              let rankText = 'text-white';
+              if (idx === 0) { rankBg = 'bg-gradient-to-br from-orange-400 to-yellow-300'; rankText = 'text-white'; }
+              else if (idx === 1) { rankBg = 'bg-gradient-to-br from-gray-400 to-gray-200'; rankText = 'text-gray-900'; }
+              else if (idx === 2) { rankBg = 'bg-gradient-to-br from-emerald-400 to-green-300'; rankText = 'text-white'; }
+              return (
+                <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}> 
+                  {/* Rank badge */}
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 ${rankBg} ${rankText}`}>{app.rank}</div>
+                  {/* App logo */}
                   {app.iconUrl ? (
                     <img
                       src={app.iconUrl}
                       alt={app.name + ' logo'}
-                      className="w-6 h-6 rounded-md object-cover border border-purple-700/30 bg-white"
+                      className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
                       onError={e => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs bg-purple-700/60 text-white border border-purple-700/30">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
                       {app.name.charAt(0).toUpperCase()}
                     </div>
                   )}
+                  {/* App info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-purple-200 text-xs truncate">{app.name}</h3>
-                    <p className="text-[10px] text-purple-300 font-medium truncate">{app.domain}</p>
+                    <div className="font-semibold text-white text-base truncate">{app.name}</div>
+                    <div className="text-xs text-purple-300 truncate">@{app.author.username}</div>
                   </div>
+                  {/* Points */}
+                  <div className="flex flex-col items-end ml-2 min-w-[70px]">
+                    <span className="font-bold text-lg text-white">{app.rankScore || app.points || app.author.followerCount || 0}</span>
+                    <span className="text-xs text-purple-400">points</span>
+                  </div>
+                  {/* Favorite button */}
                   <button
                     onClick={() => toggleFavorite(app.domain)}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-1 ${favorites.includes(app.domain)
+                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ml-2 ${favorites.includes(app.domain)
                       ? 'bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]'
                       : 'bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700'}`}
                     title={favorites.includes(app.domain) ? 'Remove from favorites' : 'Add to favorites'}
@@ -142,28 +157,8 @@ export default function Home() {
                     {favorites.includes(app.domain) ? '❤️' : '🤍'}
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-1 text-[10px] text-purple-400">
-                  <span className={`font-semibold ${
-                    (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
-                  }`}>
-                    {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0} 24h
-                  </span>
-                  <span className={`font-semibold ${
-                    app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
-                  }`}>
-                    {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange} 72h
-                  </span>
-                  <span className={`font-semibold ${
-                    (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
-                  }`}>
-                    {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0} 7d
-                  </span>
-                  <span className="text-[10px] text-purple-400 font-medium">
-                    {app.author.followerCount.toLocaleString()} followers
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
