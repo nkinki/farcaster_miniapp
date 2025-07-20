@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { FarcasterAuthProvider, useFarcasterAuth } from '../components/FarcasterAuthProvider';
 import { AuthButton } from '../components/AuthButton';
 import { UserProfile } from '../components/UserProfile';
+import { RealFarcasterAuth } from '../components/RealFarcasterAuth';
 
 // Define types for miniapp data
 interface Miniapp {
@@ -35,6 +36,7 @@ function HomeContent() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<string>('')
   const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
+  const [showRealAuth, setShowRealAuth] = useState(false)
   const { user, isAuthenticated } = useFarcasterAuth()
 
   useEffect(() => {
@@ -99,6 +101,22 @@ function HomeContent() {
     )
   }
 
+  if (showRealAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900">
+        <div className="flex justify-end p-4">
+          <button
+            onClick={() => setShowRealAuth(false)}
+            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 font-semibold text-sm"
+          >
+            ← Vissza
+          </button>
+        </div>
+        <RealFarcasterAuth />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
       <div className="max-w-4xl mx-auto">
@@ -113,8 +131,14 @@ function HomeContent() {
           <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
         </div>
 
-        {/* Auth Button */}
-        <div className="flex justify-end mb-4">
+        {/* Auth Buttons */}
+        <div className="flex justify-end gap-2 mb-4">
+          <button
+            onClick={() => setShowRealAuth(true)}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 font-semibold text-sm"
+          >
+            🔐 Valódi Farcaster Auth
+          </button>
           <AuthButton />
         </div>
 
