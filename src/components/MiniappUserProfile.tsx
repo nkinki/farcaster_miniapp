@@ -15,12 +15,14 @@ interface MiniappUser {
 export const MiniappUserProfile: React.FC = () => {
   const [user, setUser] = useState<MiniappUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const getUserData = async () => {
       try {
         // Check if we're in a miniapp environment
         const isInMiniapp = await sdk.isInMiniApp()
+        console.log('Is in miniapp:', isInMiniapp)
         
         if (isInMiniapp) {
           console.log('In miniapp environment, trying to get user data...')
@@ -28,10 +30,13 @@ export const MiniappUserProfile: React.FC = () => {
           // Try to get user data using quickAuth
           try {
             const token = await sdk.quickAuth.getToken()
-            console.log('QuickAuth token:', token)
+            console.log('QuickAuth token received:', !!token)
             
             if (token) {
+              console.log('Token received:', typeof token)
+              
               // Try to fetch user profile using the token
+              console.log('Making API call to Farcaster...')
               const response = await sdk.quickAuth.fetch('https://api.farcaster.xyz/v2/me', {
                 headers: {
                   'Authorization': `Bearer ${token}`,
@@ -39,29 +44,59 @@ export const MiniappUserProfile: React.FC = () => {
                 }
               })
               
+              console.log('API Response status:', response.status)
+              console.log('API Response ok:', response.ok)
+              
               if (response.ok) {
                 const userData = await response.json()
-                console.log('User data from API:', userData)
+                console.log('Full API response:', JSON.stringify(userData, null, 2))
+                
+                // Try different response formats
+                let profile = null
                 
                 if (userData.result && userData.result.user) {
-                  const profile = userData.result.user
-                  setUser({
-                    fid: profile.fid,
-                    username: profile.username || '',
-                    displayName: profile.displayName || '',
-                    pfp: profile.pfp || '',
-                    followerCount: profile.followerCount || 0,
-                    followingCount: profile.followingCount || 0
-                  })
-                  return
+                  profile = userData.result.user
+                } else if (userData.user) {
+                  profile = userData.user
+                } else if (userData.data && userData.data.user) {
+                  profile = userData.data.user
+                } else if (userData.fid) {
+                  // Direct user object
+                  profile = userData
                 }
+                
+                if (profile) {
+                  console.log('Found user profile:', profile)
+                  setUser({
+                    fid: profile.fid || 0,
+                    username: profile.username || profile.username || '',
+                    displayName: profile.displayName || profile.display_name || '',
+                    pfp: profile.pfp || profile.pfp_url || '',
+                    followerCount: profile.followerCount || profile.followers_count || 0,
+                    followingCount: profile.followingCount || profile.following_count || 0
+                  })
+                  setError(null)
+                  return
+                } else {
+                  console.log('No user profile found in response')
+                  setError('Felhasználói profil nem található a válaszban')
+                }
+              } else {
+                const errorText = await response.text()
+                console.log('API Error response:', errorText)
+                setError(`API hiba: ${response.status} - ${errorText}`)
               }
+            } else {
+              console.log('No token received')
+              setError('Nincs token elérhető')
             }
           } catch (authError) {
             console.log('QuickAuth error:', authError)
+            setError(`QuickAuth hiba: ${authError}`)
           }
           
           // Fallback: show miniapp environment info
+          console.log('Using fallback user data')
           setUser({
             fid: 0,
             username: 'miniapp_user',
@@ -70,13 +105,16 @@ export const MiniappUserProfile: React.FC = () => {
             followerCount: 0,
             followingCount: 0
           })
+          setError('Valódi adatok betöltése sikertelen, fallback adatok használata')
         } else {
           console.log('Not in miniapp environment')
           setUser(null)
+          setError('Nem miniapp környezetben fut')
         }
       } catch (error) {
         console.error('Error loading miniapp user data:', error)
         setUser(null)
+        setError(`Hiba: ${error}`)
       } finally {
         setIsLoading(false)
       }
@@ -91,6 +129,22 @@ export const MiniappUserProfile: React.FC = () => {
         <div className="flex items-center justify-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400"></div>
           <span className="ml-2 text-purple-300">Betöltés...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4 border border-red-500/30 mb-6">
+        <div className="text-center">
+          <p className="text-red-300 text-sm mb-2">Hiba történt</p>
+          <p className="text-gray-400 text-xs">{error}</p>
+          {user && (
+            <div className="mt-3 p-2 bg-gray-800/50 rounded-lg">
+              <p className="text-green-400 text-xs">Fallback adatok használata</p>
+            </div>
+          )}
         </div>
       </div>
     )
