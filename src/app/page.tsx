@@ -119,23 +119,20 @@ export default function Home() {
               {' '}{sortedMiniapps.length}
             </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             {sortedMiniapps.map((app: Miniapp) => (
-              <div key={app.rank} className={`flex flex-col justify-between bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-lg p-3 border border-purple-500/30 hover:border-purple-400/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-300 ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}>
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-full flex items-center justify-center font-bold text-base border border-purple-400/30">
+              <div key={app.rank} className={`flex flex-col justify-between bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-lg p-2 border border-purple-500/30 hover:border-purple-400/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-300 ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}>
+                <div className="flex items-center space-x-1 mb-1">
+                  <div className="w-6 h-6 bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-full flex items-center justify-center font-bold text-xs border border-purple-400/30">
                     #{app.rank}
                   </div>
-                  <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center text-xl border border-yellow-400/30">
-                    😊
-                  </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-purple-200 text-base truncate">{app.name}</h3>
-                    <p className="text-xs text-purple-300 font-medium truncate">{app.domain}</p>
+                    <h3 className="font-semibold text-purple-200 text-xs truncate">{app.name}</h3>
+                    <p className="text-[10px] text-purple-300 font-medium truncate">{app.domain}</p>
                   </div>
                   <button
                     onClick={() => toggleFavorite(app.domain)}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ml-1 ${favorites.includes(app.domain)
+                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-1 ${favorites.includes(app.domain)
                       ? 'bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]'
                       : 'bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700'}`}
                     title={favorites.includes(app.domain) ? 'Remove from favorites' : 'Add to favorites'}
@@ -143,7 +140,7 @@ export default function Home() {
                     {favorites.includes(app.domain) ? '❤️' : '🤍'}
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2 text-xs text-purple-400">
+                <div className="flex flex-wrap gap-1 text-[10px] text-purple-400">
                   <span className={`font-semibold ${
                     (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
                   }`}>
@@ -159,7 +156,7 @@ export default function Home() {
                   }`}>
                     {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0} 7d
                   </span>
-                  <span className="text-xs text-purple-400 font-medium">
+                  <span className="text-[10px] text-purple-400 font-medium">
                     {app.author.followerCount.toLocaleString()} followers
                   </span>
                 </div>
