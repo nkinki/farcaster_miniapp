@@ -85,7 +85,7 @@ export default function Home() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg p-4 text-center shadow-lg">
             <div className="text-3xl font-bold text-blue-600">{miniapps.length}</div>
             <div className="text-gray-600">Összes Miniapp</div>
@@ -95,10 +95,77 @@ export default function Home() {
             <div className="text-gray-600">Favoritok</div>
           </div>
           <div className="bg-white rounded-lg p-4 text-center shadow-lg">
-            <div className="text-3xl font-bold text-blue-600">
-              {miniapps.length > 0 ? miniapps[0].name : '-'}
+            <div className="text-3xl font-bold text-green-600">
+              {miniapps.filter(app => app.rank72hChange > 0).length}
             </div>
-            <div className="text-gray-600">#1 Miniapp</div>
+            <div className="text-gray-600">Emelkedők (72h)</div>
+          </div>
+          <div className="bg-white rounded-lg p-4 text-center shadow-lg">
+            <div className="text-3xl font-bold text-red-600">
+              {miniapps.filter(app => app.rank72hChange < 0).length}
+            </div>
+            <div className="text-gray-600">Esők (72h)</div>
+          </div>
+        </div>
+
+        {/* Statistics Section */}
+        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">📊 Statisztikák</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Top Risers */}
+            <div>
+              <h3 className="text-lg font-semibold text-green-600 mb-3">📈 Legnagyobb emelkedők (72h)</h3>
+              <div className="space-y-2">
+                {miniapps
+                  .filter(app => app.rank72hChange > 0)
+                  .sort((a, b) => b.rank72hChange - a.rank72hChange)
+                  .slice(0, 5)
+                  .map((app, index) => (
+                    <div key={app.rank} className="flex justify-between items-center p-2 bg-green-50 rounded">
+                      <span className="text-sm font-medium">{app.name}</span>
+                      <span className="text-sm text-green-600 font-bold">+{app.rank72hChange}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Top Fallers */}
+            <div>
+              <h3 className="text-lg font-semibold text-red-600 mb-3">📉 Legnagyobb esők (72h)</h3>
+              <div className="space-y-2">
+                {miniapps
+                  .filter(app => app.rank72hChange < 0)
+                  .sort((a, b) => a.rank72hChange - b.rank72hChange)
+                  .slice(0, 5)
+                  .map((app, index) => (
+                    <div key={app.rank} className="flex justify-between items-center p-2 bg-red-50 rounded">
+                      <span className="text-sm font-medium">{app.name}</span>
+                      <span className="text-sm text-red-600 font-bold">{app.rank72hChange}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div>
+              <h3 className="text-lg font-semibold text-purple-600 mb-3">🏷️ Kategóriák</h3>
+              <div className="space-y-2">
+                {Object.entries(
+                  miniapps.reduce((acc, app) => {
+                    acc[app.category] = (acc[app.category] || 0) + 1
+                    return acc
+                  }, {} as Record<string, number>)
+                )
+                  .sort(([,a], [,b]) => b - a)
+                  .slice(0, 5)
+                  .map(([category, count]) => (
+                    <div key={category} className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                      <span className="text-sm font-medium capitalize">{category}</span>
+                      <span className="text-sm text-purple-600 font-bold">{count}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
         </div>
 
