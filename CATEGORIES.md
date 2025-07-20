@@ -8,10 +8,6 @@ Farcaster miniapp categories help users find applications that suit their needs.
 
 The Farcaster miniapp system supports the following categories:
 
-### 🎮 Gaming
-- Games and entertainment applications
-- Example: `content="gaming"`
-
 ### 📊 Analytics
 - Data analysis and statistics
 - Example: `content="analytics"` (we use this)
