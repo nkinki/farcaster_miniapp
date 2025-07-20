@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk';
 
 // Define types for miniapp data
 interface Miniapp {
@@ -52,6 +53,13 @@ export default function Home() {
         setLoading(false)
       })
   }, [])
+
+  // Call sdk.actions.ready() when loading is finished
+  useEffect(() => {
+    if (!loading) {
+      sdk.actions.ready();
+    }
+  }, [loading]);
 
   const toggleFavorite = (miniappId: string) => {
     const newFavorites = favorites.includes(miniappId)
