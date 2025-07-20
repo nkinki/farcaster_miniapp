@@ -75,13 +75,13 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-purple-400 mb-2 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+          <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-[0_0_10px_rgba(168,85,247,0.7)]">
             🏆 Miniapps Rankings
           </h1>
-          <p className="text-purple-300 text-lg mb-2 font-medium">
+          <p className="text-purple-100 text-lg mb-2 font-medium">
             Farcaster miniapp toplist and statistics
           </p>
-          <p className="text-purple-200 text-sm font-medium">
+          <p className="text-purple-100 text-sm font-medium">
             {new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}
           </p>
         </div>
@@ -89,46 +89,46 @@ export default function Home() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-center shadow-lg border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
-            <div className="text-2xl font-bold text-purple-400">{miniapps.length}</div>
-            <div className="text-purple-300 text-sm font-medium">Total</div>
+            <div className="text-2xl font-bold text-white">{miniapps.length}</div>
+            <div className="text-purple-100 text-sm font-medium">Total</div>
           </div>
           <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-center shadow-lg border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
-            <div className="text-2xl font-bold text-pink-400">+{favorites.length}</div>
-            <div className="text-purple-300 text-sm font-medium">Favorites</div>
+            <div className="text-2xl font-bold text-pink-100">+{favorites.length}</div>
+            <div className="text-purple-100 text-sm font-medium">Favorites</div>
           </div>
           <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-center shadow-lg border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
-            <div className="text-2xl font-bold text-green-400">
+            <div className="text-2xl font-bold text-green-100">
               {miniapps.filter(app => (app.rank24hChange || 0) > 0).length}
             </div>
-            <div className="text-green-300 text-sm font-medium">Rising (24h)</div>
+            <div className="text-green-100 text-sm font-medium">Rising (24h)</div>
           </div>
           <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-center shadow-lg border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
-            <div className="text-2xl font-bold text-green-400">
+            <div className="text-2xl font-bold text-green-100">
               {miniapps.filter(app => app.rank72hChange > 0).length}
             </div>
-            <div className="text-green-300 text-sm font-medium">Rising (72h)</div>
+            <div className="text-green-100 text-sm font-medium">Rising (72h)</div>
           </div>
           <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-center shadow-lg border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
-            <div className="text-2xl font-bold text-green-400">
+            <div className="text-2xl font-bold text-green-100">
               {miniapps.filter(app => (app.rankWeeklyChange || 0) > 0).length}
             </div>
-            <div className="text-green-300 text-sm font-medium">Rising (7d)</div>
+            <div className="text-green-100 text-sm font-medium">Rising (7d)</div>
           </div>
           <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-center shadow-lg border border-red-500/30 hover:border-red-400/50 transition-all duration-300">
-            <div className="text-2xl font-bold text-red-400">
+            <div className="text-2xl font-bold text-red-200">
               {miniapps.filter(app => app.rank72hChange < 0).length}
             </div>
-            <div className="text-red-300 text-sm font-medium">Falling (72h)</div>
+            <div className="text-red-200 text-sm font-medium">Falling (72h)</div>
           </div>
         </div>
 
         {/* Statistics Section */}
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-6 mb-6 border border-purple-500/30">
-          <h2 className="text-2xl font-bold text-purple-400 mb-4 drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">📊 Statistics</h2>
+          <h2 className="text-2xl font-bold text-white mb-4 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">📊 Statistics</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* 24h Top Risers */}
             <div>
-              <h3 className="text-lg font-semibold text-green-400 mb-3">📈 Top Risers (24h)</h3>
+              <h3 className="text-lg font-semibold text-green-100 mb-3">📈 Top Risers (24h)</h3>
               <div className="space-y-2">
                 {miniapps
                   .filter(app => (app.rank24hChange || 0) > 0)
@@ -136,8 +136,8 @@ export default function Home() {
                   .slice(0, 5)
                   .map((app) => (
                     <div key={app.rank} className="flex justify-between items-center p-2 bg-green-900/30 rounded border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
-                      <span className="text-sm font-medium text-green-200 truncate">{app.name}</span>
-                      <span className="text-sm text-green-400 font-bold">+{app.rank24hChange || 0}</span>
+                      <span className="text-sm font-medium text-green-100 truncate">{app.name}</span>
+                      <span className="text-sm text-green-100 font-bold">+{app.rank24hChange || 0}</span>
                     </div>
                   ))}
               </div>
@@ -145,7 +145,7 @@ export default function Home() {
 
             {/* 72h Top Risers */}
             <div>
-              <h3 className="text-lg font-semibold text-green-400 mb-3">📈 Top Risers (72h)</h3>
+              <h3 className="text-lg font-semibold text-green-100 mb-3">📈 Top Risers (72h)</h3>
               <div className="space-y-2">
                 {miniapps
                   .filter(app => app.rank72hChange > 0)
@@ -153,8 +153,8 @@ export default function Home() {
                   .slice(0, 5)
                   .map((app) => (
                     <div key={app.rank} className="flex justify-between items-center p-2 bg-green-900/30 rounded border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
-                      <span className="text-sm font-medium text-green-200 truncate">{app.name}</span>
-                      <span className="text-sm text-green-400 font-bold">+{app.rank72hChange}</span>
+                      <span className="text-sm font-medium text-green-100 truncate">{app.name}</span>
+                      <span className="text-sm text-green-100 font-bold">+{app.rank72hChange}</span>
                     </div>
                   ))}
               </div>
@@ -162,7 +162,7 @@ export default function Home() {
 
             {/* Weekly Top Risers */}
             <div>
-              <h3 className="text-lg font-semibold text-green-400 mb-3">📈 Top Risers (7d)</h3>
+              <h3 className="text-lg font-semibold text-green-100 mb-3">📈 Top Risers (7d)</h3>
               <div className="space-y-2">
                 {miniapps
                   .filter(app => (app.rankWeeklyChange || 0) > 0)
@@ -170,8 +170,8 @@ export default function Home() {
                   .slice(0, 5)
                   .map((app) => (
                     <div key={app.rank} className="flex justify-between items-center p-2 bg-green-900/30 rounded border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
-                      <span className="text-sm font-medium text-green-200 truncate">{app.name}</span>
-                      <span className="text-sm text-green-400 font-bold">+{app.rankWeeklyChange || 0}</span>
+                      <span className="text-sm font-medium text-green-100 truncate">{app.name}</span>
+                      <span className="text-sm text-green-100 font-bold">+{app.rankWeeklyChange || 0}</span>
                     </div>
                   ))}
               </div>
@@ -179,7 +179,7 @@ export default function Home() {
 
             {/* Categories */}
             <div>
-              <h3 className="text-lg font-semibold text-purple-400 mb-3">🏷️ Categories</h3>
+              <h3 className="text-lg font-semibold text-purple-100 mb-3">🏷️ Categories</h3>
               <div className="space-y-2">
                 {Object.entries(
                   miniapps.reduce((acc, app) => {
@@ -191,8 +191,8 @@ export default function Home() {
                   .slice(0, 5)
                   .map(([category, count]) => (
                     <div key={category} className="flex justify-between items-center p-2 bg-purple-900/30 rounded border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
-                      <span className="text-sm font-medium text-purple-200 capitalize truncate">{category}</span>
-                      <span className="text-sm text-purple-400 font-bold">{count}</span>
+                      <span className="text-sm font-medium text-purple-100 capitalize truncate">{category}</span>
+                      <span className="text-sm text-purple-100 font-bold">{count}</span>
                     </div>
                   ))}
               </div>
@@ -203,7 +203,7 @@ export default function Home() {
         {/* Main Ranking List */}
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border border-purple-500/30">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">Today&apos;s Top {miniapps.length}</h2>
+            <h2 className="text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">Today&apos;s Top {miniapps.length}</h2>
             <div className="flex space-x-2">
               <button className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-500 transition-colors border border-purple-400/30">
                 List
@@ -221,15 +221,15 @@ export default function Home() {
                   </div>
                   
                   {/* Icon placeholder */}
-                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center text-2xl border border-yellow-400/30">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-lg flex items-center justify-center text-2xl border border-yellow-100/30">
                     😊
                   </div>
                   
                   {/* App info */}
                   <div className="flex-1">
-                    <h3 className="font-semibold text-purple-200 text-lg">{app.name}</h3>
-                    <p className="text-sm text-purple-300 font-medium">{app.domain}</p>
-                    <p className="text-xs text-purple-400 font-medium">@{app.author.username}</p>
+                    <h3 className="font-semibold text-white text-lg">{app.name}</h3>
+                    <p className="text-sm text-purple-100 font-medium">{app.domain}</p>
+                    <p className="text-xs text-purple-100 font-medium">@{app.author.username}</p>
                   </div>
                 </div>
                 
@@ -238,32 +238,32 @@ export default function Home() {
                   <div className="text-right space-y-1">
                     <div className="flex space-x-2 text-xs">
                       <span className={`font-semibold ${
-                        (app.rank24hChange || 0) > 0 ? 'text-green-400' : 
-                        (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                        (app.rank24hChange || 0) > 0 ? 'text-green-100' : 
+                        (app.rank24hChange || 0) < 0 ? 'text-red-200' : 'text-white'
                       }`}>
                         {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
                       </span>
-                      <span className="text-purple-400 font-medium">24h</span>
+                      <span className="text-purple-100 font-medium">24h</span>
                     </div>
                     <div className="flex space-x-2 text-xs">
                       <span className={`font-semibold ${
-                        app.rank72hChange > 0 ? 'text-green-400' : 
-                        app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
+                        app.rank72hChange > 0 ? 'text-green-100' : 
+                        app.rank72hChange < 0 ? 'text-red-200' : 'text-white'
                       }`}>
                         {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
                       </span>
-                      <span className="text-purple-400 font-medium">72h</span>
+                      <span className="text-purple-100 font-medium">72h</span>
                     </div>
                     <div className="flex space-x-2 text-xs">
                       <span className={`font-semibold ${
-                        (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : 
-                        (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                        (app.rankWeeklyChange || 0) > 0 ? 'text-green-100' : 
+                        (app.rankWeeklyChange || 0) < 0 ? 'text-red-200' : 'text-white'
                       }`}>
                         {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
                       </span>
-                      <span className="text-purple-400 font-medium">7d</span>
+                      <span className="text-purple-100 font-medium">7d</span>
                     </div>
-                    <div className="text-xs text-purple-400 font-medium">
+                    <div className="text-xs text-purple-100 font-medium">
                       {app.author.followerCount.toLocaleString()} followers
                     </div>
                   </div>
