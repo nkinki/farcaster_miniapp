@@ -112,12 +112,9 @@ export default function Home() {
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
           <div className="flex flex-col gap-2">
             {sortedMiniapps.map((app: Miniapp, idx: number) => {
-              // Rank badge color
+              // Always use default rank badge color for category position
               let rankBg = 'bg-gray-700';
               let rankText = 'text-white';
-              if (idx === 0) { rankBg = 'bg-gradient-to-br from-orange-400 to-yellow-300'; rankText = 'text-white'; }
-              else if (idx === 1) { rankBg = 'bg-gradient-to-br from-gray-400 to-gray-200'; rankText = 'text-gray-900'; }
-              else if (idx === 2) { rankBg = 'bg-gradient-to-br from-emerald-400 to-green-300'; rankText = 'text-white'; }
               // Highlight top 50
               const highlight = idx < 50 ? 'bg-[#23283a]/80' : 'bg-[#181c23]';
               return (
@@ -129,13 +126,18 @@ export default function Home() {
                       <div className="flex-1 h-px bg-cyan-400/60" />
                     </div>
                   )}
+                  {idx === 100 && (
+                    <div className="flex items-center my-2">
+                      <div className="flex-1 h-px bg-cyan-400/60" />
+                    </div>
+                  )}
                   <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}> 
                     {/* Category position counter (only for category filter) */}
                     {filter !== 'all' && (
                       <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right'}}>{idx + 1}</span>
                     )}
-                    {/* Rank badge */}
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 ${rankBg} ${rankText}`}>{app.rank}</div>
+                    {/* Rank badge - always default style */}
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
                     {/* App logo */}
                     {app.iconUrl ? (
                       <img
