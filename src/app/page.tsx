@@ -138,13 +138,35 @@ export default function Home() {
                   )}
                   {/* App info */}
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-white text-base truncate">{app.name}</div>
-                    <div className="text-xs text-purple-300 truncate">@{app.author.username}</div>
+                    <div className="font-semibold text-white text-sm truncate">{app.name}</div>
+                    <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
                   </div>
-                  {/* Points */}
-                  <div className="flex flex-col items-end ml-2 min-w-[70px]">
-                    <span className="font-bold text-lg text-white">{app.rankScore || app.points || app.author.followerCount || 0}</span>
-                    <span className="text-xs text-purple-400">points</span>
+                  {/* Rank changes mini-table */}
+                  <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+                    <div className="flex gap-1 items-center">
+                      <span className={`font-semibold text-xs ${
+                        (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                      }`}>
+                        {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
+                      </span>
+                      <span className="text-[10px] text-purple-400">24h</span>
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <span className={`font-semibold text-xs ${
+                        app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
+                      }`}>
+                        {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
+                      </span>
+                      <span className="text-[10px] text-purple-400">72h</span>
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <span className={`font-semibold text-xs ${
+                        (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                      }`}>
+                        {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
+                      </span>
+                      <span className="text-[10px] text-purple-400">7d</span>
+                    </div>
                   </div>
                   {/* Favorite button */}
                   <button
