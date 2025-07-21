@@ -12,10 +12,25 @@ interface MiniappUser {
   followingCount: number
 }
 
+type TopMiniapp = {
+  rank: number;
+  miniApp: {
+    name: string;
+    author: {
+      fid: number;
+      displayName?: string;
+      username?: string;
+      // add more fields if needed
+    };
+    userCount?: number;
+    // add more fields if needed
+  };
+};
+
 export const MiniappUserProfile: React.FC = () => {
   const [user, setUser] = useState<MiniappUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [ownMiniapp, setOwnMiniapp] = useState<any | null>(null)
+  const [ownMiniapp, setOwnMiniapp] = useState<TopMiniapp | null>(null)
 
   useEffect(() => {
     const getUserData = async () => {
@@ -29,12 +44,12 @@ export const MiniappUserProfile: React.FC = () => {
           let followingCount = 0
 
           // Fetch top_miniapps.json from public folder
-          let foundMiniapp = null
+          let foundMiniapp: TopMiniapp | null = null
           if (u?.fid) {
             try {
               const res = await fetch('/top_miniapps.json')
-              const topMiniapps = await res.json()
-              foundMiniapp = topMiniapps.find((item: any) => item.miniApp?.author?.fid === u.fid)
+              const topMiniapps: TopMiniapp[] = await res.json()
+              foundMiniapp = topMiniapps.find((item) => item.miniApp?.author?.fid === u.fid) || null
             } catch (e) {
               // ignore
             }
