@@ -186,7 +186,12 @@ export default function Home() {
   let categoryViewRows: React.ReactNode[] = [];
   let allViewRows: React.ReactNode[] = [];
   if (filter !== 'all') {
-    const categoryMiniapps = miniapps.filter(app => app.category.toLowerCase() === filter.toLowerCase());
+    const categoryMiniapps = miniapps
+      .filter(app => app.category.toLowerCase() === filter.toLowerCase())
+      .filter(app =>
+        app.name.toLowerCase().includes(search.toLowerCase()) ||
+        app.domain.toLowerCase().includes(search.toLowerCase())
+      );
     const favoriteMiniapps = categoryMiniapps.filter(app => favorites.includes(app.domain));
     const nonFavoriteMiniapps = categoryMiniapps.filter(app => !favorites.includes(app.domain));
     categoryViewRows = [
