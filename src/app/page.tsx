@@ -186,7 +186,7 @@ export default function Home() {
   let categoryViewRows: React.ReactNode[] = [];
   let allViewRows: React.ReactNode[] = [];
   if (filter !== 'all') {
-    const categoryMiniapps = sortedMiniapps.filter(app => app.category.toLowerCase() === filter.toLowerCase());
+    const categoryMiniapps = miniapps.filter(app => app.category.toLowerCase() === filter.toLowerCase());
     const favoriteMiniapps = categoryMiniapps.filter(app => favorites.includes(app.domain));
     // Kedvencek a lista tetején, sorszám nélkül
     categoryViewRows = [
