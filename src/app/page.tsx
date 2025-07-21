@@ -392,7 +392,7 @@ export default function Home() {
             style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
           >
             <span className="font-extrabold" style={{letterSpacing: '0.009em'}}>Play Chess</span>
-            <span className="text-xs font-normal opacity-90">Claim 10k $CHESS</span>
+            <span className="text-xs font-normal opacity-90" style={{letterSpacing: '0.09em'}}>Claim 10k $CHESS</span>
           </a>
         </div>
       </nav>
