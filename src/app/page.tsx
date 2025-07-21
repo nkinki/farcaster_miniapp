@@ -388,7 +388,7 @@ export default function Home() {
             href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 py-2 font-bold text-[0.72rem] focus:outline-none focus:ring-2 focus:ring-pink-400 bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-600 text-black hover:brightness-110 transition-all duration-200 flex flex-col items-center justify-center border-r border-gray-400/60"
+            className="flex-1 py-2 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-pink-400 bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-600 text-black hover:brightness-110 transition-all duration-200 flex flex-col items-center justify-center border-r border-gray-400/60"
             style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
           >
             <span className="font-extrabold tracking-wide">Play Chess</span>
