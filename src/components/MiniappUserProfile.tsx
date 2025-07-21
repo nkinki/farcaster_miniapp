@@ -112,44 +112,41 @@ export const MiniappUserProfile: React.FC = () => {
 
   // Only render on homepage (page.tsx)
   return (
-    <div style={{ maxWidth: 400, margin: '24px auto', background: '#181818', borderRadius: 10, padding: 12, color: '#fff', fontSize: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <img
-          src={user.pfpUrl}
-          alt={user.displayName}
-          style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
-          onError={e => {
-            e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
-          }}
-        />
-        <div style={{ fontWeight: 600, fontSize: 15 }}>{user.displayName || user.username}</div>
-      </div>
+    <div style={{ maxWidth: 400, margin: '24px auto', background: 'transparent', borderRadius: 10, padding: 0 }}>
       {checkedMiniapps && ownMiniapps.length === 0 && (
-        <div style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', padding: 8 }}>
-          No miniapp found for your account.
+        <div style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', padding: 16, background: '#181818', borderRadius: 10, fontSize: 15 }}>
+          Welcome! Check back later for updates on your miniapp stats.
         </div>
       )}
       {ownMiniapps.length > 0 && ownMiniapps.map((mini, idx) => (
-        <div key={mini.miniApp.name + idx} style={{ background: '#232323', borderRadius: 8, padding: '10px 14px', marginBottom: 8, color: '#fff', fontSize: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}>
-          <div style={{ fontWeight: 600, marginBottom: 2 }}>{mini.miniApp.name}</div>
-          <div><b>Rank:</b> #{mini.rank}</div>
-          {typeof mini.miniApp.userCount === 'number' && (
-            <div><b>Users:</b> {mini.miniApp.userCount}</div>
-          )}
-          {/* Stat row: 24h, 72h, 7d in one line */}
-          <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
+        <div key={mini.miniApp.name + idx} style={{
+          background: '#232323',
+          borderRadius: 12,
+          padding: '14px 18px',
+          marginBottom: 12,
+          color: '#fff',
+          fontSize: 15,
+          boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+          border: '2px solid #2fff8c', // highlight as favorite
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+        }}>
+          <div style={{ fontWeight: 700, fontSize: 17, flex: 1 }}>{mini.miniApp.name}</div>
+          <div style={{ fontWeight: 600, fontSize: 15, marginRight: 12 }}>#{mini.rank}</div>
+          <div style={{ display: 'flex', gap: 10, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
             {typeof mini.rank24hChange === 'number' && (
-              <span style={{ color: mini.rank24hChange > 0 ? '#2fff8c' : mini.rank24hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 600, minWidth: 36, display: 'inline-block' }}>
+              <span style={{ color: mini.rank24hChange > 0 ? '#2fff8c' : mini.rank24hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
                 {mini.rank24hChange > 0 ? '+' : ''}{mini.rank24hChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>24h</span>
               </span>
             )}
             {typeof mini.rank72hChange === 'number' && (
-              <span style={{ color: mini.rank72hChange > 0 ? '#2fff8c' : mini.rank72hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 600, minWidth: 36, display: 'inline-block' }}>
+              <span style={{ color: mini.rank72hChange > 0 ? '#2fff8c' : mini.rank72hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
                 {mini.rank72hChange > 0 ? '+' : ''}{mini.rank72hChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>72h</span>
               </span>
             )}
             {typeof mini.rank7dChange === 'number' && (
-              <span style={{ color: mini.rank7dChange > 0 ? '#2fff8c' : mini.rank7dChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 600, minWidth: 36, display: 'inline-block' }}>
+              <span style={{ color: mini.rank7dChange > 0 ? '#2fff8c' : mini.rank7dChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
                 {mini.rank7dChange > 0 ? '+' : ''}{mini.rank7dChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>7d</span>
               </span>
             )}
