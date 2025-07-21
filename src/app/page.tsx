@@ -36,6 +36,7 @@ export default function Home() {
   const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
   // Only fetch user FID
   const [userFid, setUserFid] = useState<number | null>(null);
+  const DEMO_FID = 977233; // Polling Center author FID for demo
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -121,8 +122,9 @@ export default function Home() {
     }
   }
 
-  // Find all miniapps for this user
-  const ownMiniapps = userFid ? sortedMiniapps.filter(app => app.author && app.author.fid === userFid) : [];
+  // Find all miniapps for this user (use demo FID if userFid is null)
+  const effectiveFid = userFid || DEMO_FID;
+  const ownMiniapps = effectiveFid ? sortedMiniapps.filter(app => app.author && app.author.fid === effectiveFid) : [];
 
   if (loading) {
     return (
