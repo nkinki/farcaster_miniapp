@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk';
+import { FiSearch } from 'react-icons/fi';
 // import Image from 'next/image'; // removed unused import
 // import { MiniappUserProfile } from '../components/MiniappUserProfile'; // REMOVE old stat block
 
@@ -37,6 +38,7 @@ export default function Home() {
   const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
   // Only fetch user FID
   const [userFid, setUserFid] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
   const DEMO_FID = 977233; // Polling Center author FID for demo
 
   useEffect(() => {
@@ -111,10 +113,15 @@ export default function Home() {
     localStorage.setItem('farcaster-favorites', JSON.stringify(newFavorites))
   }
 
-  // Filter logic - by category instead of time
+  // Filter logic - by category and search
   const filteredMiniapps = miniapps.filter(app => {
-    if (filter === 'all') return true;
-    return app.category.toLowerCase() === filter.toLowerCase();
+    const matchesCategory = filter === 'all' || app.category.toLowerCase() === filter.toLowerCase();
+    const matchesSearch =
+      search.trim() === '' ||
+      app.name.toLowerCase().includes(search.trim().toLowerCase()) ||
+      app.author.username.toLowerCase().includes(search.trim().toLowerCase()) ||
+      app.author.displayName.toLowerCase().includes(search.trim().toLowerCase());
+    return matchesCategory && matchesSearch;
   });
 
   // Favorited apps first
@@ -186,23 +193,28 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
       <div className="max-w-4xl mx-auto">
-        {/* Header + Search */}
+        {/* Header + Minimal Search */}
         <div className="mb-6 text-center">
-          <form className="flex justify-center items-center gap-0 max-w-2xl mx-auto mb-4 px-2" onSubmit={e => { e.preventDefault(); }}>
-            <input
-              type="text"
-              placeholder="Keresés miniapp névre, szerzőre..."
-              className="flex-1 px-4 py-2 rounded-l-lg bg-black text-white border-2 border-cyan-300 shadow-[0_0_12px_2px_rgba(34,211,238,0.3)] focus:outline-none focus:ring-2 focus:ring-cyan-400 text-base placeholder-cyan-200 font-semibold"
-              style={{ minWidth: 0 }}
-            />
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-r-lg bg-cyan-400 text-white font-bold shadow-[0_0_12px_2px_rgba(34,211,238,0.3)] hover:bg-cyan-300 hover:text-black transition-all duration-150 text-base border-2 border-l-0 border-cyan-300"
-              style={{ textShadow: '0 0 8px #fff, 0 0 4px #22d3ee' }}
-            >
-              Keresés
-            </button>
-          </form>
+          <div className="flex justify-end items-center max-w-2xl mx-auto mb-2 px-2">
+            <form className="flex items-center gap-0" onSubmit={e => { e.preventDefault(); }}>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Keresés..."
+                className="px-3 py-2 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm placeholder-gray-400 min-w-[120px]"
+                style={{ minWidth: 0, width: '160px' }}
+              />
+              <button
+                type="submit"
+                className="px-3 py-2 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900 transition-all duration-150 flex items-center justify-center"
+                tabIndex={-1}
+                aria-label="Keresés"
+              >
+                <FiSearch size={18} />
+              </button>
+            </form>
+          </div>
           <div className="flex justify-center items-center mb-2">
             <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
               <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
