@@ -193,28 +193,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
       <div className="max-w-4xl mx-auto">
-        {/* Header + Minimal Search */}
+        {/* Header */}
         <div className="mb-6 text-center">
-          <div className="flex justify-end items-center max-w-2xl mx-auto mb-2 px-2">
-            <form className="flex items-center gap-0" onSubmit={e => { e.preventDefault(); }}>
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Keresés..."
-                className="px-3 py-2 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm placeholder-gray-400 min-w-[120px]"
-                style={{ minWidth: 0, width: '160px' }}
-              />
-              <button
-                type="submit"
-                className="px-3 py-2 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900 transition-all duration-150 flex items-center justify-center"
-                tabIndex={-1}
-                aria-label="Keresés"
-              >
-                <FiSearch size={18} />
-              </button>
-            </form>
-          </div>
           <div className="flex justify-center items-center mb-2">
             <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
               <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
@@ -224,6 +204,28 @@ export default function Home() {
           <p className="text-purple-200 text-xs font-medium">
             {snapshotDate ? `Snapshot date: ${snapshotDate}` : `${new Date().toLocaleDateString('en-US')} Updated: ${lastUpdate}`}
           </p>
+        </div>
+
+        {/* Search bar directly above the list */}
+        <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
+          <form className="flex items-center gap-0" onSubmit={e => { e.preventDefault(); }}>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Keresés..."
+              className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs placeholder-gray-400 min-w-[80px]"
+              style={{ minWidth: 0, width: '110px' }}
+            />
+            <button
+              type="submit"
+              className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900 transition-all duration-150 flex items-center justify-center"
+              tabIndex={-1}
+              aria-label="Keresés"
+            >
+              <FiSearch size={14} />
+            </button>
+          </form>
         </div>
 
         {/* Own miniapp card(s) at the top if exists, highlighted */}
