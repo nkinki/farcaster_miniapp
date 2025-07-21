@@ -381,7 +381,9 @@ export default function Home() {
           </div>
           <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
           <p className="text-purple-200 text-xs font-medium">
-            {snapshotDate ? `Snapshot date: ${snapshotDate}` : `${new Date().toLocaleDateString('en-US')} Updated: ${lastUpdate}`}
+            {snapshotDate && snapshotDate !== ''
+              ? `Snapshot date: ${snapshotDate}`
+              : `${new Date().toLocaleDateString('en-US')} Updated: ${lastUpdate}`}
           </p>
         </div>
 
