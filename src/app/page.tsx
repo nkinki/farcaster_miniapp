@@ -193,7 +193,7 @@ export default function Home() {
       ...((favoriteMiniapps.map(app => {
         const idx = categoryMiniapps.findIndex(a => a.domain === app.domain);
         return (
-          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm ring-2 ring-pink-400`}>
+          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -218,8 +218,9 @@ export default function Home() {
             </div>
             <button
               onClick={() => toggleFavorite(app.domain)}
-              className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]`}
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-blue-400`}
               title={'Remove from favorites'}
+              style={{fontSize: '1.35em', boxShadow: 'none', background: 'none', border: 'none'}}
             >
               {'❤️'}
             </button>
@@ -258,8 +259,9 @@ export default function Home() {
             </div>
             <button
               onClick={() => toggleFavorite(app.domain)}
-              className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-gradient-to-br from-gray-700 to-gray-900 text-white shadow-[0_0_10px_rgba(236,72,153,0.2)]`}
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-gray-400`}
               title={'Add to favorites'}
+              style={{fontSize: '1.35em', boxShadow: 'none', background: 'none', border: 'none'}}
             >
               {'🤍'}
             </button>
