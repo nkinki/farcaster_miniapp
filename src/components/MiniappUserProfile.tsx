@@ -81,7 +81,7 @@ export const MiniappUserProfile: React.FC = () => {
         <img
           src={user.pfpUrl}
           alt={user.displayName}
-          className="profile-avatar"
+          style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
           onError={e => {
             e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
           }}
