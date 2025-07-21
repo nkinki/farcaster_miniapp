@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk';
-import Image from 'next/image';
+// import Image from 'next/image'; // removed unused import
 // import { MiniappUserProfile } from '../components/MiniappUserProfile'; // REMOVE old stat block
 
 // Define types for miniapp data
@@ -12,6 +12,7 @@ interface Miniapp {
   domain: string
   description: string
   author: {
+    fid: number;
     username: string
     displayName: string
     followerCount: number
@@ -61,7 +62,7 @@ export default function Home() {
       })
 
     // Get user FID for highlighting own miniapp
-    (async () => {
+    const getFid = async () => {
       try {
         const isInMiniapp = await sdk.isInMiniApp();
         if (isInMiniapp) {
@@ -69,7 +70,8 @@ export default function Home() {
           setUserFid(context.user?.fid || null);
         }
       } catch {}
-    })();
+    };
+    getFid();
   }, []);
 
   // Call sdk.actions.ready() when loading is finished
@@ -104,7 +106,7 @@ export default function Home() {
   let ownMiniapp: Miniapp | null = null;
   let restMiniapps = sortedMiniapps;
   if (userFid) {
-    const idx = sortedMiniapps.findIndex(app => app.author && (app.author as any).fid === userFid);
+    const idx = sortedMiniapps.findIndex(app => app.author && app.author.fid === userFid);
     if (idx !== -1) {
       ownMiniapp = sortedMiniapps[idx];
       restMiniapps = [...sortedMiniapps.slice(0, idx), ...sortedMiniapps.slice(idx + 1)];
