@@ -190,7 +190,7 @@ export default function Home() {
     const favoriteMiniapps = categoryMiniapps.filter(app => favorites.includes(app.domain));
     const nonFavoriteMiniapps = categoryMiniapps.filter(app => !favorites.includes(app.domain));
     categoryViewRows = [
-      ...favoriteMiniapps.map(app => {
+      ...((favoriteMiniapps.map(app => {
         const idx = categoryMiniapps.findIndex(a => a.domain === app.domain);
         return (
           <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm ring-2 ring-pink-400`}>
@@ -225,7 +225,8 @@ export default function Home() {
             </button>
             <RankChanges app={app} />
           </div>
-        )),
+        );
+      }))),
       ...nonFavoriteMiniapps.map((app, idx) => (
         <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
           <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>
