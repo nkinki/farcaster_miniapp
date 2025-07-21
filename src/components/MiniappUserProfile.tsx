@@ -112,47 +112,46 @@ export const MiniappUserProfile: React.FC = () => {
 
   // Only render on homepage (page.tsx)
   return (
-    <div style={{ maxWidth: 400, margin: '24px auto', background: 'transparent', borderRadius: 10, padding: 0 }}>
+    <div style={{ maxWidth: 320, margin: '18px auto', background: 'transparent', borderRadius: 8, padding: 0 }}>
       {checkedMiniapps && ownMiniapps.length === 0 && (
-        <div style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', padding: 16, background: '#181818', borderRadius: 10, fontSize: 15 }}>
+        <div style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', padding: 10, background: '#181818', borderRadius: 8, fontSize: 13 }}>
           Welcome! Check back later for updates on your miniapp stats.
         </div>
       )}
-      {ownMiniapps.length > 0 && ownMiniapps.map((mini, idx) => (
-        <div key={mini.miniApp.name + idx} style={{
-          background: '#232323',
-          borderRadius: 12,
-          padding: '14px 18px',
-          marginBottom: 12,
-          color: '#fff',
-          fontSize: 15,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
-          border: '2px solid #2fff8c', // highlight as favorite
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-        }}>
-          <div style={{ fontWeight: 700, fontSize: 17, flex: 1 }}>{mini.miniApp.name}</div>
-          <div style={{ fontWeight: 600, fontSize: 15, marginRight: 12 }}>#{mini.rank}</div>
-          <div style={{ display: 'flex', gap: 10, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-            {typeof mini.rank24hChange === 'number' && (
-              <span style={{ color: mini.rank24hChange > 0 ? '#2fff8c' : mini.rank24hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
-                {mini.rank24hChange > 0 ? '+' : ''}{mini.rank24hChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>24h</span>
+      {ownMiniapps.length > 0 && ownMiniapps.map((mini, idx) => {
+        const stat24 = typeof mini.rank24hChange === 'number' ? mini.rank24hChange : 0;
+        const stat72 = typeof mini.rank72hChange === 'number' ? mini.rank72hChange : 0;
+        const stat7d = typeof mini.rank7dChange === 'number' ? mini.rank7dChange : 0;
+        return (
+          <div key={mini.miniApp.name + idx} style={{
+            background: '#232323',
+            borderRadius: 10,
+            padding: '10px 12px',
+            marginBottom: 8,
+            color: '#fff',
+            fontSize: 13,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+            border: '2px solid #2fff8c',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}>
+            <div style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>{mini.miniApp.name}</div>
+            <div style={{ fontWeight: 600, fontSize: 13, marginRight: 8 }}>#{mini.rank}</div>
+            <div style={{ display: 'flex', gap: 8, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ color: stat24 > 0 ? '#2fff8c' : stat24 < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 24, textAlign: 'right' }}>
+                {stat24 > 0 ? '+' : ''}{stat24} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12 }}>24h</span>
               </span>
-            )}
-            {typeof mini.rank72hChange === 'number' && (
-              <span style={{ color: mini.rank72hChange > 0 ? '#2fff8c' : mini.rank72hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
-                {mini.rank72hChange > 0 ? '+' : ''}{mini.rank72hChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>72h</span>
+              <span style={{ color: stat72 > 0 ? '#2fff8c' : stat72 < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 24, textAlign: 'right' }}>
+                {stat72 > 0 ? '+' : ''}{stat72} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12 }}>72h</span>
               </span>
-            )}
-            {typeof mini.rank7dChange === 'number' && (
-              <span style={{ color: mini.rank7dChange > 0 ? '#2fff8c' : mini.rank7dChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
-                {mini.rank7dChange > 0 ? '+' : ''}{mini.rank7dChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>7d</span>
+              <span style={{ color: stat7d > 0 ? '#2fff8c' : stat7d < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 24, textAlign: 'right' }}>
+                {stat7d > 0 ? '+' : ''}{stat7d} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12 }}>7d</span>
               </span>
-            )}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 } 
