@@ -188,7 +188,7 @@ export default function Home() {
   if (filter !== 'all') {
     const categoryMiniapps = miniapps.filter(app => app.category.toLowerCase() === filter.toLowerCase());
     const favoriteMiniapps = categoryMiniapps.filter(app => favorites.includes(app.domain));
-    // Kedvencek a lista tetején, sorszám nélkül
+    const nonFavoriteMiniapps = categoryMiniapps.filter(app => !favorites.includes(app.domain));
     categoryViewRows = [
       ...favoriteMiniapps.map(app => (
         <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm ring-2 ring-pink-400`}>
@@ -225,9 +225,8 @@ export default function Home() {
           <RankChanges app={app} />
         </div>
       )),
-      // Fő lista, minden miniapp csak egyszer, sorszámmal
-      ...categoryMiniapps.map((app, idx) => (
-        <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}>
+      ...nonFavoriteMiniapps.map((app, idx) => (
+        <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
           <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>
             {idx + 1}
           </span>
@@ -254,12 +253,10 @@ export default function Home() {
           </div>
           <button
             onClick={() => toggleFavorite(app.domain)}
-            className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 ${favorites.includes(app.domain)
-              ? 'bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]'
-              : 'bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700'}`}
-            title={favorites.includes(app.domain) ? 'Remove from favorites' : 'Add to favorites'}
+            className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700`}
+            title={'Add to favorites'}
           >
-            {favorites.includes(app.domain) ? '❤️' : '🤍'}
+            {'🤍'}
           </button>
           <RankChanges app={app} />
         </div>
