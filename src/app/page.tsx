@@ -348,33 +348,35 @@ export default function Home() {
                     >
                       {favorites.includes(app.domain) ? '❤️' : '🤍'}
                     </button>
-                    {/* Rank changes mini-table - moved to far right */}
-                    <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
-                      <div className="flex gap-1 items-center">
-                        <span className={`font-semibold text-xs ${
-                          (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
-                        }`}>
-                          {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
-                        </span>
-                        <span className="text-[10px] text-purple-400">24h</span>
+                    {/* Only show rank changes if not in category view */}
+                    {filter === 'all' && (
+                      <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+                        <div className="flex gap-1 items-center">
+                          <span className={`font-semibold text-xs ${
+                            (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                          }`}>
+                            {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
+                          </span>
+                          <span className="text-[10px] text-purple-400">24h</span>
+                        </div>
+                        <div className="flex gap-1 items-center">
+                          <span className={`font-semibold text-xs ${
+                            app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
+                          }`}>
+                            {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
+                          </span>
+                          <span className="text-[10px] text-purple-400">72h</span>
+                        </div>
+                        <div className="flex gap-1 items-center">
+                          <span className={`font-semibold text-xs ${
+                            (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                          }`}>
+                            {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
+                          </span>
+                          <span className="text-[10px] text-purple-400">7d</span>
+                        </div>
                       </div>
-                      <div className="flex gap-1 items-center">
-                        <span className={`font-semibold text-xs ${
-                          app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
-                        }`}>
-                          {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
-                        </span>
-                        <span className="text-[10px] text-purple-400">72h</span>
-                      </div>
-                      <div className="flex gap-1 items-center">
-                        <span className={`font-semibold text-xs ${
-                          (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
-                        }`}>
-                          {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
-                        </span>
-                        <span className="text-[10px] text-purple-400">7d</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </>
               );
