@@ -15,6 +15,7 @@ interface MiniappUser {
 export const MiniappUserProfile: React.FC = () => {
   const [user, setUser] = useState<MiniappUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [added, setAdded] = useState<boolean | null>(null)
 
   useEffect(() => {
     const getUserData = async () => {
@@ -23,6 +24,7 @@ export const MiniappUserProfile: React.FC = () => {
         const isInMiniapp = await sdk.isInMiniApp()
         if (isInMiniapp) {
           const context = await sdk.context
+          setAdded(!!context.client?.added)
           const u = context.user
           let followerCount = 0
           let followingCount = 0
@@ -89,10 +91,17 @@ export const MiniappUserProfile: React.FC = () => {
         <div style={{ fontWeight: 600 }}>{user.displayName || user.username}</div>
         <div style={{ color: '#888', fontSize: 13 }}>@{user.username}</div>
       </div>
-      <div style={{ display: 'flex', gap: 10, marginLeft: 16, fontSize: 15 }}>
+      <div style={{ display: 'flex', gap: 10, marginLeft: 16, fontSize: 15, alignItems: 'center' }}>
         <span>👥 <b>{user.followerCount}</b> Followers</span>
         <span>👤 <b>{user.followingCount}</b> Following</span>
         <span>🏆 <b>#{user.fid}</b> FID</span>
+        {added !== null && (
+          added ? (
+            <span style={{ color: 'green', fontWeight: 600, marginLeft: 8 }}>✅ App added</span>
+          ) : (
+            <span style={{ color: 'orange', fontWeight: 600, marginLeft: 8 }}>➕ Add this app</span>
+          )
+        )}
       </div>
     </div>
   )
