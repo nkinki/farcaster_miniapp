@@ -304,7 +304,7 @@ export default function Home() {
                   )}
                   <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}> 
                     {/* Category position counter (only for category filter) */}
-                    {filter !== 'all' && (
+                    {filter !== 'all' ? (
                       <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right'}}>
                         {
                           sortedMiniapps
@@ -313,9 +313,9 @@ export default function Home() {
                             .length
                         }
                       </span>
+                    ) : (
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
                     )}
-                    {/* Rank badge - always default style */}
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
                     {/* App logo */}
                     {app.iconUrl ? (
                       <img
