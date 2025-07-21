@@ -186,8 +186,23 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
+        {/* Header + Search */}
         <div className="mb-6 text-center">
+          <form className="flex justify-center items-center gap-0 max-w-2xl mx-auto mb-4 px-2" onSubmit={e => { e.preventDefault(); }}>
+            <input
+              type="text"
+              placeholder="Keresés miniapp névre, szerzőre..."
+              className="flex-1 px-4 py-2 rounded-l-lg bg-black text-white border-2 border-cyan-300 shadow-[0_0_12px_2px_rgba(34,211,238,0.3)] focus:outline-none focus:ring-2 focus:ring-cyan-400 text-base placeholder-cyan-200 font-semibold"
+              style={{ minWidth: 0 }}
+            />
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-r-lg bg-cyan-400 text-white font-bold shadow-[0_0_12px_2px_rgba(34,211,238,0.3)] hover:bg-cyan-300 hover:text-black transition-all duration-150 text-base border-2 border-l-0 border-cyan-300"
+              style={{ textShadow: '0 0 8px #fff, 0 0 4px #22d3ee' }}
+            >
+              Keresés
+            </button>
+          </form>
           <div className="flex justify-center items-center mb-2">
             <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
               <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
