@@ -34,6 +34,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<string>('')
   const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
+  // Only fetch user FID
   const [userFid, setUserFid] = useState<number | null>(null);
 
   useEffect(() => {
@@ -120,6 +121,9 @@ export default function Home() {
     }
   }
 
+  // Find all miniapps for this user
+  const ownMiniapps = userFid ? sortedMiniapps.filter(app => app.author && app.author.fid === userFid) : [];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
@@ -142,10 +146,64 @@ export default function Home() {
           <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
         </div>
 
+        {/* Own miniapp card(s) at the top if exists, highlighted */}
+        {ownMiniapps.map((app, idx) => (
+          <div key={app.domain + '-highlighted'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-green-400 shadow-lg mb-2`}>
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
+            {app.iconUrl ? (
+              <img
+                src={app.iconUrl}
+                alt={app.name + ' logo'}
+                className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                {app.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-white text-sm truncate">{app.name}</div>
+              <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
+              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
+                <span className="text-xs">👥</span>
+                <span>{app.author.followerCount}</span>
+              </div>
+            </div>
+            {/* NO Favorite button here! */}
+            <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+              <div className="flex gap-1 items-center">
+                <span className={`font-semibold text-xs ${
+                  (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                }`}>
+                  {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
+                </span>
+                <span className="text-[10px] text-purple-400">24h</span>
+              </div>
+              <div className="flex gap-1 items-center">
+                <span className={`font-semibold text-xs ${
+                  app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
+                }`}>
+                  {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
+                </span>
+                <span className="text-[10px] text-purple-400">72h</span>
+              </div>
+              <div className="flex gap-1 items-center">
+                <span className={`font-semibold text-xs ${
+                  (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                }`}>
+                  {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
+                </span>
+                <span className="text-[10px] text-purple-400">7d</span>
+              </div>
+            </div>
+          </div>
+        ))}
+
         {/* Main Ranking List - Modern List Style */}
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
           <div className="flex flex-col gap-2">
-            {restMiniapps.map((app: Miniapp, idx: number) => {
+            {sortedMiniapps.map((app: Miniapp, idx: number) => {
               // Highlight top 50
               const highlight = idx < 50 ? 'bg-[#23283a]/80' : 'bg-[#181c23]';
               return (
