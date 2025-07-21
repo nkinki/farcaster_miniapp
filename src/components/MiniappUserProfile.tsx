@@ -76,22 +76,20 @@ export const MiniappUserProfile: React.FC = () => {
   }
 
   return (
-    <div className="profile-card">
-      <div className="profile-header">
-        <img
-          src={user.pfpUrl}
-          alt={user.displayName}
-          style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-          onError={e => {
-            e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
-          }}
-        />
-        <div>
-          <h2>{user.displayName || user.username}</h2>
-          <p>@{user.username}</p>
-        </div>
+    <div className="profile-card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8 }}>
+      <img
+        src={user.pfpUrl}
+        alt={user.displayName}
+        style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
+        onError={e => {
+          e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
+        }}
+      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ fontWeight: 600 }}>{user.displayName || user.username}</div>
+        <div style={{ color: '#888', fontSize: 13 }}>@{user.username}</div>
       </div>
-      <div className="profile-stats">
+      <div style={{ display: 'flex', gap: 10, marginLeft: 16, fontSize: 15 }}>
         <span>👥 <b>{user.followerCount}</b> Followers</span>
         <span>👤 <b>{user.followingCount}</b> Following</span>
         <span>🏆 <b>#{user.fid}</b> FID</span>
