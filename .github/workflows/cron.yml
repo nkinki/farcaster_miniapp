@@ -43,8 +43,12 @@ jobs:
       run: |
         python update_ranking_simple.py
         
-    - name: Update database
+    - name: Update database (with debug)
       run: |
+        echo "NEON_DB_URL=$NEON_DB_URL"
+        echo "FARCASTER_BEARER_TOKEN=$FARCASTER_BEARER_TOKEN"
+        echo "EMAIL_SENDER=$EMAIL_SENDER"
+        echo "EMAIL_RECIPIENT=$EMAIL_RECIPIENT"
         python daily_update_simple.py
         
     - name: Copy data to Next.js
