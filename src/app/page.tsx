@@ -227,14 +227,10 @@ export default function Home() {
           </div>
         );
       }))),
-      // Main list: always render all categoryMiniapps in order, but if favorite, show empty sorszám
+      // Main list: only non-favorites, but keep original sorszám (idx+1)
       ...categoryMiniapps.map((app, idx) => {
         if (favorites.includes(app.domain)) {
-          return (
-            <div key={app.domain + '-gap'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-transparent`}>
-              <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}></span>
-            </div>
-          );
+          return null;
         }
         return (
           <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
