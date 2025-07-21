@@ -227,42 +227,50 @@ export default function Home() {
           </div>
         );
       }))),
-      ...nonFavoriteMiniapps.map((app, idx) => (
-        <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
-          <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>
-            {idx + 1}
-          </span>
-          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
-          {app.iconUrl ? (
-            <img
-              src={app.iconUrl}
-              alt={app.name + ' logo'}
-              className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
-              onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
-              {app.name.charAt(0).toUpperCase()}
+      // Main list: always render all categoryMiniapps in order, but if favorite, show empty sorszám
+      ...categoryMiniapps.map((app, idx) => {
+        if (favorites.includes(app.domain)) {
+          return (
+            <div key={app.domain + '-placeholder'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-transparent`}>
+              <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}></span>
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-white text-sm truncate">{app.name}</div>
-            <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
-            <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
-              <span className="text-xs">👥</span>
-              <span>{app.author.followerCount}</span>
+          );
+        }
+        return (
+          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
+            <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
+            {app.iconUrl ? (
+              <img
+                src={app.iconUrl}
+                alt={app.name + ' logo'}
+                className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                {app.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-white text-sm truncate">{app.name}</div>
+              <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
+              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
+                <span className="text-xs">👥</span>
+                <span>{app.author.followerCount}</span>
+              </div>
             </div>
+            <button
+              onClick={() => toggleFavorite(app.domain)}
+              className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-gradient-to-br from-gray-700 to-gray-900 text-white shadow-[0_0_10px_rgba(236,72,153,0.2)]`}
+              title={'Add to favorites'}
+            >
+              {'🤍'}
+            </button>
+            <RankChanges app={app} />
           </div>
-          <button
-            onClick={() => toggleFavorite(app.domain)}
-            className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700`}
-            title={'Add to favorites'}
-          >
-            {'🤍'}
-          </button>
-          <RankChanges app={app} />
-        </div>
-      ))
+        );
+      })
     ];
   } else {
     allViewRows = sortedMiniapps.map((app: Miniapp, idx: number) => {
