@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import path from 'path';
 import { sdk } from '@farcaster/miniapp-sdk';
 // import Image from 'next/image'; // removed unused import
 // import { MiniappUserProfile } from '../components/MiniappUserProfile'; // REMOVE old stat block
@@ -33,6 +34,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<string>('')
+  const [snapshotDate, setSnapshotDate] = useState<string>('');
   const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
   // Only fetch user FID
   const [userFid, setUserFid] = useState<number | null>(null);
@@ -56,6 +58,22 @@ export default function Home() {
         console.log('API response:', data) // Debug log
         setMiniapps(data.miniapps || [])
         setLastUpdate(new Date().toLocaleTimeString('en-US'))
+        // Try to get snapshot date from the filename (works only in server context)
+        // Fallback: parse from window.location or hardcode for now
+        let snap = '';
+        if (typeof window !== 'undefined') {
+          // Try to guess from public/data/top_miniapps.json symlink
+          // If you update the symlink, update this logic
+          const files = [
+            'top_miniapps_2025-07-20.json',
+            // Add more if needed
+          ];
+          const match = files[0].match(/top_miniapps_(\d{4}-\d{2}-\d{2})\.json/);
+          if (match) {
+            snap = match[1];
+          }
+        }
+        setSnapshotDate(snap);
         setLoading(false)
       })
       .catch(error => {
@@ -175,7 +193,9 @@ export default function Home() {
             </span>
           </div>
           <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
-          <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
+          <p className="text-purple-200 text-xs font-medium">
+            {snapshotDate ? `Snapshot date: ${snapshotDate}` : `${new Date().toLocaleDateString('en-US')} Updated: ${lastUpdate}`}
+          </p>
         </div>
 
         {/* Own miniapp card(s) at the top if exists, highlighted */}
