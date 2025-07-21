@@ -346,35 +346,35 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Bottom Navigation Bar - Category Filters */}
-      <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-stretch py-2 px-1 bg-transparent">
-        <div className="flex flex-row items-stretch w-full max-w-4xl bg-gray-900/95 backdrop-blur-md shadow-2xl border border-gray-700 rounded-lg overflow-x-auto scrollbar-hide whitespace-nowrap">
+      {/* Modern Minimal Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 w-full z-50 bg-gradient-to-t from-black/80 via-gray-900/90 to-transparent p-0 m-0">
+        <div className="flex w-full max-w-3xl mx-auto gap-2 px-2 pb-2 pt-3">
           <button
-            className={`px-2 py-8 font-semibold text-xs min-w-fit whitespace-nowrap transition-all duration-200 text-gray-300 ${filter === 'all' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
             onClick={() => setFilter('all')}
           >
             All
           </button>
           <button
-            className={`px-2 py-8 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'games' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
             onClick={() => setFilter('games')}
           >
             Games
           </button>
           <button
-            className={`px-2 py-8 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'social' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
             onClick={() => setFilter('social')}
           >
             Social
           </button>
           <button
-            className={`px-2 py-8 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'utility' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
             onClick={() => setFilter('utility')}
           >
             Utility
           </button>
           <button
-            className={`px-2 py-8 font-semibold text-xs min-w-fit whitespace-nowrap border-l border-gray-700 transition-all duration-200 text-gray-300 ${filter === 'finance' ? 'bg-blue-600 text-white shadow-inner' : 'hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
             onClick={() => setFilter('finance')}
           >
             Finance
@@ -383,14 +383,14 @@ export default function Home() {
             href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col justify-center items-center px-2 py-2 min-w-[70px] border-l border-gray-700 text-gray-300 text-[10px] leading-tight font-semibold hover:bg-gray-800 hover:text-white transition-all duration-200 whitespace-nowrap"
-            style={{lineHeight: '1.1'}}
+            className="flex-1 py-3 rounded-xl font-semibold text-base shadow-md border-none focus:outline-none focus:ring-2 focus:ring-pink-400 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white hover:scale-105 hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center"
+            style={{ minWidth: '110px' }}
           >
-            <span>Play CHESS</span>
-            <span className="text-[9px]">Claim 10k $CHESS</span>
+            <span className="text-lg font-bold tracking-wide">♟️ Chess</span>
+            <span className="text-xs font-normal opacity-80">Claim 10k $CHESS</span>
           </a>
         </div>
-      </div>
+      </nav>
     </div>
   )
 }
