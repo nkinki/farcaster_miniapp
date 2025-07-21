@@ -222,6 +222,7 @@ export default function Home() {
           >
             {'❤️'}
           </button>
+          <RankChanges app={app} />
         </div>
       )),
       // Fő lista, minden miniapp csak egyszer, sorszámmal
@@ -260,6 +261,7 @@ export default function Home() {
           >
             {favorites.includes(app.domain) ? '❤️' : '🤍'}
           </button>
+          <RankChanges app={app} />
         </div>
       ))
     ];
@@ -311,10 +313,43 @@ export default function Home() {
             >
               {favorites.includes(app.domain) ? '❤️' : '🤍'}
             </button>
+            <RankChanges app={app} />
           </div>
         </>
       );
     });
+  }
+
+  // Helper: rank changes mini-table
+  function RankChanges({ app }: { app: Miniapp }) {
+    return (
+      <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+        <div className="flex gap-1 items-center">
+          <span className={`font-semibold text-xs ${
+            (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+          }`}>
+            {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
+          </span>
+          <span className="text-[10px] text-purple-400">24h</span>
+        </div>
+        <div className="flex gap-1 items-center">
+          <span className={`font-semibold text-xs ${
+            app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
+          }`}>
+            {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
+          </span>
+          <span className="text-[10px] text-purple-400">72h</span>
+        </div>
+        <div className="flex gap-1 items-center">
+          <span className={`font-semibold text-xs ${
+            (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+          }`}>
+            {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
+          </span>
+          <span className="text-[10px] text-purple-400">7d</span>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {
@@ -421,11 +456,7 @@ export default function Home() {
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
           <div className="flex flex-col gap-2">
             {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
-            {filter !== 'all' ? (
-              categoryViewRows
-            ) : (
-              allViewRows
-            )}
+            {filter !== 'all' ? categoryViewRows : allViewRows}
           </div>
         </div>
       </div>
