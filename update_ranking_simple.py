@@ -51,14 +51,18 @@ def download_all_miniapps():
 
 def save_to_json(miniapps_data):
     """Saves miniapp data to JSON file"""
-    
+    import datetime
+    today = datetime.date.today().isoformat()
+    output = {
+        'snapshotDate': today,
+        'miniapps': miniapps_data
+    }
     # Save complete data to top_miniapps.json
     with open("top_miniapps.json", "w", encoding="utf-8") as f:
-        json.dump(miniapps_data, f, ensure_ascii=False, indent=2)
-    
+        json.dump(output, f, ensure_ascii=False, indent=2)
     print(f"Data saved: top_miniapps.json")
     print(f"   - Miniapps count: {len(miniapps_data)}")
-    print(f"   - File size: {len(json.dumps(miniapps_data))} characters")
+    print(f"   - File size: {len(json.dumps(output))} characters")
 
 def main():
     """Main function"""
