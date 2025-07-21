@@ -311,10 +311,9 @@ export default function Home() {
             </div>
             <button
               onClick={() => toggleFavorite(app.domain)}
-              className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 ${favorites.includes(app.domain)
-                ? 'bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]'
-                : 'bg-gray-800 text-gray-400 hover:bg-pink-900/50 hover:text-pink-400 border border-gray-700'}`}
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent ${favorites.includes(app.domain) ? 'text-blue-400' : 'text-gray-400'}`}
               title={favorites.includes(app.domain) ? 'Remove from favorites' : 'Add to favorites'}
+              style={{fontSize: '1.35em', boxShadow: 'none', background: 'none', border: 'none'}}
             >
               {favorites.includes(app.domain) ? '❤️' : '🤍'}
             </button>
