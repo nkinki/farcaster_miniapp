@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
-import topMiniapps from '../top_miniapps.json'
 
 interface MiniappUser {
   fid: number
@@ -29,12 +28,13 @@ export const MiniappUserProfile: React.FC = () => {
           let followerCount = 0
           let followingCount = 0
 
-          // Dynamically import top_miniapps.json
+          // Fetch top_miniapps.json from public folder
           let foundMiniapp = null
           if (u?.fid) {
             try {
-              const topMiniapps = (await import('../top_miniapps.json')).default as any[]
-              foundMiniapp = topMiniapps.find((item) => item.miniApp?.author?.fid === u.fid)
+              const res = await fetch('/top_miniapps.json')
+              const topMiniapps = await res.json()
+              foundMiniapp = topMiniapps.find((item: any) => item.miniApp?.author?.fid === u.fid)
             } catch (e) {
               // ignore
             }
