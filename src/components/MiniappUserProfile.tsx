@@ -105,37 +105,30 @@ export const MiniappUserProfile: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="profile-card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 24, background: '#181818', borderRadius: 8, padding: 16, color: '#fff', fontSize: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.10)', marginBottom: 16 }}>
+      {/* Left: user logo and name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <img
           src={user.pfpUrl}
           alt={user.displayName}
-          style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
+          style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
           onError={e => {
             e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
           }}
         />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div style={{ fontWeight: 600 }}>{user.displayName || user.username}</div>
-          <div style={{ color: '#888', fontSize: 13 }}>@{user.username}</div>
-        </div>
-        <div style={{ display: 'flex', gap: 10, marginLeft: 16, fontSize: 15 }}>
-          <span>👥 <b>{user.followerCount}</b> Followers</span>
-          <span>👤 <b>{user.followingCount}</b> Following</span>
-          <span>🏆 <b>#{user.fid}</b> FID</span>
-        </div>
+        <div style={{ fontWeight: 600, fontSize: 18 }}>{user.displayName || user.username}</div>
       </div>
+      {/* Right: miniapp stats if present */}
       {ownMiniapp && (
-        <div style={{ marginTop: 8, background: '#181818', borderRadius: 8, padding: 12, color: '#fff', fontSize: 15, boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}>
+        <div style={{ marginLeft: 'auto', background: '#232323', borderRadius: 8, padding: '12px 20px', color: '#fff', fontSize: 15, boxShadow: '0 1px 4px rgba(0,0,0,0.10)', minWidth: 180 }}>
           <div style={{ fontWeight: 600, marginBottom: 4 }}>Your Miniapp</div>
           <div><b>Name:</b> {ownMiniapp.miniApp.name}</div>
           <div><b>Rank:</b> #{ownMiniapp.rank}</div>
           {typeof ownMiniapp.miniApp.userCount === 'number' && (
             <div><b>Users:</b> {ownMiniapp.miniApp.userCount}</div>
           )}
-          {/* Add more stats if available */}
         </div>
       )}
-    </>
+    </div>
   )
 } 
