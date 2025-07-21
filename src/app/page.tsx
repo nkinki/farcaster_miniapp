@@ -346,35 +346,40 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Modern Minimal Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 bg-gradient-to-t from-black/80 via-gray-900/90 to-transparent p-0 m-0">
-        <div className="flex w-full max-w-3xl mx-auto gap-2 px-2 pb-2 pt-3">
+      {/* Blocky, joined, high-contrast bottom nav bar */}
+      <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
+        <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
           <button
-            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
+            className={`flex-1 py-4 font-bold text-base border-r border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('all')}
           >
             All
           </button>
           <button
-            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
+            className={`flex-1 py-4 font-bold text-base border-r border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('games')}
           >
             Games
           </button>
           <button
-            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
+            className={`flex-1 py-4 font-bold text-base border-r border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('social')}
           >
             Social
           </button>
           <button
-            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
+            className={`flex-1 py-4 font-bold text-base border-r border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('utility')}
           >
             Utility
           </button>
           <button
-            className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white'}`}
+            className={`flex-1 py-4 font-bold text-base border-r border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('finance')}
           >
             Finance
@@ -383,11 +388,11 @@ export default function Home() {
             href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 py-3 rounded-xl font-semibold text-base shadow-md border-none focus:outline-none focus:ring-2 focus:ring-pink-400 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white hover:scale-105 hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center"
-            style={{ minWidth: '110px' }}
+            className="flex-1 py-4 font-bold text-base focus:outline-none focus:ring-2 focus:ring-pink-400 bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-600 text-black hover:brightness-110 transition-all duration-200 flex flex-col items-center justify-center border-none"
+            style={{borderRadius: 0, minWidth: '120px', letterSpacing: '0.01em'}}
           >
-            <span className="text-lg font-bold tracking-wide">♟️ Chess</span>
-            <span className="text-xs font-normal opacity-80">Claim 10k $CHESS</span>
+            <span className="text-lg font-extrabold tracking-wide">Play Chess</span>
+            <span className="text-xs font-normal opacity-90">Claim 10k $CHESS</span>
           </a>
         </div>
       </nav>
