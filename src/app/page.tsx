@@ -350,35 +350,35 @@ export default function Home() {
       <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
         <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
           <button
-            className={`flex-1 py-4 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('all')}
           >
             All
           </button>
           <button
-            className={`flex-1 py-4 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('games')}
           >
             Games
           </button>
           <button
-            className={`flex-1 py-4 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('social')}
           >
             Social
           </button>
           <button
-            className={`flex-1 py-4 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('utility')}
           >
             Utility
           </button>
           <button
-            className={`flex-1 py-4 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.8rem] border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('finance')}
           >
@@ -388,10 +388,10 @@ export default function Home() {
             href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 py-4 font-bold text-[0.8rem] focus:outline-none focus:ring-2 focus:ring-pink-400 bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-600 text-black hover:brightness-110 transition-all duration-200 flex flex-col items-center justify-center border-none border-r border-gray-400/60"
+            className="flex-1 py-2 font-bold text-[0.8rem] focus:outline-none focus:ring-2 focus:ring-pink-400 bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-600 text-black hover:brightness-110 transition-all duration-200 flex flex-col items-center justify-center border-r border-gray-400/60"
             style={{borderRadius: 0, minWidth: '120px', letterSpacing: '0.01em'}}
           >
-            <span className="text-lg font-extrabold tracking-wide">Play Chess</span>
+            <span className="font-extrabold tracking-wide">Play Chess</span>
             <span className="text-xs font-normal opacity-90">Claim 10k $CHESS</span>
           </a>
         </div>
