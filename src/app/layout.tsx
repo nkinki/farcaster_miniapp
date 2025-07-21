@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthKitProvider } from '@farcaster/auth-kit';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -11,6 +12,13 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const config = {
+  domain: typeof window !== 'undefined' ? window.location.host : 'localhost',
+  siweUri: typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000/login',
+  rpcUrl: 'https://mainnet.optimism.io',
+  relay: 'https://relay.farcaster.xyz',
+};
 
 export const metadata: Metadata = {
   title: "APPRANK",
@@ -45,27 +53,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        {/* Farcaster Miniapp Meta Tags */}
-        <meta name="farcaster:app" content="miniapp" />
-        <meta name="farcaster:category" content="analytics" />
-        <meta name="farcaster:title" content="APPRANK" />
-        <meta name="farcaster:description" content="APPRANK - Farcaster miniapp toplist and statistics" />
-        <meta name="farcaster:image" content="https://farcaster-miniapp-rangsor.vercel.app/og-image.png" />
-        <meta name="farcaster:url" content="https://farcaster-miniapp-rangsor.vercel.app" />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <AuthKitProvider config={config}>
+      {children}
+    </AuthKitProvider>
   );
 }
