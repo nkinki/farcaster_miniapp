@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useFarcasterAuth } from './FarcasterAuthProvider'
+import Image from 'next/image';
 
 export const UserProfile: React.FC = () => {
   const { user, isAuthenticated } = useFarcasterAuth()
@@ -15,13 +16,16 @@ export const UserProfile: React.FC = () => {
       <div className="flex items-center gap-4">
         {/* Profile Picture */}
         <div className="relative">
-          <img
+          <Image
             src={user.pfp}
             alt={user.displayName}
+            width={64}
+            height={64}
             className="w-16 h-16 rounded-full border-4 border-purple-400 shadow-lg"
             onError={(e) => {
-              e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
+              (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`;
             }}
+            unoptimized
           />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-black flex items-center justify-center">
             <div className="w-2 h-2 bg-white rounded-full"></div>
