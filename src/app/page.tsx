@@ -124,7 +124,29 @@ export default function Home() {
 
   // Find all miniapps for this user (use demo FID if userFid is null)
   const effectiveFid = userFid || DEMO_FID;
-  const ownMiniapps = effectiveFid ? sortedMiniapps.filter(app => app.author && app.author.fid === effectiveFid) : [];
+  let ownMiniapps = effectiveFid ? sortedMiniapps.filter(app => app.author && app.author.fid === effectiveFid) : [];
+  // If no FID match, try username match
+  if (ownMiniapps.length === 0 && userFid) {
+    const username = typeof window !== 'undefined' ? window.localStorage.getItem('farcaster-username') || '' : '';
+    if (username) {
+      ownMiniapps = sortedMiniapps.filter(app => app.author && app.author.username === username);
+      if (ownMiniapps.length > 0) {
+        console.log('Matched own miniapp by username:', username);
+      }
+    }
+  }
+
+  // Debug: log miniapps sample and effectiveFid
+  useEffect(() => {
+    if (miniapps.length > 0) {
+      console.log('Miniapps sample:', miniapps.slice(0, 5));
+    }
+  }, [miniapps]);
+  useEffect(() => {
+    if (userFid !== null) {
+      console.log('Effective FID:', effectiveFid);
+    }
+  }, [userFid]);
 
   if (loading) {
     return (
