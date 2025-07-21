@@ -228,7 +228,7 @@ export default function Home() {
         );
       }))),
       // Main list: only non-favorites, with continuous sorszám
-      ...nonFavoriteMiniapps.map((app, idx) => (
+      ...categoryMiniapps.filter(app => !favorites.includes(app.domain)).map((app, idx) => (
         <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
           <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
           <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
