@@ -59,18 +59,13 @@ export default function Home() {
         console.log('API response:', data) // Debug log
         setMiniapps(data.miniapps || [])
         setLastUpdate(new Date().toLocaleTimeString('en-US'))
-        // Try to get snapshot date from the latest file in public/data
+        // Try to get snapshot date from the top_miniapps.json file
         if (typeof window !== 'undefined') {
-          fetch('/data/')
-            .then(res => res.text())
-            .then(html => {
-              // Parse directory listing for snapshot files
-              const matches = Array.from(html.matchAll(/top_miniapps_(\d{4}-\d{2}-\d{2})\.json/g));
-              if (matches.length > 0) {
-                // Find the latest date
-                const dates = matches.map(m => m[1]);
-                const latest = dates.sort().reverse()[0];
-                setSnapshotDate(latest);
+          fetch('/data/top_miniapps.json')
+            .then(res => res.json())
+            .then(json => {
+              if (json && json.snapshotDate) {
+                setSnapshotDate(json.snapshotDate);
               } else {
                 setSnapshotDate('');
               }
