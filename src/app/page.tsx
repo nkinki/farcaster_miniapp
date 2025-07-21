@@ -106,7 +106,14 @@ export default function Home() {
   let ownMiniapp: Miniapp | null = null;
   let restMiniapps = sortedMiniapps;
   if (userFid) {
-    const idx = sortedMiniapps.findIndex(app => app.author && app.author.fid === userFid);
+    console.log('Logged in user FID:', userFid);
+    console.log('First 5 miniapp author.fid:', sortedMiniapps.slice(0, 5).map(app => app.author && app.author.fid));
+    let idx = sortedMiniapps.findIndex(app => app.author && app.author.fid === userFid);
+    if (idx === -1 && typeof window !== 'undefined') {
+      // Fallback: try username match
+      const username = window.localStorage.getItem('farcaster-username') || '';
+      idx = sortedMiniapps.findIndex(app => app.author && app.author.username === username);
+    }
     if (idx !== -1) {
       ownMiniapp = sortedMiniapps[idx];
       restMiniapps = [...sortedMiniapps.slice(0, idx), ...sortedMiniapps.slice(idx + 1)];
@@ -136,7 +143,7 @@ export default function Home() {
         </div>
 
         {/* Own miniapp card at the top if exists */}
-        {ownMiniapp && (
+        {ownMiniapp ? (
           <div className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-green-400 shadow-lg mb-2`}>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{ownMiniapp.rank}</div>
             {ownMiniapp.iconUrl ? (
@@ -187,6 +194,8 @@ export default function Home() {
               </div>
             </div>
           </div>
+        ) : (
+          <div className="text-center text-purple-300 text-xs mb-2">No miniapp found for your account.</div>
         )}
 
         {/* Main Ranking List - Modern List Style */}
