@@ -86,7 +86,7 @@ function AuthProviderContent({ children }: { children: React.ReactNode }) {
     signOut: signOutRaw,
     isError,
     error,
-  } = useSignIn();
+  } = useSignIn({});
 
   const user = isSuccess && signInData && signInData.fid !== undefined ? {
     fid: signInData.fid ?? 0,
