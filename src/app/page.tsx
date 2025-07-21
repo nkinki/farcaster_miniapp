@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk';
 import Image from 'next/image';
-import { MiniappUserProfile } from '../components/MiniappUserProfile';
+// import { MiniappUserProfile } from '../components/MiniappUserProfile'; // REMOVE old stat block
 
 // Define types for miniapp data
 interface Miniapp {
@@ -33,6 +33,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<string>('')
   const [filter, setFilter] = useState<'all' | 'games' | 'social' | 'utility' | 'finance' | 'analytics'>('all')
+  const [userFid, setUserFid] = useState<number | null>(null);
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -58,7 +59,18 @@ export default function Home() {
         console.error('Error fetching data:', error)
         setLoading(false)
       })
-  }, [])
+
+    // Get user FID for highlighting own miniapp
+    (async () => {
+      try {
+        const isInMiniapp = await sdk.isInMiniApp();
+        if (isInMiniapp) {
+          const context = await sdk.context;
+          setUserFid(context.user?.fid || null);
+        }
+      } catch {}
+    })();
+  }, []);
 
   // Call sdk.actions.ready() when loading is finished
   useEffect(() => {
@@ -88,6 +100,17 @@ export default function Home() {
     ...filteredMiniapps.filter(app => !favorites.includes(app.domain)),
   ];
 
+  // Find user's own miniapp in the list
+  let ownMiniapp: Miniapp | null = null;
+  let restMiniapps = sortedMiniapps;
+  if (userFid) {
+    const idx = sortedMiniapps.findIndex(app => app.author && (app.author as any).fid === userFid);
+    if (idx !== -1) {
+      ownMiniapp = sortedMiniapps[idx];
+      restMiniapps = [...sortedMiniapps.slice(0, idx), ...sortedMiniapps.slice(idx + 1)];
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
@@ -110,13 +133,64 @@ export default function Home() {
           <p className="text-purple-200 text-xs font-medium">{new Date().toLocaleDateString('en-US')} Updated: {lastUpdate}</p>
         </div>
 
-        {/* Miniapp User Profile */}
-        <MiniappUserProfile />
+        {/* Own miniapp card at the top if exists */}
+        {ownMiniapp && (
+          <div className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-green-400 shadow-lg mb-2`}>
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{ownMiniapp.rank}</div>
+            {ownMiniapp.iconUrl ? (
+              <img
+                src={ownMiniapp.iconUrl}
+                alt={ownMiniapp.name + ' logo'}
+                className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                {ownMiniapp.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-white text-sm truncate">{ownMiniapp.name}</div>
+              <div className="text-[10px] text-purple-300 truncate">@{ownMiniapp.author.username}</div>
+              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
+                <span className="text-xs">👥</span>
+                <span>{ownMiniapp.author.followerCount}</span>
+              </div>
+            </div>
+            {/* NO Favorite button here! */}
+            <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+              <div className="flex gap-1 items-center">
+                <span className={`font-semibold text-xs ${
+                  (ownMiniapp.rank24hChange || 0) > 0 ? 'text-green-400' : (ownMiniapp.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                }`}>
+                  {(ownMiniapp.rank24hChange || 0) > 0 ? '+' : ''}{ownMiniapp.rank24hChange || 0}
+                </span>
+                <span className="text-[10px] text-purple-400">24h</span>
+              </div>
+              <div className="flex gap-1 items-center">
+                <span className={`font-semibold text-xs ${
+                  ownMiniapp.rank72hChange > 0 ? 'text-green-400' : ownMiniapp.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
+                }`}>
+                  {ownMiniapp.rank72hChange > 0 ? '+' : ''}{ownMiniapp.rank72hChange}
+                </span>
+                <span className="text-[10px] text-purple-400">72h</span>
+              </div>
+              <div className="flex gap-1 items-center">
+                <span className={`font-semibold text-xs ${
+                  (ownMiniapp.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (ownMiniapp.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                }`}>
+                  {(ownMiniapp.rankWeeklyChange || 0) > 0 ? '+' : ''}{ownMiniapp.rankWeeklyChange || 0}
+                </span>
+                <span className="text-[10px] text-purple-400">7d</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Ranking List - Modern List Style */}
         <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
           <div className="flex flex-col gap-2">
-            {sortedMiniapps.map((app: Miniapp, idx: number) => {
+            {restMiniapps.map((app: Miniapp, idx: number) => {
               // Highlight top 50
               const highlight = idx < 50 ? 'bg-[#23283a]/80' : 'bg-[#181c23]';
               return (
