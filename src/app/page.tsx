@@ -139,6 +139,7 @@ export default function Home() {
   // Debug: log miniapps sample and effectiveFid
   useEffect(() => {
     if (miniapps.length > 0) {
+      console.log('Full miniapps array:', miniapps);
       console.log('Miniapps sample:', miniapps.slice(0, 5));
     }
   }, [miniapps]);
@@ -147,6 +148,13 @@ export default function Home() {
       console.log('Effective FID:', effectiveFid);
     }
   }, [userFid]);
+  useEffect(() => {
+    if (ownMiniapps.length > 0) {
+      console.log('Own miniapps found:', ownMiniapps);
+    } else {
+      console.log('No own miniapps found for FID:', effectiveFid);
+    }
+  }, [ownMiniapps, effectiveFid]);
 
   if (loading) {
     return (
