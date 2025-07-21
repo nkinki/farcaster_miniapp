@@ -473,28 +473,28 @@ export default function Home() {
       <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
         <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
           <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('all')}
           >
             All
           </button>
           <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('games')}
           >
             Games
           </button>
           <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('social')}
           >
             Social
           </button>
           <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('utility')}
           >
