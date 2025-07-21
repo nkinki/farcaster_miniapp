@@ -288,6 +288,55 @@ export default function Home() {
             {sortedMiniapps.map((app: Miniapp, idx: number) => {
               // Highlight top 50
               const highlight = idx < 50 ? 'bg-[#23283a]/80' : 'bg-[#181c23]';
+              // In category view, if favorite, render a duplicate at the top without sorszám
+              const isCategoryView = filter !== 'all';
+              const isFavorite = favorites.includes(app.domain);
+              let categoryNumber = null;
+              if (isCategoryView) {
+                categoryNumber = sortedMiniapps
+                  .slice(0, idx + 1)
+                  .filter(a => a.category.toLowerCase() === app.category.toLowerCase())
+                  .length;
+              }
+              // Render favorite at the top without sorszám (only once)
+              if (isCategoryView && isFavorite && idx === 0) {
+                return (
+                  <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ring-2 ring-pink-400`}> 
+                    <span className="mr-2" style={{minWidth: '16px'}}></span>
+                    {/* No sorszám */}
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
+                    {/* App logo, info, favorite button, etc. (copy from below) */}
+                    {app.iconUrl ? (
+                      <img
+                        src={app.iconUrl}
+                        alt={app.name + ' logo'}
+                        className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                        {app.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-white text-sm truncate">{app.name}</div>
+                      <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
+                      <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
+                        <span className="text-xs">👥</span>
+                        <span>{app.author.followerCount}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleFavorite(app.domain)}
+                      className={`w-7 h-8 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-gradient-to-br from-pink-500 to-red-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]`}
+                      title={'Remove from favorites'}
+                    >
+                      {'❤️'}
+                    </button>
+                  </div>
+                );
+              }
+              // Always render the normal row (with sorszám if category view)
               return (
                 <>
                   {idx === 50 && (
@@ -302,16 +351,10 @@ export default function Home() {
                       <div className="flex-1 h-px bg-cyan-400/60" />
                     </div>
                   )}
-                  <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'ring-2 ring-pink-400' : ''}`}> 
-                    {/* Category position counter (only for category filter) */}
-                    {filter !== 'all' ? (
-                      <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right'}}>
-                        {
-                          sortedMiniapps
-                            .slice(0, idx + 1)
-                            .filter(a => a.category.toLowerCase() === app.category.toLowerCase())
-                            .length
-                        }
+                  <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${isFavorite ? 'ring-2 ring-pink-400' : ''}`}> 
+                    {isCategoryView ? (
+                      <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>
+                        {categoryNumber}
                       </span>
                     ) : (
                       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
