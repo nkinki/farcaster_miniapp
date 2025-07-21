@@ -136,15 +136,24 @@ export const MiniappUserProfile: React.FC = () => {
           {typeof mini.miniApp.userCount === 'number' && (
             <div><b>Users:</b> {mini.miniApp.userCount}</div>
           )}
-          {typeof mini.rank24hChange === 'number' && (
-            <div><b>24h:</b> {mini.rank24hChange > 0 ? '+' : ''}{mini.rank24hChange}</div>
-          )}
-          {typeof mini.rank72hChange === 'number' && (
-            <div><b>72h:</b> {mini.rank72hChange > 0 ? '+' : ''}{mini.rank72hChange}</div>
-          )}
-          {typeof mini.rank7dChange === 'number' && (
-            <div><b>7d:</b> {mini.rank7dChange > 0 ? '+' : ''}{mini.rank7dChange}</div>
-          )}
+          {/* Stat row: 24h, 72h, 7d in one line */}
+          <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
+            {typeof mini.rank24hChange === 'number' && (
+              <span style={{ color: mini.rank24hChange > 0 ? '#2fff8c' : mini.rank24hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 600, minWidth: 36, display: 'inline-block' }}>
+                {mini.rank24hChange > 0 ? '+' : ''}{mini.rank24hChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>24h</span>
+              </span>
+            )}
+            {typeof mini.rank72hChange === 'number' && (
+              <span style={{ color: mini.rank72hChange > 0 ? '#2fff8c' : mini.rank72hChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 600, minWidth: 36, display: 'inline-block' }}>
+                {mini.rank72hChange > 0 ? '+' : ''}{mini.rank72hChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>72h</span>
+              </span>
+            )}
+            {typeof mini.rank7dChange === 'number' && (
+              <span style={{ color: mini.rank7dChange > 0 ? '#2fff8c' : mini.rank7dChange < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 600, minWidth: 36, display: 'inline-block' }}>
+                {mini.rank7dChange > 0 ? '+' : ''}{mini.rank7dChange} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 13 }}>7d</span>
+              </span>
+            )}
+          </div>
         </div>
       ))}
     </div>
