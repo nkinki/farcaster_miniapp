@@ -501,7 +501,7 @@ export default function Home() {
             Utility
           </button>
           <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-blue-700 text-white' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
             style={{borderRadius: 0, letterSpacing: '0.01em'}}
             onClick={() => setFilter('finance')}
           >
