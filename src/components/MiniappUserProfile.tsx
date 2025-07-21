@@ -25,12 +25,17 @@ type TopMiniapp = {
     userCount?: number;
     // add more fields if needed
   };
+  rank24hChange?: number;
+  rank72hChange?: number;
+  rank7dChange?: number;
 };
 
 export const MiniappUserProfile: React.FC = () => {
   const [user, setUser] = useState<MiniappUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [ownMiniapp, setOwnMiniapp] = useState<TopMiniapp | null>(null)
+  // Find all miniapps for this user
+  const [ownMiniapps, setOwnMiniapps] = useState<TopMiniapp[]>([])
+  const [checkedMiniapps, setCheckedMiniapps] = useState(false)
 
   useEffect(() => {
     const getUserData = async () => {
@@ -43,18 +48,19 @@ export const MiniappUserProfile: React.FC = () => {
           let followerCount = 0
           let followingCount = 0
 
-          // Fetch top_miniapps.json from public folder
-          let foundMiniapp: TopMiniapp | null = null
+          // Fetch all miniapps for this user
+          let foundMiniapps: TopMiniapp[] = []
           if (u?.fid) {
             try {
               const res = await fetch('/top_miniapps.json')
               const topMiniapps: TopMiniapp[] = await res.json()
-              foundMiniapp = topMiniapps.find((item) => item.miniApp?.author?.fid === u.fid) || null
+              foundMiniapps = topMiniapps.filter((item) => item.miniApp?.author?.fid === u.fid)
             } catch (e) {
               // ignore
             }
           }
-          setOwnMiniapp(foundMiniapp)
+          setOwnMiniapps(foundMiniapps)
+          setCheckedMiniapps(true)
 
           // Try to get QuickAuth token and fetch follower/following counts
           try {
@@ -104,31 +110,43 @@ export const MiniappUserProfile: React.FC = () => {
     return <div>No user data available.</div>
   }
 
+  // Only render on homepage (page.tsx)
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 24, background: '#181818', borderRadius: 8, padding: 16, color: '#fff', fontSize: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.10)', marginBottom: 16 }}>
-      {/* Left: user logo and name */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div style={{ maxWidth: 400, margin: '24px auto', background: '#181818', borderRadius: 10, padding: 12, color: '#fff', fontSize: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
         <img
           src={user.pfpUrl}
           alt={user.displayName}
-          style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
+          style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
           onError={e => {
             e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
           }}
         />
-        <div style={{ fontWeight: 600, fontSize: 18 }}>{user.displayName || user.username}</div>
+        <div style={{ fontWeight: 600, fontSize: 15 }}>{user.displayName || user.username}</div>
       </div>
-      {/* Right: miniapp stats if present */}
-      {ownMiniapp && (
-        <div style={{ marginLeft: 'auto', background: '#232323', borderRadius: 8, padding: '12px 20px', color: '#fff', fontSize: 15, boxShadow: '0 1px 4px rgba(0,0,0,0.10)', minWidth: 180 }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>Your Miniapp</div>
-          <div><b>Name:</b> {ownMiniapp.miniApp.name}</div>
-          <div><b>Rank:</b> #{ownMiniapp.rank}</div>
-          {typeof ownMiniapp.miniApp.userCount === 'number' && (
-            <div><b>Users:</b> {ownMiniapp.miniApp.userCount}</div>
-          )}
+      {checkedMiniapps && ownMiniapps.length === 0 && (
+        <div style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', padding: 8 }}>
+          No miniapp found for your account.
         </div>
       )}
+      {ownMiniapps.length > 0 && ownMiniapps.map((mini, idx) => (
+        <div key={mini.miniApp.name + idx} style={{ background: '#232323', borderRadius: 8, padding: '10px 14px', marginBottom: 8, color: '#fff', fontSize: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}>
+          <div style={{ fontWeight: 600, marginBottom: 2 }}>{mini.miniApp.name}</div>
+          <div><b>Rank:</b> #{mini.rank}</div>
+          {typeof mini.miniApp.userCount === 'number' && (
+            <div><b>Users:</b> {mini.miniApp.userCount}</div>
+          )}
+          {typeof mini.rank24hChange === 'number' && (
+            <div><b>24h:</b> {mini.rank24hChange > 0 ? '+' : ''}{mini.rank24hChange}</div>
+          )}
+          {typeof mini.rank72hChange === 'number' && (
+            <div><b>72h:</b> {mini.rank72hChange > 0 ? '+' : ''}{mini.rank72hChange}</div>
+          )}
+          {typeof mini.rank7dChange === 'number' && (
+            <div><b>7d:</b> {mini.rank7dChange > 0 ? '+' : ''}{mini.rank7dChange}</div>
+          )}
+        </div>
+      ))}
     </div>
   )
 } 
