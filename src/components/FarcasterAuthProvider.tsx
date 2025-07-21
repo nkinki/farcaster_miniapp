@@ -1,7 +1,7 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { AuthKitProvider } from '@farcaster/auth-kit'
+import React, { createContext, useContext } from 'react'
+import { AuthKitProvider, useSignIn, QRCode } from '@farcaster/auth-kit'
 
 interface FarcasterUser {
   fid: number
@@ -21,6 +21,37 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// SignInButton component using AuthKit useSignIn
+export function SignInButton() {
+  const {
+    signIn,
+    url,
+    data,
+    isSuccess,
+    isConnected,
+    isPolling,
+    isError,
+    error,
+  } = useSignIn({
+    onSuccess: ({ fid }) => console.log('Your fid:', fid),
+  });
+
+  return (
+    <div>
+      <button onClick={signIn} disabled={isPolling} className="px-4 py-2 bg-purple-600 text-white rounded-lg font-bold">
+        {isPolling ? 'Bejelentkezés folyamatban...' : 'Bejelentkezés Farcasterrel'}
+      </button>
+      {url && (
+        <div className="mt-2">
+          <span>Scan this: <QRCode uri={url} /></span>
+        </div>
+      )}
+      {data?.username && <div className="mt-2">Hello, {data.username}!</div>}
+      {isError && <div className="text-red-500">Hiba: {error?.message}</div>}
+    </div>
+  );
+}
 
 export const useFarcasterAuth = () => {
   const context = useContext(AuthContext)
@@ -47,77 +78,42 @@ const config = {
 }
 
 function AuthProviderContent({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<FarcasterUser | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const {
+    data: signInData,
+    isSuccess,
+    isPolling,
+    signIn: signInRaw,
+    signOut: signOutRaw,
+    isError,
+    error,
+  } = useSignIn();
 
-  useEffect(() => {
-    // Check for existing auth state in localStorage
-    const savedUser = localStorage.getItem('farcaster-user')
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser))
-      } catch (error) {
-        console.error('Error parsing saved user:', error)
-        localStorage.removeItem('farcaster-user')
-      }
-    }
-    setIsLoading(false)
-  }, [])
+  const user = isSuccess && signInData && signInData.fid !== undefined ? {
+    fid: signInData.fid ?? 0,
+    username: signInData.username ?? '',
+    displayName: signInData.displayName ?? '',
+    pfp: signInData.pfpUrl ?? '',
+    followerCount: 0, // Optionally fetch real follower data elsewhere
+    followingCount: 0,
+  } : null;
 
-  const signIn = async () => {
-    try {
-      setIsLoading(true)
-      
-      // This will trigger the real Farcaster SignInButton
-      // The actual authentication will be handled by the AuthKit
-      console.log('Initiating real Farcaster sign-in...')
-      
-      // For now, we'll use a placeholder that will be replaced by the real auth flow
-      const mockUser: FarcasterUser = {
-        fid: Math.floor(Math.random() * 100000) + 1000,
-        username: 'real_farcaster_user',
-        displayName: 'Real Farcaster User',
-        pfp: 'https://picsum.photos/200',
-        followerCount: Math.floor(Math.random() * 500) + 50,
-        followingCount: Math.floor(Math.random() * 200) + 20
-      }
-      
-      setUser(mockUser)
-      localStorage.setItem('farcaster-user', JSON.stringify(mockUser))
-      console.log('Real Farcaster sign-in initiated')
-    } catch (error) {
-      console.error('Sign in error:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const signOut = async () => {
-    try {
-      setIsLoading(true)
-      setUser(null)
-      localStorage.removeItem('farcaster-user')
-      console.log('Real Farcaster sign-out successful')
-    } catch (error) {
-      console.error('Sign out error:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Wrap signIn and signOut to return Promise<void> for context compatibility
+  const signIn = async () => { signInRaw(); };
+  const signOut = async () => { signOutRaw(); };
 
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
-    isLoading,
+    isLoading: isPolling,
     signIn,
     signOut
-  }
+  };
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export const FarcasterAuthProvider: React.FC<FarcasterAuthProviderProps> = ({ children }) => {
