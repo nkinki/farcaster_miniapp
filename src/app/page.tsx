@@ -301,7 +301,18 @@ export default function Home() {
             </div>
           )}
           <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a]`}> 
-            <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-2 bg-gray-700 text-white`}>{app.rank}</div>
+            {app.iconUrl ? (
+              <img
+                src={app.iconUrl}
+                alt={app.name + ' logo'}
+                className="w-10 h-10 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                {app.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-white text-lg truncate">{app.name}</div>
               <div className="text-base text-purple-300 truncate">@{app.author.username}</div>
