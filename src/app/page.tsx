@@ -206,7 +206,7 @@ export default function Home() {
       ...((favoriteMiniapps.map(app => {
         const idx = categoryMiniapps.findIndex(a => a.domain === app.domain);
         return (
-          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_40px_12px_rgba(34,211,238,0.85)]`}>
+          <div key={app.domain + '-favtop'} className={`miniapp-glow flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 ring-2 ring-blue-400/80`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -247,7 +247,7 @@ export default function Home() {
           return null;
         }
         return (
-          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-[0_0_40px_12px_rgba(34,211,238,0.85)]`}>
+          <div key={app.domain} className={`miniapp-glow flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -300,7 +300,7 @@ export default function Home() {
               <div className="flex-1 h-px bg-cyan-400/60" />
             </div>
           )}
-          <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-[0_0_40px_12px_rgba(34,211,238,0.85)]`}> 
+          <div key={app.rank} className={`miniapp-glow flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a]`}> 
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
               <img
@@ -576,6 +576,15 @@ export default function Home() {
           </div>
         </nav>
       </div>
+      <style jsx global>{`
+@keyframes miniappGlow {
+  0% { box-shadow: 0 0 25px rgba(0,212,255,0.3); }
+  100% { box-shadow: 0 0 40px rgba(0,212,255,0.6); }
+}
+.miniapp-glow {
+  animation: miniappGlow 3.5s ease-in-out infinite alternate;
+}
+`}</style>
     </>
   );
 }
