@@ -267,10 +267,12 @@ def save_json_backup(miniapps_data):
     """Saves JSON as backup"""
     today = date.today()
     filename = f"top_miniapps_{today}.json"
-    
+    output = {
+        'snapshotDate': str(today),
+        'miniapps': miniapps_data
+    }
     with open(filename, "w", encoding="utf-8") as f:
-        json.dump(miniapps_data, f, ensure_ascii=False, indent=2)
-    
+        json.dump(output, f, ensure_ascii=False, indent=2)
     print(f"JSON backup saved: {filename}")
 
 def main():
