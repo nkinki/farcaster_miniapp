@@ -564,7 +564,7 @@ export default function Home() {
               Finance
             </button>
             <a
-              href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
+              href="https://warpcast.com/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 py-2 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
