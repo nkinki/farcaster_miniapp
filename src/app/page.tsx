@@ -206,7 +206,7 @@ export default function Home() {
       ...((favoriteMiniapps.map(app => {
         const idx = categoryMiniapps.findIndex(a => a.domain === app.domain);
         return (
-          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 ring-2 ring-blue-400/80`}>
+          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -247,7 +247,7 @@ export default function Home() {
           return null;
         }
         return (
-          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a]`}>
+          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -300,24 +300,25 @@ export default function Home() {
               <div className="flex-1 h-px bg-cyan-400/60" />
             </div>
           )}
-          <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a]`}> 
+          <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]' : ''}`}> 
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
               <img
                 src={app.iconUrl}
                 alt={app.name + ' logo'}
-                className="w-10 h-10 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
                 {app.name.charAt(0).toUpperCase()}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-white text-lg truncate">{app.name}</div>
-              <div className="text-base text-purple-300 truncate">@{app.author.username}</div>
-              <div className="text-base text-cyan-300 flex items-center gap-1 mt-0.5">
-                <span className="text-lg">👥</span>
+              <div className="font-semibold text-white text-sm truncate">{app.name}</div>
+              <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
+              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
+                <span className="text-xs">👥</span>
                 <span>{app.author.followerCount}</span>
               </div>
             </div>
@@ -341,36 +342,36 @@ export default function Home() {
     return (
       <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-xs ${
             (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
           </span>
-          <span className="text-sm text-purple-400">24h</span>
+          <span className="text-[10px] text-purple-400">24h</span>
         </div>
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-xs ${
             app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
           </span>
-          <span className="text-sm text-purple-400">72h</span>
+          <span className="text-[10px] text-purple-400">72h</span>
         </div>
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-xs ${
             (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
           </span>
-          <span className="text-sm text-purple-400">7d</span>
+          <span className="text-[10px] text-purple-400">7d</span>
         </div>
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-xs ${
             (app.rank30dChange || 0) > 0 ? 'text-green-400' : (app.rank30dChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {(app.rank30dChange || 0) > 0 ? '+' : ''}{app.rank30dChange || 0}
           </span>
-          <span className="text-sm text-purple-400">30d</span>
+          <span className="text-[10px] text-purple-400">30d</span>
         </div>
       </div>
     );
@@ -429,7 +430,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="mb-2 text-center">
+          <div className="mb-6 text-center">
             <div className="flex justify-center items-center mb-2">
               <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
                 <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
@@ -443,7 +444,7 @@ export default function Home() {
             </p>
           </div>
           {/* Search bar directly above the list */}
-          <div className="flex justify-end items-center max-w-2xl mx-auto mb-3 px-2">
+          <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
             <form className="flex items-center gap-0" onSubmit={e => { e.preventDefault(); }}>
               <input
                 type="text"
@@ -490,34 +491,34 @@ export default function Home() {
               {/* NO Favorite button here! */}
               <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
                 <div className="flex gap-1 items-center">
-                  <span className={`font-semibold text-base ${
+                  <span className={`font-semibold text-xs ${
                     (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
                   }`}>
                     {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
                   </span>
-                  <span className="text-sm text-purple-400">24h</span>
+                  <span className="text-[10px] text-purple-400">24h</span>
                 </div>
                 <div className="flex gap-1 items-center">
-                  <span className={`font-semibold text-base ${
+                  <span className={`font-semibold text-xs ${
                     app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
                   }`}>
                     {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
                   </span>
-                  <span className="text-sm text-purple-400">72h</span>
+                  <span className="text-[10px] text-purple-400">72h</span>
                 </div>
                 <div className="flex gap-1 items-center">
-                  <span className={`font-semibold text-base ${
+                  <span className={`font-semibold text-xs ${
                     (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
                   }`}>
                     {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
                   </span>
-                  <span className="text-sm text-purple-400">7d</span>
+                  <span className="text-[10px] text-purple-400">7d</span>
                 </div>
               </div>
             </div>
           ))}
           {/* Main Ranking List - Modern List Style */}
-          <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30 miniapp-glow">
+          <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
             <div className="flex flex-col gap-2">
               {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
               {filter !== 'all' ? categoryViewRows : allViewRows}
@@ -528,43 +529,45 @@ export default function Home() {
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
           <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
             <button
-              className={`flex-1 py-5 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('all')}
             >
               All
             </button>
             <button
-              className={`flex-1 py-5 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('games')}
             >
               Games
             </button>
             <button
-              className={`flex-1 py-5 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('social')}
             >
               Social
             </button>
             <button
-              className={`flex-1 py-5 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('utility')}
             >
               Utility
             </button>
             <button
-              className={`flex-1 py-5 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('finance')}
             >
               Finance
             </button>
             <a
-              href="https://warpcast.com/miniapps/DXCz8KIyfsme/farchess"
-              className="flex-1 py-5 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
+              href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
               style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
             >
               <span className="font-extrabold" style={{letterSpacing: '0.009em'}}>Play Chess</span>
@@ -573,15 +576,6 @@ export default function Home() {
           </div>
         </nav>
       </div>
-      <style jsx global>{`
-@keyframes miniappGlow {
-  0% { box-shadow: 0 0 25px rgba(34,211,238,0.3); }
-  100% { box-shadow: 0 0 40px rgba(34,211,238,0.6); }
-}
-.miniapp-glow {
-  animation: miniappGlow 3.5s ease-in-out infinite alternate;
-}
-`}</style>
     </>
   );
 }
