@@ -184,11 +184,28 @@ def update_database(miniapps_data):
                 rank_7d_change = EXCLUDED.rank_7d_change
         """, (today,))
         
-        # 6. Update aggregated statistics
+        # 6.1. Update 30d changes
+        cursor.execute("""
+            INSERT INTO miniapp_rankings_30d (miniapp_id, ranking_date, rank, rank_30d_change)
+            SELECT 
+                r1.miniapp_id,
+                r1.ranking_date,
+                r1.rank,
+                (r2.rank - r1.rank) as rank_30d_change
+            FROM miniapp_rankings r1
+            LEFT JOIN miniapp_rankings r2 ON r1.miniapp_id = r2.miniapp_id 
+                AND r2.ranking_date = r1.ranking_date - INTERVAL '30 days'
+            WHERE r1.ranking_date = %s
+            ON CONFLICT (miniapp_id, ranking_date) DO UPDATE SET
+                rank = EXCLUDED.rank,
+                rank_30d_change = EXCLUDED.rank_30d_change
+        """, (today,))
+
+        # 6.2. Update aggregated statistics (bővítés rank_30d_change mezővel)
         cursor.execute("""
             INSERT INTO miniapp_statistics (
                 miniapp_id, stat_date, current_rank, 
-                rank_24h_change, rank_72h_change, rank_7d_change,
+                rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change,
                 total_rankings, avg_rank, best_rank, worst_rank
             )
             SELECT 
@@ -198,6 +215,7 @@ def update_database(miniapps_data):
                 r24.rank_24h_change,
                 r.rank_72h_change,
                 rw.rank_7d_change,
+                r30.rank_30d_change,
                 COUNT(*) OVER (PARTITION BY r.miniapp_id) as total_rankings,
                 AVG(r.rank) OVER (PARTITION BY r.miniapp_id) as avg_rank,
                 MIN(r.rank) OVER (PARTITION BY r.miniapp_id) as best_rank,
@@ -207,12 +225,15 @@ def update_database(miniapps_data):
                 AND r.ranking_date = r24.ranking_date
             LEFT JOIN miniapp_rankings_weekly rw ON r.miniapp_id = rw.miniapp_id 
                 AND r.ranking_date = rw.ranking_date
+            LEFT JOIN miniapp_rankings_30d r30 ON r.miniapp_id = r30.miniapp_id 
+                AND r.ranking_date = r30.ranking_date
             WHERE r.ranking_date = %s
             ON CONFLICT (miniapp_id, stat_date) DO UPDATE SET
                 current_rank = EXCLUDED.current_rank,
                 rank_24h_change = EXCLUDED.rank_24h_change,
                 rank_72h_change = EXCLUDED.rank_72h_change,
                 rank_7d_change = EXCLUDED.rank_7d_change,
+                rank_30d_change = EXCLUDED.rank_30d_change,
                 total_rankings = EXCLUDED.total_rankings,
                 avg_rank = EXCLUDED.avg_rank,
                 best_rank = EXCLUDED.best_rank,

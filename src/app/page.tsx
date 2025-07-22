@@ -352,6 +352,14 @@ export default function Home() {
           </span>
           <span className="text-[10px] text-purple-400">7d</span>
         </div>
+        <div className="flex gap-1 items-center">
+          <span className={`font-semibold text-xs ${
+            (app.rank30dChange || 0) > 0 ? 'text-green-400' : (app.rank30dChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+          }`}>
+            {(app.rank30dChange || 0) > 0 ? '+' : ''}{app.rank30dChange || 0}
+          </span>
+          <span className="text-[10px] text-purple-400">30d</span>
+        </div>
       </div>
     );
   }

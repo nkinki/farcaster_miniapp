@@ -65,12 +65,12 @@ export async function GET(request: NextRequest) {
     const miniapps = allMiniapps.slice(offset, offset + limit)
 
     // Transform data for the frontend
-    const transformedMiniapps = miniapps.map((item: MiniappData) => {
+    const transformedMiniapps = miniapps.map((item: MiniappData & { rank30dChange?: number }) => {
       // Szimuláljuk a 24h és heti változásokat (amíg az adatbázisból nem jönnek)
       const rank72hChange = item.rank72hChange || 0
       const rank24hChange = Math.floor(rank72hChange * 0.3 + (Math.random() - 0.5) * 10)
       const rankWeeklyChange = Math.floor(rank72hChange * 1.5 + (Math.random() - 0.5) * 20)
-      
+      const rank30dChange = item.rank30dChange ?? 0
       return {
         rank: item.rank,
         name: item.miniApp.name,
@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
         rank72hChange: rank72hChange,
         rank24hChange: rank24hChange,
         rankWeeklyChange: rankWeeklyChange,
+        rank30dChange: rank30dChange,
         iconUrl: item.miniApp.iconUrl,
         homeUrl: item.miniApp.homeUrl
       }
