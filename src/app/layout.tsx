@@ -53,5 +53,15 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <html lang="en">
+      <head>
+        <meta
+          name="fc:frame"
+          content='{"version":"next","imageUrl":"https://farcaster-miniapp-rangsor.vercel.app/og-image.png","button":{"title":"Open AppRank","action":{"type":"launch_frame","url":"https://farc-nu.vercel.app/"}}}'
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
 }
