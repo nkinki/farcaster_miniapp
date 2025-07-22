@@ -206,7 +206,7 @@ export default function Home() {
       ...((favoriteMiniapps.map(app => {
         const idx = categoryMiniapps.findIndex(a => a.domain === app.domain);
         return (
-          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)] shadow-[0_0_24px_4px_rgba(34,211,238,0.45)]`}>
+          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_40px_12px_rgba(34,211,238,0.85)]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -247,7 +247,7 @@ export default function Home() {
           return null;
         }
         return (
-          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm shadow-[0_0_24px_4px_rgba(34,211,238,0.45)]`}>
+          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-[0_0_40px_12px_rgba(34,211,238,0.85)]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -300,7 +300,7 @@ export default function Home() {
               <div className="flex-1 h-px bg-cyan-400/60" />
             </div>
           )}
-          <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]' : ''} shadow-[0_0_24px_4px_rgba(34,211,238,0.45)]`}> 
+          <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-[0_0_40px_12px_rgba(34,211,238,0.85)]`}> 
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
               <img
@@ -529,35 +529,35 @@ export default function Home() {
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
           <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
             <button
-              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-3 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('all')}
             >
               All
             </button>
             <button
-              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-3 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('games')}
             >
               Games
             </button>
             <button
-              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-3 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('social')}
             >
               Social
             </button>
             <button
-              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-3 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('utility')}
             >
               Utility
             </button>
             <button
-              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-3 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('finance')}
             >
@@ -567,7 +567,7 @@ export default function Home() {
               href="https://warpcast.com/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-2 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
+              className="flex-1 py-3 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
               style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
             >
               <span className="font-extrabold" style={{letterSpacing: '0.009em'}}>Play Chess</span>
