@@ -206,7 +206,7 @@ export default function Home() {
       ...((favoriteMiniapps.map(app => {
         const idx = categoryMiniapps.findIndex(a => a.domain === app.domain);
         return (
-          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}>
+          <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)] shadow-[0_0_24px_4px_rgba(34,211,238,0.45)]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -247,7 +247,7 @@ export default function Home() {
           return null;
         }
         return (
-          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm`}>
+          <div key={app.domain} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border border-[#23283a] shadow-sm shadow-[0_0_24px_4px_rgba(34,211,238,0.45)]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
@@ -300,7 +300,7 @@ export default function Home() {
               <div className="flex-1 h-px bg-cyan-400/60" />
             </div>
           )}
-          <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]' : ''}`}> 
+          <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]' : ''} shadow-[0_0_24px_4px_rgba(34,211,238,0.45)]`}> 
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
               <img
