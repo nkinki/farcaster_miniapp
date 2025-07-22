@@ -1,4 +1,9 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjQzOTAxNSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDIyMWJGNzk4MkIzRjAxMDhiNjMxMmRjNzk5M0NGM0ZmNWViOTI2MDYifQ",
+    "payload": "eyJkb21haW4iOiJmYXJjLW51LnZlcmNlbC5hcHAifQ",
+    "signature": "MHgyYTk5NDM5MDcwZjFhMmFiYTI5NzE4NzJjMWUzNjQ4YmViMWE4N2UwNjM1MmJiN2I2YzFjNmFlMmY5YWRkZDg1NzllMWUzYmVlZWRhM2Q0NWUyMWIzZjhiOGFmNWEyM2VjYzMwNTM5MzIzMDUxMjllZTRiNGE1MmU5OTAzMGY4MjFi"
+  },
   "miniapp": {
     "version": "1",
     "name": "AppRank",
