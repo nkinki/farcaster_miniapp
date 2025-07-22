@@ -5,6 +5,7 @@ import { sdk } from '@farcaster/miniapp-sdk';
 import { FiSearch } from 'react-icons/fi';
 // import Image from 'next/image'; // removed unused import
 // import { MiniappUserProfile } from '../components/MiniappUserProfile'; // REMOVE old stat block
+import React from 'react';
 
 // Define types for miniapp data
 interface Miniapp {
@@ -40,6 +41,7 @@ export default function Home() {
   const [userFid, setUserFid] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const DEMO_FID = 977233; // Polling Center author FID for demo
+  const [showFavoriteModal, setShowFavoriteModal] = useState(false);
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -90,6 +92,17 @@ export default function Home() {
       } catch {}
     };
     getFid();
+
+    // Modal: ha nincs kedvencek között az app (domain alapján), jelenjen meg
+    // (Itt a fő app domain-t kellene vizsgálni, pl. window.location.hostname)
+    if (typeof window !== 'undefined') {
+      const appDomain = window.location.hostname;
+      const savedFavorites = localStorage.getItem('farcaster-favorites');
+      const favs: string[] = savedFavorites ? JSON.parse(savedFavorites) : [];
+      if (!favs.includes(appDomain)) {
+        setShowFavoriteModal(true);
+      }
+    }
   }, []);
 
   // Call sdk.actions.ready() when loading is finished
@@ -364,166 +377,205 @@ export default function Home() {
     );
   }
 
+  // Modal komponens
+  function FavoriteModal({ onAdd, onClose }: { onAdd: () => void; onClose: () => void }) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-xs w-full flex flex-col items-center">
+          <div className="text-lg font-bold text-cyan-300 mb-2">Add to Favorites?</div>
+          <div className="text-sm text-purple-200 mb-4 text-center">Add this miniapp to your favorites for quick access in Farcaster.</div>
+          <button
+            className="bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white font-bold px-4 py-2 rounded-lg shadow-md mb-2 w-full"
+            onClick={onAdd}
+          >
+            Add to Favorites
+          </button>
+          <button
+            className="text-xs text-gray-400 hover:text-white mt-1"
+            onClick={onClose}
+          >
+            Not now
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
         <div className="text-purple-400 text-2xl font-bold animate-pulse">Loading...</div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 text-center">
-          <div className="flex justify-center items-center mb-2">
-            <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
-              <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
-            </span>
+    <>
+      {showFavoriteModal && (
+        <FavoriteModal
+          onAdd={() => {
+            // Add current domain to favorites
+            const appDomain = typeof window !== 'undefined' ? window.location.hostname : '';
+            const savedFavorites = localStorage.getItem('farcaster-favorites');
+            const favs: string[] = savedFavorites ? JSON.parse(savedFavorites) : [];
+            if (!favs.includes(appDomain)) {
+              favs.push(appDomain);
+              localStorage.setItem('farcaster-favorites', JSON.stringify(favs));
+            }
+            setShowFavoriteModal(false);
+          }}
+          onClose={() => setShowFavoriteModal(false)}
+        />
+      )}
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-6 text-center">
+            <div className="flex justify-center items-center mb-2">
+              <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
+                <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
+              </span>
+            </div>
+            <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
+            <p className="text-purple-200 text-xs font-medium">
+              {snapshotDate && snapshotDate !== ''
+                ? `Snapshot date: ${snapshotDate}`
+                : `${new Date().toLocaleDateString('en-US')} Updated: ${lastUpdate}`}
+            </p>
           </div>
-          <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
-          <p className="text-purple-200 text-xs font-medium">
-            {snapshotDate && snapshotDate !== ''
-              ? `Snapshot date: ${snapshotDate}`
-              : `${new Date().toLocaleDateString('en-US')} Updated: ${lastUpdate}`}
-          </p>
-        </div>
-
-        {/* Search bar directly above the list */}
-        <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
-          <form className="flex items-center gap-0" onSubmit={e => { e.preventDefault(); }}>
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Keresés..."
-              className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs placeholder-gray-400 min-w-[80px]"
-              style={{ minWidth: 0, width: '110px' }}
-            />
-            <button
-              type="submit"
-              className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900 transition-all duration-150 flex items-center justify-center"
-              tabIndex={-1}
-              aria-label="Keresés"
-            >
-              <FiSearch size={14} />
-            </button>
-          </form>
-        </div>
-
-        {/* Own miniapp card(s) at the top if exists, highlighted */}
-        {ownMiniapps.map((app, idx) => (
-          <div key={app.domain + '-highlighted'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-green-400 shadow-lg mb-2`}>
-            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
-            {app.iconUrl ? (
-              <img
-                src={app.iconUrl}
-                alt={app.name + ' logo'}
-                className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
-                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          {/* Search bar directly above the list */}
+          <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
+            <form className="flex items-center gap-0" onSubmit={e => { e.preventDefault(); }}>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Keresés..."
+                className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs placeholder-gray-400 min-w-[80px]"
+                style={{ minWidth: 0, width: '110px' }}
               />
-            ) : (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
-                {app.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-white text-sm truncate">{app.name}</div>
-              <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
-              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
-                <span className="text-xs">👥</span>
-                <span>{app.author.followerCount}</span>
-              </div>
-            </div>
-            {/* NO Favorite button here! */}
-            <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
-              <div className="flex gap-1 items-center">
-                <span className={`font-semibold text-xs ${
-                  (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
-                }`}>
-                  {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
-                </span>
-                <span className="text-[10px] text-purple-400">24h</span>
-              </div>
-              <div className="flex gap-1 items-center">
-                <span className={`font-semibold text-xs ${
-                  app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
-                }`}>
-                  {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
-                </span>
-                <span className="text-[10px] text-purple-400">72h</span>
-              </div>
-              <div className="flex gap-1 items-center">
-                <span className={`font-semibold text-xs ${
-                  (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
-                }`}>
-                  {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
-                </span>
-                <span className="text-[10px] text-purple-400">7d</span>
-              </div>
-            </div>
+              <button
+                type="submit"
+                className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900 transition-all duration-150 flex items-center justify-center"
+                tabIndex={-1}
+                aria-label="Keresés"
+              >
+                <FiSearch size={14} />
+              </button>
+            </form>
           </div>
-        ))}
-
-        {/* Main Ranking List - Modern List Style */}
-        <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
-          <div className="flex flex-col gap-2">
-            {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
-            {filter !== 'all' ? categoryViewRows : allViewRows}
+          {/* Own miniapp card(s) at the top if exists, highlighted */}
+          {ownMiniapps.map((app, idx) => (
+            <div key={app.domain + '-highlighted'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-green-400 shadow-lg mb-2`}>
+              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
+              {app.iconUrl ? (
+                <img
+                  src={app.iconUrl}
+                  alt={app.name + ' logo'}
+                  className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                  onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                  {app.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-white text-sm truncate">{app.name}</div>
+                <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
+                <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
+                  <span className="text-xs">👥</span>
+                  <span>{app.author.followerCount}</span>
+                </div>
+              </div>
+              {/* NO Favorite button here! */}
+              <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+                <div className="flex gap-1 items-center">
+                  <span className={`font-semibold text-xs ${
+                    (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                  }`}>
+                    {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
+                  </span>
+                  <span className="text-[10px] text-purple-400">24h</span>
+                </div>
+                <div className="flex gap-1 items-center">
+                  <span className={`font-semibold text-xs ${
+                    app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
+                  }`}>
+                    {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
+                  </span>
+                  <span className="text-[10px] text-purple-400">72h</span>
+                </div>
+                <div className="flex gap-1 items-center">
+                  <span className={`font-semibold text-xs ${
+                    (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
+                  }`}>
+                    {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
+                  </span>
+                  <span className="text-[10px] text-purple-400">7d</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {/* Main Ranking List - Modern List Style */}
+          <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
+            <div className="flex flex-col gap-2">
+              {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
+              {filter !== 'all' ? categoryViewRows : allViewRows}
+            </div>
           </div>
         </div>
+        {/* Blocky, joined, high-contrast bottom nav bar */}
+        <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
+          <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
+            <button
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              style={{borderRadius: 0, letterSpacing: '0.01em'}}
+              onClick={() => setFilter('all')}
+            >
+              All
+            </button>
+            <button
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              style={{borderRadius: 0, letterSpacing: '0.01em'}}
+              onClick={() => setFilter('games')}
+            >
+              Games
+            </button>
+            <button
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              style={{borderRadius: 0, letterSpacing: '0.01em'}}
+              onClick={() => setFilter('social')}
+            >
+              Social
+            </button>
+            <button
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              style={{borderRadius: 0, letterSpacing: '0.01em'}}
+              onClick={() => setFilter('utility')}
+            >
+              Utility
+            </button>
+            <button
+              className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              style={{borderRadius: 0, letterSpacing: '0.01em'}}
+              onClick={() => setFilter('finance')}
+            >
+              Finance
+            </button>
+            <a
+              href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
+              style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
+            >
+              <span className="font-extrabold" style={{letterSpacing: '0.009em'}}>Play Chess</span>
+              <span className="text-[0.6375rem] font-normal opacity-90" style={{letterSpacing: '0.09em'}}>Claim 10k $CHESS</span>
+            </a>
+          </div>
+        </nav>
       </div>
-      {/* Blocky, joined, high-contrast bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
-        <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
-          <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
-            style={{borderRadius: 0, letterSpacing: '0.01em'}}
-            onClick={() => setFilter('all')}
-          >
-            All
-          </button>
-          <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
-            style={{borderRadius: 0, letterSpacing: '0.01em'}}
-            onClick={() => setFilter('games')}
-          >
-            Games
-          </button>
-          <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
-            style={{borderRadius: 0, letterSpacing: '0.01em'}}
-            onClick={() => setFilter('social')}
-          >
-            Social
-          </button>
-          <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
-            style={{borderRadius: 0, letterSpacing: '0.01em'}}
-            onClick={() => setFilter('utility')}
-          >
-            Utility
-          </button>
-          <button
-            className={`flex-1 py-2 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
-            style={{borderRadius: 0, letterSpacing: '0.01em'}}
-            onClick={() => setFilter('finance')}
-          >
-            Finance
-          </button>
-          <a
-            href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 py-2 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
-            style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
-          >
-            <span className="font-extrabold" style={{letterSpacing: '0.009em'}}>Play Chess</span>
-            <span className="text-[0.6375rem] font-normal opacity-90" style={{letterSpacing: '0.09em'}}>Claim 10k $CHESS</span>
-          </a>
-        </div>
-      </nav>
-    </div>
-  )
+    </>
+  );
 }
