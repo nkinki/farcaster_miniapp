@@ -565,8 +565,6 @@ export default function Home() {
             </button>
             <a
               href="https://warpcast.com/miniapps/DXCz8KIyfsme/farchess"
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex-1 py-5 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
               style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
             >
@@ -578,8 +576,8 @@ export default function Home() {
       </div>
       <style jsx global>{`
 @keyframes miniappGlow {
-  0% { box-shadow: 0 0 25px rgba(0,180,255,0.3); }
-  100% { box-shadow: 0 0 40px rgba(0,180,255,0.6); }
+  0% { box-shadow: 0 0 25px rgba(34,211,238,0.3); }
+  100% { box-shadow: 0 0 40px rgba(34,211,238,0.6); }
 }
 .miniapp-glow {
   animation: miniappGlow 3.5s ease-in-out infinite alternate;
