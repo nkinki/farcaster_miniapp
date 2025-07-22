@@ -222,10 +222,10 @@ export default function Home() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-white text-sm truncate">{app.name}</div>
-              <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
-              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
-                <span className="text-xs">👥</span>
+              <div className="font-semibold text-base text-white truncate">{app.name}</div>
+              <div className="text-xs text-purple-300 truncate">@{app.author.username}</div>
+              <div className="text-xs text-cyan-300 flex items-center gap-1 mt-0.5">
+                <span className="text-sm">👥</span>
                 <span>{app.author.followerCount}</span>
               </div>
             </div>
@@ -263,10 +263,10 @@ export default function Home() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-white text-sm truncate">{app.name}</div>
-              <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
-              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
-                <span className="text-xs">👥</span>
+              <div className="font-semibold text-base text-white truncate">{app.name}</div>
+              <div className="text-xs text-purple-300 truncate">@{app.author.username}</div>
+              <div className="text-xs text-cyan-300 flex items-center gap-1 mt-0.5">
+                <span className="text-sm">👥</span>
                 <span>{app.author.followerCount}</span>
               </div>
             </div>
