@@ -3,7 +3,7 @@
     "version": "1",
     "name": "AppRank",
     "iconUrl": "https://farc-nu.vercel.app/icon.png",
-    "subtitle": "Discover top Farcaster miniapps",
+    "subtitle": "Top Farcaster miniapps",
     "description": "Browse, search and favorite the best Farcaster miniapps. Track rankings, see trends, and find your next favorite app in one place.",
     "primaryCategory": "utility",
     "screenshotUrls": [
