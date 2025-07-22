@@ -29,6 +29,34 @@ interface Miniapp {
   points?: number; // Added for new list style
 }
 
+// Reward API típusok
+interface RewardWinner {
+  fid: number;
+  score: number;
+  rank: number;
+  rewardCents: number;
+  walletAddress?: string;
+  domain?: string;
+  frameName?: string;
+}
+interface Stats {
+  totalMiniapps: number;
+  newToday: number;
+  activeUsers: string;
+  avgRating: string;
+  topCategories: { name: string; count: number }[];
+  creatorReward: {
+    periodStart: string;
+    periodEnd: string;
+    winners: RewardWinner[];
+  };
+  developerReward: {
+    periodStart: string;
+    periodEnd: string;
+    winners: RewardWinner[];
+  };
+}
+
 export default function Home() {
   const [miniapps, setMiniapps] = useState<Miniapp[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
@@ -40,7 +68,7 @@ export default function Home() {
   const [userFid, setUserFid] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const DEMO_FID = 977233; // Polling Center author FID for demo
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -415,7 +443,7 @@ export default function Home() {
                 <span className="text-lg font-bold text-cyan-300">Top categories:</span>
                 <span className="text-xs text-purple-300">
                   {stats.topCategories && stats.topCategories.length > 0
-                    ? stats.topCategories.map((cat: any) => `${cat.name} (${cat.count})`).join(', ')
+                    ? stats.topCategories.map((cat) => `${cat.name} (${cat.count})`).join(', ')
                     : 'N/A'}
                 </span>
               </div>
@@ -426,7 +454,7 @@ export default function Home() {
                 <div className="font-bold text-purple-300 mb-1">Creator Rewards ({stats.creatorReward.periodStart} - {stats.creatorReward.periodEnd})</div>
                 <div className="flex flex-col gap-1">
                   {stats.creatorReward.winners && stats.creatorReward.winners.length > 0 ? (
-                    stats.creatorReward.winners.map((w: any, i: number) => (
+                    stats.creatorReward.winners.map((w: RewardWinner) => (
                       <div key={w.fid} className="flex items-center gap-2 text-sm text-white">
                         <span className="font-bold text-cyan-300">#{w.rank}</span>
                         <span>FID: {w.fid}</span>
@@ -447,7 +475,7 @@ export default function Home() {
                 <div className="font-bold text-blue-300 mb-1">Developer Rewards ({stats.developerReward.periodStart} - {stats.developerReward.periodEnd})</div>
                 <div className="flex flex-col gap-1">
                   {stats.developerReward.winners && stats.developerReward.winners.length > 0 ? (
-                    stats.developerReward.winners.map((w: any, i: number) => (
+                    stats.developerReward.winners.map((w: RewardWinner) => (
                       <div key={w.fid + '-' + (w.domain || '')} className="flex items-center gap-2 text-sm text-white">
                         <span className="font-bold text-cyan-300">#{w.rank}</span>
                         <span>FID: {w.fid}</span>
