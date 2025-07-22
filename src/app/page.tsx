@@ -301,24 +301,13 @@ export default function Home() {
             </div>
           )}
           <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a]`}> 
-            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
-            {app.iconUrl ? (
-              <img
-                src={app.iconUrl}
-                alt={app.name + ' logo'}
-                className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
-                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base bg-purple-700/60 text-white border border-purple-700/30 mr-2">
-                {app.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <span className="text-base text-gray-400 font-bold mr-2" style={{minWidth: '20px', textAlign: 'right', fontSize: '1.38em'}}>{app.rank}</span>
+            <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-white text-sm truncate">{app.name}</div>
-              <div className="text-[10px] text-purple-300 truncate">@{app.author.username}</div>
-              <div className="text-[10px] text-cyan-300 flex items-center gap-1 mt-0.5">
-                <span className="text-xs">👥</span>
+              <div className="font-semibold text-white text-lg truncate">{app.name}</div>
+              <div className="text-base text-purple-300 truncate">@{app.author.username}</div>
+              <div className="text-base text-cyan-300 flex items-center gap-1 mt-0.5">
+                <span className="text-lg">👥</span>
                 <span>{app.author.followerCount}</span>
               </div>
             </div>
@@ -430,7 +419,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="mb-6 text-center">
+          <div className="mb-2 text-center">
             <div className="flex justify-center items-center mb-2">
               <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
                 <span className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{letterSpacing: '0.35em', fontWeight: 700, fontFamily: 'inherit'}}>A&nbsp;P&nbsp;P&nbsp;R&nbsp;A&nbsp;N&nbsp;K</span>
@@ -444,7 +433,7 @@ export default function Home() {
             </p>
           </div>
           {/* Search bar directly above the list */}
-          <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
+          <div className="flex justify-end items-center max-w-2xl mx-auto mb-3 px-2">
             <form className="flex items-center gap-0" onSubmit={e => { e.preventDefault(); }}>
               <input
                 type="text"
