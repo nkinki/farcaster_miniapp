@@ -208,12 +208,12 @@ export default function Home() {
         return (
           <div key={app.domain + '-favtop'} className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#23283a]/80 border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}>
             <span className="text-xs text-gray-400 font-bold mr-2" style={{minWidth: '16px', textAlign: 'right', fontSize: '1.15em'}}>{idx + 1}</span>
-            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
+            <div className={`flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             {app.iconUrl ? (
               <img
                 src={app.iconUrl}
                 alt={app.name + ' logo'}
-                className="w-8 h-8 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
