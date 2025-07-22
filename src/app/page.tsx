@@ -301,7 +301,6 @@ export default function Home() {
             </div>
           )}
           <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a]`}> 
-            <span className="text-base text-gray-400 font-bold mr-2" style={{minWidth: '20px', textAlign: 'right', fontSize: '1.38em'}}>{app.rank}</span>
             <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-2 bg-gray-700 text-white`}>{app.rank}</div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-white text-lg truncate">{app.name}</div>
