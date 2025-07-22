@@ -25,7 +25,7 @@
     "ogTitle": "AppRank: Miniapp Explorer",
     "ogDescription": "Find, favorite and track the best Farcaster miniapps. Updated daily.",
     "ogImageUrl": "https://farc-nu.vercel.app/og-image.png",
-    "castShareUrl": "https://warpcast.com/~/compose?text=Check+out+AppRank+for+Farcaster+miniapps%3A+https%3A%2F%2Ffarc-nu.vercel.app",
+    "castShareUrl": "https://farc-nu.vercel.app",
     "homeUrl": "https://farc-nu.vercel.app"
   }
 } 
