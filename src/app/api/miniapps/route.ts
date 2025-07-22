@@ -32,6 +32,24 @@ interface CategoryInfo {
   count: number
 }
 
+// Reward API típusok
+interface RewardWinner {
+  fid: number;
+  score: number;
+  rank: number;
+  rewardCents: number;
+  walletAddress?: string;
+  domain?: string;
+  frameName?: string;
+}
+interface RewardApiResponse {
+  result: {
+    periodStartTimestamp: number;
+    periodEndTimestamp: number;
+    winners: RewardWinner[];
+  }
+}
+
 // Load real miniapp data
 function loadMiniappData(): MiniappData[] {
   try {
@@ -56,8 +74,8 @@ function loadMiniappData(): MiniappData[] {
   }
 }
 
-async function fetchJson(url: string) {
-  return new Promise<any>((resolve, reject) => {
+async function fetchJson(url: string): Promise<RewardApiResponse> {
+  return new Promise((resolve, reject) => {
     https.get(url, res => {
       let data = '';
       res.on('data', chunk => { data += chunk; });
@@ -86,7 +104,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Helper to format reward data
-    function formatReward(reward: any, type: 'creator' | 'developer') {
+    function formatReward(reward: RewardWinner, type: 'creator' | 'developer') {
       return {
         fid: reward.fid,
         domain: reward.domain,
@@ -155,12 +173,12 @@ export async function GET(request: NextRequest) {
       creatorReward: {
         periodStart: formatPeriod(creatorReward.periodStartTimestamp),
         periodEnd: formatPeriod(creatorReward.periodEndTimestamp),
-        winners: (creatorReward.winners || []).slice(0, 5).map((w: any) => formatReward(w, 'creator'))
+        winners: (creatorReward.winners || []).slice(0, 5).map((w: RewardWinner) => formatReward(w, 'creator'))
       },
       developerReward: {
         periodStart: formatPeriod(developerReward.periodStartTimestamp),
         periodEnd: formatPeriod(developerReward.periodEndTimestamp),
-        winners: (developerReward.winners || []).slice(0, 5).map((w: any) => formatReward(w, 'developer'))
+        winners: (developerReward.winners || []).slice(0, 5).map((w: RewardWinner) => formatReward(w, 'developer'))
       }
     }
 
