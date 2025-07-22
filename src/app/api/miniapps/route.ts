@@ -34,14 +34,21 @@ interface CategoryInfo {
 // Load real miniapp data
 function loadMiniappData(): MiniappData[] {
   try {
-    // Próbáljuk először a public/data mappából
     let dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
     if (!fs.existsSync(dataPath)) {
-      // Ha nincs ott, próbáljuk a gyökérből
       dataPath = path.join(process.cwd(), 'top_miniapps.json')
     }
     const data = fs.readFileSync(dataPath, 'utf8')
-    return JSON.parse(data)
+    const parsed = JSON.parse(data)
+    // Ha objektum, akkor a miniapps tömböt adjuk vissza
+    if (parsed && Array.isArray(parsed.miniapps)) {
+      return parsed.miniapps
+    }
+    // Ha tömb, akkor azt
+    if (Array.isArray(parsed)) {
+      return parsed
+    }
+    return []
   } catch (error) {
     console.error('Error loading miniapp data:', error)
     return []
