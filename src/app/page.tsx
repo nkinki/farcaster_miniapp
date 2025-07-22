@@ -40,7 +40,6 @@ export default function Home() {
   const [userFid, setUserFid] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const DEMO_FID = 977233; // Polling Center author FID for demo
-  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -59,7 +58,6 @@ export default function Home() {
       .then(data => {
         console.log('API response:', data) // Debug log
         setMiniapps(data.miniapps || [])
-        setStats(data.stats || null)
         setLastUpdate(new Date().toLocaleTimeString('en-US'))
         // Try to get snapshot date from the top_miniapps.json file
         if (typeof window !== 'undefined') {
@@ -391,81 +389,6 @@ export default function Home() {
               : `${new Date().toLocaleDateString('en-US')} Updated: ${lastUpdate}`}
           </p>
         </div>
-        {/* Összesítő statisztikai kártya */}
-        {stats && (
-          <div className="mb-6 flex flex-col items-center justify-center">
-            <div className="bg-[#181c23] border border-cyan-400/60 rounded-xl shadow-lg px-6 py-4 w-full max-w-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <div className="flex flex-col items-center md:items-start">
-                <span className="text-lg font-bold text-cyan-300">{stats.totalMiniapps} miniapp</span>
-                <span className="text-xs text-purple-300">Total apps</span>
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <span className="text-lg font-bold text-cyan-300">{stats.newToday}</span>
-                <span className="text-xs text-purple-300">New today</span>
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <span className="text-lg font-bold text-cyan-300">{stats.activeUsers}</span>
-                <span className="text-xs text-purple-300">Active users (est.)</span>
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <span className="text-lg font-bold text-cyan-300">{stats.avgRating}</span>
-                <span className="text-xs text-purple-300">Avg. rating (est.)</span>
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <span className="text-lg font-bold text-cyan-300">Top categories:</span>
-                <span className="text-xs text-purple-300">
-                  {stats.topCategories && stats.topCategories.length > 0
-                    ? stats.topCategories.map((cat: any) => `${cat.name} (${cat.count})`).join(', ')
-                    : 'N/A'}
-                </span>
-              </div>
-            </div>
-            {/* Creator Rewards */}
-            {stats.creatorReward && (
-              <div className="bg-[#23283a] border border-purple-400/60 rounded-xl shadow-lg px-6 py-4 w-full max-w-2xl mt-4">
-                <div className="font-bold text-purple-300 mb-1">Creator Rewards ({stats.creatorReward.periodStart} - {stats.creatorReward.periodEnd})</div>
-                <div className="flex flex-col gap-1">
-                  {stats.creatorReward.winners && stats.creatorReward.winners.length > 0 ? (
-                    stats.creatorReward.winners.map((w: any, i: number) => (
-                      <div key={w.fid} className="flex items-center gap-2 text-sm text-white">
-                        <span className="font-bold text-cyan-300">#{w.rank}</span>
-                        <span>FID: {w.fid}</span>
-                        {w.score !== undefined && <span>Score: {w.score}</span>}
-                        {w.rewardCents !== undefined && <span>Reward: ${(w.rewardCents/100).toFixed(2)}$</span>}
-                        {w.walletAddress && <span className="text-xs text-purple-400">{w.walletAddress.slice(0,8)}...</span>}
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-xs text-purple-400">No data</span>
-                  )}
-                </div>
-              </div>
-            )}
-            {/* Developer Rewards */}
-            {stats.developerReward && (
-              <div className="bg-[#23283a] border border-blue-400/60 rounded-xl shadow-lg px-6 py-4 w-full max-w-2xl mt-4">
-                <div className="font-bold text-blue-300 mb-1">Developer Rewards ({stats.developerReward.periodStart} - {stats.developerReward.periodEnd})</div>
-                <div className="flex flex-col gap-1">
-                  {stats.developerReward.winners && stats.developerReward.winners.length > 0 ? (
-                    stats.developerReward.winners.map((w: any, i: number) => (
-                      <div key={w.fid + '-' + (w.domain || '')} className="flex items-center gap-2 text-sm text-white">
-                        <span className="font-bold text-cyan-300">#{w.rank}</span>
-                        <span>FID: {w.fid}</span>
-                        {w.domain && <span>Domain: {w.domain}</span>}
-                        {w.frameName && <span>App: {w.frameName}</span>}
-                        {w.score !== undefined && <span>Score: {w.score}</span>}
-                        {w.rewardCents !== undefined && <span>Reward: ${(w.rewardCents/100).toFixed(2)}$</span>}
-                        {w.walletAddress && <span className="text-xs text-purple-400">{w.walletAddress.slice(0,8)}...</span>}
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-xs text-blue-400">No data</span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Search bar directly above the list */}
         <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
