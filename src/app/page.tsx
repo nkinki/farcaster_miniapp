@@ -532,37 +532,36 @@ export default function Home() {
         {/* Blocky, joined, high-contrast bottom nav bar */}
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
           <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
-            {/* All gomb: Apprank logó sötét háttér (#23283a) */}
             <button
-              className={`flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#23283a] text-white uppercase font-sans tracking-widest hover:bg-[#23283a]/90 hover:text-white`}
+              className={`flex-1 py-4 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest hover:bg-[#4a57d6] hover:text-white ${filter === 'all' ? 'bg-[#a259ff] text-white' : ''}`}
               style={{borderRadius: 0, letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif'}}
               onClick={() => setFilter('all')}
             >
               ALL
             </button>
             <button
-              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
-              style={{borderRadius: 0, letterSpacing: '0.01em'}}
+              className={`flex-1 py-4 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest hover:bg-[#4a57d6] hover:text-white ${filter === 'games' ? 'bg-[#a259ff] text-white' : ''}`}
+              style={{borderRadius: 0, letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif'}}
               onClick={() => setFilter('games')}
             >
-              Games
+              GAMES
             </button>
             <button
-              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-4 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('social')}
             >
               Social
             </button>
             <button
-              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-4 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('utility')}
             >
               Utility
             </button>
             <button
-              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-4 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('finance')}
             >
@@ -573,8 +572,9 @@ export default function Home() {
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#23283a] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#23283a]/90 hover:text-white text-center"
+              className={`flex-1 py-4 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#4a57d6] hover:text-white text-center ${filter === 'chess' ? 'bg-[#a259ff] text-white' : ''}`}
               style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}
+              onClick={() => setFilter('chess')}
             >
               <span className="font-extrabold w-full block" style={{letterSpacing: '0.09em', textAlign: 'center'}}>PLAY CHESS</span>
               <span className="text-[0.95rem] font-normal opacity-90 w-full block" style={{letterSpacing: '0.09em', textAlign: 'center'}}>CLAIM 10K $CHESS</span>
