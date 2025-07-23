@@ -660,7 +660,7 @@ export default function Home() {
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
           <div className="flex w-full max-w-4xl mx-auto">
             <button
-              className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
+              className={`flex-1 py-8 text-center font-sans tracking-wide
           ${
             filter === "all"
               ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
@@ -675,7 +675,7 @@ export default function Home() {
               </div>
             </button>
             <button
-              className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
+              className={`flex-1 py-8 text-center font-sans tracking-wide
             ${
               filter === "games"
                 ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
@@ -690,7 +690,7 @@ export default function Home() {
               </div>
             </button>
             <button
-              className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
+              className={`flex-1 py-8 text-center font-sans tracking-wide
           ${
             filter === "social"
               ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
@@ -705,7 +705,7 @@ export default function Home() {
               </div>
             </button>
             <button
-              className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
+              className={`flex-1 py-8 text-center font-sans tracking-wide
           ${
             filter === "utility"
               ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
@@ -720,7 +720,7 @@ export default function Home() {
               </div>
             </button>
             <button
-              className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
+              className={`flex-1 py-8 text-center font-sans tracking-wide
           ${
             filter === "finance"
               ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
@@ -737,7 +737,7 @@ export default function Home() {
             {/* CHESS button - most prominent with intense neon glow */}
             <button
               onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
-              className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
+              className={`flex-1 py-8 text-center font-sans tracking-wide
 bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800
 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{
