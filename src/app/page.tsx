@@ -519,11 +519,11 @@ export default function Home() {
           ))}
           {/* Main Ranking List - Modern List Style */}
           <div className="relative">
-            {/* Glow háttér */}
+            {/* Glow háttér teljesen hátul */}
             <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
-              <div className="w-[98%] h-[98%] rounded-2xl blur-3xl opacity-90 bg-gradient-to-br from-[#e0f2ff] via-[#7ecbff] to-[#3b82f6] animate-apprankglow"></div>
+              <div className="w-full h-full rounded-2xl blur-3xl opacity-90 bg-gradient-to-br from-[#e0f2ff] via-[#7ecbff] to-[#3b82f6] animate-apprankglow"></div>
             </div>
-            <div className="relative bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30 z-10">
+            <div className="relative bg-[#181c23]/95 rounded-2xl shadow-2xl p-2 border border-purple-500/30 z-10">
               <div className="flex flex-col gap-2">
                 {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
                 {filter !== 'all' ? categoryViewRows : allViewRows}
