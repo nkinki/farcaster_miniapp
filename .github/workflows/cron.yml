@@ -55,6 +55,8 @@ jobs:
       run: |
         cp top_miniapps.json public/data/
         
+    - name: Pull latest changes before push
+      run: git pull --rebase origin main
     - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
