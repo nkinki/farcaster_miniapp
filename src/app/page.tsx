@@ -299,7 +299,7 @@ export default function Home() {
             </div>
           )}
           <div key={app.rank} className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? 'border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]' : ''}`}> 
-            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base mr-2 bg-gray-700 text-white`}>{app.rank}</div>
+            <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-2xl bg-gray-700 text-white mr-2" style={{fontSize: '2em'}}>{app.rank}</div>
             {app.iconUrl ? (
               <img
                 src={app.iconUrl}
