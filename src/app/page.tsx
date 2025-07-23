@@ -664,7 +664,7 @@ export default function Home() {
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950 border-t-2 border-blue-500 shadow-[0_0_20px_5px_rgba(59,130,246,0.7)]">
           <div className="flex w-full max-w-4xl mx-auto">
             <button
-              className={`flex-1 py-6 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
                 ${filter === "all" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("all")}
@@ -672,7 +672,7 @@ export default function Home() {
               ALL
             </button>
             <button
-              className={`flex-1 py-6 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
                 ${filter === "games" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("games")}
@@ -680,7 +680,7 @@ export default function Home() {
               GAMES
             </button>
             <button
-              className={`flex-1 py-6 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
                 ${filter === "social" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("social")}
@@ -688,7 +688,7 @@ export default function Home() {
               Social
             </button>
             <button
-              className={`flex-1 py-6 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
                 ${filter === "utility" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("utility")}
@@ -696,7 +696,7 @@ export default function Home() {
               Utility
             </button>
             <button
-              className={`flex-1 py-6 text-xs font-bold border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+              className={`flex-1 py-4 text-xs font-bold border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
                 ${filter === "finance" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("finance")}
@@ -708,7 +708,7 @@ export default function Home() {
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 py-6 text-sm font-extrabold border-l border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300 uppercase font-sans tracking-widest
+              className={`flex-1 py-4 text-sm font-extrabold border-l border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300 uppercase font-sans tracking-widest
                 bg-gradient-to-br from-cyan-500 to-blue-700 text-white shadow-xl shadow-cyan-500/60 ring-2 ring-cyan-400 hover:opacity-90`}
               style={{
                 borderRadius: 0,
