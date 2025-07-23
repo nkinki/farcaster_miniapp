@@ -518,10 +518,16 @@ export default function Home() {
             </div>
           ))}
           {/* Main Ranking List - Modern List Style */}
-          <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30">
-            <div className="flex flex-col gap-2">
-              {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
-              {filter !== 'all' ? categoryViewRows : allViewRows}
+          <div className="relative">
+            {/* Glow háttér */}
+            <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+              <div className="w-[98%] h-[98%] rounded-2xl blur-2xl opacity-70 bg-gradient-to-br from-cyan-400 via-purple-700 to-blue-600 animate-pulse"></div>
+            </div>
+            <div className="relative bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30 z-10">
+              <div className="flex flex-col gap-2">
+                {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
+                {filter !== 'all' ? categoryViewRows : allViewRows}
+              </div>
             </div>
           </div>
         </div>
@@ -529,35 +535,35 @@ export default function Home() {
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
           <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
             <button
-              className={`flex-1 py-4 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('all')}
             >
               All
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('games')}
             >
               Games
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'social' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('social')}
             >
               Social
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'utility' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('utility')}
             >
               Utility
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-[0.72rem] border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
+              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'finance' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
               style={{borderRadius: 0, letterSpacing: '0.01em'}}
               onClick={() => setFilter('finance')}
             >
@@ -567,11 +573,11 @@ export default function Home() {
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-4 font-bold text-[0.65rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
+              className="flex-1 py-6 font-bold text-base focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
               style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
             >
               <span className="font-extrabold" style={{letterSpacing: '0.009em'}}>Play Chess</span>
-              <span className="text-[0.6375rem] font-normal opacity-90" style={{letterSpacing: '0.09em'}}>Claim 10k $CHESS</span>
+              <span className="text-[0.95rem] font-normal opacity-90" style={{letterSpacing: '0.09em'}}>Claim 10k $CHESS</span>
             </a>
           </div>
         </nav>
