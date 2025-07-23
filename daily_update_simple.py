@@ -285,11 +285,10 @@ def update_database(miniapps_data):
             conn.close()
 
 def get_real_stats_for_miniapps(miniapps_data):
-    """Lekéri a DB-ből a valós statisztikákat minden miniapphoz és hozzáfűzi azokat, akkor is, ha a JSON-ban nincs ilyen mező."""
+    """Lekéri a DB-ből a valós statisztikákat minden miniapphoz és mindig felülírja a 24h, 72h, 7d, 30d mezőket."""
     conn = psycopg2.connect(NEON_DB_URL)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     today = date.today()
-    # Lekérjük az összes statisztikát egy lekérdezéssel
     cursor.execute("""
         SELECT miniapp_id, rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change
         FROM miniapp_statistics
@@ -297,11 +296,9 @@ def get_real_stats_for_miniapps(miniapps_data):
     """, (today,))
     stats = {row['miniapp_id']: row for row in cursor.fetchall()}
     conn.close()
-    # Hozzáfűzzük a statokat a miniapps_data-hoz
     for item in miniapps_data:
         miniapp_id = item['miniApp']['id'] if 'miniApp' in item and 'id' in item['miniApp'] else None
         stat = stats.get(miniapp_id)
-        # Mindig explicit hozzáadjuk a stat mezőket
         item['rank24hChange'] = int(stat['rank_24h_change']) if stat and stat['rank_24h_change'] is not None else 0
         item['rank72hChange'] = int(stat['rank_72h_change']) if stat and stat['rank_72h_change'] is not None else 0
         item['rankWeeklyChange'] = int(stat['rank_7d_change']) if stat and stat['rank_7d_change'] is not None else 0
