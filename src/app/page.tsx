@@ -661,46 +661,55 @@ export default function Home() {
           </div>
         </div>
         {/* Blocky, joined, high-contrast bottom nav bar */}
-        <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
-          <div className="flex w-full max-w-3xl mx-auto">
+        <nav className="fixed bottom-0 left-0 w-full z-50 bg-white shadow-lg border-t border-gray-200">
+          <div className="flex w-full max-w-4xl mx-auto">
             <button
-              className={`flex-1 py-4 font-bold text-base border-t border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest ${filter === "all" ? "bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40" : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+              className={`flex-1 py-4 font-bold text-base border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest
+                ${filter === "all" ? "bg-gradient-to-br from-purple-100 to-cyan-100 text-purple-800 shadow-inner shadow-purple-200/50" : "bg-white text-gray-700 hover:bg-gray-100"}`}
               style={{ borderRadius: 0, letterSpacing: "0.09em", fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("all")}
             >
               ALL
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-base border-t border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest ${filter === "games" ? "bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40" : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+              className={`flex-1 py-4 font-bold text-base border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest
+                ${filter === "games" ? "bg-gradient-to-br from-purple-100 to-cyan-100 text-purple-800 shadow-inner shadow-purple-200/50" : "bg-white text-gray-700 hover:bg-gray-100"}`}
               style={{ borderRadius: 0, letterSpacing: "0.09em", fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("games")}
             >
               GAMES
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-base border-t border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest ${filter === "social" ? "bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40" : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+              className={`flex-1 py-4 font-bold text-base border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest
+                ${filter === "social" ? "bg-gradient-to-br from-purple-100 to-cyan-100 text-purple-800 shadow-inner shadow-purple-200/50" : "bg-white text-gray-700 hover:bg-gray-100"}`}
               style={{ borderRadius: 0, letterSpacing: "0.01em" }}
               onClick={() => setFilter("social")}
             >
               Social
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-base border-t border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest ${filter === "utility" ? "bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40" : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+              className={`flex-1 py-4 font-bold text-base border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest
+                ${filter === "utility" ? "bg-gradient-to-br from-purple-100 to-cyan-100 text-purple-800 shadow-inner shadow-purple-200/50" : "bg-white text-gray-700 hover:bg-gray-100"}`}
               style={{ borderRadius: 0, letterSpacing: "0.01em" }}
               onClick={() => setFilter("utility")}
             >
               Utility
             </button>
             <button
-              className={`flex-1 py-4 font-bold text-base border-t border-r-0 border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest ${filter === "finance" ? "bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40" : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+              className={`flex-1 py-4 font-bold text-base border-t-0 border-r-0 border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest
+                ${filter === "finance" ? "bg-gradient-to-br from-purple-100 to-cyan-100 text-purple-800 shadow-inner shadow-purple-200/50" : "bg-white text-gray-700 hover:bg-gray-100"}`}
               style={{ borderRadius: 0, letterSpacing: "0.01em" }}
               onClick={() => setFilter("finance")}
             >
               Finance
             </button>
-            {/* Play Chess gomb: Apprank logó sötét háttér (#23283a), szöveg középre */}
-            <a
-              className={`flex-1 py-4 font-bold text-base border-t border-l border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-700 text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:opacity-90 transition-opacity text-center shadow-lg shadow-blue-500/40`}
+            {/* Play Chess button - now styled consistently but with a distinct light blue accent */}
+            <button
+              onClick={() => {
+                /* Add your PLAY CHESS action here, e.g., window.open('https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess', '_blank'); */
+              }}
+              className={`flex-1 py-4 font-bold text-base border-t-0 border-l border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-widest
+                bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm shadow-blue-100/50`}
               style={{
                 borderRadius: 0,
                 minWidth: "108px",
@@ -714,13 +723,7 @@ export default function Home() {
               <span className="font-extrabold w-full block" style={{ letterSpacing: "0.09em", textAlign: "center" }}>
                 PLAY CHESS
               </span>
-              <span
-                className="text-[0.95rem] font-normal opacity-90 w-full block"
-                style={{ letterSpacing: "0.09em", textAlign: "center" }}
-              >
-                CLAIM 10K $CHESS
-              </span>
-            </a>
+            </button>
           </div>
         </nav>
       </div>
