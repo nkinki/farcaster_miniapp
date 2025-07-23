@@ -284,6 +284,35 @@ def update_database(miniapps_data):
         if conn:
             conn.close()
 
+def get_real_stats_for_miniapps(miniapps_data):
+    """Lekéri a DB-ből a valós statisztikákat minden miniapphoz és hozzáfűzi azokat."""
+    conn = psycopg2.connect(NEON_DB_URL)
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    today = date.today()
+    # Lekérjük az összes statisztikát egy lekérdezéssel
+    cursor.execute("""
+        SELECT miniapp_id, rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change
+        FROM miniapp_statistics
+        WHERE stat_date = %s
+    """, (today,))
+    stats = {row['miniapp_id']: row for row in cursor.fetchall()}
+    conn.close()
+    # Hozzáfűzzük a statokat a miniapps_data-hoz
+    for item in miniapps_data:
+        miniapp_id = item['miniApp']['id'] if 'miniApp' in item and 'id' in item['miniApp'] else None
+        stat = stats.get(miniapp_id)
+        if stat:
+            item['rank24hChange'] = stat['rank_24h_change'] or 0
+            item['rank72hChange'] = stat['rank_72h_change'] or 0
+            item['rankWeeklyChange'] = stat['rank_7d_change'] or 0
+            item['rank30dChange'] = stat['rank_30d_change'] or 0
+        else:
+            item['rank24hChange'] = 0
+            item['rank72hChange'] = 0
+            item['rankWeeklyChange'] = 0
+            item['rank30dChange'] = 0
+    return miniapps_data
+
 def save_json_backup(miniapps_data):
     """Saves JSON as backup"""
     today = date.today()
@@ -308,10 +337,13 @@ def main():
         print("Download failed!")
         return
     
-    # 2. JSON backup
+    # 2. DB statisztikák hozzáfűzése
+    miniapps_data = get_real_stats_for_miniapps(miniapps_data)
+    
+    # 3. JSON backup
     save_json_backup(miniapps_data)
     
-    # 3. Database update
+    # 4. Database update
     update_database(miniapps_data)
     
     print("\nDaily update completed!")
