@@ -532,8 +532,9 @@ export default function Home() {
         {/* Blocky, joined, high-contrast bottom nav bar */}
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
           <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
+            {/* All gomb: Apprank logó sötét háttér (#23283a) */}
             <button
-              className={`flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest hover:bg-[#4a57d6] hover:text-white`}
+              className={`flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#23283a] text-white uppercase font-sans tracking-widest hover:bg-[#23283a]/90 hover:text-white`}
               style={{borderRadius: 0, letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif'}}
               onClick={() => setFilter('all')}
             >
@@ -567,15 +568,16 @@ export default function Home() {
             >
               Finance
             </button>
+            {/* Play Chess gomb: Apprank logó sötét háttér (#23283a), szöveg középre */}
             <a
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#4a57d6] hover:text-white"
-              style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif'}}
+              className="flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#23283a] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#23283a]/90 hover:text-white text-center"
+              style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}
             >
-              <span className="font-extrabold" style={{letterSpacing: '0.09em'}}>PLAY CHESS</span>
-              <span className="text-[0.95rem] font-normal opacity-90" style={{letterSpacing: '0.09em'}}>CLAIM 10K $CHESS</span>
+              <span className="font-extrabold w-full block" style={{letterSpacing: '0.09em', textAlign: 'center'}}>PLAY CHESS</span>
+              <span className="text-[0.95rem] font-normal opacity-90 w-full block" style={{letterSpacing: '0.09em', textAlign: 'center'}}>CLAIM 10K $CHESS</span>
             </a>
           </div>
         </nav>
