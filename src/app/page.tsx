@@ -665,7 +665,7 @@ export default function Home() {
           <div className="flex w-full max-w-4xl mx-auto">
             <button
               className={`flex-1 py-6 text-[10px] font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-wide
-                ${filter === "all" ? "bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white shadow-lg shadow-purple-500/50 ring-2 ring-cyan-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                ${filter === "all" ? "bg-gradient-to-tr from-purple-900 via-purple-700 to-cyan-600 text-white shadow-lg shadow-purple-700/50 ring-2 ring-cyan-600" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("all")}
             >
@@ -673,7 +673,7 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-[10px] font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-wide
-                ${filter === "games" ? "bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white shadow-lg shadow-purple-500/50 ring-2 ring-cyan-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                ${filter === "games" ? "bg-gradient-to-tr from-purple-900 via-purple-700 to-cyan-600 text-white shadow-lg shadow-purple-700/50 ring-2 ring-cyan-600" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("games")}
             >
@@ -681,7 +681,7 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-[10px] font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-wide
-                ${filter === "social" ? "bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white shadow-lg shadow-purple-500/50 ring-2 ring-cyan-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                ${filter === "social" ? "bg-gradient-to-tr from-purple-900 via-purple-700 to-cyan-600 text-white shadow-lg shadow-purple-700/50 ring-2 ring-cyan-600" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("social")}
             >
@@ -689,7 +689,7 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-[10px] font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-wide
-                ${filter === "utility" ? "bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white shadow-lg shadow-purple-500/50 ring-2 ring-cyan-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                ${filter === "utility" ? "bg-gradient-to-tr from-purple-900 via-purple-700 to-cyan-600 text-white shadow-lg shadow-purple-700/50 ring-2 ring-cyan-600" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("utility")}
             >
@@ -697,7 +697,7 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-[10px] font-bold border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-wide
-                ${filter === "finance" ? "bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white shadow-lg shadow-purple-500/50 ring-2 ring-cyan-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                ${filter === "finance" ? "bg-gradient-to-tr from-purple-900 via-purple-700 to-cyan-600 text-white shadow-lg shadow-purple-700/50 ring-2 ring-cyan-600" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("finance")}
             >
@@ -708,8 +708,8 @@ export default function Home() {
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 py-6 text-xs font-extrabold border-l border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300 uppercase font-sans tracking-wide
-                bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white shadow-xl shadow-purple-500/60 ring-2 ring-cyan-400 hover:opacity-90`}
+              className={`flex-1 py-6 text-xs font-extrabold border-l border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-600 transition-all duration-300 uppercase font-sans tracking-wide
+                bg-gradient-to-tr from-purple-900 via-purple-700 to-cyan-600 text-white shadow-xl shadow-purple-700/60 ring-2 ring-cyan-600 hover:opacity-90`}
               style={{
                 borderRadius: 0,
                 minWidth: "108px",
