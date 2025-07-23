@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { FiSearch, FiGrid, FiGamepad, FiUsers, FiTool, FiDollarSign, FiPlay } from "react-icons/fi" // Hozzáadott ikonok
+import FiSearch from "react-icons/fi/FiSearch"
+import FiGrid from "react-icons/fi/FiGrid"
+import FiGamepad from "react-icons/fi/FiGamepad"
+import FiUsers from "react-icons/fi/FiUsers"
+import FiTool from "react-icons/fi/FiTool"
+import FiDollarSign from "react-icons/fi/FiDollarSign"
+import FiPlay from "react-icons/fi/FiPlay"
 import type React from "react"
 
 // Define types for miniapp data
@@ -663,12 +669,12 @@ export default function Home() {
           <div className="flex w-full max-w-4xl mx-auto">
             <button
               className={`flex-1 py-6 text-center font-sans tracking-wide
-                ${
-                  filter === "all"
-                    ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                    : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-                }
-                focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              ${
+                filter === "all"
+                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+              }
+              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("all")}
             >
@@ -679,12 +685,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-center font-sans tracking-wide
-                ${
-                  filter === "games"
-                    ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                    : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-                }
-                focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              ${
+                filter === "games"
+                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+              }
+              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("games")}
             >
@@ -695,12 +701,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-center font-sans tracking-wide
-                ${
-                  filter === "social"
-                    ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                    : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-                }
-                focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              ${
+                filter === "social"
+                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+              }
+              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("social")}
             >
@@ -711,12 +717,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-center font-sans tracking-wide
-                ${
-                  filter === "utility"
-                    ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                    : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-                }
-                focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              ${
+                filter === "utility"
+                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+              }
+              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("utility")}
             >
@@ -727,12 +733,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-6 text-center font-sans tracking-wide
-                ${
-                  filter === "finance"
-                    ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                    : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-                }
-                focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              ${
+                filter === "finance"
+                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+              }
+              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("finance")}
             >
@@ -747,8 +753,8 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               className={`flex-1 py-6 text-center font-sans tracking-wide
-                bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800
-                focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800
+              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{
                 borderRadius: 0,
                 minWidth: "108px",
