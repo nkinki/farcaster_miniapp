@@ -213,11 +213,11 @@ export default function Home() {
               <img
                 src={app.iconUrl}
                 alt={app.name + ' logo'}
-                className="w-9 h-9 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-lg bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+              <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
                 {app.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -254,11 +254,11 @@ export default function Home() {
               <img
                 src={app.iconUrl}
                 alt={app.name + ' logo'}
-                className="w-9 h-9 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-lg bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+              <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
                 {app.name.charAt(0).toUpperCase()}
               </div>
             )}
