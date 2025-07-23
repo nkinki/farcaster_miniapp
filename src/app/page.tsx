@@ -223,8 +223,8 @@ export default function Home() {
             )}
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-lg text-white truncate" style={{fontSize: '1.15em'}}>{app.name}</div>
-              <div className="text-xs text-purple-300 truncate">@{app.author.username}</div>
-              <div className="text-xs text-cyan-300 flex items-center gap-1 mt-0.5">
+              <div className="text-sm" style={{color:'#a259ff', fontSize: '1.15em'}}>@{app.author.username}</div>
+              <div className="text-sm" style={{color:'#b0b8d1', display:'flex', alignItems:'center', gap:'0.25rem', marginTop:'0.125rem', fontSize: '1.15em'}}>
                 <span className="text-sm">👥</span>
                 <span>{app.author.followerCount}</span>
               </div>
@@ -264,8 +264,8 @@ export default function Home() {
             )}
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-lg text-white truncate" style={{fontSize: '1.15em'}}>{app.name}</div>
-              <div className="text-sm" style={{color:'#b0b8d1', fontSize: '1.15em'}}>@{app.author.username}</div>
-              <div className="text-xs text-cyan-300 flex items-center gap-1 mt-0.5">
+              <div className="text-sm" style={{color:'#a259ff', fontSize: '1.15em'}}>@{app.author.username}</div>
+              <div className="text-sm" style={{color:'#b0b8d1', display:'flex', alignItems:'center', gap:'0.25rem', marginTop:'0.125rem', fontSize: '1.15em'}}>
                 <span className="text-sm">👥</span>
                 <span>{app.author.followerCount}</span>
               </div>
