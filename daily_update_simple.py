@@ -157,7 +157,7 @@ def update_database(miniapps_data):
                 r1.miniapp_id,
                 r1.ranking_date,
                 r1.rank,
-                (r2.rank - r1.rank) as rank_24h_change
+                (r1.rank - r2.rank) as rank_24h_change
             FROM miniapp_rankings r1
             LEFT JOIN miniapp_rankings r2 ON r1.miniapp_id = r2.miniapp_id 
                 AND r2.ranking_date = r1.ranking_date - INTERVAL '1 day'
@@ -174,7 +174,7 @@ def update_database(miniapps_data):
                 r1.miniapp_id,
                 r1.ranking_date,
                 r1.rank,
-                (r2.rank - r1.rank) as rank_7d_change
+                (r1.rank - r2.rank) as rank_7d_change
             FROM miniapp_rankings r1
             LEFT JOIN miniapp_rankings r2 ON r1.miniapp_id = r2.miniapp_id 
                 AND r2.ranking_date = r1.ranking_date - INTERVAL '7 days'
@@ -191,7 +191,7 @@ def update_database(miniapps_data):
                 r1.miniapp_id,
                 r1.ranking_date,
                 r1.rank,
-                (r2.rank - r1.rank) as rank_30d_change
+                (r1.rank - r2.rank) as rank_30d_change
             FROM miniapp_rankings r1
             LEFT JOIN miniapp_rankings r2 ON r1.miniapp_id = r2.miniapp_id 
                 AND r2.ranking_date = r1.ranking_date - INTERVAL '30 days'
