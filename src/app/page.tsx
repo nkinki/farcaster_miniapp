@@ -222,7 +222,7 @@ export default function Home() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-base text-white truncate">{app.name}</div>
+              <div className="font-semibold text-lg text-white truncate" style={{fontSize: '1.15em'}}>{app.name}</div>
               <div className="text-xs text-purple-300 truncate">@{app.author.username}</div>
               <div className="text-xs text-cyan-300 flex items-center gap-1 mt-0.5">
                 <span className="text-sm">👥</span>
@@ -263,8 +263,8 @@ export default function Home() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-base text-white truncate">{app.name}</div>
-              <div className="text-xs" style={{color:'#b0b8d1'}}>@{app.author.username}</div>
+              <div className="font-semibold text-lg text-white truncate" style={{fontSize: '1.15em'}}>{app.name}</div>
+              <div className="text-sm" style={{color:'#b0b8d1', fontSize: '1.15em'}}>@{app.author.username}</div>
               <div className="text-xs text-cyan-300 flex items-center gap-1 mt-0.5">
                 <span className="text-sm">👥</span>
                 <span>{app.author.followerCount}</span>
@@ -340,9 +340,9 @@ export default function Home() {
   // Helper: rank changes mini-table
   function RankChanges({ app }: { app: Miniapp }) {
     return (
-      <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+      <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5" style={{fontSize: '1.15em'}}>
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-lg ${
             (app.rank24hChange || 0) > 0 ? 'text-green-400' : (app.rank24hChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {(app.rank24hChange || 0) > 0 ? '+' : ''}{app.rank24hChange || 0}
@@ -350,7 +350,7 @@ export default function Home() {
           <span className="text-sm text-purple-400">24h</span>
         </div>
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-lg ${
             app.rank72hChange > 0 ? 'text-green-400' : app.rank72hChange < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {app.rank72hChange > 0 ? '+' : ''}{app.rank72hChange}
@@ -358,7 +358,7 @@ export default function Home() {
           <span className="text-sm text-purple-400">72h</span>
         </div>
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-lg ${
             (app.rankWeeklyChange || 0) > 0 ? 'text-green-400' : (app.rankWeeklyChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {(app.rankWeeklyChange || 0) > 0 ? '+' : ''}{app.rankWeeklyChange || 0}
@@ -366,7 +366,7 @@ export default function Home() {
           <span className="text-sm text-purple-400">7d</span>
         </div>
         <div className="flex gap-1 items-center">
-          <span className={`font-semibold text-base ${
+          <span className={`font-semibold text-lg ${
             (app.rank30dChange || 0) > 0 ? 'text-green-400' : (app.rank30dChange || 0) < 0 ? 'text-red-400' : 'text-purple-300'
           }`}>
             {(app.rank30dChange || 0) > 0 ? '+' : ''}{app.rank30dChange || 0}
