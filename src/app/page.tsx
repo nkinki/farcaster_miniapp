@@ -661,55 +661,55 @@ export default function Home() {
           </div>
         </div>
         {/* Blocky, joined, high-contrast bottom nav bar */}
-        <nav className="fixed bottom-0 left-0 w-full z-50 bg-white shadow-lg border-t border-gray-200">
+        <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950 border-t-2 border-blue-500 shadow-[0_0_20px_5px_rgba(59,130,246,0.7)]">
           <div className="flex w-full max-w-4xl mx-auto">
             <button
-              className={`flex-1 py-3 text-sm font-bold border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-wide
-                ${filter === "all" ? "bg-blue-50 text-blue-800 ring-2 ring-blue-300 shadow-md shadow-blue-200" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "all" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("all")}
             >
               ALL
             </button>
             <button
-              className={`flex-1 py-3 text-sm font-bold border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-wide
-                ${filter === "games" ? "bg-blue-50 text-blue-800 ring-2 ring-blue-300 shadow-md shadow-blue-200" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "games" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("games")}
             >
               GAMES
             </button>
             <button
-              className={`flex-1 py-3 text-sm font-bold border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-wide
-                ${filter === "social" ? "bg-blue-50 text-blue-800 ring-2 ring-blue-300 shadow-md shadow-blue-200" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "social" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("social")}
             >
               Social
             </button>
             <button
-              className={`flex-1 py-3 text-sm font-bold border-t-0 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-wide
-                ${filter === "utility" ? "bg-blue-50 text-blue-800 ring-2 ring-blue-300 shadow-md shadow-blue-200" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "utility" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("utility")}
             >
               Utility
             </button>
             <button
-              className={`flex-1 py-3 text-sm font-bold border-t-0 border-r-0 border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-wide
-                ${filter === "finance" ? "bg-blue-50 text-blue-800 ring-2 ring-blue-300 shadow-md shadow-blue-200" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+              className={`flex-1 py-4 text-xs font-bold border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "finance" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("finance")}
             >
               Finance
             </button>
-            {/* Play Chess button - now styled consistently but with a distinct light blue accent */}
+            {/* Play Chess button - most prominent with intense neon glow */}
             <a
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 py-3 text-sm font-bold border-t-0 border-l border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200 uppercase font-sans tracking-wide
-                bg-blue-100 text-blue-800 hover:bg-blue-200 ring-2 ring-blue-400 shadow-lg shadow-blue-300`}
+              className={`flex-1 py-4 text-sm font-extrabold border-l border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300 uppercase font-sans tracking-widest
+                bg-gradient-to-br from-cyan-500 to-blue-700 text-white shadow-xl shadow-cyan-500/60 ring-2 ring-cyan-400 hover:opacity-90`}
               style={{
                 borderRadius: 0,
                 minWidth: "108px",
