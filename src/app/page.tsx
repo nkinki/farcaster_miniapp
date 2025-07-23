@@ -2,13 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import FiSearch from "react-icons/fi/FiSearch"
-import FiGrid from "react-icons/fi/FiGrid"
-import FiGamepad from "react-icons/fi/FiGamepad"
-import FiUsers from "react-icons/fi/FiUsers"
-import FiTool from "react-icons/fi/FiTool"
-import FiDollarSign from "react-icons/fi/FiDollarSign"
-import FiPlay from "react-icons/fi/FiPlay"
+import { FiSearch } from "react-icons/fi"
+// import Image from 'next/image'; // removed unused import
+// import { MiniappUserProfile } from '../components/MiniappUserProfile'; // REMOVE old stat block
 import type React from "react"
 
 // Define types for miniapp data
@@ -665,96 +661,55 @@ export default function Home() {
           </div>
         </div>
         {/* Blocky, joined, high-contrast bottom nav bar */}
-        <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
+        <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950 border-t-2 border-blue-500 shadow-[0_0_20px_5px_rgba(59,130,246,0.7)]">
           <div className="flex w-full max-w-4xl mx-auto">
             <button
-              className={`flex-1 py-6 text-center font-sans tracking-wide
-              ${
-                filter === "all"
-                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-              }
-              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "all" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("all")}
             >
-              <div className="flex flex-col items-center justify-center">
-                <FiGrid className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">ALL</span>
-              </div>
+              ALL
             </button>
             <button
-              className={`flex-1 py-6 text-center font-sans tracking-wide
-              ${
-                filter === "games"
-                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-              }
-              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "games" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("games")}
             >
-              <div className="flex flex-col items-center justify-center">
-                <FiGamepad className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">GAMES</span>
-              </div>
+              GAMES
             </button>
             <button
-              className={`flex-1 py-6 text-center font-sans tracking-wide
-              ${
-                filter === "social"
-                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-              }
-              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "social" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("social")}
             >
-              <div className="flex flex-col items-center justify-center">
-                <FiUsers className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">SOCIAL</span>
-              </div>
+              Social
             </button>
             <button
-              className={`flex-1 py-6 text-center font-sans tracking-wide
-              ${
-                filter === "utility"
-                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-              }
-              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              className={`flex-1 py-4 text-xs font-bold border-r border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "utility" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("utility")}
             >
-              <div className="flex flex-col items-center justify-center">
-                <FiTool className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">UTILITY</span>
-              </div>
+              Utility
             </button>
             <button
-              className={`flex-1 py-6 text-center font-sans tracking-wide
-              ${
-                filter === "finance"
-                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-              }
-              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              className={`flex-1 py-4 text-xs font-bold border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 uppercase font-sans tracking-widest
+                ${filter === "finance" ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("finance")}
             >
-              <div className="flex flex-col items-center justify-center">
-                <FiDollarSign className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">FINANCE</span>
-              </div>
+              Finance
             </button>
-            {/* CHESS button - most prominent with intense neon glow */}
+            {/* Play Chess button - most prominent with intense neon glow */}
             <a
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 py-6 text-center font-sans tracking-wide
-              bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800
-              focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+              className={`flex-1 py-4 text-sm font-extrabold border-l border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300 uppercase font-sans tracking-widest
+                bg-gradient-to-br from-cyan-500 to-blue-700 text-white shadow-xl shadow-cyan-500/60 ring-2 ring-cyan-400 hover:opacity-90`}
               style={{
                 borderRadius: 0,
                 minWidth: "108px",
@@ -765,10 +720,7 @@ export default function Home() {
                 textAlign: "center",
               }}
             >
-              <div className="flex flex-col items-center justify-center">
-                <FiPlay className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">CHESS</span>
-              </div>
+              PLAY CHESS
             </a>
           </div>
         </nav>
