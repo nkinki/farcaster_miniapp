@@ -521,7 +521,7 @@ export default function Home() {
           <div className="relative">
             {/* Glow háttér */}
             <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
-              <div className="w-[98%] h-[98%] rounded-2xl blur-2xl opacity-70 bg-gradient-to-br from-cyan-400 via-purple-700 to-blue-600 animate-pulse"></div>
+              <div className="w-[98%] h-[98%] rounded-2xl blur-3xl opacity-90 bg-gradient-to-br from-[#e0f2ff] via-[#7ecbff] to-[#3b82f6] animate-apprankglow"></div>
             </div>
             <div className="relative bg-black/50 backdrop-blur-sm rounded-2xl shadow-2xl p-2 border border-purple-500/30 z-10">
               <div className="flex flex-col gap-2">

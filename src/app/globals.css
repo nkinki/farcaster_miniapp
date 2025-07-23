@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  @keyframes apprankglow {
+    0%, 100% { filter: blur(36px) brightness(1.2); opacity: 0.85; }
+    50% { filter: blur(48px) brightness(1.5); opacity: 1; }
+  }
+  .animate-apprankglow {
+    animation: apprankglow 5s ease-in-out infinite;
+  }
+}
