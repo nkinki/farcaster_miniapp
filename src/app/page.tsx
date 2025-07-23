@@ -548,12 +548,12 @@ export default function Home() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Keresés..."
-                className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs placeholder-gray-400 min-w-[80px] transition-transform duration-200 focus:scale-105"
+                className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs placeholder-gray-400 min-w-[80px]"
                 style={{ minWidth: 0, width: "110px" }}
               />
               <button
                 type="submit"
-                className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900 transition-all duration-150 flex items-center justify-center transition-transform duration-200 hover:scale-105"
+                className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900 transition-all duration-150 flex items-center justify-center"
                 tabIndex={-1}
                 aria-label="Keresés"
               >
@@ -659,12 +659,12 @@ export default function Home() {
           <div className="flex w-full max-w-4xl mx-auto">
             <button
               className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
-            ${
-              filter === "all"
-                ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-            }
-            focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+          ${
+            filter === "all"
+              ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+              : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+          }
+          focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("all")}
             >
@@ -674,12 +674,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
-              ${
-                filter === "games"
-                  ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                  : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-              }
-            focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+            ${
+              filter === "games"
+                ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+                : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+            }
+          focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("games")}
             >
@@ -689,12 +689,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
-            ${
-              filter === "social"
-                ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-            }
-            focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+          ${
+            filter === "social"
+              ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+              : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+          }
+          focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("social")}
             >
@@ -704,12 +704,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
-            ${
-              filter === "utility"
-                ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-            }
-            focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+          ${
+            filter === "utility"
+              ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+              : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+          }
+          focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("utility")}
             >
@@ -719,12 +719,12 @@ export default function Home() {
             </button>
             <button
               className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
-            ${
-              filter === "finance"
-                ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-            }
-            focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+          ${
+            filter === "finance"
+              ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+              : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+          }
+          focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
               onClick={() => setFilter("finance")}
             >
@@ -738,8 +738,8 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               className={`flex-1 py-[25.956px] text-center font-sans tracking-wide
-            bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800
-            focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
+          bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800
+          focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase`}
               style={{
                 borderRadius: 0,
                 fontFamily: "Geist, Inter, Arial, sans-serif",
