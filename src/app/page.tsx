@@ -533,11 +533,11 @@ export default function Home() {
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-black/95 shadow-2xl border-t-2 border-gray-800">
           <div className="flex w-full max-w-3xl mx-auto px-0 pb-0 pt-0">
             <button
-              className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'all' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
-              style={{borderRadius: 0, letterSpacing: '0.01em'}}
+              className={`flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest hover:bg-[#4a57d6] hover:text-white`}
+              style={{borderRadius: 0, letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif'}}
               onClick={() => setFilter('all')}
             >
-              All
+              ALL
             </button>
             <button
               className={`flex-1 py-6 font-bold text-base border-t border-r border-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400 ${filter === 'games' ? 'bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40' : 'bg-gray-900 text-gray-100 hover:bg-gray-800 hover:text-white'}`}
@@ -571,11 +571,11 @@ export default function Home() {
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-6 font-bold text-base focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gradient-to-tl from-purple-700 via-purple-900 to-purple-800 text-white shadow-lg shadow-purple-700/40 flex flex-col items-center justify-center border-t border-r border-gray-400/60"
-              style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.01em'}}
+              className="flex-1 py-6 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#4a57d6] hover:text-white"
+              style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif'}}
             >
-              <span className="font-extrabold" style={{letterSpacing: '0.009em'}}>Play Chess</span>
-              <span className="text-[0.95rem] font-normal opacity-90" style={{letterSpacing: '0.09em'}}>Claim 10k $CHESS</span>
+              <span className="font-extrabold" style={{letterSpacing: '0.09em'}}>PLAY CHESS</span>
+              <span className="text-[0.95rem] font-normal opacity-90" style={{letterSpacing: '0.09em'}}>CLAIM 10K $CHESS</span>
             </a>
           </div>
         </nav>
