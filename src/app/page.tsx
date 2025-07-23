@@ -574,7 +574,6 @@ export default function Home() {
               rel="noopener noreferrer"
               className={`flex-1 py-4 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#4a57d6] hover:text-white text-center`}
               style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}
-              onClick={() => setFilter('chess')}
             >
               <span className="font-extrabold w-full block" style={{letterSpacing: '0.09em', textAlign: 'center'}}>PLAY CHESS</span>
               <span className="text-[0.95rem] font-normal opacity-90 w-full block" style={{letterSpacing: '0.09em', textAlign: 'center'}}>CLAIM 10K $CHESS</span>
