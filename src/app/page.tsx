@@ -572,7 +572,7 @@ export default function Home() {
               href="https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 py-4 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#4a57d6] hover:text-white text-center ${filter === 'chess' ? 'bg-[#a259ff] text-white' : ''}`}
+              className={`flex-1 py-4 font-bold text-base border-t border-r border-[#5D6AFF] focus:outline-none focus:ring-2 focus:ring-[#5D6AFF] bg-[#5D6AFF] text-white uppercase font-sans tracking-widest flex flex-col items-center justify-center hover:bg-[#4a57d6] hover:text-white text-center`}
               style={{borderRadius: 0, minWidth: '108px', letterSpacing: '0.09em', fontFamily: 'Geist, Inter, Arial, sans-serif', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}
               onClick={() => setFilter('chess')}
             >
