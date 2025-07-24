@@ -866,11 +866,14 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
               }}
             >
               <div className="flex flex-col items-center justify-center">
-                <span className="text-[10px] font-bold" style={{
-                  color: '#5D6AFF',
-                  textShadow: '0 0 8px #5D6AFF, 0 0 16px #5D6AFF, 0 0 32px #5D6AFF',
-                  filter: 'brightness(1.3) drop-shadow(0 0 6px #5D6AFF)'
-                }}>
+                <span
+                  className="text-[10px] font-bold animate-chessglow"
+                  style={{
+                    color: '#5D6AFF',
+                    textShadow: '0 0 4px #5D6AFF, 0 0 8px #5D6AFF',
+                    filter: 'brightness(1.08) drop-shadow(0 0 2px #5D6AFF)'
+                  }}
+                >
                   Claim $CHESS
                 </span>
               </div>
@@ -878,6 +881,24 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
           </div>
         </nav>
       </div>
+      {/* Neon glow animáció Chess gombhoz */}
+      <style jsx global>{`
+      @keyframes chessglow {
+        0%, 100% {
+          color: #5D6AFF;
+          text-shadow: 0 0 4px #5D6AFF, 0 0 8px #5D6AFF;
+          filter: brightness(1.08) drop-shadow(0 0 2px #5D6AFF);
+        }
+        50% {
+          color: #00fff7;
+          text-shadow: 0 0 6px #00fff7, 0 0 12px #00fff7;
+          filter: brightness(1.12) drop-shadow(0 0 3px #00fff7);
+        }
+      }
+      .animate-chessglow {
+        animation: chessglow 3s ease-in-out infinite;
+      }
+      `}</style>
     </>
   )
 }
