@@ -535,7 +535,7 @@ export default function Home() {
               <button onClick={() => setOpenMiniappIdx(openMiniappIdx < sortedMiniapps.length - 1 ? openMiniappIdx + 1 : openMiniappIdx)} className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40" disabled={openMiniappIdx === sortedMiniapps.length - 1}>Következő &rarr;</button>
             </div>
             <div className="w-full h-[70vh] flex items-center justify-center bg-black rounded-xl overflow-hidden">
-              <iframe src={getMiniappDeepLink(sortedMiniapps[openMiniappIdx])} title="Miniapp preview" className="w-full h-full border-0" />
+              <iframe src={sortedMiniapps[openMiniappIdx].homeUrl} title="Miniapp preview" className="w-full h-full border-0" />
             </div>
             <div className="mt-2 text-center text-cyan-300 font-bold">{sortedMiniapps[openMiniappIdx].name}</div>
           </div>
