@@ -617,54 +617,15 @@ export default function Home() {
                   <span>{app.author.followerCount}</span>
                 </div>
               </div>
-              {/* NO Favorite button here! */}
-              <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
-                <div className="flex gap-1 items-center">
-                  <span
-                    className={`font-semibold text-base ${
-                      (app.rank24hChange || 0) > 0
-                        ? "text-green-400"
-                        : (app.rank24hChange || 0) < 0
-                          ? "text-red-400"
-                          : "text-purple-300"
-                    }`}
-                  >
-                    {(app.rank24hChange || 0) > 0 ? "+" : ""}
-                    {app.rank24hChange || 0}
-                  </span>
-                  <span className="text-sm text-purple-400">24h</span>
-                </div>
-                <div className="flex gap-1 items-center">
-                  <span
-                    className={`font-semibold text-base ${
-                      app.rank72hChange > 0
-                        ? "text-green-400"
-                        : app.rank72hChange < 0
-                          ? "text-red-400"
-                          : "text-purple-300"
-                    }`}
-                  >
-                    {app.rank72hChange > 0 ? "+" : ""}
-                    {app.rank72hChange}
-                  </span>
-                  <span className="text-sm text-purple-400">72h</span>
-                </div>
-                <div className="flex gap-1 items-center">
-                  <span
-                    className={`font-semibold text-base ${
-                      (app.rankWeeklyChange || 0) > 0
-                        ? "text-green-400"
-                        : (app.rankWeeklyChange || 0) < 0
-                          ? "text-red-400"
-                          : "text-purple-300"
-                    }`}
-                  >
-                    {(app.rankWeeklyChange || 0) > 0 ? "+" : ""}
-                    {app.rankWeeklyChange || 0}
-                  </span>
-                  <span className="text-sm text-purple-400">7d</span>
-                </div>
-              </div>
+              <button
+                onClick={() => toggleFavorite(app.domain)}
+                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent ${favorites.includes(app.domain) ? "text-blue-400" : "text-gray-400"}`}
+                title={favorites.includes(app.domain) ? "Remove from favorites" : "Add to favorites"}
+                style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
+              >
+                {favorites.includes(app.domain) ? "❤️" : "🤍"}
+              </button>
+              <RankChanges app={app} />
             </div>
           ))}
           {/* Main Ranking List - Modern List Style */}
