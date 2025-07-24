@@ -616,11 +616,11 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-hidden" style={{height: '70vh', maxHeight: '80vh'}}>
+            <div className="flex-1 overflow-hidden" style={{height: '100vh', maxHeight: '100vh', minHeight: 0}}>
               <iframe
                 src={sortedMiniapps[openMiniappIdx].homeUrl}
                 className="w-full h-full border-0"
-                style={{height: '100%', minHeight: '300px', maxHeight: '80vh'}}
+                style={{height: '100vh', maxHeight: '100vh', minHeight: 0}}
                 title={sortedMiniapps[openMiniappIdx].name}
               />
             </div>
