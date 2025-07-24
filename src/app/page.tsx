@@ -760,13 +760,14 @@ export default function Home() {
           {/* Main Ranking List - Modern List Style */}
           <div className="relative">
             <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-2 border border-[#2e3650] z-10">
-              {/* Sticky favorites block minden kategóriában a lista tetején */}
+              {/* Sticky favorites block minden nézetben a lista tetején */}
+              {filter === "all" && allViewRows.length > 0 && allViewRows[0]}
               {filter !== "all" && categoryViewRows.length > 0 && categoryViewRows[0]}
               <div className="flex flex-col gap-2">
-                {/* CATEGORY VIEW: csak a nem-favorit kártyák */}
-                {filter !== "all"
-                  ? categoryViewRows.slice(1)
-                  : allViewRows}
+                {/* Nem-favorit kártyák minden nézetben */}
+                {filter === "all"
+                  ? allViewRows.slice(1)
+                  : categoryViewRows.slice(1)}
               </div>
             </div>
           </div>
