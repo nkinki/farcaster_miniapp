@@ -771,6 +771,7 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
               }}
             >
               <div className="flex flex-col items-center justify-center">
+                <span className="text-[12px] font-bold text-gray-400">Claim</span>
                 <span
                   className="text-[12px] font-bold animate-chessglow"
                   style={{
@@ -779,7 +780,7 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
                     filter: "brightness(1.1) drop-shadow(0 0 1px #5D6AFF)",
                   }}
                 >
-                  CHESS
+                  $CHESS
                 </span>
               </div>
             </button>
