@@ -521,11 +521,30 @@ export default function Home() {
       {openMiniappIdx !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-4/5 flex flex-col">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 gap-2">
               <div className="text-lg font-bold text-cyan-300">{sortedMiniapps[openMiniappIdx].name}</div>
-              <button className="text-xs text-gray-400 hover:text-white mt-1" onClick={() => setOpenMiniappIdx(null)}>
-                Close
-              </button>
+              <div className="flex gap-2 items-center">
+                <button
+                  onClick={() => setOpenMiniappIdx(openMiniappIdx > 0 ? openMiniappIdx - 1 : openMiniappIdx)}
+                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40"
+                  disabled={openMiniappIdx === 0}
+                >
+                  &larr; Previous
+                </button>
+                <button
+                  onClick={() => setOpenMiniappIdx(null)}
+                  className="px-3 py-1 rounded bg-red-600 text-white font-bold"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => setOpenMiniappIdx(openMiniappIdx < sortedMiniapps.length - 1 ? openMiniappIdx + 1 : openMiniappIdx)}
+                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40"
+                  disabled={openMiniappIdx === sortedMiniapps.length - 1}
+                >
+                  Next &rarr;
+                </button>
+              </div>
             </div>
             <div className="flex-1 overflow-hidden" style={{height: '70vh', maxHeight: '80vh'}}>
               <iframe
