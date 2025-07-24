@@ -285,12 +285,12 @@ def update_database(miniapps_data):
             conn.close()
 
 def get_real_stats_for_miniapps(miniapps_data):
-    """Minden statisztikai mezőt (24h, 7d, 30d) a 72h értékével tölt ki, hogy látszódjon a frontendben."""
+    """Valódi statisztikai mezőket tölt ki minden időtávra."""
     conn = psycopg2.connect(NEON_DB_URL)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     today = date.today()
     cursor.execute("""
-        SELECT miniapp_id, rank_72h_change
+        SELECT miniapp_id, rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change
         FROM miniapp_statistics
         WHERE stat_date = %s
     """, (today,))
@@ -299,11 +299,10 @@ def get_real_stats_for_miniapps(miniapps_data):
     for item in miniapps_data:
         miniapp_id = item['miniApp']['id'] if 'miniApp' in item and 'id' in item['miniApp'] else None
         stat = stats.get(miniapp_id)
-        val = int(stat['rank_72h_change']) if stat and stat['rank_72h_change'] is not None else 0
-        item['rank24hChange'] = val
-        item['rank72hChange'] = val
-        item['rankWeeklyChange'] = val
-        item['rank30dChange'] = val
+        item['rank24hChange'] = int(stat['rank_24h_change']) if stat and stat['rank_24h_change'] is not None else 0
+        item['rank72hChange'] = int(stat['rank_72h_change']) if stat and stat['rank_72h_change'] is not None else 0
+        item['rankWeeklyChange'] = int(stat['rank_7d_change']) if stat and stat['rank_7d_change'] is not None else 0
+        item['rank30dChange'] = int(stat['rank_30d_change']) if stat and stat['rank_30d_change'] is not None else 0
     return miniapps_data
 
 def save_json_backup(miniapps_data):
