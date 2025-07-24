@@ -529,7 +529,7 @@ export default function Home() {
             </div>
             <div className="flex-1 overflow-hidden">
               <iframe
-                src={`https://iframe.ly/${encodeURIComponent(sortedMiniapps[openMiniappIdx].homeUrl)}`}
+                src={sortedMiniapps[openMiniappIdx].homeUrl}
                 className="w-full h-full border-0"
                 title={sortedMiniapps[openMiniappIdx].name}
               />
