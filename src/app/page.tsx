@@ -40,6 +40,8 @@ export default function Home() {
   const [search, setSearch] = useState("")
   const DEMO_FID = 977233 // Polling Center author FID for demo
   const [showFavoriteModal, setShowFavoriteModal] = useState(false)
+  // Modal state: melyik miniapp van megnyitva (index vagy null)
+  const [openMiniappIdx, setOpenMiniappIdx] = useState<number | null>(null);
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -270,7 +272,7 @@ export default function Home() {
         return (
           <div
             key={app.domain}
-            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm`}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition`} onClick={() => setOpenMiniappIdx(idx)}
           >
             <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
               {idx + 1}
@@ -515,6 +517,22 @@ export default function Home() {
           }}
           onClose={() => setShowFavoriteModal(false)}
         />
+      )}
+      {/* Miniapp preview modal */}
+      {openMiniappIdx !== null && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70">
+          <div className="bg-[#181c23] rounded-2xl shadow-2xl p-4 max-w-3xl w-full flex flex-col items-center relative">
+            <div className="flex w-full justify-between mb-2">
+              <button onClick={() => setOpenMiniappIdx(openMiniappIdx > 0 ? openMiniappIdx - 1 : openMiniappIdx)} className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40" disabled={openMiniappIdx === 0}>&larr; Előző</button>
+              <button onClick={() => setOpenMiniappIdx(null)} className="px-3 py-1 rounded bg-red-600 text-white font-bold">Bezár</button>
+              <button onClick={() => setOpenMiniappIdx(openMiniappIdx < sortedMiniapps.length - 1 ? openMiniappIdx + 1 : openMiniappIdx)} className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40" disabled={openMiniappIdx === sortedMiniapps.length - 1}>Következő &rarr;</button>
+            </div>
+            <div className="w-full h-[70vh] flex items-center justify-center bg-black rounded-xl overflow-hidden">
+              <iframe src={sortedMiniapps[openMiniappIdx].homeUrl} title="Miniapp preview" className="w-full h-full border-0" />
+            </div>
+            <div className="mt-2 text-center text-cyan-300 font-bold">{sortedMiniapps[openMiniappIdx].name}</div>
+          </div>
+        </div>
       )}
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
         <div className="max-w-4xl mx-auto">
