@@ -205,71 +205,65 @@ export default function Home() {
     const favoriteMiniapps = categoryMiniapps.filter((app) => favorites.includes(app.domain))
     const nonFavoriteMiniapps = categoryMiniapps.filter((app) => !favorites.includes(app.domain))
     categoryViewRows = [
-      // Sticky favorites block
-      <div key="sticky-favorites" className="sticky top-0 z-20 bg-[#23283a] pt-2 pb-2">
-        {favoriteMiniapps.map((app, favIdx) => {
-          const idx = categoryMiniapps.findIndex((a) => a.domain === app.domain)
-          return (
-            <div
-              key={app.domain + "-favtop"}
-              className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)] cursor-pointer hover:ring-2 hover:ring-cyan-400 transition`}
-              onClick={() => setOpenMiniappIdx(sortedMiniapps.findIndex(a => a.domain === app.domain))}
-            >
-              {/* ...kártya tartalom... */}
-              {/*** IDE JÖN A KÁRTYA TARTALOM, változatlanul ***/}
-              <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
-                {idx + 1}
-              </div>
-              {app.iconUrl ? (
-                <img
-                  src={app.iconUrl || "/placeholder.svg"}
-                  alt={app.name + " logo"}
-                  className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
-                  onError={(e) => {
-                    ;(e.currentTarget as HTMLImageElement).style.display = "none"
-                  }}
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
-                  {app.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-lg text-white truncate" style={{ fontSize: "1.15em" }}>
-                  {app.name}
-                </div>
-                <div className="text-sm" style={{ color: "#a259ff", fontSize: "1.15em" }}>
-                  @{app.author.username}
-                </div>
-                <div
-                  className="text-sm"
-                  style={{
-                    color: "#b0b8d1",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.25rem",
-                    marginTop: "0.125rem",
-                    fontSize: "1.15em",
-                  }}
-                >
-                  <span className="text-sm">👥</span>
-                  <span>{app.author.followerCount}</span>
-                </div>
-              </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); toggleFavorite(app.domain); }}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-blue-400`}
-                title={"Remove from favorites"}
-                style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
-              >
-                {"❤️"}
-              </button>
-              <RankChanges app={app} />
+      ...favoriteMiniapps.map((app) => {
+        const idx = categoryMiniapps.findIndex((a) => a.domain === app.domain)
+        return (
+          <div
+            key={app.domain + "-favtop"}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}
+          >
+            <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
+              {idx + 1}
             </div>
-          )
-        })}
-      </div>,
-      // Main list: only non-favorites, de keep original sorszám (idx+1)
+            {app.iconUrl ? (
+              <img
+                src={app.iconUrl || "/placeholder.svg"}
+                alt={app.name + " logo"}
+                className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                onError={(e) => {
+                  ;(e.currentTarget as HTMLImageElement).style.display = "none"
+                }}
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                {app.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-lg text-white truncate" style={{ fontSize: "1.15em" }}>
+                {app.name}
+              </div>
+              <div className="text-sm" style={{ color: "#a259ff", fontSize: "1.15em" }}>
+                @{app.author.username}
+              </div>
+              <div
+                className="text-sm"
+                style={{
+                  color: "#b0b8d1",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  marginTop: "0.125rem",
+                  fontSize: "1.15em",
+                }}
+              >
+                <span className="text-sm">👥</span>
+                <span>{app.author.followerCount}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => toggleFavorite(app.domain)}
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-blue-400`}
+              title={"Remove from favorites"}
+              style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
+            >
+              {"❤️"}
+            </button>
+            <RankChanges app={app} />
+          </div>
+        )
+      }),
+      // Main list: only non-favorites, but keep original sorszám (idx+1)
       ...categoryMiniapps.map((app, idx) => {
         if (favorites.includes(app.domain)) {
           return null
@@ -277,10 +271,8 @@ export default function Home() {
         return (
           <div
             key={app.domain}
-            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition`}
-            onClick={() => setOpenMiniappIdx(sortedMiniapps.findIndex(a => a.domain === app.domain))}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm`}
           >
-            {/* ...kártya tartalom... */}
             <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
               {idx + 1}
             </div>
@@ -321,7 +313,7 @@ export default function Home() {
               </div>
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); toggleFavorite(app.domain); }}
+              onClick={() => toggleFavorite(app.domain)}
               className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-gray-400`}
               title={"Add to favorites"}
               style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
@@ -334,16 +326,32 @@ export default function Home() {
       }),
     ]
   } else {
-    // Sticky favorites block az All oldalon is
-    allViewRows = [
-      <div key="sticky-favorites-all" className="sticky top-0 z-20 bg-[#23283a] pt-2 pb-2">
-        {sortedMiniapps.filter(app => favorites.includes(app.domain)).map((app, idx) => (
+    allViewRows = sortedMiniapps.map((app: Miniapp, idx: number) => {
+      const highlight = idx < 50 ? "bg-[#181c23]" : "bg-[#23283a]/80"
+      return (
+        <>
+          {idx === 50 && (
+            <div className="flex items-center my-2">
+              <div className="flex-1 h-px bg-cyan-400/60" />
+              <span className="mx-3 text-xs text-cyan-300 font-bold tracking-widest uppercase">
+                Top 50 Reward Cutoff
+              </span>
+              <div className="flex-1 h-px bg-cyan-400/60" />
+            </div>
+          )}
+          {idx === 100 && (
+            <div className="flex items-center my-2">
+              <div className="flex-1 h-px bg-cyan-400/60" />
+            </div>
+          )}
           <div
-            key={app.domain + "-favtop-all"}
-            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)] cursor-pointer hover:ring-2 hover:ring-cyan-400 transition`}
+            key={app.rank}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : ""}`}
             onClick={() => setOpenMiniappIdx(idx)}
           >
-            <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
+            <div
+              className={`flex-shrink-0 ${favorites.includes(app.domain) ? "w-14 h-14" : "w-8 h-8"} rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2`}
+            >
               {app.rank}
             </div>
             {app.iconUrl ? (
@@ -383,96 +391,18 @@ export default function Home() {
               </div>
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); toggleFavorite(app.domain); }}
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-blue-400`}
-              title={"Remove from favorites"}
+              onClick={() => toggleFavorite(app.domain)}
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent ${favorites.includes(app.domain) ? "text-blue-400" : "text-gray-400"}`}
+              title={favorites.includes(app.domain) ? "Remove from favorites" : "Add to favorites"}
               style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
             >
-              {"❤️"}
+              {favorites.includes(app.domain) ? "❤️" : "🤍"}
             </button>
             <RankChanges app={app} />
           </div>
-        ))}
-      </div>,
-      // Main list: csak a nem-favorit kártyák
-      ...sortedMiniapps.filter(app => !favorites.includes(app.domain)).map((app: Miniapp, idx: number) => {
-        const highlight = idx < 50 ? "bg-[#181c23]" : "bg-[#23283a]/80"
-        return (
-          <>
-            {idx === 50 && (
-              <div className="flex items-center my-2">
-                <div className="flex-1 h-px bg-cyan-400/60" />
-                <span className="mx-3 text-xs text-cyan-300 font-bold tracking-widest uppercase">
-                  Top 50 Reward Cutoff
-                </span>
-                <div className="flex-1 h-px bg-cyan-400/60" />
-              </div>
-            )}
-            {idx === 100 && (
-              <div className="flex items-center my-2">
-                <div className="flex-1 h-px bg-cyan-400/60" />
-              </div>
-            )}
-            <div
-              key={app.rank}
-              className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : ""}`}
-              onClick={() => setOpenMiniappIdx(sortedMiniapps.findIndex(a => a.domain === app.domain))}
-            >
-              <div
-                className={`flex-shrink-0 ${favorites.includes(app.domain) ? "w-14 h-14" : "w-8 h-8"} rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2`}
-              >
-                {app.rank}
-              </div>
-              {app.iconUrl ? (
-                <img
-                  src={app.iconUrl || "/placeholder.svg"}
-                  alt={app.name + " logo"}
-                  className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
-                  onError={(e) => {
-                    ;(e.currentTarget as HTMLImageElement).style.display = "none"
-                  }}
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
-                  {app.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-lg text-white truncate" style={{ fontSize: "1.15em" }}>
-                  {app.name}
-                </div>
-                <div className="text-sm" style={{ color: "#a259ff", fontSize: "1.15em" }}>
-                  @{app.author.username}
-                </div>
-                <div
-                  className="text-sm"
-                  style={{
-                    color: "#b0b8d1",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.25rem",
-                    marginTop: "0.125rem",
-                    fontSize: "1.15em",
-                  }}
-                >
-                  <span className="text-sm">👥</span>
-                  <span>{app.author.followerCount}</span>
-                </div>
-              </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); toggleFavorite(app.domain); }}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-gray-400`}
-                title={favorites.includes(app.domain) ? "Remove from favorites" : "Add to favorites"}
-                style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
-              >
-                {favorites.includes(app.domain) ? "❤️" : "🤍"}
-              </button>
-              <RankChanges app={app} />
-            </div>
-          </>
-        )
-      })
-    ]
+        </>
+      )
+    })
   }
 
   // Helper: rank changes mini-table
@@ -591,36 +521,16 @@ export default function Home() {
       {openMiniappIdx !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-4/5 flex flex-col">
-            <div className="flex justify-between items-center mb-4 gap-2">
+            <div className="flex justify-between items-center mb-4">
               <div className="text-lg font-bold text-cyan-300">{sortedMiniapps[openMiniappIdx].name}</div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={() => setOpenMiniappIdx(openMiniappIdx > 0 ? openMiniappIdx - 1 : openMiniappIdx)}
-                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold text-xs disabled:opacity-40"
-                  disabled={openMiniappIdx === 0}
-                >
-                  &larr; Previous
-                </button>
-                <button
-                  onClick={() => setOpenMiniappIdx(null)}
-                  className="px-3 py-1 rounded bg-red-600 text-white font-bold text-xs"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => setOpenMiniappIdx(openMiniappIdx < sortedMiniapps.length - 1 ? openMiniappIdx + 1 : openMiniappIdx)}
-                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold text-xs disabled:opacity-40"
-                  disabled={openMiniappIdx === sortedMiniapps.length - 1}
-                >
-                  Next &rarr;
-                </button>
-              </div>
+              <button className="text-xs text-gray-400 hover:text-white mt-1" onClick={() => setOpenMiniappIdx(null)}>
+                Close
+              </button>
             </div>
-            <div className="flex-1 overflow-hidden" style={{height: '100vh', maxHeight: '100vh', minHeight: 0}}>
+            <div className="flex-1 overflow-hidden">
               <iframe
-                src={sortedMiniapps[openMiniappIdx].homeUrl}
+                src={`https://iframe.ly/${encodeURIComponent(sortedMiniapps[openMiniappIdx].homeUrl)}`}
                 className="w-full h-full border-0"
-                style={{height: '100vh', maxHeight: '100vh', minHeight: 0}}
                 title={sortedMiniapps[openMiniappIdx].name}
               />
             </div>
@@ -660,7 +570,7 @@ export default function Home() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search..."
+                placeholder="Keresés..."
                 className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs placeholder-gray-400 min-w-[80px]"
                 style={{ minWidth: 0, width: "110px" }}
               />
@@ -707,67 +617,23 @@ export default function Home() {
                   <span>{app.author.followerCount}</span>
                 </div>
               </div>
-              {/* NO Favorite button here! */}
-              <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
-                <div className="flex gap-1 items-center">
-                  <span
-                    className={`font-semibold text-base ${
-                      (app.rank24hChange || 0) > 0
-                        ? "text-green-400"
-                        : (app.rank24hChange || 0) < 0
-                          ? "text-red-400"
-                          : "text-purple-300"
-                    }`}
-                  >
-                    {(app.rank24hChange || 0) > 0 ? "+" : ""}
-                    {app.rank24hChange || 0}
-                  </span>
-                  <span className="text-sm text-purple-400">24h</span>
-                </div>
-                <div className="flex gap-1 items-center">
-                  <span
-                    className={`font-semibold text-base ${
-                      app.rank72hChange > 0
-                        ? "text-green-400"
-                        : app.rank72hChange < 0
-                          ? "text-red-400"
-                          : "text-purple-300"
-                    }`}
-                  >
-                    {app.rank72hChange > 0 ? "+" : ""}
-                    {app.rank72hChange}
-                  </span>
-                  <span className="text-sm text-purple-400">72h</span>
-                </div>
-                <div className="flex gap-1 items-center">
-                  <span
-                    className={`font-semibold text-base ${
-                      (app.rankWeeklyChange || 0) > 0
-                        ? "text-green-400"
-                        : (app.rankWeeklyChange || 0) < 0
-                          ? "text-red-400"
-                          : "text-purple-300"
-                    }`}
-                  >
-                    {(app.rankWeeklyChange || 0) > 0 ? "+" : ""}
-                    {app.rankWeeklyChange || 0}
-                  </span>
-                  <span className="text-sm text-purple-400">7d</span>
-                </div>
-              </div>
+              <button
+                onClick={() => toggleFavorite(app.domain)}
+                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent ${favorites.includes(app.domain) ? "text-blue-400" : "text-gray-400"}`}
+                title={favorites.includes(app.domain) ? "Remove from favorites" : "Add to favorites"}
+                style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
+              >
+                {favorites.includes(app.domain) ? "❤️" : "🤍"}
+              </button>
+              <RankChanges app={app} />
             </div>
           ))}
           {/* Main Ranking List - Modern List Style */}
           <div className="relative">
             <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-2 border border-[#2e3650] z-10">
-              {/* Sticky favorites block minden nézetben a lista tetején */}
-              {filter === "all" && allViewRows.length > 0 && allViewRows[0]}
-              {filter !== "all" && categoryViewRows.length > 0 && categoryViewRows[0]}
               <div className="flex flex-col gap-2">
-                {/* Nem-favorit kártyák minden nézetben */}
-                {filter === "all"
-                  ? allViewRows.slice(1)
-                  : categoryViewRows.slice(1)}
+                {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
+                {filter !== "all" ? categoryViewRows : allViewRows}
               </div>
             </div>
           </div>
@@ -866,40 +732,41 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
               }}
             >
               <div className="flex flex-col items-center justify-center">
+                <span className="text-[10px] font-bold text-gray-400">Claim</span>
                 <span
                   className="text-[10px] font-bold animate-chessglow"
                   style={{
-                    color: '#5D6AFF',
-                    textShadow: '0 0 4px #5D6AFF, 0 0 8px #5D6AFF',
-                    filter: 'brightness(1.08) drop-shadow(0 0 2px #5D6AFF)',
-                    fontSize: '1.15em'
+                    color: "#5D6AFF",
+                    textShadow: "0 0 2px #5D6AFF, 0 0 4px #5D6AFF",
+                    filter: "brightness(1.1) drop-shadow(0 0 1px #5D6AFF)",
                   }}
                 >
-                  Claim $CHESS
+                  $CHESS
                 </span>
               </div>
             </button>
           </div>
         </nav>
       </div>
-      {/* Neon glow animáció Chess gombhoz */}
       <style jsx global>{`
-      @keyframes chessglow {
-        0%, 100% {
-          color: #5D6AFF;
-          text-shadow: 0 0 4px #5D6AFF, 0 0 8px #5D6AFF;
-          filter: brightness(1.08) drop-shadow(0 0 2px #5D6AFF);
-        }
-        50% {
-          color: #00fff7;
-          text-shadow: 0 0 6px #00fff7, 0 0 12px #00fff7;
-          filter: brightness(1.12) drop-shadow(0 0 3px #00fff7);
-        }
-      }
-      .animate-chessglow {
-        animation: chessglow 5s ease-in-out infinite;
-      }
-      `}</style>
+@keyframes chessglow {
+  0%, 100% {
+    color: #5D6AFF;
+    text-shadow: 0 0 2px #5D6AFF, 0 0 4px #5D6AFF;
+    filter: brightness(1.1) drop-shadow(0 0 1px #5D6AFF);
+    transform: scale(1);
+  }
+  50% {
+    color: #00fff7;
+    text-shadow: 0 0 3px #00fff7, 0 0 6px #00fff7;
+    filter: brightness(1.15) drop-shadow(0 0 2px #00fff7);
+    transform: scale(1.05);
+  }
+}
+.animate-chessglow {
+  animation: chessglow 4s ease-in-out infinite;
+}
+`}</style>
     </>
   )
 }
