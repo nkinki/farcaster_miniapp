@@ -317,6 +317,10 @@ def save_json_backup(miniapps_data):
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
     print(f"JSON backup saved: {filename}")
+    # Always update the main top_miniapps.json as well
+    with open("top_miniapps.json", "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+    print("top_miniapps.json updated!")
 
 def main():
     """Main function - complete daily update"""
