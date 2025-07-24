@@ -871,7 +871,8 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
                   style={{
                     color: '#5D6AFF',
                     textShadow: '0 0 4px #5D6AFF, 0 0 8px #5D6AFF',
-                    filter: 'brightness(1.08) drop-shadow(0 0 2px #5D6AFF)'
+                    filter: 'brightness(1.08) drop-shadow(0 0 2px #5D6AFF)',
+                    fontSize: '1.15em'
                   }}
                 >
                   Claim $CHESS
@@ -896,7 +897,7 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
         }
       }
       .animate-chessglow {
-        animation: chessglow 3s ease-in-out infinite;
+        animation: chessglow 5s ease-in-out infinite;
       }
       `}</style>
     </>
