@@ -866,17 +866,7 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
               }}
             >
               <div className="flex flex-col items-center justify-center">
-                <span
-                  className="text-[10px] font-bold animate-chessglow"
-                  style={{
-                    color: '#5D6AFF',
-                    textShadow: '0 0 4px #5D6AFF, 0 0 8px #5D6AFF',
-                    filter: 'brightness(1.08) drop-shadow(0 0 2px #5D6AFF)',
-                    fontSize: '1.15em'
-                  }}
-                >
-                  Claim $CHESS
-                </span>
+                <span className="text-[10px] font-bold">Claim $CHESS</span>
               </div>
             </button>
           </div>
