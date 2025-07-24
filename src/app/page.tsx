@@ -205,75 +205,76 @@ export default function Home() {
     const favoriteMiniapps = categoryMiniapps.filter((app) => favorites.includes(app.domain))
     const nonFavoriteMiniapps = categoryMiniapps.filter((app) => !favorites.includes(app.domain))
     categoryViewRows = [
-      // Sticky favorites block
-      <div key="sticky-favorites" className="sticky top-0 z-20 bg-[#23283a] pt-2 pb-2">
-        {favoriteMiniapps.map((app) => {
-          return (
-            <div
-              key={app.domain + "-favtop"}
-              className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}
-            >
-              <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
-                {app.rank}
-              </div>
-              {app.iconUrl ? (
-                <img
-                  src={app.iconUrl || "/placeholder.svg"}
-                  alt={app.name + " logo"}
-                  className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
-                  onError={(e) => {
-                    ;(e.currentTarget as HTMLImageElement).style.display = "none"
-                  }}
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
-                  {app.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-lg text-white truncate" style={{ fontSize: "1.15em" }}>
-                  {app.name}
-                </div>
-                <div className="text-sm" style={{ color: "#a259ff", fontSize: "1.15em" }}>
-                  @{app.author.username}
-                </div>
-                <div
-                  className="text-sm"
-                  style={{
-                    color: "#b0b8d1",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.25rem",
-                    marginTop: "0.125rem",
-                    fontSize: "1.15em",
-                  }}
-                >
-                  <span className="text-sm">👥</span>
-                  <span>{app.author.followerCount}</span>
-                </div>
-              </div>
-              <button
-                onClick={() => toggleFavorite(app.domain)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-blue-400`}
-                title={"Remove from favorites"}
-                style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
-              >
-                {"❤️"}
-              </button>
-              <RankChanges app={app} />
+      ...favoriteMiniapps.map((app) => {
+        const idx = categoryMiniapps.findIndex((a) => a.domain === app.domain)
+        return (
+          <div
+            key={app.domain + "-favtop"}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}
+          >
+            <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
+              {idx + 1}
             </div>
-          )
-        })}
-      </div>,
-      // Main list: only non-favorites, but use app.rank for sorszám
-      ...nonFavoriteMiniapps.map((app) => {
+            {app.iconUrl ? (
+              <img
+                src={app.iconUrl || "/placeholder.svg"}
+                alt={app.name + " logo"}
+                className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
+                onError={(e) => {
+                  ;(e.currentTarget as HTMLImageElement).style.display = "none"
+                }}
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
+                {app.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-lg text-white truncate" style={{ fontSize: "1.15em" }}>
+                {app.name}
+              </div>
+              <div className="text-sm" style={{ color: "#a259ff", fontSize: "1.15em" }}>
+                @{app.author.username}
+              </div>
+              <div
+                className="text-sm"
+                style={{
+                  color: "#b0b8d1",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  marginTop: "0.125rem",
+                  fontSize: "1.15em",
+                }}
+              >
+                <span className="text-sm">👥</span>
+                <span>{app.author.followerCount}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => toggleFavorite(app.domain)}
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-blue-400`}
+              title={"Remove from favorites"}
+              style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
+            >
+              {"❤️"}
+            </button>
+            <RankChanges app={app} />
+          </div>
+        )
+      }),
+      // Main list: only non-favorites, but keep original sorszám (idx+1)
+      ...categoryMiniapps.map((app, idx) => {
+        if (favorites.includes(app.domain)) {
+          return null
+        }
         return (
           <div
             key={app.domain}
             className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm`}
           >
             <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
-              {app.rank}
+              {idx + 1}
             </div>
             {app.iconUrl ? (
               <img
@@ -325,17 +326,32 @@ export default function Home() {
       }),
     ]
   } else {
-    // Sticky favorites block az All oldalon is
-    const favoriteMiniapps = sortedMiniapps.filter(app => favorites.includes(app.domain))
-    const nonFavoriteMiniapps = sortedMiniapps.filter(app => !favorites.includes(app.domain))
-    allViewRows = [
-      <div key="sticky-favorites-all" className="sticky top-0 z-20 bg-[#23283a] pt-2 pb-2">
-        {favoriteMiniapps.map((app) => (
+    allViewRows = sortedMiniapps.map((app: Miniapp, idx: number) => {
+      const highlight = idx < 50 ? "bg-[#181c23]" : "bg-[#23283a]/80"
+      return (
+        <>
+          {idx === 50 && (
+            <div className="flex items-center my-2">
+              <div className="flex-1 h-px bg-cyan-400/60" />
+              <span className="mx-3 text-xs text-cyan-300 font-bold tracking-widest uppercase">
+                Top 50 Reward Cutoff
+              </span>
+              <div className="flex-1 h-px bg-cyan-400/60" />
+            </div>
+          )}
+          {idx === 100 && (
+            <div className="flex items-center my-2">
+              <div className="flex-1 h-px bg-cyan-400/60" />
+            </div>
+          )}
           <div
-            key={app.domain + "-favtop-all"}
-            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}
+            key={app.rank}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : ""}`}
+            onClick={() => setOpenMiniappIdx(idx)}
           >
-            <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
+            <div
+              className={`flex-shrink-0 ${favorites.includes(app.domain) ? "w-14 h-14" : "w-8 h-8"} rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2`}
+            >
               {app.rank}
             </div>
             {app.iconUrl ? (
@@ -376,95 +392,17 @@ export default function Home() {
             </div>
             <button
               onClick={() => toggleFavorite(app.domain)}
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent text-blue-400`}
-              title={"Remove from favorites"}
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent ${favorites.includes(app.domain) ? "text-blue-400" : "text-gray-400"}`}
+              title={favorites.includes(app.domain) ? "Remove from favorites" : "Add to favorites"}
               style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
             >
-              {"❤️"}
+              {favorites.includes(app.domain) ? "❤️" : "🤍"}
             </button>
             <RankChanges app={app} />
           </div>
-        ))}
-      </div>,
-      // Main list: csak a nem-favorit kártyák
-      ...nonFavoriteMiniapps.map((app: Miniapp, idx: number) => {
-        const highlight = idx < 50 ? "bg-[#181c23]" : "bg-[#23283a]/80"
-        return (
-          <>
-            {idx === 50 && (
-              <div className="flex items-center my-2">
-                <div className="flex-1 h-px bg-cyan-400/60" />
-                <span className="mx-3 text-xs text-cyan-300 font-bold tracking-widest uppercase">
-                  Top 50 Reward Cutoff
-                </span>
-                <div className="flex-1 h-px bg-cyan-400/60" />
-              </div>
-            )}
-            {idx === 100 && (
-              <div className="flex items-center my-2">
-                <div className="flex-1 h-px bg-cyan-400/60" />
-              </div>
-            )}
-            <div
-              key={app.rank}
-              className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : ""}`}
-              onClick={() => setOpenMiniappIdx(idx)}
-            >
-              <div
-                className={`flex-shrink-0 ${favorites.includes(app.domain) ? "w-14 h-14" : "w-8 h-8"} rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2`}
-              >
-                {app.rank}
-              </div>
-              {app.iconUrl ? (
-                <img
-                  src={app.iconUrl || "/placeholder.svg"}
-                  alt={app.name + " logo"}
-                  className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2"
-                  onError={(e) => {
-                    ;(e.currentTarget as HTMLImageElement).style.display = "none"
-                  }}
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-lg flex items-center justify-center font-bold text-2xl bg-purple-700/60 text-white border border-purple-700/30 mr-2">
-                  {app.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-lg text-white truncate" style={{ fontSize: "1.15em" }}>
-                  {app.name}
-                </div>
-                <div className="text-sm" style={{ color: "#a259ff", fontSize: "1.15em" }}>
-                  @{app.author.username}
-                </div>
-                <div
-                  className="text-sm"
-                  style={{
-                    color: "#b0b8d1",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.25rem",
-                    marginTop: "0.125rem",
-                    fontSize: "1.15em",
-                  }}
-                >
-                  <span className="text-sm">👥</span>
-                  <span>{app.author.followerCount}</span>
-                </div>
-              </div>
-              <button
-                onClick={() => toggleFavorite(app.domain)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent ${favorites.includes(app.domain) ? "text-blue-400" : "text-gray-400"}`}
-                title={favorites.includes(app.domain) ? "Remove from favorites" : "Add to favorites"}
-                style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
-              >
-                {favorites.includes(app.domain) ? "❤️" : "🤍"}
-              </button>
-              <RankChanges app={app} />
-            </div>
-          </>
-        )
-      })
-    ]
+        </>
+      )
+    })
   }
 
   // Helper: rank changes mini-table
@@ -679,15 +617,54 @@ export default function Home() {
                   <span>{app.author.followerCount}</span>
                 </div>
               </div>
-              <button
-                onClick={() => toggleFavorite(app.domain)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-2 bg-transparent ${favorites.includes(app.domain) ? "text-blue-400" : "text-gray-400"}`}
-                title={favorites.includes(app.domain) ? "Remove from favorites" : "Add to favorites"}
-                style={{ fontSize: "1.35em", boxShadow: "none", background: "none", border: "none" }}
-              >
-                {favorites.includes(app.domain) ? "❤️" : "🤍"}
-              </button>
-              <RankChanges app={app} />
+              {/* NO Favorite button here! */}
+              <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5">
+                <div className="flex gap-1 items-center">
+                  <span
+                    className={`font-semibold text-base ${
+                      (app.rank24hChange || 0) > 0
+                        ? "text-green-400"
+                        : (app.rank24hChange || 0) < 0
+                          ? "text-red-400"
+                          : "text-purple-300"
+                    }`}
+                  >
+                    {(app.rank24hChange || 0) > 0 ? "+" : ""}
+                    {app.rank24hChange || 0}
+                  </span>
+                  <span className="text-sm text-purple-400">24h</span>
+                </div>
+                <div className="flex gap-1 items-center">
+                  <span
+                    className={`font-semibold text-base ${
+                      app.rank72hChange > 0
+                        ? "text-green-400"
+                        : app.rank72hChange < 0
+                          ? "text-red-400"
+                          : "text-purple-300"
+                    }`}
+                  >
+                    {app.rank72hChange > 0 ? "+" : ""}
+                    {app.rank72hChange}
+                  </span>
+                  <span className="text-sm text-purple-400">72h</span>
+                </div>
+                <div className="flex gap-1 items-center">
+                  <span
+                    className={`font-semibold text-base ${
+                      (app.rankWeeklyChange || 0) > 0
+                        ? "text-green-400"
+                        : (app.rankWeeklyChange || 0) < 0
+                          ? "text-red-400"
+                          : "text-purple-300"
+                    }`}
+                  >
+                    {(app.rankWeeklyChange || 0) > 0 ? "+" : ""}
+                    {app.rankWeeklyChange || 0}
+                  </span>
+                  <span className="text-sm text-purple-400">7d</span>
+                </div>
+              </div>
             </div>
           ))}
           {/* Main Ranking List - Modern List Style */}
@@ -794,7 +771,6 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
               }}
             >
               <div className="flex flex-col items-center justify-center">
-                <span className="text-[12px] font-bold text-gray-400">Claim</span>
                 <span
                   className="text-[12px] font-bold animate-chessglow"
                   style={{
@@ -803,7 +779,7 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
                     filter: "brightness(1.1) drop-shadow(0 0 1px #5D6AFF)",
                   }}
                 >
-                  $CHESS
+                  CHESS
                 </span>
               </div>
             </button>
