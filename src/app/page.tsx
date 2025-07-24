@@ -527,10 +527,11 @@ export default function Home() {
                 Close
               </button>
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden" style={{height: '70vh', maxHeight: '80vh'}}>
               <iframe
                 src={sortedMiniapps[openMiniappIdx].homeUrl}
                 className="w-full h-full border-0"
+                style={{height: '100%', minHeight: '300px', maxHeight: '80vh'}}
                 title={sortedMiniapps[openMiniappIdx].name}
               />
             </div>
@@ -570,7 +571,7 @@ export default function Home() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Keresés..."
+                placeholder="Search..."
                 className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs placeholder-gray-400 min-w-[80px]"
                 style={{ minWidth: 0, width: "110px" }}
               />
