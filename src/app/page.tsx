@@ -205,7 +205,7 @@ export default function Home() {
     const favoriteMiniapps = categoryMiniapps.filter((app) => favorites.includes(app.domain))
     const nonFavoriteMiniapps = categoryMiniapps.filter((app) => !favorites.includes(app.domain))
     categoryViewRows = [
-      ...favoriteMiniapps.map((app, idx) => {
+      ...favoriteMiniapps.map((app, favIdx) => {
         const idx = categoryMiniapps.findIndex((a) => a.domain === app.domain)
         return (
           <div
@@ -214,7 +214,7 @@ export default function Home() {
             onClick={() => setOpenMiniappIdx(sortedMiniapps.findIndex(a => a.domain === app.domain))}
           >
             <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
-              {idx + 1}
+              {favIdx + 1}
             </div>
             {app.iconUrl ? (
               <img
