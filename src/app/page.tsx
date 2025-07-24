@@ -793,7 +793,7 @@ focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 
               }}
             >
               <div className="flex flex-col items-center justify-center">
-                <span className="text-[10px] font-bold">CHESS</span>
+                <span className="text-[10px] font-bold">Claim $CHESS</span>
               </div>
             </button>
           </div>
