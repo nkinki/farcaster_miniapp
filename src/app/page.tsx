@@ -526,20 +526,20 @@ export default function Home() {
               <div className="flex gap-2 items-center">
                 <button
                   onClick={() => setOpenMiniappIdx(openMiniappIdx > 0 ? openMiniappIdx - 1 : openMiniappIdx)}
-                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40"
+                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold text-xs disabled:opacity-40"
                   disabled={openMiniappIdx === 0}
                 >
                   &larr; Previous
                 </button>
                 <button
                   onClick={() => setOpenMiniappIdx(null)}
-                  className="px-3 py-1 rounded bg-red-600 text-white font-bold"
+                  className="px-3 py-1 rounded bg-red-600 text-white font-bold text-xs"
                 >
                   Close
                 </button>
                 <button
                   onClick={() => setOpenMiniappIdx(openMiniappIdx < sortedMiniapps.length - 1 ? openMiniappIdx + 1 : openMiniappIdx)}
-                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40"
+                  className="px-3 py-1 rounded bg-gray-800 text-white font-bold text-xs disabled:opacity-40"
                   disabled={openMiniappIdx === sortedMiniapps.length - 1}
                 >
                   Next &rarr;
