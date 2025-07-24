@@ -40,8 +40,7 @@ export default function Home() {
   const [search, setSearch] = useState("")
   const DEMO_FID = 977233 // Polling Center author FID for demo
   const [showFavoriteModal, setShowFavoriteModal] = useState(false)
-  // Modal state: melyik miniapp van megnyitva (index vagy null)
-  const [openMiniappIdx, setOpenMiniappIdx] = useState<number | null>(null);
+  const [openMiniappIdx, setOpenMiniappIdx] = useState<number | null>(null)
 
   useEffect(() => {
     // Load favorites from localStorage
@@ -272,7 +271,7 @@ export default function Home() {
         return (
           <div
             key={app.domain}
-            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition`} onClick={() => setOpenMiniappIdx(idx)}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm`}
           >
             <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
               {idx + 1}
@@ -348,6 +347,7 @@ export default function Home() {
           <div
             key={app.rank}
             className={`flex items-center justify-between rounded-xl px-3 py-2 ${highlight} border border-[#23283a] shadow-sm ${favorites.includes(app.domain) ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : ""}`}
+            onClick={() => setOpenMiniappIdx(idx)}
           >
             <div
               className={`flex-shrink-0 ${favorites.includes(app.domain) ? "w-14 h-14" : "w-8 h-8"} rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2`}
@@ -469,13 +469,6 @@ export default function Home() {
     )
   }
 
-  // Helper: deep link Farcaster miniapphoz
-  function getMiniappDeepLink(app: Miniapp) {
-    if (app.homeUrl.includes('farcaster.xyz/miniapps')) return app.homeUrl;
-    // Ha a homeUrl nem deep link, generáljuk a domain alapján
-    return `https://farcaster.xyz/miniapps/${app.domain}`;
-  }
-
   // Modal komponens
   function FavoriteModal({ onAdd, onClose }: { onAdd: () => void; onClose: () => void }) {
     return (
@@ -525,19 +518,22 @@ export default function Home() {
           onClose={() => setShowFavoriteModal(false)}
         />
       )}
-      {/* Miniapp preview modal */}
       {openMiniappIdx !== null && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70">
-          <div className="bg-[#181c23] rounded-2xl shadow-2xl p-4 max-w-3xl w-full flex flex-col items-center relative">
-            <div className="flex w-full justify-between mb-2">
-              <button onClick={() => setOpenMiniappIdx(openMiniappIdx > 0 ? openMiniappIdx - 1 : openMiniappIdx)} className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40" disabled={openMiniappIdx === 0}>&larr; Előző</button>
-              <button onClick={() => setOpenMiniappIdx(null)} className="px-3 py-1 rounded bg-red-600 text-white font-bold">Bezár</button>
-              <button onClick={() => setOpenMiniappIdx(openMiniappIdx < sortedMiniapps.length - 1 ? openMiniappIdx + 1 : openMiniappIdx)} className="px-3 py-1 rounded bg-gray-800 text-white font-bold disabled:opacity-40" disabled={openMiniappIdx === sortedMiniapps.length - 1}>Következő &rarr;</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-4/5 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-lg font-bold text-cyan-300">{sortedMiniapps[openMiniappIdx].name}</div>
+              <button className="text-xs text-gray-400 hover:text-white mt-1" onClick={() => setOpenMiniappIdx(null)}>
+                Close
+              </button>
             </div>
-            <div className="w-full h-[70vh] flex items-center justify-center bg-black rounded-xl overflow-hidden">
-              <iframe src={sortedMiniapps[openMiniappIdx].homeUrl} title="Miniapp preview" className="w-full h-full border-0" />
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src={`https://iframe.ly/${encodeURIComponent(sortedMiniapps[openMiniappIdx].homeUrl)}`}
+                className="w-full h-full border-0"
+                title={sortedMiniapps[openMiniappIdx].name}
+              />
             </div>
-            <div className="mt-2 text-center text-cyan-300 font-bold">{sortedMiniapps[openMiniappIdx].name}</div>
           </div>
         </div>
       )}
