@@ -698,9 +698,13 @@ export default function Home() {
           {/* Main Ranking List - Modern List Style */}
           <div className="relative">
             <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-2 border border-[#2e3650] z-10">
+              {/* Sticky favorites block minden kategóriában a lista tetején */}
+              {filter !== "all" && categoryViewRows.length > 0 && categoryViewRows[0]}
               <div className="flex flex-col gap-2">
-                {/* CATEGORY VIEW: render favorites at top, then full category list with sorszám */}
-                {filter !== "all" ? categoryViewRows : allViewRows}
+                {/* CATEGORY VIEW: csak a nem-favorit kártyák */}
+                {filter !== "all"
+                  ? categoryViewRows.slice(1)
+                  : allViewRows}
               </div>
             </div>
           </div>
