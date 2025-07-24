@@ -1,0 +1,68 @@
+name: Farcaster Miniapp Update Cron
+
+on:
+  schedule:
+    - cron: '0 2,14 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-miniapps:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
+
+    - name: Install Node.js dependencies
+      run: npm ci
+
+    - name: Create environment file
+      run: |
+        echo "NEON_DB_URL=${{ secrets.NEON_DB_URL }}" > .env
+        echo "FARCASTER_BEARER_TOKEN=${{ secrets.FARCASTER_BEARER_TOKEN }}" >> .env
+        echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" >> .env
+        echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
+        echo "EMAIL_RECIPIENT=${{ secrets.EMAIL_RECIPIENT }}" >> .env
+
+    - name: Download latest data
+      run: python update_ranking_simple.py
+
+    - name: Update database
+      run: python daily_update_simple.py
+
+    - name: Copy data to Next.js
+      run: cp top_miniapps.json public/data/
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git add public/data/top_miniapps.json top_miniapps.json
+        git commit -m "Auto-update: $(date)" || exit 0
+        git pull --rebase origin main
+        git push
+
+    - name: Notify success
+      if: success()
+      run: |
+        echo "✅ Miniapp update completed successfully"
+        python -c "from email_notifications import send_success_notification; try:\n    send_success_notification(246, '<ul><li>Automatikus frissítés sikeres</li></ul>')\nexcept Exception as e:\n    print(f'Email notification failed: {e}')"
+
+    - name: Notify failure
+      if: failure()
+      run: |
+        echo "❌ Miniapp update failed"
+        python -c "from email_notifications import send_error_notification; try:\n    send_error_notification('GitHub Actions hiba', 'Automatikus frissítés sikertelen')\nexcept Exception as e:\n    print(f'Error notification failed: {e}')" 
