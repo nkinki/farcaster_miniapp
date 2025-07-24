@@ -208,14 +208,13 @@ export default function Home() {
       // Sticky favorites block
       <div key="sticky-favorites" className="sticky top-0 z-20 bg-[#23283a] pt-2 pb-2">
         {favoriteMiniapps.map((app) => {
-          const idx = categoryMiniapps.findIndex((a) => a.domain === app.domain)
           return (
             <div
               key={app.domain + "-favtop"}
               className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border-2 border-blue-400 shadow-sm ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]`}
             >
               <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
-                {idx + 1}
+                {app.rank}
               </div>
               {app.iconUrl ? (
                 <img
@@ -266,15 +265,15 @@ export default function Home() {
           )
         })}
       </div>,
-      // Main list: only non-favorites, but keep original sorszám (idx+1)
-      ...nonFavoriteMiniapps.map((app, idx) => {
+      // Main list: only non-favorites, but use app.rank for sorszám
+      ...nonFavoriteMiniapps.map((app) => {
         return (
           <div
             key={app.domain}
             className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] border border-[#2e3650] shadow-sm`}
           >
             <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">
-              {idx + 1}
+              {app.rank}
             </div>
             {app.iconUrl ? (
               <img
