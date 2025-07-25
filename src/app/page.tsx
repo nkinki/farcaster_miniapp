@@ -47,12 +47,28 @@ function RankChanges({ app }: { app: Miniapp }) {
     );
   };
 
+  const renderStat = (value: number | string | null, label: string, icon: string) => {
+    if (value === null || value === undefined) return <div className="h-6"></div>;
+    return (
+        <div className="flex gap-1 items-center justify-end w-full h-6">
+            <span className="font-semibold text-base text-yellow-400">{icon} {value}</span>
+            <span className="text-xs text-gray-400 capitalize">{label}</span>
+        </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5" style={{ fontSize: "1.15em" }}>
-      {renderChange(app.rank24hChange, "24h")}
-      {renderChange(app.rank72hChange, "72h")}
-      {renderChange(app.rankWeeklyChange, "7d")}
-      {renderChange(app.rank30dChange, "30d")}
+    <div className="flex ml-2" style={{ fontSize: "1.15em" }}>
+      <div className="flex flex-col items-end min-w-[60px] gap-0.5 pr-2 border-r border-gray-700">
+        {renderChange(app.rank24hChange, "24h")}
+        {renderChange(app.rank72hChange, "72h")}
+        {renderChange(app.rankWeeklyChange, "7d")}
+        {renderChange(app.rank30dChange, "30d")}
+      </div>
+      <div className="flex flex-col items-start min-w-[70px] gap-0.5 pl-2 pt-1">
+        {renderStat(app.bestRank, "Best", '🏆')}
+        {renderStat(app.avgRank, "Avg", '~')}
+      </div>
     </div>
   );
 }
@@ -68,8 +84,6 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
     >
       <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
       <img src={app.iconUrl} alt={`${app.name} logo`} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
-      
-      {/* JAVÍTÁS: A statisztikák most már itt, egy függőleges blokkban jelennek meg */}
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-lg text-white truncate">{app.name}</div>
         <div className="flex flex-col items-start mt-1 space-y-1">
@@ -101,7 +115,6 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
   );
 }
 
-
 // --- MAIN PAGE COMPONENT ---
 export default function Home() {
   const [miniapps, setMiniapps] = useState<Miniapp[]>([])
@@ -111,27 +124,45 @@ export default function Home() {
   const [filter, setFilter] = useState<string>("all")
   const [search, setSearch] = useState("")
   const [openMiniapp, setOpenMiniapp] = useState<Miniapp | null>(null)
+  const [showFavoriteModal, setShowFavoriteModal] = useState(false)
 
   useEffect(() => {
-    const savedFavorites = localStorage.getItem("farcaster-favorites")
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites))
-    }
+    const initializeApp = async () => {
+      // 1. Adatok betöltése
+      const savedFavorites = localStorage.getItem("farcaster-favorites") || '[]';
+      const favs: string[] = JSON.parse(savedFavorites);
+      setFavorites(favs);
 
-    const apiUrl = `${window.location.origin}/api/miniapps?limit=300`;
-    fetch(apiUrl, { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }))
-        setMiniapps(appsWithId || [])
-        setSnapshotDate(new Date().toLocaleDateString("en-US"))
-        setLoading(false)
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error)
-        setLoading(false)
-      })
-  }, [])
+      const apiUrl = `${window.location.origin}/api/miniapps?limit=300`;
+      try {
+        const response = await fetch(apiUrl, { cache: 'no-store' });
+        const data = await response.json();
+        const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }));
+        setMiniapps(appsWithId || []);
+        setSnapshotDate(new Date().toLocaleDateString("en-US"));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+
+      // 2. Farcaster környezet ellenőrzése és modális ablak mutatása
+      try {
+        const isInMiniapp = await sdk.isInMiniApp();
+        if (isInMiniapp) {
+          const context = await sdk.context;
+          const appDomain = context.miniApp?.domain;
+          if (appDomain && !favs.includes(appDomain)) {
+            setShowFavoriteModal(true);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not get Farcaster context", e);
+      }
+    };
+
+    initializeApp();
+  }, []);
   
   useEffect(() => {
     if (!loading) sdk.actions.ready()
@@ -195,6 +226,31 @@ export default function Home() {
           </div>
         </div>
       )}
+      
+      {showFavoriteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-xs w-full flex flex-col items-center">
+                <div className="text-lg font-bold text-cyan-300 mb-2">Add to Favorites?</div>
+                <div className="text-sm text-purple-200 mb-4 text-center">
+                    Add this miniapp to your favorites for quick access.
+                </div>
+                <button
+                    className="bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white font-bold px-4 py-2 rounded-lg shadow-md mb-2 w-full"
+                    onClick={() => {
+                        const appDomain = miniapps.find(app => window.location.href.includes(app.domain))?.domain;
+                        if (appDomain) toggleFavorite(appDomain);
+                        setShowFavoriteModal(false);
+                    }}
+                >
+                    Add to Favorites
+                </button>
+                <button className="text-xs text-gray-400 hover:text-white mt-1" onClick={() => setShowFavoriteModal(false)}>
+                    Not now
+                </button>
+            </div>
+        </div>
+      )}
+
 
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
         <div className="max-w-4xl mx-auto">
