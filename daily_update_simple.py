@@ -3,7 +3,7 @@ import os
 import requests
 import psycopg2
 import psycopg2.extras
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
 from config import get_api_headers, FARCASTER_API_URL, DEFAULT_LIMIT
 from email_notifications import send_success_notification, send_error_notification, send_daily_summary
@@ -239,6 +239,51 @@ def update_database(miniapps_data):
                 best_rank = EXCLUDED.best_rank,
                 worst_rank = EXCLUDED.worst_rank
         """, (today,))
+        
+        # 4.1. Ensure every miniapp has a 24h record (if missing, insert with 0 change)
+        cursor.execute("""
+            INSERT INTO miniapp_rankings_24h (miniapp_id, ranking_date, rank, rank_24h_change)
+            SELECT r.miniapp_id, r.ranking_date, r.rank, 0
+            FROM miniapp_rankings r
+            LEFT JOIN miniapp_rankings_24h r24 ON r.miniapp_id = r24.miniapp_id AND r.ranking_date = r24.ranking_date
+            WHERE r.ranking_date = %s AND r24.miniapp_id IS NULL
+        """, (today,))
+
+        # 5.1. Ensure every miniapp has a 7d record (if missing, insert with 0 change)
+        cursor.execute("""
+            INSERT INTO miniapp_rankings_weekly (miniapp_id, ranking_date, rank, rank_7d_change)
+            SELECT r.miniapp_id, r.ranking_date, r.rank, 0
+            FROM miniapp_rankings r
+            LEFT JOIN miniapp_rankings_weekly rw ON r.miniapp_id = rw.miniapp_id AND r.ranking_date = rw.ranking_date
+            WHERE r.ranking_date = %s AND rw.miniapp_id IS NULL
+        """, (today,))
+
+        # 6.1.1. Ensure every miniapp has a 30d record (if missing, insert with 0 change)
+        cursor.execute("""
+            INSERT INTO miniapp_rankings_30d (miniapp_id, ranking_date, rank, rank_30d_change)
+            SELECT r.miniapp_id, r.ranking_date, r.rank, 0
+            FROM miniapp_rankings r
+            LEFT JOIN miniapp_rankings_30d r30 ON r.miniapp_id = r30.miniapp_id AND r.ranking_date = r30.ranking_date
+            WHERE r.ranking_date = %s AND r30.miniapp_id IS NULL
+        """, (today,))
+        
+        # 7. Pótoljuk a hiányzó múltbeli rekordokat minden miniapphoz (1, 3, 7, 30 napra)
+        days_back = [1, 3, 7, 30]
+        cursor.execute("SELECT DISTINCT miniapp_id FROM miniapp_rankings WHERE ranking_date = %s", (today,))
+        all_miniapps = [row[0] for row in cursor.fetchall()]
+        for days in days_back:
+            target_date = today - timedelta(days=days)
+            for miniapp_id in all_miniapps:
+                cursor.execute("""
+                    SELECT 1 FROM miniapp_rankings WHERE miniapp_id = %s AND ranking_date = %s
+                """, (miniapp_id, target_date))
+                if cursor.fetchone() is None:
+                    cursor.execute("""
+                        INSERT INTO miniapp_rankings (miniapp_id, ranking_date, rank, rank_72h_change)
+                        VALUES (%s, %s, %s, %s)
+                    """, (miniapp_id, target_date, 0, None))
+        conn.commit()
+        print("Hiányzó múltbeli toplista rekordok pótlása kész.")
         
         conn.commit()
         print(f"Database updated successfully!")
