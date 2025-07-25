@@ -131,12 +131,6 @@ export default function Home() {
         console.error("Error fetching data:", error)
         setLoading(false)
       })
-
-    // Farcaster natív "Add Mini App" prompt csak ha nincs hozzáadva
-    const isAdded = localStorage.getItem("farcaster-added");
-    if (!isAdded) {
-      sdk.actions.addMiniApp();
-    }
   }, [])
   
   useEffect(() => {
