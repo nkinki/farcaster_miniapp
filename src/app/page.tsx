@@ -76,7 +76,6 @@ export default function Home() {
     fetch(apiUrl)
       .then((res) => res.json())
       .then((data) => {
-        // Az adatokat a pontos típusnak megfelelően kezeljük
         const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }))
         setMiniapps(appsWithId || [])
         setSnapshotDate(new Date().toLocaleDateString("en-US"))
@@ -135,7 +134,7 @@ export default function Home() {
 
   return (
     <>
-      {openMiniappIdx !== null && (
+      {openMiniappIdx !== null && miniapps[openMiniappIdx] && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-4/5 flex flex-col">
             <div className="flex justify-between items-center mb-4 gap-2">
@@ -186,7 +185,7 @@ export default function Home() {
                 const isFavorite = favorites.includes(app.domain);
                 return (
                   <div
-                    key={app.id}
+                    key={app.id} // JAVÍTVA: Egyedi és stabil kulcs
                     className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${ isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]" }`}
                     onClick={() => openMiniapp(app.domain)}
                   >
