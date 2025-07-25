@@ -1,4 +1,4 @@
-name: Farcaster Miniapp Update Cron
+name: Farcaster Miniapp DB Update Cron
 
 on:
   schedule:
@@ -7,57 +7,23 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  update-miniapps:
+  update-database:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
         
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
         
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        
     - name: Install Python dependencies
-      run: |
-        pip install -r requirements.txt
+      run: pip install -r requirements.txt
         
-    - name: Install Node.js dependencies
-      run: npm ci
-      
-    - name: Create environment file
-      run: |
-        echo "NEON_DB_URL=${{ secrets.NEON_DB_URL }}" > .env
-        echo "FARCASTER_BEARER_TOKEN=${{ secrets.FARCASTER_BEARER_TOKEN }}" >> .env
-        echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" >> .env
-        echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
-        echo "EMAIL_RECIPIENT=${{ secrets.EMAIL_RECIPIENT }}" >> .env
-        
-    - name: Set up git user
-      run: |
-        git config --global user.email "action@github.com"
-        git config --global user.name "GitHub Action"
-        
-    - name: Pull latest changes first
-      run: |
-        git pull origin main
-        
-    - name: Download latest data
-      run: |
-        python update_ranking_simple.py
-        
-    - name: Update database
-      run: |
-        python daily_update_simple.py
+    - name: Run Database Update Script
+      run: python daily_update_simple.py
       env:
         NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
         FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
@@ -65,59 +31,14 @@ jobs:
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
         
-    - name: Copy data to Next.js
-      run: |
-        mkdir -p public/data
-        cp top_miniapps.json public/data/
-        
-    - name: Check for changes
-      id: verify-changed-files
-      run: |
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "changed=true" >> $GITHUB_OUTPUT
-        else
-          echo "changed=false" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Commit and push changes
-      if: steps.verify-changed-files.outputs.changed == 'true'
-      run: |
-        git add .
-        git commit -m "Auto-update: $(date '+%Y-%m-%d %H:%M:%S UTC')"
-        git push origin main
-        
     - name: Notify success
       if: success()
       run: |
-        echo "✅ Miniapp update completed successfully"
-        python -c "
-        import os
-        try:
-            from email_notifications import send_success_notification
-            send_success_notification(246, '<ul><li>Automatikus frissítés sikeres</li></ul>')
-            print('Success notification sent')
-        except Exception as e:
-            print(f'Email notification failed: {e}')
-        "
-      env:
-        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+        echo "✅ Database update completed successfully"
+        # Az email értesítő logikád itt maradhat, ha szeretnéd
         
     - name: Notify failure
       if: failure()
       run: |
-        echo "❌ Miniapp update failed"
-        python -c "
-        import os
-        try:
-            from email_notifications import send_error_notification
-            send_error_notification('GitHub Actions hiba', 'Automatikus frissítés sikertelen')
-            print('Error notification sent')
-        except Exception as e:
-            print(f'Error notification failed: {e}')
-        "
-      env:
-        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+        echo "❌ Database update failed"
+        # Az email értesítő logikád itt maradhat, ha szeretnéd
