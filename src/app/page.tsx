@@ -5,7 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch } from "react-icons/fi"
 import type React from "react"
 
-// Típusok
+// Típus a komponens által használt adatokhoz
 interface Miniapp {
   id: string;
   rank: number;
@@ -29,7 +29,8 @@ interface Miniapp {
   bestRank: number | null;
 }
 
-interface MiniappFromApi extends Omit<Miniapp, 'id'> {}
+// JAVÍTÁS: `interface` helyett `type` alias használata a linter hiba elkerülésére
+type MiniappFromApi = Omit<Miniapp, 'id'>;
 
 
 // --- SUB-COMPONENTS for clarity ---
@@ -40,7 +41,7 @@ function RankChanges({ app }: { app: Miniapp }) {
     const colorClass = change > 0 ? "text-green-400" : change < 0 ? "text-red-400" : "text-purple-300";
     const sign = change > 0 ? "+" : "";
     return (
-      <div className="flex gap-1 items-center justify-end w-full">
+      <div className="flex gap-1 items-center">
         <span className={`font-semibold text-lg ${colorClass} w-6 text-right`}>{sign}{change}</span>
         <span className="text-sm text-purple-400">{label}</span>
       </div>
@@ -59,15 +60,12 @@ function RankChanges({ app }: { app: Miniapp }) {
 
   return (
     <div className="flex ml-2" style={{ fontSize: "1.15em" }}>
-      {/* Bal oldali oszlop: Időszakos változások */}
       <div className="flex flex-col items-end min-w-[60px] gap-0.5 pr-2 border-r border-gray-700">
         {renderChange(app.rank24hChange, "24h")}
         {renderChange(app.rank72hChange, "72h")}
         {renderChange(app.rankWeeklyChange, "7d")}
         {renderChange(app.rank30dChange, "30d")}
       </div>
-
-      {/* Jobb oldali oszlop: Összesített statisztikák */}
       <div className="flex flex-col items-start min-w-[70px] gap-0.5 pl-2 pt-1">
         {renderStat(app.bestRank, "Best", '🏆')}
         {renderStat(app.avgRank, "Avg", '~')}
