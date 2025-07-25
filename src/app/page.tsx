@@ -203,7 +203,7 @@ export default function Home() {
       )}
 
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <header className="mb-6 text-center">
              <div className="flex justify-center items-center mb-2">
                <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
@@ -260,7 +260,7 @@ export default function Home() {
         </div>
 
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
-          <div className="flex w-full max-w-5xl mx-auto">
+          <div className="flex w-full max-w-6xl mx-auto">
             {["all", "games", "social", "utility", "finance"].map((category) => (
               <button
                 key={category}
