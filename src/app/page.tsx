@@ -188,7 +188,7 @@ export default function Home() {
     <>
       {openMiniapp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-4/5 flex flex-col">
+          <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-4 gap-2">
               <div className="text-lg font-bold text-cyan-300">{openMiniapp.name}</div>
               <button onClick={() => setOpenMiniapp(null)} className="px-3 py-1 rounded bg-red-600 text-white font-bold text-xs">
