@@ -47,28 +47,12 @@ function RankChanges({ app }: { app: Miniapp }) {
     );
   };
 
-  const renderStat = (value: number | string | null, label: string, icon: string) => {
-    if (value === null || value === undefined) return <div className="h-6"></div>;
-    return (
-        <div className="flex gap-1 items-center justify-end w-full h-6">
-            <span className="font-semibold text-base text-yellow-400">{icon} {value}</span>
-            <span className="text-xs text-gray-400 capitalize">{label}</span>
-        </div>
-    );
-  };
-
   return (
-    <div className="flex ml-2" style={{ fontSize: "1.15em" }}>
-      <div className="flex flex-col items-end min-w-[60px] gap-0.5 pr-2 border-r border-gray-700">
-        {renderChange(app.rank24hChange, "24h")}
-        {renderChange(app.rank72hChange, "72h")}
-        {renderChange(app.rankWeeklyChange, "7d")}
-        {renderChange(app.rank30dChange, "30d")}
-      </div>
-      <div className="flex flex-col items-start min-w-[70px] gap-0.5 pl-2 pt-1">
-        {renderStat(app.bestRank, "Best", '🏆')}
-        {renderStat(app.avgRank, "Avg", '~')}
-      </div>
+    <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5" style={{ fontSize: "1.15em" }}>
+      {renderChange(app.rank24hChange, "24h")}
+      {renderChange(app.rank72hChange, "72h")}
+      {renderChange(app.rankWeeklyChange, "7d")}
+      {renderChange(app.rank30dChange, "30d")}
     </div>
   );
 }
@@ -88,22 +72,32 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
         <div className="font-semibold text-lg text-white truncate">{app.name}</div>
         <div className="flex flex-col items-start mt-1 space-y-1">
             <div className="text-sm text-[#a259ff]">@{app.author.username}</div>
-            <div className="flex items-center gap-1.5 text-sm text-[#b0b8d1]">
-                <span className="w-4 text-center">👥</span>
-                <span>{app.author.followerCount} Followers</span>
+            <div className="flex items-center gap-3 text-sm text-[#b0b8d1] flex-wrap">
+                <div className="flex items-center gap-1">
+                    <span>👥</span>
+                    <span>{app.author.followerCount}</span>
+                </div>
+                {app.bestRank && (
+                    <>
+                        <span className="text-gray-600">•</span>
+                        <div className="flex items-center gap-1 text-yellow-400 font-semibold" title={`Best rank: ${app.bestRank}`}>
+                            <span>🏆</span>
+                            <span className="hidden sm:inline">Best:</span>
+                            <span>{app.bestRank}</span>
+                        </div>
+                    </>
+                )}
+                {app.avgRank && (
+                    <>
+                        <span className="text-gray-600">•</span>
+                        <div className="flex items-center gap-1 text-blue-400 font-semibold" title={`Average rank: ${app.avgRank}`}>
+                            <span>~</span>
+                            <span className="hidden sm:inline">Avg:</span>
+                            <span>{app.avgRank}</span>
+                        </div>
+                    </>
+                )}
             </div>
-            {app.bestRank && (
-                <div className="flex items-center gap-1.5 text-sm text-yellow-400 font-semibold" title={`Best rank: ${app.bestRank}`}>
-                    <span className="w-4 text-center">🏆</span>
-                    <span>Best: {app.bestRank}</span>
-                </div>
-            )}
-            {app.avgRank && (
-                <div className="flex items-center gap-1.5 text-sm text-blue-400 font-semibold" title={`Average rank: ${app.avgRank}`}>
-                    <span className="w-4 text-center">~</span>
-                    <span>Avg: {app.avgRank}</span>
-                </div>
-            )}
         </div>
       </div>
       
@@ -114,6 +108,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
     </div>
   );
 }
+
 
 // --- MAIN PAGE COMPONENT ---
 export default function Home() {
@@ -151,7 +146,8 @@ export default function Home() {
         const isInMiniapp = await sdk.isInMiniApp();
         if (isInMiniapp) {
           const context = await sdk.context;
-          const appDomain = context.miniApp?.domain;
+          // JAVÍTÁS: context.miniApp helyett context.app használata
+          const appDomain = context.app?.domain;
           if (appDomain && !favs.includes(appDomain)) {
             setShowFavoriteModal(true);
           }
@@ -236,9 +232,12 @@ export default function Home() {
                 </div>
                 <button
                     className="bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white font-bold px-4 py-2 rounded-lg shadow-md mb-2 w-full"
-                    onClick={() => {
-                        const appDomain = miniapps.find(app => window.location.href.includes(app.domain))?.domain;
-                        if (appDomain) toggleFavorite(appDomain);
+                    onClick={async () => {
+                        try {
+                            const context = await sdk.context;
+                            const appDomain = context.app?.domain;
+                            if (appDomain) toggleFavorite(appDomain);
+                        } catch (e) { console.warn(e) }
                         setShowFavoriteModal(false);
                     }}
                 >
@@ -250,7 +249,6 @@ export default function Home() {
             </div>
         </div>
       )}
-
 
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
         <div className="max-w-4xl mx-auto">
