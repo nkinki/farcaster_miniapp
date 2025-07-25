@@ -5,32 +5,31 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch } from "react-icons/fi"
 import type React from "react"
 
-// Típusdefiníció a frontend által használt, már átalakított adatokhoz
-interface Miniapp {
-  id: string
-  rank: number
-  name: string
-  domain: string
-  description: string
+// Típus az API-tól érkező adatok pontos leírására
+interface MiniappFromApi {
+  id?: string;
+  rank: number;
+  name: string;
+  domain: string;
+  description: string;
   author: {
-    fid?: number
-    username: string
-    displayName: string
-    followerCount: number
-  }
-  category: string
-  rank24hChange: number
-  rank72hChange: number
-  rankWeeklyChange: number
-  rank30dChange: number
-  iconUrl: string
-  homeUrl: string
+    fid?: number;
+    username: string;
+    displayName: string;
+    followerCount: number;
+  };
+  category: string;
+  rank24hChange: number;
+  rank72hChange: number;
+  rankWeeklyChange: number;
+  rank30dChange: number;
+  iconUrl: string;
+  homeUrl: string;
 }
 
-// JAVÍTÁS: Típusdefiníció a bejövő API adatokhoz
-interface ApiMiniapp {
-  domain: string;
-  [key: string]: any; // Engedélyezi a többi, nem specifikált tulajdonságot
+// Típus a komponens belső állapotához (már ID-val kiegészítve)
+interface Miniapp extends MiniappFromApi {
+  id: string;
 }
 
 // Komponens a rangsor változásainak megjelenítésére
@@ -77,8 +76,8 @@ export default function Home() {
     fetch(apiUrl)
       .then((res) => res.json())
       .then((data) => {
-        // JAVÍTÁS: Az 'any' helyett a specifikus 'ApiMiniapp' típust használjuk
-        const appsWithId = data.miniapps.map((app: ApiMiniapp) => ({ ...app, id: app.domain }))
+        // Az adatokat a pontos típusnak megfelelően kezeljük
+        const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }))
         setMiniapps(appsWithId || [])
         setSnapshotDate(new Date().toLocaleDateString("en-US"))
         setLoading(false)
@@ -187,7 +186,7 @@ export default function Home() {
                 const isFavorite = favorites.includes(app.domain);
                 return (
                   <div
-                    key={app.id} 
+                    key={app.id}
                     className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${ isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]" }`}
                     onClick={() => openMiniapp(app.domain)}
                   >
