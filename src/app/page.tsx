@@ -5,7 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch } from "react-icons/fi"
 import type React from "react"
 
-// Típus a komponens által használt adatokhoz
+// Típusok
 interface Miniapp {
   id: string;
   rank: number;
@@ -29,44 +29,48 @@ interface Miniapp {
   bestRank: number | null;
 }
 
-// JAVÍTÁS: `interface` helyett `type` alias használata
-type MiniappFromApi = Omit<Miniapp, 'id'>;
+interface MiniappFromApi extends Omit<Miniapp, 'id'> {}
 
 
 // --- SUB-COMPONENTS for clarity ---
 
 function RankChanges({ app }: { app: Miniapp }) {
-  const renderChange = (value: number, label: string) => {
+  const renderChange = (value: number | null, label: string) => {
     const change = value ?? 0;
     const colorClass = change > 0 ? "text-green-400" : change < 0 ? "text-red-400" : "text-purple-300";
     const sign = change > 0 ? "+" : "";
     return (
-      <div className="flex gap-1 items-center">
-        <span className={`font-semibold text-lg ${colorClass}`}>{sign}{change}</span>
+      <div className="flex gap-1 items-center justify-end w-full">
+        <span className={`font-semibold text-lg ${colorClass} w-6 text-right`}>{sign}{change}</span>
         <span className="text-sm text-purple-400">{label}</span>
       </div>
     );
   };
 
+  const renderStat = (value: number | string | null, label: string, icon: string) => {
+    if (value === null || value === undefined) return <div className="h-6"></div>; // Placeholder for alignment
+    return (
+        <div className="flex gap-1 items-center justify-end w-full h-6">
+            <span className="font-semibold text-base text-yellow-400">{icon} {value}</span>
+            <span className="text-xs text-gray-400 capitalize">{label}</span>
+        </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5" style={{ fontSize: "1.15em" }}>
-      {renderChange(app.rank24hChange, "24h")}
-      {renderChange(app.rank72hChange, "72h")}
-      {renderChange(app.rankWeeklyChange, "7d")}
-      {renderChange(app.rank30dChange, "30d")}
-      <div className="pt-2 mt-1 border-t border-gray-700 w-full">
-        {app.bestRank && (
-          <div className="flex gap-1 items-center justify-end">
-            <span className="font-semibold text-base text-yellow-400">🏆 {app.bestRank}</span>
-            <span className="text-xs text-gray-400">Best</span>
-          </div>
-        )}
-        {app.avgRank && (
-          <div className="flex gap-1 items-center justify-end">
-            <span className="font-semibold text-base text-blue-400">~ {app.avgRank}</span>
-            <span className="text-xs text-gray-400">Avg</span>
-          </div>
-        )}
+    <div className="flex ml-2" style={{ fontSize: "1.15em" }}>
+      {/* Bal oldali oszlop: Időszakos változások */}
+      <div className="flex flex-col items-end min-w-[60px] gap-0.5 pr-2 border-r border-gray-700">
+        {renderChange(app.rank24hChange, "24h")}
+        {renderChange(app.rank72hChange, "72h")}
+        {renderChange(app.rankWeeklyChange, "7d")}
+        {renderChange(app.rank30dChange, "30d")}
+      </div>
+
+      {/* Jobb oldali oszlop: Összesített statisztikák */}
+      <div className="flex flex-col items-start min-w-[70px] gap-0.5 pl-2 pt-1">
+        {renderStat(app.bestRank, "Best", '🏆')}
+        {renderStat(app.avgRank, "Avg", '~')}
       </div>
     </div>
   );
