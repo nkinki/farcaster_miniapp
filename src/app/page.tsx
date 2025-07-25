@@ -34,7 +34,6 @@ type MiniappFromApi = Omit<Miniapp, 'id'>;
 
 // --- SUB-COMPONENTS for clarity ---
 
-// JAVÍTÁS: A komponens most már csak a rangsor VÁLTOZÁSAIT mutatja
 function RankChanges({ app }: { app: Miniapp }) {
   const renderChange = (value: number | null, label: string) => {
     const change = value ?? 0;
@@ -69,37 +68,27 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
     >
       <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
       <img src={app.iconUrl} alt={`${app.name} logo`} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
+      
+      {/* JAVÍTÁS: A statisztikák most már itt, egy függőleges blokkban jelennek meg */}
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-lg text-white truncate">{app.name}</div>
-        <div className="text-sm text-[#a259ff]">@{app.author.username}</div>
-        
-        {/* JAVÍTÁS: A statisztikák itt, egy sorban, kiírt szöveggel jelennek meg */}
-        <div className="flex items-center gap-3 text-sm text-[#b0b8d1] mt-1 flex-wrap">
-            <div className="flex items-center gap-1">
-                <span>👥</span>
-                <span>{app.author.followerCount}</span>
+        <div className="flex flex-col items-start mt-1 space-y-1">
+            <div className="text-sm text-[#a259ff]">@{app.author.username}</div>
+            <div className="flex items-center gap-1.5 text-sm text-[#b0b8d1]">
+                <span className="w-4 text-center">👥</span>
+                <span>{app.author.followerCount} Followers</span>
             </div>
-
             {app.bestRank && (
-                <>
-                    <span className="text-gray-600">•</span>
-                    <div className="flex items-center gap-1 text-yellow-400 font-semibold" title={`Best rank: ${app.bestRank}`}>
-                        <span>🏆</span>
-                        <span className="hidden sm:inline">Best:</span>
-                        <span>{app.bestRank}</span>
-                    </div>
-                </>
+                <div className="flex items-center gap-1.5 text-sm text-yellow-400 font-semibold" title={`Best rank: ${app.bestRank}`}>
+                    <span className="w-4 text-center">🏆</span>
+                    <span>Best: {app.bestRank}</span>
+                </div>
             )}
-
             {app.avgRank && (
-                <>
-                    <span className="text-gray-600">•</span>
-                    <div className="flex items-center gap-1 text-blue-400 font-semibold" title={`Average rank: ${app.avgRank}`}>
-                        <span>~</span>
-                        <span className="hidden sm:inline">Avg:</span>
-                        <span>{app.avgRank}</span>
-                    </div>
-                </>
+                <div className="flex items-center gap-1.5 text-sm text-blue-400 font-semibold" title={`Average rank: ${app.avgRank}`}>
+                    <span className="w-4 text-center">~</span>
+                    <span>Avg: {app.avgRank}</span>
+                </div>
             )}
         </div>
       </div>
