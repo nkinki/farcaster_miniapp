@@ -110,6 +110,7 @@ export default function Home() {
   const [filter, setFilter] = useState<string>("all")
   const [search, setSearch] = useState("")
   const [openMiniapp, setOpenMiniapp] = useState<Miniapp | null>(null)
+  const [openMiniappIndex, setOpenMiniappIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const savedFavorites = localStorage.getItem("farcaster-favorites")
@@ -176,6 +177,13 @@ export default function Home() {
     );
   }, [miniapps, filter, search, favorites]);
 
+  const openMiniappByIndex = (index: number, apps: Miniapp[]) => {
+    if (index >= 0 && index < apps.length) {
+      setOpenMiniapp(apps[index]);
+      setOpenMiniappIndex(index);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
@@ -190,8 +198,32 @@ export default function Home() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[85vh] flex flex-col">
             <div className="flex justify-between items-center mb-4 gap-2">
-              <div className="text-lg font-bold text-cyan-300">{openMiniapp.name}</div>
-              <button onClick={() => setOpenMiniapp(null)} className="px-3 py-1 rounded bg-red-600 text-white font-bold text-xs">
+              <button
+                onClick={() => {
+                  if (openMiniappIndex !== null) {
+                    const allApps = [...favoriteApps, ...nonFavoriteApps];
+                    openMiniappByIndex(openMiniappIndex - 1, allApps);
+                  }
+                }}
+                disabled={openMiniappIndex === 0 || openMiniappIndex === null}
+                className="px-2 py-1 rounded bg-gray-700 text-white font-bold text-xs disabled:opacity-50"
+              >
+                ◀ Back
+              </button>
+              <div className="flex-1 text-center text-lg font-bold text-cyan-300">{openMiniapp.name}</div>
+              <button
+                onClick={() => {
+                  if (openMiniappIndex !== null) {
+                    const allApps = [...favoriteApps, ...nonFavoriteApps];
+                    openMiniappByIndex(openMiniappIndex + 1, allApps);
+                  }
+                }}
+                disabled={openMiniappIndex === null || openMiniappIndex === ([...favoriteApps, ...nonFavoriteApps].length - 1)}
+                className="px-2 py-1 rounded bg-gray-700 text-white font-bold text-xs disabled:opacity-50"
+              >
+                Next ▶
+              </button>
+              <button onClick={() => { setOpenMiniapp(null); setOpenMiniappIndex(null); }} className="px-3 py-1 rounded bg-red-600 text-white font-bold text-xs ml-2">
                 Close
               </button>
             </div>
@@ -236,7 +268,11 @@ export default function Home() {
                       key={app.id}
                       app={app}
                       isFavorite={true}
-                      onOpen={() => setOpenMiniapp(app)}
+                      onOpen={() => {
+                        const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
+                        setOpenMiniapp(app);
+                        setOpenMiniappIndex(idx);
+                      }}
                       onToggleFavorite={() => toggleFavorite(app.domain)}
                     />
                   ))}
@@ -251,7 +287,11 @@ export default function Home() {
                   key={app.id}
                   app={app}
                   isFavorite={false}
-                  onOpen={() => setOpenMiniapp(app)}
+                  onOpen={() => {
+                    const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
+                    setOpenMiniapp(app);
+                    setOpenMiniappIndex(idx);
+                  }}
                   onToggleFavorite={() => toggleFavorite(app.domain)}
                 />
               ))}
