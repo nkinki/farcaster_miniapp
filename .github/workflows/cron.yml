@@ -24,7 +24,7 @@ jobs:
 
       - name: Verify Database Connection (daily_update_simple.py)
         run: |
-          python -c "import os, psycopg2; try: conn = psycopg2.connect(os.environ['NEON_DB_URL']); print('Successfully connected to the database'); conn.close() except Exception as e: print(f'Error connecting to the database: {e}')"
+          python -c "import os, psycopg2; db_url = os.environ.get('NEON_DB_URL'); if not db_url: print('NEON_DB_URL not set!'); exit(1); try: conn = psycopg2.connect(db_url); print('Successfully connected to the database'); conn.close() except Exception as e: print(f'Error connecting to the database: {e}')"
         env:
           NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
 
@@ -42,7 +42,7 @@ jobs:
 
       - name: Inspect daily_update_simple.py
         run: |
-          python -c "import json, psycopg2, os; conn = None; cur = None; try: with open('top_miniapps.json', 'r') as f: data = json.load(f); conn = psycopg2.connect(os.environ['NEON_DB_URL']); cur = conn.cursor(); print(f'Processing {len(data)} records'); for item in data: print(f'Inserting/Updating record: {item}'); pass; conn.commit(); print('Successfully updated the database') except Exception as e: print(f'Error updating the database: {e}') finally: if conn: cur.close(); conn.close()"
+          python -c "import json, psycopg2, os; conn = None; cur = None; try: with open('top_miniapps.json', 'r') as f: data = json.load(f); db_url = os.environ.get('NEON_DB_URL'); if not db_url: print('NEON_DB_URL not set!'); exit(1); conn = psycopg2.connect(db_url); cur = conn.cursor(); print(f'Processing {len(data)} records'); for item in data: print(f'Inserting/Updating record: {item}'); pass; conn.commit(); print('Successfully updated the database') except Exception as e: print(f'Error updating the database: {e}') finally: if conn: cur.close(); conn.close()"
         env:
           NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
 
