@@ -1,61 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+import { Pool } from 'pg'
 
-// Define types for miniapp data
-interface MiniappData {
-  rank: number
-  rank72hChange?: number
-  miniApp: {
-    name: string
-    domain: string
-    description?: string
-    subtitle?: string
-    primaryCategory?: string
-    iconUrl: string
-    homeUrl: string
-    author: {
-      username: string
-      displayName: string
-      followerCount: number
-    }
-  }
-}
-
-interface CategoryCount {
-  [key: string]: number
-}
-
-interface CategoryInfo {
-  name: string
-  count: number
-}
-
-// Reward API típusok
-
-// Load real miniapp data
-function loadMiniappData(): MiniappData[] {
-  try {
-    let dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
-    if (!fs.existsSync(dataPath)) {
-      dataPath = path.join(process.cwd(), 'top_miniapps.json')
-    }
-    const data = fs.readFileSync(dataPath, 'utf8')
-    const parsed = JSON.parse(data)
-    // Ha objektum, akkor a miniapps tömböt adjuk vissza
-    if (parsed && Array.isArray(parsed.miniapps)) {
-      return parsed.miniapps
-    }
-    // Ha tömb, akkor azt
-    if (Array.isArray(parsed)) {
-      return parsed
-    }
-    return []
-  } catch (error) {
-    console.error('Error loading miniapp data:', error)
-    return []
-  }
-}
+// PostgreSQL kapcsolat beállítása (feltételezve, hogy a környezeti változókban van a DB URL)
+const pool = new Pool({ connectionString: process.env.NEON_DB_URL })
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,56 +10,36 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    const allMiniapps = loadMiniappData()
-    const miniapps = allMiniapps.slice(offset, offset + limit)
+    // Lekérjük a statisztikákat a DB-ből
+    const { rows } = await pool.query(`
+      SELECT * FROM miniapp_statistics
+      ORDER BY current_rank ASC
+      LIMIT $1 OFFSET $2
+    `, [limit, offset])
 
-    // Transform data for the frontend
-    const transformedMiniapps = miniapps.map((item: MiniappData & { rank30dChange?: number, rank24hChange?: number, rankWeeklyChange?: number }) => {
-      return {
-        rank: item.rank,
-        name: item.miniApp.name,
-        domain: item.miniApp.domain,
-        description: item.miniApp.description || item.miniApp.subtitle || '',
-        author: {
-          username: item.miniApp.author.username,
-          displayName: item.miniApp.author.displayName,
-          followerCount: item.miniApp.author.followerCount
-        },
-        category: item.miniApp.primaryCategory || 'other',
-        rank72hChange: item.rank72hChange ?? 0,
-        rank24hChange: item.rank24hChange ?? 0,
-        rankWeeklyChange: item.rankWeeklyChange ?? 0,
-        rank30dChange: item.rank30dChange ?? 0,
-        iconUrl: item.miniApp.iconUrl,
-        homeUrl: item.miniApp.homeUrl
-      }
-    })
-
-    // Calculate statistics
-    const totalMiniapps = allMiniapps.length
-    const categories = allMiniapps.reduce((acc: CategoryCount, item: MiniappData) => {
-      const category = item.miniApp.primaryCategory || 'other'
-      acc[category] = (acc[category] || 0) + 1
-      return acc
-    }, {})
-
-    const topCategories = Object.entries(categories)
-      .sort(([,a]: [string, number], [,b]: [string, number]) => b - a)
-      .slice(0, 4)
-      .map(([name, count]): CategoryInfo => ({ name, count }))
-
-    const stats = {
-      totalMiniapps,
-      newToday: Math.floor(Math.random() * 50) + 10, // Simulated
-      activeUsers: `${Math.floor(Math.random() * 100) + 20}K`, // Simulated
-      avgRating: `${(Math.random() * 2 + 3.5).toFixed(1)}⭐`, // Simulated
-      topCategories
-    }
+    // Átalakítjuk a választ a frontend elvárásai szerint
+    const miniapps = rows.map((row: any) => ({
+      rank: row.current_rank,
+      name: row.name, // ha van ilyen mező, különben ki kell egészíteni joinnal
+      domain: row.domain, // ha van ilyen mező, különben ki kell egészíteni joinnal
+      description: row.description || '', // ha van ilyen mező
+      author: {
+        username: row.author_username || '',
+        displayName: row.author_display_name || '',
+        followerCount: row.author_follower_count || 0
+      },
+      category: row.primary_category || 'other',
+      rank24hChange: row.rank_24h_change ?? 0,
+      rank72hChange: row.rank_72h_change ?? 0,
+      rankWeeklyChange: row.rank_7d_change ?? 0,
+      rank30dChange: row.rank_30d_change ?? 0,
+      iconUrl: row.icon_url || '',
+      homeUrl: row.home_url || ''
+    }))
 
     return NextResponse.json({
-      miniapps: transformedMiniapps,
-      stats,
-      total: totalMiniapps,
+      miniapps,
+      total: rows.length,
       limit,
       offset
     })
