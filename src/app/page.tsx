@@ -66,15 +66,12 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
       className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${ isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]" }`}
       onClick={onOpen}
     >
-      <div className="flex flex-col items-center mr-2 min-w-[56px]">
-        <div className="font-semibold text-lg text-white mb-1 leading-tight w-14 text-center truncate">{app.name}</div>
-        <img src={app.iconUrl} alt={`${app.name} logo`} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white" />
-      </div>
-      <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>
-        {app.rank}
-      </div>
+      <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
+      <img src={app.iconUrl} alt={`${app.name} logo`} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
+      
       {/* JAVÍTÁS: A statisztikák most már itt, egy függőleges blokkban jelennek meg */}
       <div className="flex-1 min-w-0">
+        <div className="font-semibold text-lg text-white truncate">{app.name}</div>
         <div className="flex flex-col items-start mt-1 space-y-1">
             <div className="text-sm text-[#a259ff]">@{app.author.username}</div>
             <div className="flex items-center gap-1.5 text-sm text-[#b0b8d1]">
