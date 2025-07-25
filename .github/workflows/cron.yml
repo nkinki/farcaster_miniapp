@@ -1,62 +1,69 @@
-name: Update MiniApps Data
+#!/usr/bin/env python3
+import json
+import os
+import sys
+import psycopg2
 
-on:
-  schedule:
-    - cron: '0 0 * * *'  # Runs daily at midnight UTC
-  workflow_dispatch:  # Allows manual triggering
+def inspect_data_processing():
+    """Inspect the data processing pipeline"""
+    try:
+        # Check if data file exists
+        if not os.path.exists('top_miniapps.json'):
+            print("❌ top_miniapps.json file not found!")
+            return False
+        
+        # Load and inspect data
+        with open('top_miniapps.json', 'r') as f:
+            data = json.load(f)
+        
+        print(f"✅ Successfully loaded {len(data)} records from top_miniapps.json")
+        
+        # Show sample data structure
+        if data:
+            print("\nSample record structure:")
+            sample = data[0]
+            print(f"Keys: {list(sample.keys())}")
+            if 'miniApp' in sample:
+                print(f"MiniApp keys: {list(sample['miniApp'].keys())}")
+        
+        # Test database connection
+        db_url = os.environ.get('NEON_DB_URL')
+        if not db_url:
+            print("❌ NEON_DB_URL not set!")
+            return False
+        
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor()
+        
+        print(f"✅ Database connection established")
+        
+        # Check if table exists
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'miniapps_ranking'
+            );
+        """)
+        table_exists = cur.fetchone()[0]
+        print(f"Table 'miniapps_ranking' exists: {table_exists}")
+        
+        if table_exists:
+            # Check current record count
+            cur.execute("SELECT COUNT(*) FROM miniapps_ranking;")
+            count = cur.fetchone()[0]
+            print(f"Current records in database: {count}")
+        
+        cur.close()
+        conn.close()
+        
+        print("✅ Data processing inspection completed successfully!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error during inspection: {e}")
+        return False
 
-jobs:
-  update_data:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests psycopg2-binary
-
-      - name: Verify Database Connection (daily_update_simple.py)
-        run: |
-          python -c "import os, psycopg2; db_url = os.environ.get('NEON_DB_URL'); if not db_url: print('NEON_DB_URL not set!'); exit(1); try: conn = psycopg2.connect(db_url); print('Successfully connected to the database'); conn.close() except Exception as e: print(f'Error connecting to the database: {e}')"
-        env:
-          NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
-
-      - name: Run update_ranking_simple.py
-        run: python update_ranking_simple.py
-
-      - name: Check Data Download (update_ranking_simple.py)
-        run: |
-          python -c "import json; try: with open('top_miniapps.json', 'r') as f: data = json.load(f); print('Successfully downloaded and saved data to top_miniapps.json') except Exception as e: print(f'Error downloading or saving data: {e}')"
-
-      - name: Run daily_update_simple.py
-        run: python daily_update_simple.py
-        env:
-          NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
-
-      - name: Inspect daily_update_simple.py
-        run: |
-          python -c "import json, psycopg2, os; conn = None; cur = None; try: with open('top_miniapps.json', 'r') as f: data = json.load(f); db_url = os.environ.get('NEON_DB_URL'); if not db_url: print('NEON_DB_URL not set!'); exit(1); conn = psycopg2.connect(db_url); cur = conn.cursor(); print(f'Processing {len(data)} records'); for item in data: print(f'Inserting/Updating record: {item}'); pass; conn.commit(); print('Successfully updated the database') except Exception as e: print(f'Error updating the database: {e}') finally: if conn: cur.close(); conn.close()"
-        env:
-          NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
-
-      - name: Copy data to Next.js
-        run: |
-          mkdir -p public/data
-          cp top_miniapps.json public/data/
-          echo "Copied top_miniapps.json to public/data/"
-
-      - name: Run email_notifications.py
-        run: python email_notifications.py
-        env:
-          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
-          EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
-          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+if __name__ == "__main__":
+    success = inspect_data_processing()
+    if not success:
+        sys.exit(1)
