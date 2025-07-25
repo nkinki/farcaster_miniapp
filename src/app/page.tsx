@@ -5,7 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch } from "react-icons/fi"
 import type React from "react"
 
-// Típusdefiníció a komponens által használt adatokhoz
+// Típus a komponens által használt adatokhoz
 interface Miniapp {
   id: string;
   rank: number;
@@ -29,13 +29,12 @@ interface Miniapp {
   bestRank: number | null;
 }
 
-// Típusdefiníció a bejövő API adatokhoz
-interface MiniappFromApi extends Omit<Miniapp, 'id'> {}
+// JAVÍTÁS: `interface` helyett `type` alias használata
+type MiniappFromApi = Omit<Miniapp, 'id'>;
 
 
 // --- SUB-COMPONENTS for clarity ---
 
-// Kártya a rangsor változásainak és statisztikáinak
 function RankChanges({ app }: { app: Miniapp }) {
   const renderChange = (value: number, label: string) => {
     const change = value ?? 0;
@@ -55,8 +54,6 @@ function RankChanges({ app }: { app: Miniapp }) {
       {renderChange(app.rank72hChange, "72h")}
       {renderChange(app.rankWeeklyChange, "7d")}
       {renderChange(app.rank30dChange, "30d")}
-
-      {/* Aggregált statisztikák */}
       <div className="pt-2 mt-1 border-t border-gray-700 w-full">
         {app.bestRank && (
           <div className="flex gap-1 items-center justify-end">
@@ -75,7 +72,6 @@ function RankChanges({ app }: { app: Miniapp }) {
   );
 }
 
-// Egyetlen Miniapp kártya komponens
 function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Miniapp; isFavorite: boolean; onOpen: () => void; onToggleFavorite: () => void; }) {
   return (
     <div
@@ -99,7 +95,6 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
     </div>
   );
 }
-
 
 // --- MAIN PAGE COMPONENT ---
 export default function Home() {
@@ -221,7 +216,6 @@ export default function Home() {
           </div>
           
           <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-2 border border-[#2e3650]">
-            {/* STICKY KEDVENCEK BLOKK */}
             {favoriteApps.length > 0 && (
               <div className="sticky top-0 z-20 bg-[#23283a] py-2">
                 <div className="flex flex-col gap-2">
@@ -239,7 +233,6 @@ export default function Home() {
               </div>
             )}
             
-            {/* NEM KEDVENCEK LISTÁJA */}
             <div className="flex flex-col gap-2">
               {nonFavoriteApps.map((app) => (
                 <MiniappCard
