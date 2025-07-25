@@ -1,4 +1,4 @@
-name: Farcaster Miniapp Update Cron
+name: Farcaster Miniapp DB Update Cron
 
 on:
   schedule:
@@ -7,94 +7,38 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  update-miniapps:
+  update-database:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+        
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
         
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        
     - name: Install Python dependencies
-      run: |
-        pip install -r requirements.txt
+      run: pip install -r requirements.txt
         
-    - name: Install Node.js dependencies
-      run: npm ci
-      
-    - name: Create environment file
-      run: |
-        echo "NEON_DB_URL=${{ secrets.NEON_DB_URL }}" > .env
-        echo "FARCASTER_BEARER_TOKEN=${{ secrets.FARCASTER_BEARER_TOKEN }}" >> .env
-        echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" >> .env
-        echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
-        echo "EMAIL_RECIPIENT=${{ secrets.EMAIL_RECIPIENT }}" >> .env
-        
-    - name: Download latest data
-      run: |
-        python update_ranking_simple.py
-        
-    - name: Update database (with debug)
-      run: |
-        echo "NEON_DB_URL=$NEON_DB_URL"
-        echo "FARCASTER_BEARER_TOKEN=$FARCASTER_BEARER_TOKEN"
-        echo "EMAIL_SENDER=$EMAIL_SENDER"
-        echo "EMAIL_RECIPIENT=$EMAIL_RECIPIENT"
-        python daily_update_simple.py
-        
-    - name: Copy data to Next.js
-      run: |
-        cp top_miniapps.json public/data/
-        
-    - name: Set up git user
-      run: |
-        git config --global user.email "action@github.com"
-        git config --global user.name "GitHub Action"
-    - name: Add changes
-      run: git add .
-    - name: Commit changes if needed
-      run: git diff --cached --quiet || git commit -m "Auto-update before pull"
-    - name: Pull latest changes before push
-      run: git pull --rebase origin main
-    - name: Commit and push changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add .
-        git commit -m "Auto-update: $(date)" || exit 0
-        git push
+    - name: Run Database Update Script
+      run: python daily_update_simple.py
+      env:
+        NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
+        FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
+        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
         
     - name: Notify success
       if: success()
       run: |
-        echo "✅ Miniapp update completed successfully"
-        python -c "
-        import os
-        from email_notifications import send_success_notification
-        try:
-            send_success_notification(246, '<ul><li>Automatikus frissítés sikeres</li></ul>')
-        except Exception as e:
-            print(f'Email notification failed: {e}')
-        "
-      
+        echo "✅ Database update completed successfully"
+        # Az email értesítő logikád itt maradhat, ha szeretnéd
+        
     - name: Notify failure
       if: failure()
       run: |
-        echo "❌ Miniapp update failed"
-        python -c "
-        import os
-        from email_notifications import send_error_notification
-        try:
-            send_error_notification('GitHub Actions hiba', 'Automatikus frissítés sikertelen')
-        except Exception as e:
-            print(f'Error notification failed: {e}')
-        " 
+        echo "❌ Database update failed"
+        # Az email értesítő logikád itt maradhat, ha szeretnéd
