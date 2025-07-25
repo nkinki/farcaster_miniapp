@@ -19,8 +19,24 @@ export async function POST(request: NextRequest) {
     }
     // Törlés, ha leiratkozik:
     if (event.event === 'miniapp_removed' || event.event === 'notifications_disabled' || event.event === 'frame_removed') {
-      await pool.query('DELETE FROM notification_tokens WHERE token = $1', [event.notificationDetails?.token]);
-      console.log('Token removed from database:', event.notificationDetails?.token);
+      // frame_removed eseményekben nincs notificationDetails, ezért a payload-ból kell kinyerni
+      if (event.event === 'frame_removed' && event.payload) {
+        try {
+          const decodedPayload = JSON.parse(Buffer.from(event.payload, 'base64').toString());
+          console.log('Decoded frame_removed payload:', decodedPayload);
+          // Ha van token a payload-ban, töröljük
+          if (decodedPayload.token) {
+            await pool.query('DELETE FROM notification_tokens WHERE token = $1', [decodedPayload.token]);
+            console.log('Token removed from database:', decodedPayload.token);
+          }
+        } catch (error) {
+          console.log('Could not decode frame_removed payload:', error);
+        }
+      } else if (event.notificationDetails?.token) {
+        // Régi eseménytípusok esetén
+        await pool.query('DELETE FROM notification_tokens WHERE token = $1', [event.notificationDetails.token]);
+        console.log('Token removed from database:', event.notificationDetails.token);
+      }
     }
     
     return NextResponse.json({ ok: true });
