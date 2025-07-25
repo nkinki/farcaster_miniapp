@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 
+interface MiniappStatisticsRow {
+  current_rank: number;
+  name?: string;
+  domain?: string;
+  description?: string;
+  author_username?: string;
+  author_display_name?: string;
+  author_follower_count?: number;
+  primary_category?: string;
+  rank_24h_change?: number;
+  rank_72h_change?: number;
+  rank_7d_change?: number;
+  rank_30d_change?: number;
+  icon_url?: string;
+  home_url?: string;
+  // ... további mezők, ha vannak
+}
+
 // PostgreSQL kapcsolat beállítása (feltételezve, hogy a környezeti változókban van a DB URL)
 const pool = new Pool({ connectionString: process.env.NEON_DB_URL })
 
@@ -18,7 +36,7 @@ export async function GET(request: NextRequest) {
     `, [limit, offset])
 
     // Átalakítjuk a választ a frontend elvárásai szerint
-    const miniapps = rows.map((row: any) => ({
+    const miniapps = rows.map((row: MiniappStatisticsRow) => ({
       rank: row.current_rank,
       name: row.name, // ha van ilyen mező, különben ki kell egészíteni joinnal
       domain: row.domain, // ha van ilyen mező, különben ki kell egészíteni joinnal
