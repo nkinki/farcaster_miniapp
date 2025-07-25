@@ -1,0 +1,19 @@
+name: Send Farcaster Notifications
+
+on:
+  workflow_dispatch: # Manuális futtatáshoz
+  schedule:
+    - cron: '0 8 * * *' # Naponta 8:00 UTC
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm install
+      - run: npx tsx scripts/sendNotifications.ts
+        env:
+          DATABASE_URL: ${{ vars.DATABASE_URL }}
