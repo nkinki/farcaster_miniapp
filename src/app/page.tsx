@@ -131,6 +131,9 @@ export default function Home() {
         console.error("Error fetching data:", error)
         setLoading(false)
       })
+
+    // Farcaster natív "Add Mini App" prompt minden indításkor
+    sdk.actions.addMiniApp();
   }, [])
   
   useEffect(() => {
