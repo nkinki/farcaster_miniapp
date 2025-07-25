@@ -26,6 +26,7 @@
     "ogDescription": "Find, favorite and track the best Farcaster miniapps. Updated daily.",
     "ogImageUrl": "https://farc-nu.vercel.app/og-image.png",
     "castShareUrl": "https://farc-nu.vercel.app",
-    "homeUrl": "https://farc-nu.vercel.app"
+    "homeUrl": "https://farc-nu.vercel.app",
+    "webhookUrl": "https://farc-nu.vercel.app/api/webhook"
   }
-} 
+}
