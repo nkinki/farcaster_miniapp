@@ -30,10 +30,15 @@ export async function GET(request: NextRequest) {
 
     // Lekérjük a statisztikákat a DB-ből
     const { rows } = await pool.query(`
-      SELECT * FROM miniapp_statistics
-      ORDER BY current_rank ASC
+      SELECT s.*, 
+             m.name, m.domain, m.icon_url, m.home_url, m.primary_category, 
+             m.author_username, m.author_display_name, m.author_follower_count
+      FROM miniapp_statistics s
+      JOIN miniapps m ON s.miniapp_id = m.id
+      WHERE s.stat_date = CURRENT_DATE
+      ORDER BY s.current_rank ASC
       LIMIT $1 OFFSET $2
-    `, [limit, offset])
+    `, [limit, offset]);
 
     // Átalakítjuk a választ a frontend elvárásai szerint
     const miniapps = rows.map((row: MiniappStatisticsRow) => ({
