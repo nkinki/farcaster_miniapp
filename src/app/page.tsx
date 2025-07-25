@@ -131,6 +131,13 @@ export default function Home() {
         console.error("Error fetching data:", error)
         setLoading(false)
       })
+
+    // Farcaster natív "Add Mini App" prompt csak ha nincs hozzáadva
+    const isAdded = localStorage.getItem("farcaster-added");
+    if (!isAdded) {
+      sdk.actions.addMiniApp();
+      localStorage.setItem("farcaster-added", "true");
+    }
   }, [])
   
   useEffect(() => {
@@ -266,7 +273,7 @@ export default function Home() {
               </button>
             ))}
              <button
-              onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
+              onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank")}
               className="flex-1 py-8 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
             >
