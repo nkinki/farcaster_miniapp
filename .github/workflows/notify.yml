@@ -12,8 +12,26 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Force Node.js version
+        run: |
+          echo "Current Node.js version: $(node --version)"
+          echo "Current npm version: $(npm --version)"
+        shell: bash
+      - name: Clear npm cache
+        run: npm cache clean --force
       - run: npm install
-      - run: npx tsx scripts/sendNotifications.ts
+      - name: Debug DATABASE_URL
+        run: |
+          echo "DATABASE_URL is set: ${{ vars.DATABASE_URL != '' }}"
+          echo "DATABASE_URL length: ${#DATABASE_URL}"
         env:
           DATABASE_URL: ${{ vars.DATABASE_URL }}
+      - name: Run notification script
+        run: npx tsx scripts/sendNotifications.ts
+        env:
+          DATABASE_URL: ${{ vars.DATABASE_URL }}
+      - name: Notification completed
+        run: echo "Farcaster notification script completed successfully!"
