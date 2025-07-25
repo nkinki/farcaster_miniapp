@@ -71,15 +71,14 @@ export async function GET(request: NextRequest) {
       `
     ]);
     
-    // JAVÍTÁS: Itt expliciten megmondjuk a TypeScriptnek, hogy a 'miniappsResult'
-    // egy 'MiniappQueryResult' elemekből álló tömb. Így a .map() már nem fog hibát dobni.
+    // Explicit típus-kényszerítés, hogy a TypeScript tudja, mivel dolgozik
     const typedMiniappsResult = miniappsResult as MiniappQueryResult[];
 
     const transformedMiniapps = typedMiniappsResult.map((item) => ({
       rank: item.rank,
       name: item.name,
       domain: item.domain,
-      description: '', // Ez az oszlop jelenleg nincs az adatbázisban
+      description: '', 
       author: item.author,
       category: item.primary_category || 'other',
       rank24hChange: item.rank_24h_change ?? 0,
@@ -90,7 +89,9 @@ export async function GET(request: NextRequest) {
       homeUrl: item.home_url
     }));
 
-    const totalMiniapps = parseInt(totalResult.count as string, 10);
+    // JAVÍTÁS: A 'totalResult' egy tömb, az első elemét kell vennünk.
+    const totalMiniapps = parseInt(totalResult[0].count as string, 10);
+
     const topCategories: CategoryInfo[] = (categoriesResult as CategoryCount[]).map(cat => ({
       name: cat.category || 'other',
       count: parseInt(cat.count, 10)
