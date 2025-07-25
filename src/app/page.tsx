@@ -34,7 +34,7 @@ type MiniappFromApi = Omit<Miniapp, 'id'>;
 
 // --- SUB-COMPONENTS for clarity ---
 
-function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Miniapp; isFavorite: boolean; onOpen: () => void; onToggleFavorite: () => void; }) {
+function RankChanges({ app }: { app: Miniapp }) {
   const renderChange = (value: number | null, label: string) => {
     const change = value ?? 0;
     const colorClass = change > 0 ? "text-green-400" : change < 0 ? "text-red-400" : "text-purple-300";
@@ -46,25 +46,52 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
       </div>
     );
   };
-  
+
+  const renderStat = (value: number | string | null, label: string, icon: string) => {
+    if (value === null || value === undefined) return <div className="h-6"></div>; // Placeholder for alignment
+    return (
+        <div className="flex gap-1 items-center justify-end w-full h-6">
+            <span className="font-semibold text-base text-yellow-400">{icon} {value}</span>
+            <span className="text-xs text-gray-400 capitalize">{label}</span>
+        </div>
+    );
+  };
+
+  return (
+    <div className="flex ml-2" style={{ fontSize: "1.15em" }}>
+      <div className="flex flex-col items-end min-w-[60px] gap-0.5 pr-2 border-r border-gray-700">
+        {renderChange(app.rank24hChange, "24h")}
+        {renderChange(app.rank72hChange, "72h")}
+        {renderChange(app.rankWeeklyChange, "7d")}
+        {renderChange(app.rank30dChange, "30d")}
+      </div>
+      <div className="flex flex-col items-start min-w-[70px] gap-0.5 pl-2 pt-1">
+        {renderStat(app.bestRank, "Best", '🏆')}
+        {renderStat(app.avgRank, "Avg", '~')}
+      </div>
+    </div>
+  );
+}
+
+function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Miniapp; isFavorite: boolean; onOpen: () => void; onToggleFavorite: () => void; }) {
   return (
     <div
       className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${ isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]" }`}
       onClick={onOpen}
     >
-      <div className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg bg-gray-700 text-white mr-2">{app.rank}</div>
+      {/* JAVÍTÁS: Egységesített, kisebb és színesebb sorszám */}
+      <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-base bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2">{app.rank}</div>
+      
       <img src={app.iconUrl} alt={`${app.name} logo`} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-lg text-white truncate">{app.name}</div>
         <div className="text-sm text-[#a259ff]">@{app.author.username}</div>
         
-        {/* JAVÍTÁS: A statisztikák ide kerültek, a követők mellé */}
         <div className="flex items-center gap-3 text-sm text-[#b0b8d1] mt-1">
             <div className="flex items-center gap-1">
                 <span>👥</span>
                 <span>{app.author.followerCount}</span>
             </div>
-
             {app.bestRank && (
                 <>
                     <span className="text-gray-600">•</span>
@@ -74,7 +101,6 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
                     </div>
                 </>
             )}
-
             {app.avgRank && (
                 <>
                     <span className="text-gray-600">•</span>
@@ -90,14 +116,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
       <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }} className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-4 bg-transparent" title={isFavorite ? "Remove from favorites" : "Add to favorites"} style={{ fontSize: "1.35em", border: "none" }}>
         {isFavorite ? "❤️" : "🤍"}
       </button>
-
-      {/* A jobb oldali oszlop most már csak a változásokat mutatja */}
-      <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5" style={{ fontSize: "1.15em" }}>
-        {renderChange(app.rank24hChange, "24h")}
-        {renderChange(app.rank72hChange, "72h")}
-        {renderChange(app.rankWeeklyChange, "7d")}
-        {renderChange(app.rank30dChange, "30d")}
-      </div>
+      <RankChanges app={app} />
     </div>
   );
 }
