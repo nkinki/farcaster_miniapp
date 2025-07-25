@@ -5,15 +5,15 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch } from "react-icons/fi"
 import type React from "react"
 
-// Típusdefiníció a frontend számára
+// Típusdefiníció a frontend által használt, már átalakított adatokhoz
 interface Miniapp {
-  id: string; // Hozzáadva az egyedi kulcshoz
+  id: string
   rank: number
   name: string
   domain: string
   description: string
   author: {
-    fid?: number; // Fid lehet opcionális, ha a username-et használjuk
+    fid?: number
     username: string
     displayName: string
     followerCount: number
@@ -25,6 +25,12 @@ interface Miniapp {
   rank30dChange: number
   iconUrl: string
   homeUrl: string
+}
+
+// JAVÍTÁS: Típusdefiníció a bejövő API adatokhoz
+interface ApiMiniapp {
+  domain: string;
+  [key: string]: any; // Engedélyezi a többi, nem specifikált tulajdonságot
 }
 
 // Komponens a rangsor változásainak megjelenítésére
@@ -71,10 +77,9 @@ export default function Home() {
     fetch(apiUrl)
       .then((res) => res.json())
       .then((data) => {
-        // Hozzáadjuk az ID-t minden elemhez az egyedi kulcshoz
-        const appsWithId = data.miniapps.map((app: any) => ({ ...app, id: app.domain }))
+        // JAVÍTÁS: Az 'any' helyett a specifikus 'ApiMiniapp' típust használjuk
+        const appsWithId = data.miniapps.map((app: ApiMiniapp) => ({ ...app, id: app.domain }))
         setMiniapps(appsWithId || [])
-        // A dátumot most már az API-tól kapjuk
         setSnapshotDate(new Date().toLocaleDateString("en-US"))
         setLoading(false)
       })
@@ -83,7 +88,7 @@ export default function Home() {
         setLoading(false)
       })
   }, [])
-
+  
   useEffect(() => {
     if (!loading) sdk.actions.ready()
   }, [loading])
@@ -131,7 +136,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Miniapp megnyitó modális ablak */}
       {openMiniappIdx !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-4/5 flex flex-col">
@@ -154,7 +158,6 @@ export default function Home() {
 
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <header className="mb-6 text-center">
              <div className="flex justify-center items-center mb-2">
                <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
@@ -169,7 +172,6 @@ export default function Home() {
              </p>
            </header>
 
-          {/* Search */}
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
             <form className="flex items-center" onSubmit={(e) => e.preventDefault()}>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs w-[110px]" />
@@ -179,14 +181,13 @@ export default function Home() {
             </form>
           </div>
           
-          {/* Main List */}
           <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-2 border border-[#2e3650]">
             <div className="flex flex-col gap-2">
               {filteredAndSortedMiniapps.map((app) => {
                 const isFavorite = favorites.includes(app.domain);
                 return (
                   <div
-                    key={app.id} // JAVÍTÁS: Egyedi és stabil kulcs
+                    key={app.id} 
                     className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${ isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]" }`}
                     onClick={() => openMiniapp(app.domain)}
                   >
@@ -211,7 +212,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom Nav */}
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
           <div className="flex w-full max-w-4xl mx-auto">
             {["all", "games", "social", "utility", "finance"].map((category) => (
@@ -236,7 +236,6 @@ export default function Home() {
           </div>
         </nav>
       </div>
-      {/* Neon glow animáció a Chess gombhoz */}
       <style jsx global>{`
         @keyframes chessneon {
           0% { color: #5D6AFF; text-shadow: 0 0 6px #5D6AFF, 0 0 12px #5D6AFF; }
