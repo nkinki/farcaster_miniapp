@@ -1,123 +1,62 @@
-name: Farcaster Miniapp Update Cron
+name: Update MiniApps Data
 
 on:
   schedule:
-    # Run at 2:00 AM and 2:00 PM UTC daily
-    - cron: '0 2,14 * * *'
-  workflow_dispatch: # Allow manual trigger
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  update-miniapps:
+  update_data:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
-        
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        
-    - name: Install Python dependencies
-      run: |
-        pip install -r requirements.txt
-        
-    - name: Install Node.js dependencies
-      run: npm ci
-      
-    - name: Create environment file
-      run: |
-        echo "NEON_DB_URL=${{ secrets.NEON_DB_URL }}" > .env
-        echo "FARCASTER_BEARER_TOKEN=${{ secrets.FARCASTER_BEARER_TOKEN }}" >> .env
-        echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" >> .env
-        echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
-        echo "EMAIL_RECIPIENT=${{ secrets.EMAIL_RECIPIENT }}" >> .env
-        
-    - name: Set up git user
-      run: |
-        git config --global user.email "action@github.com"
-        git config --global user.name "GitHub Action"
-        
-    - name: Pull latest changes first
-      run: |
-        git pull origin main
-        
-    - name: Download latest data
-      run: |
-        python update_ranking_simple.py
-        
-    - name: Update database
-      run: |
-        python daily_update_simple.py
-      env:
-        NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
-        FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
-        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
-        
-    - name: Copy data to Next.js
-      run: |
-        mkdir -p public/data
-        cp top_miniapps.json public/data/
-        
-    - name: Check for changes
-      id: verify-changed-files
-      run: |
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "changed=true" >> $GITHUB_OUTPUT
-        else
-          echo "changed=false" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Commit and push changes
-      if: steps.verify-changed-files.outputs.changed == 'true'
-      run: |
-        git add .
-        git commit -m "Auto-update: $(date '+%Y-%m-%d %H:%M:%S UTC')"
-        git push origin main
-        
-    - name: Notify success
-      if: success()
-      run: |
-        echo "✅ Miniapp update completed successfully"
-        python -c "
-        import os
-        try:
-            from email_notifications import send_success_notification
-            send_success_notification(246, '<ul><li>Automatikus frissítés sikeres</li></ul>')
-            print('Success notification sent')
-        except Exception as e:
-            print(f'Email notification failed: {e}')
-        "
-      env:
-        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
-        
-    - name: Notify failure
-      if: failure()
-      run: |
-        echo "❌ Miniapp update failed"
-        python -c "
-        import os
-        try:
-            from email_notifications import send_error_notification
-            send_error_notification('GitHub Actions hiba', 'Automatikus frissítés sikertelen')
-            print('Error notification sent')
-        except Exception as e:
-            print(f'Error notification failed: {e}')
-        "
-      env:
-        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests psycopg2-binary
+
+      - name: Verify Database Connection (daily_update_simple.py)
+        run: |
+          python -c "import os, psycopg2; try: conn = psycopg2.connect(os.environ['NEON_DB_URL']); print('Successfully connected to the database'); conn.close() except Exception as e: print(f'Error connecting to the database: {e}')"
+        env:
+          NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
+
+      - name: Run update_ranking_simple.py
+        run: python update_ranking_simple.py
+
+      - name: Check Data Download (update_ranking_simple.py)
+        run: |
+          python -c "import json; try: with open('top_miniapps.json', 'r') as f: data = json.load(f); print('Successfully downloaded and saved data to top_miniapps.json') except Exception as e: print(f'Error downloading or saving data: {e}')"
+
+      - name: Run daily_update_simple.py
+        run: python daily_update_simple.py
+        env:
+          NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
+
+      - name: Inspect daily_update_simple.py
+        run: |
+          python -c "import json, psycopg2, os; conn = None; cur = None; try: with open('top_miniapps.json', 'r') as f: data = json.load(f); conn = psycopg2.connect(os.environ['NEON_DB_URL']); cur = conn.cursor(); print(f'Processing {len(data)} records'); for item in data: print(f'Inserting/Updating record: {item}'); pass; conn.commit(); print('Successfully updated the database') except Exception as e: print(f'Error updating the database: {e}') finally: if conn: cur.close(); conn.close()"
+        env:
+          NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
+
+      - name: Copy data to Next.js
+        run: |
+          mkdir -p public/data
+          cp top_miniapps.json public/data/
+          echo "Copied top_miniapps.json to public/data/"
+
+      - name: Run email_notifications.py
+        run: python email_notifications.py
+        env:
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
