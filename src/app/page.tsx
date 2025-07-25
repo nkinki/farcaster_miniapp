@@ -202,7 +202,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 p-4 pb-24">
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-1 pb-24 sm:px-4">
         <div className="max-w-6xl mx-auto">
           <header className="mb-6 text-center">
              <div className="flex justify-center items-center mb-2">
@@ -227,7 +227,7 @@ export default function Home() {
             </form>
           </div>
           
-          <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-2 border border-[#2e3650]">
+          <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#2e3650] w-full">
             {favoriteApps.length > 0 && (
               <div className="sticky top-0 z-20 bg-[#23283a] py-2">
                 <div className="flex flex-col gap-2">
