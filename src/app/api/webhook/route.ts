@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const event = await request.json();
     console.log('Farcaster webhook event:', event);
     
-    if (event.event === 'miniapp_added' || event.event === 'notifications_enabled') {
+    if (event.event === 'miniapp_added' || event.event === 'notifications_enabled' || event.event === 'frame_added') {
       const { token, url } = event.notificationDetails;
       // Mentsd el a tokent és az url-t a Neon adatbázisba
       await pool.query(
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       console.log('Token saved to database:', token);
     }
     // Törlés, ha leiratkozik:
-    if (event.event === 'miniapp_removed' || event.event === 'notifications_disabled') {
+    if (event.event === 'miniapp_removed' || event.event === 'notifications_disabled' || event.event === 'frame_removed') {
       await pool.query('DELETE FROM notification_tokens WHERE token = $1', [event.notificationDetails?.token]);
       console.log('Token removed from database:', event.notificationDetails?.token);
     }
@@ -28,4 +28,4 @@ export async function POST(request: NextRequest) {
     console.error('Webhook error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}
