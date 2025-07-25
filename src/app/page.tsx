@@ -47,12 +47,28 @@ function RankChanges({ app }: { app: Miniapp }) {
     );
   };
 
+  const renderStat = (value: number | string | null, label: string, icon: string) => {
+    if (value === null || value === undefined) return <div className="h-6"></div>;
+    return (
+        <div className="flex gap-1 items-center justify-end w-full h-6">
+            <span className="font-semibold text-base text-yellow-400">{icon} {value}</span>
+            <span className="text-xs text-gray-400 capitalize">{label}</span>
+        </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5" style={{ fontSize: "1.15em" }}>
-      {renderChange(app.rank24hChange, "24h")}
-      {renderChange(app.rank72hChange, "72h")}
-      {renderChange(app.rankWeeklyChange, "7d")}
-      {renderChange(app.rank30dChange, "30d")}
+    <div className="flex ml-2" style={{ fontSize: "1.15em" }}>
+      <div className="flex flex-col items-end min-w-[60px] gap-0.5 pr-2 border-r border-gray-700">
+        {renderChange(app.rank24hChange, "24h")}
+        {renderChange(app.rank72hChange, "72h")}
+        {renderChange(app.rankWeeklyChange, "7d")}
+        {renderChange(app.rank30dChange, "30d")}
+      </div>
+      <div className="flex flex-col items-start min-w-[70px] gap-0.5 pl-2 pt-1">
+        {renderStat(app.bestRank, "Best", '🏆')}
+        {renderStat(app.avgRank, "Avg", '~')}
+      </div>
     </div>
   );
 }
@@ -123,7 +139,7 @@ export default function Home() {
 
   useEffect(() => {
     const initializeApp = async () => {
-      // 1. Adatok betöltése
+      // Adatok betöltése
       const savedFavorites = localStorage.getItem("farcaster-favorites") || '[]';
       const favs: string[] = JSON.parse(savedFavorites);
       setFavorites(favs);
@@ -132,7 +148,7 @@ export default function Home() {
       try {
         const response = await fetch(apiUrl, { cache: 'no-store' });
         const data = await response.json();
-        const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }));
+        const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }))
         setMiniapps(appsWithId || []);
         setSnapshotDate(new Date().toLocaleDateString("en-US"));
       } catch (error) {
@@ -141,19 +157,10 @@ export default function Home() {
         setLoading(false);
       }
 
-      // 2. Farcaster környezet ellenőrzése és modális ablak mutatása
-      try {
-        const isInMiniapp = await sdk.isInMiniApp();
-        if (isInMiniapp) {
-          const context = await sdk.context;
-          // JAVÍTÁS: context.miniApp helyett context.app használata
-          const appDomain = context.app?.domain;
-          if (appDomain && !favs.includes(appDomain)) {
-            setShowFavoriteModal(true);
-          }
-        }
-      } catch (e) {
-        console.warn("Could not get Farcaster context", e);
+      // JAVÍTÁS: A környezeti változót használjuk a domain ellenőrzésére
+      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN;
+      if (appDomain && !favs.includes(appDomain)) {
+        setShowFavoriteModal(true);
       }
     };
 
@@ -232,12 +239,9 @@ export default function Home() {
                 </div>
                 <button
                     className="bg-gradient-to-tr from-purple-700 via-purple-500 to-cyan-400 text-white font-bold px-4 py-2 rounded-lg shadow-md mb-2 w-full"
-                    onClick={async () => {
-                        try {
-                            const context = await sdk.context;
-                            const appDomain = context.app?.domain;
-                            if (appDomain) toggleFavorite(appDomain);
-                        } catch (e) { console.warn(e) }
+                    onClick={() => {
+                        const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN;
+                        if (appDomain) toggleFavorite(appDomain);
                         setShowFavoriteModal(false);
                     }}
                 >
