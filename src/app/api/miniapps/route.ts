@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 
-// JAVÍTÁS: Ezt a típust most már aktívan használjuk.
-// Pontosan leírja, hogy milyen adatokat várunk vissza az SQL lekérdezésből.
+// Típusdefiníció, ami leírja, mit várunk vissza az SQL lekérdezésből.
 interface MiniappQueryResult {
   id: string
   name: string
@@ -29,10 +28,10 @@ interface CategoryInfo {
 
 interface CategoryCount {
   category: string | null
-  count: string // A COUNT(*) string-ként jön vissza, konvertálni kell
+  count: string // A COUNT(*) string-ként jön vissza
 }
 
-// Neon DB kapcsolat inicializálása a környezeti változóból
+// Neon DB kapcsolat inicializálása
 if (!process.env.NEON_DB_URL) {
   throw new Error('NEON_DB_URL környezeti változó nincs beállítva')
 }
@@ -44,67 +43,43 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // JAVÍTÁS: A felesleges 'today' változó eltávolítva.
-
-    // Párhuzamosan futtatjuk a lekérdezéseket a jobb teljesítményért
+    // Párhuzamos lekérdezések
     const [miniappsResult, totalResult, categoriesResult] = await Promise.all([
-      // 1. Fő lekérdezés a miniappok listájához
       sql`
         SELECT 
-            m.id,
-            m.name,
-            m.domain,
-            m.home_url,
-            m.icon_url,
-            m.primary_category,
+            m.id, m.name, m.domain, m.home_url, m.icon_url, m.primary_category,
             json_build_object(
               'username', m.author_username,
               'displayName', m.author_display_name,
               'followerCount', m.author_follower_count
             ) as author,
-            s.current_rank as rank,
-            s.rank_24h_change,
-            s.rank_72h_change,
-            s.rank_7d_change,
-            s.rank_30d_change
-        FROM 
-            miniapps m
-        JOIN 
-            miniapp_statistics s ON m.id = s.miniapp_id
-        WHERE 
-            s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics)
-        ORDER BY 
-            s.current_rank ASC
-        LIMIT ${limit}
-        OFFSET ${offset};
+            s.current_rank as rank, s.rank_24h_change, s.rank_72h_change, s.rank_7d_change, s.rank_30d_change
+        FROM miniapps m
+        JOIN miniapp_statistics s ON m.id = s.miniapp_id
+        WHERE s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics)
+        ORDER BY s.current_rank ASC
+        LIMIT ${limit} OFFSET ${offset};
       `,
-      // 2. Lekérdezés a teljes darabszámhoz
       sql`SELECT COUNT(*) FROM miniapps;`,
-
-      // 3. Lekérdezés a top kategóriákhoz
       sql`
-        SELECT 
-            primary_category as category, 
-            COUNT(*) as count
-        FROM 
-            miniapps
-        WHERE
-            primary_category IS NOT NULL
-        GROUP BY 
-            primary_category
-        ORDER BY 
-            count DESC
+        SELECT primary_category as category, COUNT(*) as count
+        FROM miniapps
+        WHERE primary_category IS NOT NULL
+        GROUP BY primary_category
+        ORDER BY count DESC
         LIMIT 5;
       `
     ]);
     
-    // Adatok átalakítása a frontend számára megfelelő formátumra
-    // JAVÍTÁS: Az 'any' típust a pontos 'MiniappQueryResult' típusra cseréltük.
-    const transformedMiniapps = miniappsResult.map((item: MiniappQueryResult) => ({
+    // JAVÍTÁS: Itt expliciten megmondjuk a TypeScriptnek, hogy a 'miniappsResult'
+    // egy 'MiniappQueryResult' elemekből álló tömb. Így a .map() már nem fog hibát dobni.
+    const typedMiniappsResult = miniappsResult as MiniappQueryResult[];
+
+    const transformedMiniapps = typedMiniappsResult.map((item) => ({
       rank: item.rank,
       name: item.name,
       domain: item.domain,
-      description: '', // Ez az oszlop jelenleg nincs az adatbázisban, alapértelmezett üres string
+      description: '', // Ez az oszlop jelenleg nincs az adatbázisban
       author: item.author,
       category: item.primary_category || 'other',
       rank24hChange: item.rank_24h_change ?? 0,
@@ -115,7 +90,7 @@ export async function GET(request: NextRequest) {
       homeUrl: item.home_url
     }));
 
-    const totalMiniapps = parseInt(totalResult[0].count as string, 10);
+    const totalMiniapps = parseInt(totalResult.count as string, 10);
     const topCategories: CategoryInfo[] = (categoriesResult as CategoryCount[]).map(cat => ({
       name: cat.category || 'other',
       count: parseInt(cat.count, 10)
