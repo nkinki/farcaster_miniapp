@@ -5,7 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch } from "react-icons/fi"
 import type React from "react"
 
-// Típusok
+// Típusdefiníció a komponens által használt adatokhoz
 interface Miniapp {
   id: string;
   rank: number;
@@ -25,11 +25,17 @@ interface Miniapp {
   rank30dChange: number;
   iconUrl: string;
   homeUrl: string;
+  avgRank: string | null;
+  bestRank: number | null;
 }
+
+// Típusdefiníció a bejövő API adatokhoz
+interface MiniappFromApi extends Omit<Miniapp, 'id'> {}
+
 
 // --- SUB-COMPONENTS for clarity ---
 
-// Kártya a rangsor változásainak
+// Kártya a rangsor változásainak és statisztikáinak
 function RankChanges({ app }: { app: Miniapp }) {
   const renderChange = (value: number, label: string) => {
     const change = value ?? 0;
@@ -42,21 +48,37 @@ function RankChanges({ app }: { app: Miniapp }) {
       </div>
     );
   };
+
   return (
     <div className="flex flex-col items-end ml-2 min-w-[60px] gap-0.5" style={{ fontSize: "1.15em" }}>
       {renderChange(app.rank24hChange, "24h")}
       {renderChange(app.rank72hChange, "72h")}
       {renderChange(app.rankWeeklyChange, "7d")}
       {renderChange(app.rank30dChange, "30d")}
+
+      {/* Aggregált statisztikák */}
+      <div className="pt-2 mt-1 border-t border-gray-700 w-full">
+        {app.bestRank && (
+          <div className="flex gap-1 items-center justify-end">
+            <span className="font-semibold text-base text-yellow-400">🏆 {app.bestRank}</span>
+            <span className="text-xs text-gray-400">Best</span>
+          </div>
+        )}
+        {app.avgRank && (
+          <div className="flex gap-1 items-center justify-end">
+            <span className="font-semibold text-base text-blue-400">~ {app.avgRank}</span>
+            <span className="text-xs text-gray-400">Avg</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// Egyetlen Miniapp kártya komponens (a kódismétlés elkerülésére)
+// Egyetlen Miniapp kártya komponens
 function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Miniapp; isFavorite: boolean; onOpen: () => void; onToggleFavorite: () => void; }) {
   return (
     <div
-      key={app.id}
       className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${ isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]" }`}
       onClick={onOpen}
     >
@@ -99,7 +121,7 @@ export default function Home() {
     fetch(apiUrl, { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
-        const appsWithId = data.miniapps.map((app: Miniapp): Miniapp => ({ ...app, id: app.domain }))
+        const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }))
         setMiniapps(appsWithId || [])
         setSnapshotDate(new Date().toLocaleDateString("en-US"))
         setLoading(false)
@@ -146,7 +168,6 @@ export default function Home() {
         { favoriteApps: [], nonFavoriteApps: [] }
     );
   }, [miniapps, filter, search, favorites]);
-
 
   if (loading) {
     return (
@@ -200,7 +221,7 @@ export default function Home() {
           </div>
           
           <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-2 border border-[#2e3650]">
-            {/* JAVÍTÁS: A STICKY KEDVENCEK BLOKK VISSZAÁLLÍTVA */}
+            {/* STICKY KEDVENCEK BLOKK */}
             {favoriteApps.length > 0 && (
               <div className="sticky top-0 z-20 bg-[#23283a] py-2">
                 <div className="flex flex-col gap-2">

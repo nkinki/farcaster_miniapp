@@ -3,36 +3,6 @@ import { neon } from '@neondatabase/serverless'
 
 export const dynamic = 'force-dynamic';
 
-// Típusdefiníció, ami leírja, mit várunk vissza az SQL lekérdezésből.
-interface MiniappQueryResult {
-  id: string
-  name: string
-  domain: string
-  home_url: string
-  icon_url: string
-  primary_category: string | null
-  author: {
-    username: string
-    displayName: string
-    followerCount: number
-  }
-  rank: number
-  rank_24h_change: number | null
-  rank_72h_change: number | null
-  rank_7d_change: number | null
-  rank_30d_change: number | null
-}
-
-interface CategoryInfo {
-  name: string
-  count: number
-}
-
-interface CategoryCount {
-  category: string | null
-  count: string // A COUNT(*) string-ként jön vissza
-}
-
 if (!process.env.NEON_DB_URL) {
   throw new Error('NEON_DB_URL környezeti változó nincs beállítva')
 }
@@ -57,7 +27,9 @@ export async function GET(request: NextRequest) {
             s.rank_24h_change,
             s.rank_72h_change,
             s.rank_7d_change,
-            s.rank_30d_change
+            s.rank_30d_change,
+            s.avg_rank,
+            s.best_rank
         FROM miniapps m
         JOIN miniapp_statistics s ON m.id = s.miniapp_id
         WHERE s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics)
@@ -75,8 +47,7 @@ export async function GET(request: NextRequest) {
       `
     ]);
     
-    // JAVÍTÁS 1: A TypeScript most már tudja, hogy `item` egy MiniappQueryResult
-    const transformedMiniapps = (miniappsResult as MiniappQueryResult[]).map((item) => ({
+    const transformedMiniapps = miniappsResult.map((item: any) => ({
       id: item.id,
       rank: item.rank,
       name: item.name,
@@ -88,14 +59,14 @@ export async function GET(request: NextRequest) {
       rank72hChange: item.rank_72h_change ?? 0,
       rankWeeklyChange: item.rank_7d_change ?? 0,
       rank30dChange: item.rank_30d_change ?? 0,
+      avgRank: item.avg_rank ? parseFloat(item.avg_rank).toFixed(1) : null,
+      bestRank: item.best_rank ?? null,
       iconUrl: item.icon_url,
       homeUrl: item.home_url
     }));
 
     const totalMiniapps = parseInt(totalResult[0].count as string, 10);
-
-    // JAVÍTÁS 2: `any[]` helyett a pontos `CategoryCount[]` típust használjuk
-    const topCategories: CategoryInfo[] = (categoriesResult as CategoryCount[]).map(cat => ({
+    const topCategories = (categoriesResult as any[]).map(cat => ({
       name: cat.category || 'other',
       count: parseInt(cat.count, 10)
     }));

@@ -43,6 +43,12 @@ def get_past_rank(cursor, miniapp_id, target_date):
     result = cursor.fetchone()
     return result[0] if result else None
 
+def get_aggregate_stats(cursor, miniapp_id):
+    """Fetches aggregate stats (avg, best rank) for a miniapp."""
+    cursor.execute("SELECT AVG(current_rank), MIN(current_rank) FROM miniapp_statistics WHERE miniapp_id = %s AND current_rank > 0", (miniapp_id,))
+    result = cursor.fetchone()
+    return result if result else (None, None)
+
 def update_database(miniapps_data):
     """Updates the database with the latest ranking data."""
     conn = None
@@ -75,31 +81,37 @@ def update_database(miniapps_data):
                 miniapp.get('author', {}).get('displayName'), miniapp.get('author', {}).get('followerCount')
             ))
 
-            # 2. Get past ranks for change calculation from the main statistics table
+            # 2. Get past ranks for change calculation
             rank_1d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=1))
             rank_3d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=3))
             rank_7d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=7))
             rank_30d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=30))
 
-            # 3. Calculate changes (handle None for missing past data)
+            # 3. Calculate changes
             rank_24h_change = (rank_1d_ago - current_rank) if rank_1d_ago is not None else None
             rank_72h_change = (rank_3d_ago - current_rank) if rank_3d_ago is not None else None
             rank_7d_change = (rank_7d_ago - current_rank) if rank_7d_ago is not None else None
             rank_30d_change = (rank_30d_ago - current_rank) if rank_30d_ago is not None else None
             
-            # 4. Insert or update today's statistics in the main statistics table
+            # Get aggregate stats
+            avg_rank, best_rank = get_aggregate_stats(cursor, miniapp_id)
+            
+            # 4. Insert or update today's statistics
             cursor.execute("""
                 INSERT INTO miniapp_statistics (
                     miniapp_id, stat_date, current_rank, 
-                    rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change,
+                    avg_rank, best_rank
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (miniapp_id, stat_date) DO UPDATE SET
                     current_rank = EXCLUDED.current_rank,
                     rank_24h_change = EXCLUDED.rank_24h_change,
                     rank_72h_change = EXCLUDED.rank_72h_change,
                     rank_7d_change = EXCLUDED.rank_7d_change,
-                    rank_30d_change = EXCLUDED.rank_30d_change;
-            """, (miniapp_id, today, current_rank, rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change))
+                    rank_30d_change = EXCLUDED.rank_30d_change,
+                    avg_rank = EXCLUDED.avg_rank,
+                    best_rank = EXCLUDED.best_rank;
+            """, (miniapp_id, today, current_rank, rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change, avg_rank, best_rank))
         
         # 5. Update the daily snapshot backup
         print("Updating ranking_snapshots backup...")
