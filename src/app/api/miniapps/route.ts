@@ -1,37 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 
-// Típusdefiníció, ami leírja, mit várunk vissza az SQL lekérdezésből.
-interface MiniappQueryResult {
-  id: string
-  name: string
-  domain: string
-  home_url: string
-  icon_url: string
-  primary_category: string | null
-  author: {
-    username: string
-    displayName: string
-    followerCount: number
-  }
-  rank: number
-  rank_24h_change: number | null
-  rank_72h_change: number | null
-  rank_7d_change: number | null
-  rank_30d_change: number | null
-}
+export const dynamic = 'force-dynamic';
 
-interface CategoryInfo {
-  name: string
-  count: number
-}
-
-interface CategoryCount {
-  category: string | null
-  count: string // A COUNT(*) string-ként jön vissza
-}
-
-// Neon DB kapcsolat inicializálása
 if (!process.env.NEON_DB_URL) {
   throw new Error('NEON_DB_URL környezeti változó nincs beállítva')
 }
@@ -43,7 +14,6 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Párhuzamos lekérdezések
     const [miniappsResult, totalResult, categoriesResult] = await Promise.all([
       sql`
         SELECT 
@@ -53,7 +23,11 @@ export async function GET(request: NextRequest) {
               'displayName', m.author_display_name,
               'followerCount', m.author_follower_count
             ) as author,
-            s.current_rank as rank, s.rank_24h_change, s.rank_72h_change, s.rank_7d_change, s.rank_30d_change
+            s.current_rank as rank,
+            s.rank_24h_change,
+            s.rank_72h_change,
+            s.rank_7d_change,
+            s.rank_30d_change
         FROM miniapps m
         JOIN miniapp_statistics s ON m.id = s.miniapp_id
         WHERE s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics)
@@ -71,10 +45,8 @@ export async function GET(request: NextRequest) {
       `
     ]);
     
-    // Explicit típus-kényszerítés, hogy a TypeScript tudja, mivel dolgozik
-    const typedMiniappsResult = miniappsResult as MiniappQueryResult[];
-
-    const transformedMiniapps = typedMiniappsResult.map((item) => ({
+    const transformedMiniapps = miniappsResult.map((item: any) => ({
+      id: item.id,
       rank: item.rank,
       name: item.name,
       domain: item.domain,
@@ -89,15 +61,12 @@ export async function GET(request: NextRequest) {
       homeUrl: item.home_url
     }));
 
-    // JAVÍTÁS: A 'totalResult' egy tömb, az első elemét kell vennünk.
     const totalMiniapps = parseInt(totalResult[0].count as string, 10);
-
-    const topCategories: CategoryInfo[] = (categoriesResult as CategoryCount[]).map(cat => ({
+    const topCategories = (categoriesResult as any[]).map(cat => ({
       name: cat.category || 'other',
       count: parseInt(cat.count, 10)
     }));
 
-    // Statisztikák összeállítása
     const stats = {
       totalMiniapps,
       newToday: 0, 
