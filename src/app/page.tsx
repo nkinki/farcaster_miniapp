@@ -5,7 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch } from "react-icons/fi"
 import type React from "react"
 
-// Típusok
+// Tipusok
 interface Miniapp {
   id: string;
   rank: number;
