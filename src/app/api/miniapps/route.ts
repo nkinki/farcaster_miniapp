@@ -3,6 +3,36 @@ import { neon } from '@neondatabase/serverless'
 
 export const dynamic = 'force-dynamic';
 
+// Típusdefiníció, ami leírja, mit várunk vissza az SQL lekérdezésből.
+interface MiniappQueryResult {
+  id: string
+  name: string
+  domain: string
+  home_url: string
+  icon_url: string
+  primary_category: string | null
+  author: {
+    username: string
+    displayName: string
+    followerCount: number
+  }
+  rank: number
+  rank_24h_change: number | null
+  rank_72h_change: number | null
+  rank_7d_change: number | null
+  rank_30d_change: number | null
+}
+
+interface CategoryInfo {
+  name: string
+  count: number
+}
+
+interface CategoryCount {
+  category: string | null
+  count: string // A COUNT(*) string-ként jön vissza
+}
+
 if (!process.env.NEON_DB_URL) {
   throw new Error('NEON_DB_URL környezeti változó nincs beállítva')
 }
@@ -45,7 +75,8 @@ export async function GET(request: NextRequest) {
       `
     ]);
     
-    const transformedMiniapps = miniappsResult.map((item: any) => ({
+    // JAVÍTÁS 1: A TypeScript most már tudja, hogy `item` egy MiniappQueryResult
+    const transformedMiniapps = (miniappsResult as MiniappQueryResult[]).map((item) => ({
       id: item.id,
       rank: item.rank,
       name: item.name,
@@ -62,7 +93,9 @@ export async function GET(request: NextRequest) {
     }));
 
     const totalMiniapps = parseInt(totalResult[0].count as string, 10);
-    const topCategories = (categoriesResult as any[]).map(cat => ({
+
+    // JAVÍTÁS 2: `any[]` helyett a pontos `CategoryCount[]` típust használjuk
+    const topCategories: CategoryInfo[] = (categoriesResult as CategoryCount[]).map(cat => ({
       name: cat.category || 'other',
       count: parseInt(cat.count, 10)
     }));
