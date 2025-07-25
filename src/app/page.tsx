@@ -136,7 +136,6 @@ export default function Home() {
     const isAdded = localStorage.getItem("farcaster-added");
     if (!isAdded) {
       sdk.actions.addMiniApp();
-      localStorage.setItem("farcaster-added", "true");
     }
   }, [])
   
