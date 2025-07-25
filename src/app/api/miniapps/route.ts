@@ -20,9 +20,31 @@ interface MiniappStatisticsRow {
   home_url?: string;
 }
 
+interface MiniappData {
+  rank: number;
+  miniApp: {
+    domain: string;
+    name: string;
+    iconUrl: string;
+    homeUrl: string;
+    author: {
+      fid: number;
+      displayName: string;
+      followerCount: number;
+      username: string;
+      // stb.
+    };
+    // stb.
+  };
+  rank24hChange?: number;
+  rank72hChange?: number;
+  rankWeeklyChange?: number;
+  rank30dChange?: number;
+}
+
 const pool = new Pool({ connectionString: process.env.NEON_DB_URL })
 
-function loadMiniappData(): any[] {
+function loadMiniappData(): MiniappData[] {
   try {
     let dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
     if (!fs.existsSync(dataPath)) {
@@ -49,7 +71,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    let miniapps: any[] = [];
+    let miniapps: MiniappData[] | any[] = [];
     if (process.env.NODE_ENV === 'development') {
       // Helyi fejlesztés: fájlból olvasunk
       miniapps = loadMiniappData().slice(offset, offset + limit)
