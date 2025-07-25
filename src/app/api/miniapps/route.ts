@@ -1,49 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { Pool } from 'pg'
 
-interface MiniappStatisticsRow {
-  current_rank: number;
-  name?: string;
-  domain?: string;
-  description?: string;
-  author_username?: string;
-  author_display_name?: string;
-  author_follower_count?: number;
-  primary_category?: string;
-  rank_24h_change?: number;
-  rank_72h_change?: number;
-  rank_7d_change?: number;
-  rank_30d_change?: number;
-  icon_url?: string;
-  home_url?: string;
-}
-
+// Define types for miniapp data
 interface MiniappData {
-  rank: number;
+  rank: number
+  rank72hChange?: number
   miniApp: {
-    domain: string;
-    name: string;
-    iconUrl: string;
-    homeUrl: string;
+    name: string
+    domain: string
+    description?: string
+    subtitle?: string
+    primaryCategory?: string
+    iconUrl: string
+    homeUrl: string
     author: {
-      fid: number;
-      displayName: string;
-      followerCount: number;
-      username: string;
-      // stb.
-    };
-    // stb.
-  };
-  rank24hChange?: number;
-  rank72hChange?: number;
-  rankWeeklyChange?: number;
-  rank30dChange?: number;
+      username: string
+      displayName: string
+      followerCount: number
+    }
+  }
 }
 
-const pool = new Pool({ connectionString: process.env.NEON_DB_URL })
+interface CategoryCount {
+  [key: string]: number
+}
 
+interface CategoryInfo {
+  name: string
+  count: number
+}
+
+// Reward API típusok
+
+// Load real miniapp data
 function loadMiniappData(): MiniappData[] {
   try {
     let dataPath = path.join(process.cwd(), 'public', 'data', 'top_miniapps.json')
@@ -52,9 +42,11 @@ function loadMiniappData(): MiniappData[] {
     }
     const data = fs.readFileSync(dataPath, 'utf8')
     const parsed = JSON.parse(data)
+    // Ha objektum, akkor a miniapps tömböt adjuk vissza
     if (parsed && Array.isArray(parsed.miniapps)) {
       return parsed.miniapps
     }
+    // Ha tömb, akkor azt
     if (Array.isArray(parsed)) {
       return parsed
     }
@@ -71,45 +63,56 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    let miniapps: MiniappData[] | any[] = [];
-    if (process.env.NODE_ENV === 'development') {
-      // Helyi fejlesztés: fájlból olvasunk
-      miniapps = loadMiniappData().slice(offset, offset + limit)
-    } else {
-      // Production: DB-ből olvasunk
-      const { rows } = await pool.query(`
-        SELECT s.*, 
-               m.name, m.domain, m.icon_url, m.home_url, m.primary_category, 
-               m.author_username, m.author_display_name, m.author_follower_count
-        FROM miniapp_statistics s
-        JOIN miniapps m ON s.miniapp_id = m.id
-        WHERE s.stat_date = CURRENT_DATE
-        ORDER BY s.current_rank ASC
-        LIMIT $1 OFFSET $2
-      `, [limit, offset]);
-      miniapps = rows.map((row: MiniappStatisticsRow) => ({
-        rank: row.current_rank,
-        name: row.name,
-        domain: row.domain,
-        description: row.description || '',
+    const allMiniapps = loadMiniappData()
+    const miniapps = allMiniapps.slice(offset, offset + limit)
+
+    // Transform data for the frontend
+    const transformedMiniapps = miniapps.map((item: MiniappData & { rank30dChange?: number, rank24hChange?: number, rankWeeklyChange?: number }) => {
+      return {
+        rank: item.rank,
+        name: item.miniApp.name,
+        domain: item.miniApp.domain,
+        description: item.miniApp.description || item.miniApp.subtitle || '',
         author: {
-          username: row.author_username || '',
-          displayName: row.author_display_name || '',
-          followerCount: row.author_follower_count || 0
+          username: item.miniApp.author.username,
+          displayName: item.miniApp.author.displayName,
+          followerCount: item.miniApp.author.followerCount
         },
-        category: row.primary_category || 'other',
-        rank24hChange: row.rank_24h_change ?? 0,
-        rank72hChange: row.rank_72h_change ?? 0,
-        rankWeeklyChange: row.rank_7d_change ?? 0,
-        rank30dChange: row.rank_30d_change ?? 0,
-        iconUrl: row.icon_url || '',
-        homeUrl: row.home_url || ''
-      }))
+        category: item.miniApp.primaryCategory || 'other',
+        rank72hChange: item.rank72hChange ?? 0,
+        rank24hChange: item.rank24hChange ?? 0,
+        rankWeeklyChange: item.rankWeeklyChange ?? 0,
+        rank30dChange: item.rank30dChange ?? 0,
+        iconUrl: item.miniApp.iconUrl,
+        homeUrl: item.miniApp.homeUrl
+      }
+    })
+
+    // Calculate statistics
+    const totalMiniapps = allMiniapps.length
+    const categories = allMiniapps.reduce((acc: CategoryCount, item: MiniappData) => {
+      const category = item.miniApp.primaryCategory || 'other'
+      acc[category] = (acc[category] || 0) + 1
+      return acc
+    }, {})
+
+    const topCategories = Object.entries(categories)
+      .sort(([,a]: [string, number], [,b]: [string, number]) => b - a)
+      .slice(0, 4)
+      .map(([name, count]): CategoryInfo => ({ name, count }))
+
+    const stats = {
+      totalMiniapps,
+      newToday: Math.floor(Math.random() * 50) + 10, // Simulated
+      activeUsers: `${Math.floor(Math.random() * 100) + 20}K`, // Simulated
+      avgRating: `${(Math.random() * 2 + 3.5).toFixed(1)}⭐`, // Simulated
+      topCategories
     }
 
     return NextResponse.json({
-      miniapps,
-      total: miniapps.length,
+      miniapps: transformedMiniapps,
+      stats,
+      total: totalMiniapps,
       limit,
       offset
     })
