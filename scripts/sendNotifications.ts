@@ -30,31 +30,26 @@ async function main() {
     // Decide what to do based on the type
     if (notificationType === 'TOP_1_24H') {
       console.log("Executing TOP_1_24H logic...");
-      // JAVÍTÁS: s.rank_24h_change AS change
       const result = await pool.query(
         `SELECT m.name, s.rank_24h_change AS change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_24h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_24h_change DESC LIMIT 1`
       );
       if (result.rows.length > 0) {
         const gainer = result.rows[0];
         notificationTitle = `Today's Top Gainer: ${gainer.name}!`;
-        // Most már a 'gainer.change' helyes lesz
         notificationBody = `It jumped (+${gainer.change}) spots on the toplist today. Check it out!`;
       }
     } else if (notificationType === 'TOP_1_72H') {
       console.log("Executing TOP_1_72H logic...");
-      // JAVÍTÁS: s.rank_72h_change AS change
       const result = await pool.query(
         `SELECT m.name, s.rank_72h_change AS change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_72h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_72h_change DESC LIMIT 1`
       );
       if (result.rows.length > 0) {
         const rocket = result.rows[0];
         notificationTitle = `72-Hour Rocket: ${rocket.name}!`;
-        // Most már a 'rocket.change' helyes lesz
         notificationBody = `It's up (+${rocket.change}) spots in the last 3 days! See the new rankings.`;
       }
     } else if (notificationType === 'TOP_3_24H') {
       console.log("Executing TOP_3_24H logic...");
-      // JAVÍTÁS: s.rank_24h_change AS change
       const result = await pool.query(
         `SELECT m.name, s.rank_24h_change AS change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_24h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_24h_change DESC LIMIT 3`
       );
@@ -69,7 +64,8 @@ async function main() {
     // If a title was set, send the notification
     if (notificationTitle) {
       console.log(`Composed Message -> Title: "${notificationTitle}", Body: "${notificationBody}"`);
-      await sendNotification(tokenRows, notificationTitle, notificationBody);
+      // Pass the notificationType to the helper function
+      await sendNotification(tokenRows, notificationTitle, notificationBody, notificationType);
     } else {
       console.log("No relevant data found for this notification type. No notification will be sent.");
     }
@@ -83,7 +79,8 @@ async function main() {
 }
 
 // Helper function to send the actual notification
-async function sendNotification(tokenRows: any[], title: string, body: string) {
+// Now it accepts notificationType to create a proper ID
+async function sendNotification(tokenRows: any[], title: string, body: string, notificationType: string) {
     const urlMap: { [url: string]: string[] } = {};
     for (const row of tokenRows) {
         if (!urlMap[row.url]) urlMap[row.url] = [];
@@ -94,14 +91,16 @@ async function sendNotification(tokenRows: any[], title: string, body: string) {
         for (let i = 0; i < tokens.length; i += 100) {
             const batch = tokens.slice(i, i + 100);
             const notificationPayload = {
-                notificationId: `apprank-report-${new Date().toISOString()}`,
+                // FINAL, LIVE NOTIFICATION ID
+                // Combines type and date to make it unique per type, per day
+                notificationId: `apprank-report-${notificationType}-${new Date().toISOString().slice(0, 10)}`,
                 title,
                 body,
                 targetUrl: 'https://farc-nu.vercel.app',
                 tokens: batch
             };
             
-            console.log(`Sending notification to ${batch.length} token(s)...`);
+            console.log(`Sending notification with ID: ${notificationPayload.notificationId}`);
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
