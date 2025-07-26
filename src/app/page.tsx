@@ -32,9 +32,9 @@ interface Miniapp {
 type MiniappFromApi = Omit<Miniapp, 'id'>;
 
 // Ikonok definiálása
-const categoryIcons = {
+const categoryIcons: Record<string, React.ComponentType<any>> = {
   all: FiGrid,
-  games: FiZap,        // FiGamepad2 helyett FiZap
+  games: FiZap,
   social: FiUsers,
   utility: FiSettings,
   finance: FiDollarSign,
@@ -307,7 +307,7 @@ export default function Home() {
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
           <div className="flex w-full max-w-6xl mx-auto">
             {["all", "games", "social", "utility", "finance"].map((category) => {
-              const IconComponent = categoryIcons[category];
+              const IconComponent = categoryIcons[category] || FiGrid;
               return (
                 <button
                   key={category}
