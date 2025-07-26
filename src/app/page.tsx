@@ -251,8 +251,8 @@ export default function Home() {
           <header className="mb-6 text-center">
              <div className="flex justify-center items-center mb-2">
                <div className="flex items-center gap-2">
-                 <img src="/icon.png" alt="AppRank icon" className="w-16 h-16" />
-                 <h1 className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
+                 <img src="/icon.png" alt="AppRank icon" className="w-14 h-14" />
+                 <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
                    APPRANK
                  </h1>
                </div>
