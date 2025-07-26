@@ -1,3 +1,5 @@
+// ./src/app/api/webhook/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
@@ -11,7 +13,6 @@ export async function POST(request: NextRequest) {
   console.log('Webhook processing started.');
   try {
     const event = await request.json();
-    // Logoljuk a teljes bejövő eseményt a hibakereséshez
     console.log('Received Farcaster webhook event:', JSON.stringify(event, null, 2));
 
     const notificationDetails = event.notificationDetails;
@@ -27,11 +28,11 @@ export async function POST(request: NextRequest) {
           [token, url]
         );
 
-        // Logoljuk, hogy a lekérdezés sikeres volt-e és hány sort érintett
-        if (result.rowCount > 0) {
+        // JAVÍTÁS ITT: Kezeljük a lehetséges 'null' értéket a '??' operátorral
+        if ((result.rowCount ?? 0) > 0) {
             console.log('SUCCESS: Token saved to database:', token);
         } else {
-            console.log('INFO: Token already exists in the database, not saving again:', token);
+            console.log('INFO: Token already exists in the database or insert failed, not saving again:', token);
         }
         
       } else {
@@ -39,8 +40,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Token törlése... (a többi kód változatlan)
+    // Token törlése
+    if (event.event === 'miniapp_removed' || event.event === 'notifications_disabled' || event.event === 'frame_removed') {
+      let tokenToRemove: string | undefined;
 
+      // 'frame_removed' esetén a payload-ból kell kinyerni a tokent
+      if (event.event === 'frame_removed' && event.payload) {
+        try {
+          const decodedPayload = JSON.parse(Buffer.from(event.payload, 'base64').toString());
+          console.log('Decoded frame_removed payload:', decodedPayload);
+          if (decodedPayload.token) {
+            tokenToRemove = decodedPayload.token;
+          }
+        } catch (error) {
+          console.log('Could not decode or find token in frame_removed payload:', error);
+        }
+      } else if (event.notificationDetails?.token) {
+        // A többi eseménynél a megszokott helyen van
+        tokenToRemove = event.notificationDetails.token;
+      }
+
+      if (tokenToRemove) {
+        console.log(`Attempting to remove token: ${tokenToRemove}`);
+        await pool.query('DELETE FROM notification_tokens WHERE token = $1', [tokenToRemove]);
+        console.log('Token removal processed from database for:', tokenToRemove);
+      }
+    }
+    
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('FATAL_WEBHOOK_ERROR:', error);
