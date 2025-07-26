@@ -109,7 +109,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
         title={isFavorite ? "Remove from favorites" : "Add to favorites"}
         style={{ fontSize: "1.35em", border: "none" }}
       >
-        {isFavorite ? "❤️" : "  "}
+        {isFavorite ? "❤️" : "🤍"}
       </button>
       <RankChanges app={app} />
     </div>
