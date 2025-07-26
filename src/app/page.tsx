@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
 import type { IconType } from "react-icons";
-import type React from "react"
+import React from "react"
 
 // Tipusok
 interface Miniapp {
