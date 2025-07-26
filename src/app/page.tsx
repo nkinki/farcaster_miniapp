@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { FiSearch } from "react-icons/fi"
+import { FiSearch, FiGrid, FiGamepad2, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
 import type React from "react"
 
 // Tipusok
@@ -31,6 +31,15 @@ interface Miniapp {
 
 type MiniappFromApi = Omit<Miniapp, 'id'>;
 
+// Ikonok definiálása
+const categoryIcons = {
+  all: FiGrid,
+  games: FiGamepad2,
+  social: FiUsers,
+  utility: FiSettings,
+  finance: FiDollarSign,
+  chess: FiGift
+};
 
 // --- SUB-COMPONENTS for clarity ---
 
@@ -93,7 +102,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
         </div>
       </div>
       <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }} className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-4 bg-transparent" title={isFavorite ? "Remove from favorites" : "Add to favorites"} style={{ fontSize: "1.35em", border: "none" }}>
-        {isFavorite ? "❤️" : "🤍"}
+        {isFavorite ? "❤️" : "  "}
       </button>
       <RankChanges app={app} />
     </div>
@@ -193,7 +202,7 @@ export default function Home() {
       {openMiniapp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[85vh] flex flex-col">
-            <div className="flex justify-between items-center mb-2 gap-2">
+            <div className="flex justify-between items-center mb-4 gap-2">
               <button
                 onClick={() => {
                   if (openMiniappIndex !== null) {
@@ -230,10 +239,10 @@ export default function Home() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-0 pb-24 sm:px-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-1 pb-24 sm:px-4">
         <div className="max-w-6xl mx-auto">
           <header className="mb-6 text-center">
-             <div className="flex justify-center items-center mb-4">
+             <div className="flex justify-center items-center mb-2">
                <span className="inline-block bg-black/40 border-2 border-cyan-300 rounded-lg shadow-[0_0_16px_2px_rgba(34,211,238,0.3)] px-4 py-2">
                  <h1 className="text-2xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
                    APPRANK
@@ -255,7 +264,7 @@ export default function Home() {
             </form>
           </div>
           
-          <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#a64d79] w-full">
+          <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#2e3650] w-full">
             {favoriteApps.length > 0 && (
               <div className="sticky top-0 z-20 bg-[#23283a] py-2">
                 <div className="flex flex-col gap-2">
@@ -297,22 +306,33 @@ export default function Home() {
 
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
           <div className="flex w-full max-w-6xl mx-auto">
-            {["all", "games", "social", "utility", "finance"].map((category) => (
-              <button
-                key={category}
-                className={`flex-1 py-8 text-center font-sans tracking-wide uppercase focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 ${ filter === category ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]" : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"}`}
-                style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
-                onClick={() => setFilter(category)}
-              >
-                <span className="text-[10px] font-bold">{category}</span>
-              </button>
-            ))}
+            {["all", "games", "social", "utility", "finance"].map((category) => {
+              const IconComponent = categoryIcons[category];
+              return (
+                <button
+                  key={category}
+                  className={`flex-1 py-6 text-center font-sans tracking-wide uppercase focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 ${
+                    filter === category 
+                      ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]" 
+                      : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+                  }`}
+                  style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
+                  onClick={() => setFilter(category)}
+                >
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <IconComponent size={16} />
+                    <span className="text-[10px] font-bold">{category}</span>
+                  </div>
+                </button>
+              );
+            })}
              <button
               onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
-              className="flex-1 py-8 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
+              className="flex-1 py-6 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
             >
-              <div className="flex flex-col items-center justify-center">
+              <div className="flex flex-col items-center justify-center gap-1">
+                <FiGift size={16} />
                 <span className="text-[10px] font-bold animate-chessneon">Claim $CHESS</span>
               </div>
             </button>
