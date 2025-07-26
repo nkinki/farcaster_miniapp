@@ -30,33 +30,38 @@ async function main() {
     // Decide what to do based on the type
     if (notificationType === 'TOP_1_24H') {
       console.log("Executing TOP_1_24H logic...");
+      // JAVÍTÁS: s.rank_24h_change AS change
       const result = await pool.query(
-        `SELECT m.name, s.rank_24h_change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_24h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_24h_change DESC LIMIT 1`
+        `SELECT m.name, s.rank_24h_change AS change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_24h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_24h_change DESC LIMIT 1`
       );
       if (result.rows.length > 0) {
         const gainer = result.rows[0];
         notificationTitle = `Today's Top Gainer: ${gainer.name}!`;
+        // Most már a 'gainer.change' helyes lesz
         notificationBody = `It jumped (+${gainer.change}) spots on the toplist today. Check it out!`;
       }
     } else if (notificationType === 'TOP_1_72H') {
       console.log("Executing TOP_1_72H logic...");
+      // JAVÍTÁS: s.rank_72h_change AS change
       const result = await pool.query(
-        `SELECT m.name, s.rank_72h_change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_72h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_72h_change DESC LIMIT 1`
+        `SELECT m.name, s.rank_72h_change AS change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_72h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_72h_change DESC LIMIT 1`
       );
       if (result.rows.length > 0) {
         const rocket = result.rows[0];
         notificationTitle = `72-Hour Rocket: ${rocket.name}!`;
+        // Most már a 'rocket.change' helyes lesz
         notificationBody = `It's up (+${rocket.change}) spots in the last 3 days! See the new rankings.`;
       }
     } else if (notificationType === 'TOP_3_24H') {
       console.log("Executing TOP_3_24H logic...");
+      // JAVÍTÁS: s.rank_24h_change AS change
       const result = await pool.query(
-        `SELECT m.name, s.rank_24h_change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_24h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_24h_change DESC LIMIT 3`
+        `SELECT m.name, s.rank_24h_change AS change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_24h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_24h_change DESC LIMIT 3`
       );
       if (result.rows.length > 0) {
         notificationTitle = "Today's Top 3 Movers!";
         notificationBody = result.rows
-          .map((app, index) => `${index + 1}. ${app.name} (+${app.rank_24h_change})`)
+          .map((app, index) => `${index + 1}. ${app.name} (+${app.change})`)
           .join(' | ');
       }
     }
@@ -89,9 +94,7 @@ async function sendNotification(tokenRows: any[], title: string, body: string) {
         for (let i = 0; i < tokens.length; i += 100) {
             const batch = tokens.slice(i, i + 100);
             const notificationPayload = {
-                // Éles üzemben érdemes visszatérni a napi egyedi ID-hoz
-                // notificationId: `apprank-report-${new Date().toISOString().slice(0, 10)}`,
-                notificationId: `apprank-report-${new Date().toISOString()}`, // Teszteléshez maradjon egyedi
+                notificationId: `apprank-report-${new Date().toISOString()}`,
                 title,
                 body,
                 targetUrl: 'https://farc-nu.vercel.app',
