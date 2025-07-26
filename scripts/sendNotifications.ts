@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import fetch from 'node-fetch';
 
 async function sendNotifications() {
-  console.log("Szkript elindítva. Adatbázis-kapcsolat létrehozása...");
+  console.log("Script started. Creating database connection...");
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -11,18 +11,18 @@ async function sendNotifications() {
   });
 
   try {
-    // 1. LÉPÉS: Értesítendő felhasználók lekérdezése
-    console.log("Tokenek lekérdezése az adatbázisból...");
+    // STEP 1: Query for notification tokens
+    console.log("Querying tokens from the database...");
     const { rows: tokenRows } = await pool.query('SELECT token, url FROM notification_tokens');
     
     if (!tokenRows.length) {
-      console.log('Nincs token az adatbázisban. A szkript leáll.');
-      return; // A finally blokk le fog futni
+      console.log('No tokens found in the database. Script is stopping.');
+      return;
     }
-    console.log(`${tokenRows.length} db tokent találtam.`);
+    console.log(`Found ${tokenRows.length} token(s).`);
 
-    // 2. LÉPÉS: A nap nyertesének lekérdezése
-    console.log("A nap nyertesének lekérdezése...");
+    // STEP 2: Query for the winner of the latest day
+    console.log("Querying for the latest day's winner...");
     let gainer: { name: string; change: number } | null = null;
     
     const gainerResult = await pool.query(
@@ -31,7 +31,9 @@ async function sendNotifications() {
           s.rank_24h_change
         FROM miniapp_statistics AS s
         JOIN miniapps AS m ON s.miniapp_id = m.domain
-        WHERE s.rank_24h_change > 0 AND s.stat_date = CURRENT_DATE
+        WHERE 
+          s.rank_24h_change > 0 
+          AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics)
         ORDER BY s.rank_24h_change DESC
         LIMIT 1`
     );
@@ -39,23 +41,25 @@ async function sendNotifications() {
     if (gainerResult.rows.length > 0) {
       const winnerRow = gainerResult.rows[0];
       gainer = { name: winnerRow.name, change: winnerRow.rank_24h_change };
-      console.log(`A mai nyertes: ${gainer.name} (+${gainer.change})`);
+      console.log(`Latest winner: ${gainer.name} (+${gainer.change})`);
     } else {
-      console.log("Nem található mai nyertes (vagy nincs friss statisztika).");
+      console.log("No winner found in the latest statistics.");
     }
 
-    // 3. LÉPÉS: Az értesítés szövegének dinamikus összeállítása
-    console.log("Értesítési üzenet összeállítása...");
-    let notificationTitle = "Friss AppRank Toplista!";
-    let notificationBody = "Nézd meg a legfrissebb toplistát és a napi változásokat!";
+    // STEP 3: Compose the notification message dynamically
+    console.log("Composing notification message...");
+    // Default English messages
+    let notificationTitle = "Latest AppRank Report!";
+    let notificationBody = "Check out the newest toplist and today's changes!";
 
+    // If a winner was found, create a more exciting message
     if (gainer) {
-      notificationTitle = `Rakétázik a(z) ${gainer.name}!`;
-      notificationBody = `Ma (+${gainer.change}) helyet ugrott előre a toplistán! Nézd meg te is!`;
+      notificationTitle = `${gainer.name} is skyrocketing!`;
+      notificationBody = `It jumped (+${gainer.change}) spots on the toplist today! Check it out!`;
     }
     
-    // 4. LÉPÉS: Az értesítések kiküldése
-    console.log("Értesítések előkészítése a küldésre...");
+    // STEP 4: Prepare and send the notifications
+    console.log("Preparing notifications for dispatch...");
     const urlMap: { [url: string]: string[] } = {};
     for (const row of tokenRows) {
       if (!urlMap[row.url]) urlMap[row.url] = [];
@@ -74,23 +78,23 @@ async function sendNotifications() {
           tokens: batch
         };
         
-        console.log(`Értesítés küldése ${batch.length} tokenre a(z) ${url} címre...`);
+        console.log(`Sending notification to ${batch.length} token(s)...`);
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(notificationPayload)
         });
-        console.log(`Küldés befejezve. Válasz:`, await res.text());
+        console.log(`Dispatch complete. Response:`, await res.text());
       }
     }
   } catch (error) {
-    console.error("❌ Hiba történt a szkript futása közben:", error);
+    console.error("❌ An error occurred during script execution:", error);
   } finally {
-    // 5. LÉPÉS: Adatbázis-kapcsolat lezárása
-    console.log("Adatbázis-kapcsolat lezárása.");
+    // STEP 5: Close the database connection
+    console.log("Closing database connection.");
     await pool.end();
   }
 }
 
-// A szkript futtatása
+// Run the script
 sendNotifications();
