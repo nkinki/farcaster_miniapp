@@ -102,8 +102,14 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
             )}
         </div>
       </div>
-      <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }} className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-4 bg-transparent" title={isFavorite ? "Remove from favorites" : "Add to favorites"} style={{ fontSize: "1.35em", border: "none" }}>
-        {isFavorite ? "❤️" : "  "}
+      {/* FAVORIT SZÍVECSE GOMB */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+        className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-4 bg-transparent"
+        title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        style={{ fontSize: "1.35em", border: "none" }}
+      >
+        {isFavorite ? "❤️" : "🤍"}
       </button>
       <RankChanges app={app} />
     </div>
