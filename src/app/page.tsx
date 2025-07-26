@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { FiSearch, FiGrid, FiGamepad2, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
+import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
 import type React from "react"
 
 // Tipusok
@@ -34,7 +34,7 @@ type MiniappFromApi = Omit<Miniapp, 'id'>;
 // Ikonok definiálása
 const categoryIcons = {
   all: FiGrid,
-  games: FiGamepad2,
+  games: FiZap,        // FiGamepad2 helyett FiZap
   social: FiUsers,
   utility: FiSettings,
   finance: FiDollarSign,
