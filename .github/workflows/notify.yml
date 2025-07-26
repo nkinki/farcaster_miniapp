@@ -1,37 +1,58 @@
+# A munkafolyamat neve, ami megjelenik a GitHub Actions fülön
 name: Send Farcaster Notifications
 
+# Mikor fusson le ez a munkafolyamat
 on:
-  workflow_dispatch: # Manuális futtatáshoz
+  # Lehetővé teszi a manuális indítást a GitHub Actions felületéről
+  workflow_dispatch:
+  
+  # Időzített futtatás
   schedule:
-    - cron: '0 8 * * *' # Naponta 8:00 UTC
+    # Minden nap reggel 8:00-kor (UTC időzóna szerint)
+    - cron: '0 8 * * *'
 
+# A munkafolyamatban futtatandó feladatok (job-ok)
 jobs:
+  # Egyetlen feladatunk, a "notify"
   notify:
+    # A legfrissebb Ubuntu virtuális gépen fog futni
     runs-on: ubuntu-latest
+
+    # A feladat lépései
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      # 1. lépés: Letölti a repository kódját
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. lépés: Beállítja a Node.js környezetet
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # KRITIKUS MÓDOSÍTÁS: A Node.js verzió 22-re állítása
+          node-version: '22'
+          # Gyorsítótárazza az 'npm' függőségeket a gyorsabb futás érdekében
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-      - name: Force Node.js version
-        run: |
-          echo "Current Node.js version: $(node --version)"
-          echo "Current npm version: $(npm --version)"
-        shell: bash
-      - name: Clear npm cache
-        run: npm cache clean --force
-      - run: npm install
+
+      # 3. lépés: Telepíti a projekt függőségeit
+      - name: Install dependencies
+        run: npm install
+
+      # 4. lépés (Hibakeresés): Ellenőrzi, hogy a DATABASE_URL secret át lett-e adva
       - name: Debug DATABASE_URL
         run: |
-          echo "DATABASE_URL is set: ${{ vars.DATABASE_URL != '' }}"
-          echo "DATABASE_URL length: ${#DATABASE_URL}"
+          echo "DATABASE_URL is set: ${{ secrets.DATABASE_URL != '' }}"
         env:
-          DATABASE_URL: ${{ vars.DATABASE_URL }}
+          # A secret-et a GitHub repository beállításaiból olvassa ki
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # 5. lépés: Futtatja a tényleges értesítésküldő szkriptet
       - name: Run notification script
         run: npx tsx scripts/sendNotifications.ts
         env:
-          DATABASE_URL: ${{ vars.DATABASE_URL }}
-      - name: Notification completed
-        run: echo "Farcaster notification script completed successfully!"
+          # A szkript számára is elérhetővé teszi az adatbázis kapcsolati stringet
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # 6. lépés (Opcionális): Visszajelzés a sikeres futásról
+      - name: Notification job completed
+        run: echo "Farcaster notification script job finished."
