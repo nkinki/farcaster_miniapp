@@ -193,7 +193,7 @@ export default function Home() {
       {openMiniapp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[85vh] flex flex-col">
-            <div className="flex justify-between items-center mb-4 gap-2">
+            <div className="flex justify-between items-center mb-6 gap-2">
               <button
                 onClick={() => {
                   if (openMiniappIndex !== null) {
