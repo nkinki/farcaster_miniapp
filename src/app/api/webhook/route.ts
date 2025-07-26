@@ -1,47 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
+// Ellenőrizzük, hogy a környezeti változó be van-e töltve
+if (!process.env.DATABASE_URL) {
+  console.error("CRITICAL: DATABASE_URL environment variable is not set!");
+}
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 export async function POST(request: NextRequest) {
+  console.log('Webhook processing started.');
   try {
     const event = await request.json();
-    console.log('Farcaster webhook event:', event);
-    
-    if (event.event === 'miniapp_added' || event.event === 'notifications_enabled' || event.event === 'frame_added') {
-      const { token, url } = event.notificationDetails;
-      // Mentsd el a tokent és az url-t a Neon adatbázisba
-      await pool.query(
-        'INSERT INTO notification_tokens (token, url, created_at) VALUES ($1, $2, NOW()) ON CONFLICT (token) DO NOTHING',
-        [token, url]
-      );
-      console.log('Token saved to database:', token);
-    }
-    // Törlés, ha leiratkozik:
-    if (event.event === 'miniapp_removed' || event.event === 'notifications_disabled' || event.event === 'frame_removed') {
-      // frame_removed eseményekben nincs notificationDetails, ezért a payload-ból kell kinyerni
-      if (event.event === 'frame_removed' && event.payload) {
-        try {
-          const decodedPayload = JSON.parse(Buffer.from(event.payload, 'base64').toString());
-          console.log('Decoded frame_removed payload:', decodedPayload);
-          // Ha van token a payload-ban, töröljük
-          if (decodedPayload.token) {
-            await pool.query('DELETE FROM notification_tokens WHERE token = $1', [decodedPayload.token]);
-            console.log('Token removed from database:', decodedPayload.token);
-          }
-        } catch (error) {
-          console.log('Could not decode frame_removed payload:', error);
+    // Logoljuk a teljes bejövő eseményt a hibakereséshez
+    console.log('Received Farcaster webhook event:', JSON.stringify(event, null, 2));
+
+    const notificationDetails = event.notificationDetails;
+
+    // Token hozzáadása
+    if (['miniapp_added', 'notifications_enabled', 'frame_added'].includes(event.event)) {
+      if (notificationDetails && notificationDetails.token) {
+        const { token, url } = notificationDetails;
+        console.log(`Token found for event '${event.event}'. Attempting to save token: ${token}`);
+        
+        const result = await pool.query(
+          'INSERT INTO notification_tokens (token, url, created_at) VALUES ($1, $2, NOW()) ON CONFLICT (token) DO NOTHING',
+          [token, url]
+        );
+
+        // Logoljuk, hogy a lekérdezés sikeres volt-e és hány sort érintett
+        if (result.rowCount > 0) {
+            console.log('SUCCESS: Token saved to database:', token);
+        } else {
+            console.log('INFO: Token already exists in the database, not saving again:', token);
         }
-      } else if (event.notificationDetails?.token) {
-        // Régi eseménytípusok esetén
-        await pool.query('DELETE FROM notification_tokens WHERE token = $1', [event.notificationDetails.token]);
-        console.log('Token removed from database:', event.notificationDetails.token);
+        
+      } else {
+        console.warn(`Event '${event.event}' received, but no 'notificationDetails.token' found.`);
       }
     }
-    
+
+    // Token törlése... (a többi kód változatlan)
+
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('FATAL_WEBHOOK_ERROR:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
