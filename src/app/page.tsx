@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
+import type { IconType } from "react-icons";
 import type React from "react"
 
 // Tipusok
@@ -32,7 +33,7 @@ interface Miniapp {
 type MiniappFromApi = Omit<Miniapp, 'id'>;
 
 // Ikonok definiálása
-const categoryIcons: Record<string, React.ComponentType<any>> = {
+const categoryIcons: Record<string, IconType> = {
   all: FiGrid,
   games: FiZap,
   social: FiUsers,
@@ -102,7 +103,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
         </div>
       </div>
       <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }} className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-4 bg-transparent" title={isFavorite ? "Remove from favorites" : "Add to favorites"} style={{ fontSize: "1.35em", border: "none" }}>
-        {isFavorite ? "❤️" : "  "}
+        {isFavorite ? "❤️" : "🤍"}
       </button>
       <RankChanges app={app} />
     </div>
