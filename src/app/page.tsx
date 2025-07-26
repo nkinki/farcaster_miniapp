@@ -230,7 +230,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-1 pb-24 sm:px-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-0 pb-24 sm:px-4">
         <div className="max-w-6xl mx-auto">
           <header className="mb-6 text-center">
              <div className="flex justify-center items-center mb-2">
