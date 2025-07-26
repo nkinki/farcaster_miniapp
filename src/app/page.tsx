@@ -109,7 +109,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
         title={isFavorite ? "Remove from favorites" : "Add to favorites"}
         style={{ fontSize: "1.35em", border: "none" }}
       >
-        {isFavorite ? "❤️" : "🤍"}
+        {isFavorite ? "❤️" : "  "}
       </button>
       <RankChanges app={app} />
     </div>
@@ -295,18 +295,26 @@ export default function Home() {
             )}
             
             <div className="flex flex-col gap-2">
-              {nonFavoriteApps.map((app) => (
-                <MiniappCard
-                  key={app.id}
-                  app={app}
-                  isFavorite={false}
-                  onOpen={() => {
-                    const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
-                    setOpenMiniapp(app);
-                    setOpenMiniappIndex(idx);
-                  }}
-                  onToggleFavorite={() => toggleFavorite(app.domain)}
-                />
+              {nonFavoriteApps.map((app, index) => (
+                <React.Fragment key={app.id}>
+                  <MiniappCard
+                    app={app}
+                    isFavorite={false}
+                    onOpen={() => {
+                      const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
+                      setOpenMiniapp(app);
+                      setOpenMiniappIndex(idx);
+                    }}
+                    onToggleFavorite={() => toggleFavorite(app.domain)}
+                  />
+                  {(index + 1 === 50 || index + 1 === 100) && (
+                    <div className="flex items-center justify-center py-2">
+                      <div className="flex-1 h-px bg-gray-600"></div>
+                      <span className="px-4 text-xs text-gray-500 font-medium">Reward Cutoff</span>
+                      <div className="flex-1 h-px bg-gray-600"></div>
+                    </div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
           </div>
