@@ -202,7 +202,7 @@ export default function Home() {
     <>
       {openMiniapp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-[#a64d79] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[85vh] flex flex-col">
+          <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[85vh] flex flex-col">
             <div className="flex justify-between items-center mb-4 gap-2">
               <button
                 onClick={() => {
@@ -265,7 +265,7 @@ export default function Home() {
             </form>
           </div>
           
-          <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#2e3650] w-full">
+          <div className="relative bg-[#a64d79] rounded-2xl shadow-2xl p-1 border border-[#2e3650] w-full">
             {favoriteApps.length > 0 && (
               <div className="sticky top-0 z-20 bg-[#23283a] py-2">
                 <div className="flex flex-col gap-2">
