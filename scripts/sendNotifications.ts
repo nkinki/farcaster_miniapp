@@ -22,10 +22,6 @@ async function sendNotifications() {
   let gainer: { name: string; change: number } | null = null;
   
   try {
-    // JAVÍTOTT LEKÉRDEZÉS:
-    // Összekapcsoljuk a 'miniapp_statistics' (s) táblát a 'miniapps' (m) táblával
-    // a 'miniapp_id' kulcson keresztül, hogy hozzáférjünk a névhez.
-    // A 'stat_date = CURRENT_DATE' biztosítja, hogy csak a mai adatokat nézzük.
     const gainerResult = await pool.query(
       `SELECT
           m.name,
@@ -37,8 +33,8 @@ async function sendNotifications() {
         LIMIT 1`
     );
 
-    if (gainerResult.rows[0]) {
-      gainer = { name: gainerResult.rows[0].name, change: gainerResult.rows[0].rank_24h_change };
+    if (gainerResult.rows) {
+      gainer = { name: gainerResult.rows.name, change: gainerResult.rows.rank_24h_change };
       console.log(`A nap nyertese: ${gainer.name} (+${gainer.change})`);
     } else {
       console.log("Nem található mai nyertes (nincs pozitív 24h változás).");
@@ -58,7 +54,7 @@ async function sendNotifications() {
     notificationBody = `Ma (+${gainer.change}) helyet ugrott előre a toplistán! Nézd meg te is!`;
   }
   
-  // 4. LÉPÉS: Az értesítések kiküldése (változatlan)
+  // 4. LÉPÉS: Az értesítések kiküldése
   const urlMap: { [url: string]: string[] } = {};
   for (const row of tokenRows) {
     if (!urlMap[row.url]) urlMap[row.url] = [];
@@ -92,12 +88,5 @@ async function sendNotifications() {
   await pool.end();
 }
 
-sendNotifications().catch(console.error);```
-
-### A Legfontosabb Változások:
-
-1.  **Javított SQL Lekérdezés:** A szkript most már egyetlen, de komplexebb lekérdezést használ, ami helyesen `JOIN`-olja a két releváns táblát. Feltételeztem, hogy a `miniapps` táblában a `domain` oszlop az elsődleges kulcs, amihez a `miniapp_id` kapcsolódik. Ha ez más (pl. `id`), akkor az `ON s.miniapp_id = m.domain` részt kell módosítani.
-2.  **`stat_date = CURRENT_DATE`:** Hozzáadtam egy fontos feltételt a `WHERE` klauzulához, ami biztosítja, hogy a szkript mindig csak az **aktuális napra** vonatkozó statisztikákat vegye figyelembe. Ez megakadályozza, hogy egy esetleges adatbázis-frissítési hiba miatt régi adatokat küldjön ki.
-3.  **Egyszerűsítés:** A "nap vesztese" lekérdezést egyelőre kivettem, hogy a kód egyszerűbb és a fókusz a helyes `JOIN` műveleten legyen. A nap nyerteséről szóló értesítés sokkal motiválóbb.
-
-Most már ez a szkript pontosan azt fogja tenni, amit szeretnél: kikeresi a mai nap legnagyobb nyertesét, és erről küld egy informatív, dinamikus értesítést.
+// A szkript futtatása
+sendNotifications().catch(console.error);
