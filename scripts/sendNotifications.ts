@@ -31,8 +31,8 @@ async function sendNotifications() {
           m.name,
           s.rank_24h_change
         FROM miniapp_statistics AS s
-        -- CORRECT JOIN CONDITION:
-        JOIN miniapps AS m ON s.miniapp_id = m.miniapp_id 
+        -- CORRECT JOIN CONDITION: We join on miniapps table's 'id' column
+        JOIN miniapps AS m ON s.miniapp_id = m.id 
         WHERE 
           s.rank_24h_change > 0 
           AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics)
