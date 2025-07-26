@@ -1,0 +1,23 @@
+# .github/workflows/notify-24h-gainer.yml
+name: 'Notification: Daily Top Gainer (08:00 UTC)'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm install
+      - name: Run notification script for 24h gainer
+        run: npx tsx scripts/sendNotifications.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NOTIFICATION_TYPE: 'TOP_1_24H'

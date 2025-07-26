@@ -1,0 +1,23 @@
+# .github/workflows/notify-72h-rocket.yml
+name: 'Notification: 72h Rocket (14:00 UTC)'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 14 * * *'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm install
+      - name: Run notification script for 72h rocket
+        run: npx tsx scripts/sendNotifications.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NOTIFICATION_TYPE: 'TOP_1_72H'
