@@ -33,8 +33,12 @@ async function sendNotifications() {
         LIMIT 1`
     );
 
-    if (gainerResult.rows) {
-      gainer = { name: gainerResult.rows.name, change: gainerResult.rows.rank_24h_change };
+    // JAVÍTÁS ITT:
+    // Ellenőrizzük, hogy a 'rows' tömbnek van-e legalább egy eleme.
+    if (gainerResult.rows.length > 0) {
+      // Ha van, akkor az ELSŐ (nulladik) elemre hivatkozunk.
+      const winnerRow = gainerResult.rows[0];
+      gainer = { name: winnerRow.name, change: winnerRow.rank_24h_change };
       console.log(`A nap nyertese: ${gainer.name} (+${gainer.change})`);
     } else {
       console.log("Nem található mai nyertes (nincs pozitív 24h változás).");
