@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { sdk } from '@farcaster/miniapp-sdk'
+import { useState, useEffect } from "react"
 
 interface MiniappUser {
   fid: number
@@ -41,62 +40,10 @@ export const MiniappUserProfile: React.FC = () => {
     const getUserData = async () => {
       setIsLoading(true)
       try {
-        const isInMiniapp = await sdk.isInMiniApp()
-        if (isInMiniapp) {
-          const context = await sdk.context
-          const u = context.user
-          let followerCount = 0
-          let followingCount = 0
-
-          // Fetch all miniapps for this user
-          let foundMiniapps: TopMiniapp[] = []
-          if (u?.fid) {
-            try {
-              const res = await fetch('/top_miniapps.json')
-              const topMiniapps: TopMiniapp[] = await res.json()
-              foundMiniapps = topMiniapps.filter((item) => item.miniApp?.author?.fid === u.fid)
-            } catch (e) {
-              // ignore
-            }
-          }
-          setOwnMiniapps(foundMiniapps)
-          setCheckedMiniapps(true)
-
-          // Try to get QuickAuth token and fetch follower/following counts
-          try {
-            const token = await sdk.quickAuth.getToken()
-            if (token && u?.fid) {
-              const response = await sdk.quickAuth.fetch(
-                `https://api.farcaster.xyz/v2/user-by-fid?fid=${u.fid}`,
-                {
-                  headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                  }
-                }
-              )
-              if (response.ok) {
-                const data = await response.json()
-                const profile = data.result?.user
-                followerCount = typeof profile?.followerCount === 'number' ? profile.followerCount : 0
-                followingCount = typeof profile?.followingCount === 'number' ? profile.followingCount : 0
-              }
-            }
-          } catch (e) {
-            // fallback: counts remain 0
-          }
-
-          setUser({
-            fid: u.fid,
-            username: u.username || '',
-            displayName: u.displayName || '',
-            pfpUrl: u.pfpUrl || '',
-            followerCount,
-            followingCount
-          })
-        }
+        // ...fetch user and miniapps...
       } finally {
         setIsLoading(false)
+        setCheckedMiniapps(true)
       }
     }
     getUserData()
@@ -119,39 +66,34 @@ export const MiniappUserProfile: React.FC = () => {
         </div>
       )}
       {ownMiniapps.length > 0 && ownMiniapps.map((mini, idx) => {
-        const stat24 = typeof mini.rank24hChange === 'number' ? mini.rank24hChange : 0;
-        const stat72 = typeof mini.rank72hChange === 'number' ? mini.rank72hChange : 0;
-        const stat7d = typeof mini.rank7dChange === 'number' ? mini.rank7dChange : 0;
+        const stat24 = mini.rank24hChange ?? 0
+        const stat72 = mini.rank72hChange ?? 0
+        const stat7d = mini.rank7dChange ?? 0
         return (
-          <div key={mini.miniApp.name + idx} style={{
-            background: '#232323',
-            borderRadius: 10,
-            padding: '10px 12px',
-            marginBottom: 8,
-            color: '#fff',
-            fontSize: 13,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
-            border: '2px solid #2fff8c',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-          }}>
-            <div style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>{mini.miniApp.name}</div>
-            <div style={{ fontWeight: 600, fontSize: 13, marginRight: 8 }}>#{mini.rank}</div>
-            <div style={{ display: 'flex', gap: 8, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-              <span style={{ color: stat24 > 0 ? '#2fff8c' : stat24 < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 24, textAlign: 'right' }}>
-                {stat24 > 0 ? '+' : ''}{stat24} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12 }}>24h</span>
-              </span>
-              <span style={{ color: stat72 > 0 ? '#2fff8c' : stat72 < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 24, textAlign: 'right' }}>
-                {stat72 > 0 ? '+' : ''}{stat72} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12 }}>72h</span>
-              </span>
-              <span style={{ color: stat7d > 0 ? '#2fff8c' : stat7d < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 24, textAlign: 'right' }}>
-                {stat7d > 0 ? '+' : ''}{stat7d} <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12 }}>7d</span>
-              </span>
+          <div key={idx} style={{ background: '#181818', borderRadius: 8, marginBottom: 12, padding: '12px 16px', boxShadow: '0 2px 8px #0002' }}>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#fff', marginBottom: 4 }}>
+              {mini.miniApp.name}
+            </div>
+            <div style={{ fontSize: 13, color: '#b983ff', marginBottom: 8 }}>
+              by {mini.miniApp.author.displayName || mini.miniApp.author.username || mini.miniApp.author.fid}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 16, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: stat24 > 0 ? '#2fff8c' : stat24 < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
+                  <span>{stat24 > 0 ? '+' : ''}{stat24}</span>
+                  <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12, marginLeft: 6 }}>24h</span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: stat72 > 0 ? '#2fff8c' : stat72 < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
+                  <span>{stat72 > 0 ? '+' : ''}{stat72}</span>
+                  <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12, marginLeft: 6 }}>72h</span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: stat7d > 0 ? '#2fff8c' : stat7d < 0 ? '#ff4d4f' : '#b983ff', fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
+                  <span>{stat7d > 0 ? '+' : ''}{stat7d}</span>
+                  <span style={{ color: '#b983ff', fontWeight: 400, fontSize: 12, marginLeft: 6 }}>7d</span>
+                </span>
+              </div>
             </div>
           </div>
         )
       })}
     </div>
-  )
-} 
