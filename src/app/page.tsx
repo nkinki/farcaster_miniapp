@@ -50,7 +50,7 @@ function RankChanges({ app }: { app: Miniapp }) {
     const colorClass = change > 0 ? "text-green-400" : change < 0 ? "text-red-400" : "text-purple-300";
     const sign = change > 0 ? "+" : "";
     return (
-      <div className="flex gap-1 items-center justify-end w-full">
+      <div className="flex gap-2 items-center justify-end w-full">
         <span className={`font-semibold text-lg ${colorClass} w-6 text-right`}>{sign}{change}</span>
         <span className="text-sm text-purple-400">{label}</span>
       </div>
