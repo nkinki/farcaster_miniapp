@@ -27,7 +27,7 @@ async function main() {
     let notificationTitle = '';
     let notificationBody = '';
 
-    // Decide what to do based on the type
+    // Decide what to do based the type
     if (notificationType === 'TOP_1_24H') {
       console.log("Executing TOP_1_24H logic...");
       const result = await pool.query(
@@ -54,10 +54,25 @@ async function main() {
         `SELECT m.name, s.rank_24h_change AS change FROM miniapp_statistics s JOIN miniapps m ON s.miniapp_id = m.id WHERE s.rank_24h_change > 0 AND s.stat_date = (SELECT MAX(stat_date) FROM miniapp_statistics) ORDER BY s.rank_24h_change DESC LIMIT 3`
       );
       if (result.rows.length > 0) {
-        notificationTitle = "Today's Top 3 Movers!";
-        notificationBody = result.rows
-          .map((app, index) => `${index + 1}. ${app.name} (+${app.change})`)
-          .join(' | ');
+        // Three engaging notification variants for TOP_3_24H
+        const notificationVariants = [
+          {
+            title: `🔥 Top 3 Movers in 24 Hours!`,
+            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | See who's dominating!`
+          },
+          {
+            title: `🏆 24-Hour Ranking Stars!`,
+            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Check the leaderboard now!`
+          },
+          {
+            title: `🚀 Hottest Apps Today!`,
+            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Don’t miss the action!`
+          }
+        ];
+        // Randomly select one variant
+        const selectedVariant = notificationVariants[Math.floor(Math.random() * notificationVariants.length)];
+        notificationTitle = selectedVariant.title;
+        notificationBody = selectedVariant.body;
       }
     }
 
