@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp } from "react-icons/fi"
+import Image from "next/image"
 
 // Types
 interface PromoCast {
@@ -245,7 +246,7 @@ export default function PromotePage() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       {promo.author.pfpUrl && (
-                        <img src={promo.author.pfpUrl} alt="" className="w-10 h-10 rounded-full" />
+                        <Image src={promo.author.pfpUrl} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
                       )}
                       <div>
                         <div className="font-semibold text-white">@{promo.author.username}</div>
@@ -286,7 +287,7 @@ export default function PromotePage() {
                   
                   {promo.shareText && (
                     <div className="mt-3 p-2 bg-gray-800 rounded text-sm text-gray-300">
-                      "{promo.shareText}"
+                      &ldquo;{promo.shareText}&rdquo;
                     </div>
                   )}
                 </div>
@@ -303,4 +304,4 @@ export default function PromotePage() {
       </div>
     </div>
   )
-} 
+}
