@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp } from "react-icons/fi"
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -86,6 +86,7 @@ export default function PromotePage() {
   const [campaignBudget, setCampaignBudget] = useState(10000)
   const [promoCasts, setPromoCasts] = useState<PromoCast[]>(mockPromoCasts)
   const [isCreating, setIsCreating] = useState(false)
+  const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
     sdk.actions.ready()
@@ -122,6 +123,7 @@ export default function PromotePage() {
       setCastUrl("")
       setShareText("")
       setIsCreating(false)
+      setShowForm(false)
       
       // Use Mini App SDK composeCast instead of external URL
       if (shareText.trim()) {
@@ -165,9 +167,25 @@ export default function PromotePage() {
           <div className="w-24"></div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Create Promotion Form */}
-          <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
+        {/* Start Promo Campaign Button */}
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            aria-expanded={showForm}
+            aria-controls="promo-form"
+          >
+            <FiPlus size={20} />
+            Start Promo Campaign
+          </button>
+        </div>
+
+        {/* Animated Form */}
+        <div
+          id="promo-form"
+          className={`overflow-hidden transition-all duration-500 ${showForm ? "max-h-[1000px] opacity-100 mb-8" : "max-h-0 opacity-0 mb-0"}`}
+        >
+          <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] mb-8">
             <h2 className="text-xl font-bold text-white mb-6">Create New Promotion</h2>
             
             <div className="space-y-6">
@@ -250,70 +268,70 @@ export default function PromotePage() {
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Active Promotions List */}
-          <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
-            <h2 className="text-xl font-bold text-white mb-6">Active Promotions</h2>
+        {/* Active Promotions List */}
+        <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
+          <h2 className="text-xl font-bold text-white mb-6">Active Promotions</h2>
+          
+          <div className="space-y-4">
+            {sortedPromoCasts.map((promo) => (
+              <div key={promo.id} className="bg-[#181c23] rounded-xl p-4 border border-[#2e3650]">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {promo.author.pfpUrl && (
+                      <Image src={promo.author.pfpUrl} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
+                    )}
+                    <div>
+                      <div className="font-semibold text-white">@{promo.author.username}</div>
+                      <div className="text-sm text-gray-400">{promo.author.displayName}</div>
+                    </div>
+                  </div>
+                  <div className={`px-2 py-1 rounded text-xs font-medium ${
+                    promo.status === 'active' ? 'bg-green-600 text-white' :
+                    promo.status === 'paused' ? 'bg-yellow-600 text-white' :
+                    'bg-gray-600 text-white'
+                  }`}>
+                    {promo.status}
+                  </div>
+                </div>
+                
+                <div className="text-sm text-gray-300 mb-3 truncate">
+                  {promo.castUrl}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <FiShare2 className="text-purple-400" />
+                    <span className="text-white">{promo.sharesCount} shares</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiDollarSign className="text-green-400" />
+                    <span className="text-white">{promo.rewardPerShare} $CHESS</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiUsers className="text-blue-400" />
+                    <span className="text-white">{promo.remainingBudget} remaining</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiTrendingUp className="text-yellow-400" />
+                    <span className="text-white">{Math.round((promo.sharesCount / (promo.totalBudget / promo.rewardPerShare)) * 100)}%</span>
+                  </div>
+                </div>
+                
+                {promo.shareText && (
+                  <div className="mt-3 p-2 bg-gray-800 rounded text-sm text-gray-300">
+                    &ldquo;{promo.shareText}&rdquo;
+                  </div>
+                )}
+              </div>
+            ))}
             
-            <div className="space-y-4">
-              {sortedPromoCasts.map((promo) => (
-                <div key={promo.id} className="bg-[#181c23] rounded-xl p-4 border border-[#2e3650]">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {promo.author.pfpUrl && (
-                        <Image src={promo.author.pfpUrl} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
-                      )}
-                      <div>
-                        <div className="font-semibold text-white">@{promo.author.username}</div>
-                        <div className="text-sm text-gray-400">{promo.author.displayName}</div>
-                      </div>
-                    </div>
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${
-                      promo.status === 'active' ? 'bg-green-600 text-white' :
-                      promo.status === 'paused' ? 'bg-yellow-600 text-white' :
-                      'bg-gray-600 text-white'
-                    }`}>
-                      {promo.status}
-                    </div>
-                  </div>
-                  
-                  <div className="text-sm text-gray-300 mb-3 truncate">
-                    {promo.castUrl}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <FiShare2 className="text-purple-400" />
-                      <span className="text-white">{promo.sharesCount} shares</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FiDollarSign className="text-green-400" />
-                      <span className="text-white">{promo.rewardPerShare} $CHESS</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FiUsers className="text-blue-400" />
-                      <span className="text-white">{promo.remainingBudget} remaining</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FiTrendingUp className="text-yellow-400" />
-                      <span className="text-white">{Math.round((promo.sharesCount / (promo.totalBudget / promo.rewardPerShare)) * 100)}%</span>
-                    </div>
-                  </div>
-                  
-                  {promo.shareText && (
-                    <div className="mt-3 p-2 bg-gray-800 rounded text-sm text-gray-300">
-                      &ldquo;{promo.shareText}&rdquo;
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {sortedPromoCasts.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
-                  No active promotions yet
-                </div>
-              )}
-            </div>
+            {sortedPromoCasts.length === 0 && (
+              <div className="text-center py-8 text-gray-400">
+                No active promotions yet
+              </div>
+            )}
           </div>
         </div>
       </div>
