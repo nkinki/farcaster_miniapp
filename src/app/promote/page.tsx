@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { useAccount } from '@farcaster/auth-kit'
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
@@ -81,7 +80,14 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  const { account, isConnected } = useAccount()
+  // Mock user data for now - AuthKit will be added later
+  const mockUser = {
+    fid: 1234,
+    username: "user",
+    displayName: "Current User"
+  }
+  const isConnected = true
+  
   const [castUrl, setCastUrl] = useState("")
   const [rewardPerShare, setRewardPerShare] = useState(1000)
   const [shareText, setShareText] = useState("")
@@ -100,7 +106,7 @@ export default function PromotePage() {
       return
     }
 
-    if (!isConnected || !account) {
+    if (!isConnected) {
       alert("Please connect your Farcaster account first")
       return
     }
@@ -113,9 +119,9 @@ export default function PromotePage() {
         id: Date.now().toString(),
         castUrl: castUrl,
         author: {
-          fid: account.fid || 9999,
-          username: account.username || "user",
-          displayName: account.displayName || "Current User",
+          fid: mockUser.fid,
+          username: mockUser.username,
+          displayName: mockUser.displayName,
         },
         rewardPerShare: rewardPerShare,
         totalBudget: campaignBudget,
