@@ -5,7 +5,6 @@ import { sdk } from "@farcaster/frame-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
-import { useAccount } from "wagmi"
 
 // Types
 interface PromoCast {
@@ -81,7 +80,13 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  const { address, isConnected } = useAccount()
+  // Mock user data for now
+  const mockUser = {
+    fid: 1234,
+    username: "user",
+    displayName: "Current User"
+  }
+  const isConnected = true
   
   const [castUrl, setCastUrl] = useState("")
   const [rewardPerShare, setRewardPerShare] = useState(1000)
@@ -114,9 +119,9 @@ export default function PromotePage() {
         id: Date.now().toString(),
         castUrl: castUrl,
         author: {
-          fid: 9999,
-          username: "user",
-          displayName: "Current User",
+          fid: mockUser.fid,
+          username: mockUser.username,
+          displayName: mockUser.displayName,
         },
         rewardPerShare: rewardPerShare,
         totalBudget: campaignBudget,
