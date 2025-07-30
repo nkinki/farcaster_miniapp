@@ -5,6 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
 import type { IconType } from "react-icons";
 import React from "react"
+import Link from "next/link"
 
 // Tipusok
 interface Miniapp {
@@ -319,13 +320,13 @@ export default function Home() {
             </div>
           </div>
 
+          {/* BELSŐ NAVIGÁCIÓ GOMB */}
           <div className="mt-8 text-center">
-            <button
-              onClick={() => sdk.actions.openUrl(`${window.location.origin}/promote`)}
-              className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              🚀 Create Promotion
-            </button>
+            <Link href="/promote" className="inline-block">
+              <span className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+                🚀 Create Promotion
+              </span>
+            </Link>
           </div>
         </div>
 
