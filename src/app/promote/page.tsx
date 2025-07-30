@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { sdk } from "@farcaster/miniapp-sdk"
+import { sdk } from "@farcaster/frame-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
+import { useAccount } from "wagmi"
 
 // Types
 interface PromoCast {
@@ -80,13 +81,7 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  // Mock user data for now - AuthKit will be added later
-  const mockUser = {
-    fid: 1234,
-    username: "user",
-    displayName: "Current User"
-  }
-  const isConnected = true
+  const { address, isConnected } = useAccount()
   
   const [castUrl, setCastUrl] = useState("")
   const [rewardPerShare, setRewardPerShare] = useState(1000)
@@ -107,7 +102,7 @@ export default function PromotePage() {
     }
 
     if (!isConnected) {
-      alert("Please connect your Farcaster account first")
+      alert("Please connect your wallet first")
       return
     }
 
@@ -119,9 +114,9 @@ export default function PromotePage() {
         id: Date.now().toString(),
         castUrl: castUrl,
         author: {
-          fid: mockUser.fid,
-          username: mockUser.username,
-          displayName: mockUser.displayName,
+          fid: 9999,
+          username: "user",
+          displayName: "Current User",
         },
         rewardPerShare: rewardPerShare,
         totalBudget: campaignBudget,
@@ -138,7 +133,7 @@ export default function PromotePage() {
       setIsCreating(false)
       setShowForm(false)
       
-      // Use Mini App SDK composeCast instead of external URL
+      // Use Frame SDK composeCast instead of external URL
       if (shareText.trim()) {
         sdk.actions.composeCast({
           text: shareText,
