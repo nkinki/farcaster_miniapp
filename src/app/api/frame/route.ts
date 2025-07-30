@@ -6,7 +6,13 @@ export async function POST(request: NextRequest) {
     const { trustedData } = body;
     
     // User authentication ellenőrzés
-    let userData: any = null;
+    interface UserData {
+      fid: number;
+      username: string;
+      displayName: string;
+    }
+    
+    let userData: UserData | null = null;
     if (trustedData?.messageBytes) {
       // Farcaster user adatok kinyerése (mock implementation)
       userData = {
@@ -60,4 +66,4 @@ export async function GET() {
     ],
     postUrl: 'https://farcaster-miniapp-rangsor.vercel.app/api/frame',
   });
-} 
+}
