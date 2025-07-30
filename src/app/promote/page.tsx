@@ -259,10 +259,10 @@ export default function PromotePage() {
               {sortedPromoCasts.map((promo) => (
                 <div key={promo.id} className="bg-[#181c23] rounded-xl p-4 border border-[#2e3650]">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {promo.author.pfpUrl && (
-                        <Image src={promo.author.pfpUrl} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
-                      )}
+                                         <div className="flex items-center gap-3">
+                       {promo.author.pfpUrl && (
+                         <Image src={promo.author.pfpUrl} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
+                       )}
                       <div>
                         <div className="font-semibold text-white">@{promo.author.username}</div>
                         <div className="text-sm text-gray-400">{promo.author.displayName}</div>
@@ -300,11 +300,11 @@ export default function PromotePage() {
                     </div>
                   </div>
                   
-                  {promo.shareText && (
-                    <div className="mt-3 p-2 bg-gray-800 rounded text-sm text-gray-300">
-                      &ldquo;{promo.shareText}&rdquo;
-                    </div>
-                  )}
+                                     {promo.shareText && (
+                     <div className="mt-3 p-2 bg-gray-800 rounded text-sm text-gray-300">
+                       &ldquo;{promo.shareText}&rdquo;
+                     </div>
+                   )}
                 </div>
               ))}
               
@@ -318,4 +318,5 @@ export default function PromotePage() {
         </div>
       </div>
     </div>
- 
+  )
+} 
