@@ -109,7 +109,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
         title={isFavorite ? "Remove from favorites" : "Add to favorites"}
         style={{ fontSize: "1.35em", border: "none" }}
       >
-        {isFavorite ? "❤️" : "🤍"}
+        {isFavorite ? "❤️" : "  "}
       </button>
       <RankChanges app={app} />
     </div>
@@ -317,6 +317,15 @@ export default function Home() {
                 </React.Fragment>
               ))}
             </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => sdk.actions.openUrl(`${window.location.origin}/promote`)}
+              className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              🚀 Create Promotion
+            </button>
           </div>
         </div>
 
