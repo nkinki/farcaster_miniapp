@@ -164,7 +164,7 @@ export default function PromotePage() {
             Back
           </Link>
           <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
-            CAST PROMOTION
+            PROMOTION
           </h1>
           <div className="w-24"></div>
         </div>
