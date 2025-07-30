@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp } from "react-icons/fi"
 import Image from "next/image"
+import Link from "next/link"
 
 // Types
 interface PromoCast {
@@ -121,6 +122,20 @@ export default function PromotePage() {
       setCastUrl("")
       setShareText("")
       setIsCreating(false)
+      
+      // Use Mini App SDK composeCast instead of external URL
+      if (shareText.trim()) {
+        sdk.actions.composeCast({
+          text: shareText,
+          embeds: [castUrl]
+        })
+      } else {
+        sdk.actions.composeCast({
+          text: `Check out this cast!`,
+          embeds: [castUrl]
+        })
+      }
+      
       alert("Campaign created successfully!")
     }, 1000)
   }
@@ -139,13 +154,13 @@ export default function PromotePage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => sdk.actions.openUrl(`${window.location.origin}/`)}
+          <Link
+            href="/"
             className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition"
           >
             <FiArrowLeft size={16} />
             Back to AppRank
-          </button>
+          </Link>
           <h1 className="text-3xl font-bold text-white">Cast Promotion</h1>
           <div className="w-24"></div>
         </div>
