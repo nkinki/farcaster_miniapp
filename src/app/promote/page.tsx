@@ -142,6 +142,17 @@ export default function PromotePage() {
     }, 1000)
   }
 
+  const handleSharePromo = (promo: PromoCast) => {
+    const shareMessage = promo.shareText 
+      ? promo.shareText 
+      : `Check out this promotion! ${promo.rewardPerShare} $CHESS reward per share!`;
+    
+    sdk.actions.composeCast({
+      text: shareMessage,
+      embeds: [promo.castUrl]
+    });
+  }
+
   const sortedPromoCasts = [...promoCasts].sort((a, b) => {
     // First sort by shares (higher first)
     if (b.sharesCount !== a.sharesCount) {
@@ -150,6 +161,11 @@ export default function PromotePage() {
     // Then by $CHESS value (lower first)
     return a.rewardPerShare - b.rewardPerShare
   })
+
+  const calculateProgress = (promo: PromoCast) => {
+    const maxShares = promo.totalBudget / promo.rewardPerShare;
+    return Math.min((promo.sharesCount / maxShares) * 100, 100);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6">
@@ -289,12 +305,21 @@ export default function PromotePage() {
                       <div className="text-sm text-gray-400">{promo.author.displayName}</div>
                     </div>
                   </div>
-                  <div className={`px-2 py-1 rounded text-xs font-medium ${
-                    promo.status === 'active' ? 'bg-green-600 text-white' :
-                    promo.status === 'paused' ? 'bg-yellow-600 text-white' :
-                    'bg-gray-600 text-white'
-                  }`}>
-                    {promo.status}
+                  <div className="flex items-center gap-2">
+                    <div className={`px-2 py-1 rounded text-xs font-medium ${
+                      promo.status === 'active' ? 'bg-green-600 text-white' :
+                      promo.status === 'paused' ? 'bg-yellow-600 text-white' :
+                      'bg-gray-600 text-white'
+                    }`}>
+                      {promo.status}
+                    </div>
+                    <button
+                      onClick={() => handleSharePromo(promo)}
+                      className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm transition-colors flex items-center gap-1"
+                    >
+                      <FiShare2 size={12} />
+                      Share
+                    </button>
                   </div>
                 </div>
                 
@@ -302,7 +327,7 @@ export default function PromotePage() {
                   {promo.castUrl}
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                   <div className="flex items-center gap-2">
                     <FiShare2 className="text-purple-400" />
                     <span className="text-white">{promo.sharesCount} shares</span>
@@ -317,7 +342,21 @@ export default function PromotePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <FiTrendingUp className="text-yellow-400" />
-                    <span className="text-white">{Math.round((promo.sharesCount / (promo.totalBudget / promo.rewardPerShare)) * 100)}%</span>
+                    <span className="text-white">{Math.round(calculateProgress(promo))}%</span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                    <span>Progress</span>
+                    <span>{promo.sharesCount} / {Math.floor(promo.totalBudget / promo.rewardPerShare)} shares</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${calculateProgress(promo)}%` }}
+                    ></div>
                   </div>
                 </div>
                 
