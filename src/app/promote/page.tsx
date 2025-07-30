@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { useFarcasterAccount } from '@farcaster/auth-kit'
+import { useAccount } from '@farcaster/auth-kit'
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
@@ -81,7 +81,7 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  const { account, isConnected } = useFarcasterAccount()
+  const { account, isConnected } = useAccount()
   const [castUrl, setCastUrl] = useState("")
   const [rewardPerShare, setRewardPerShare] = useState(1000)
   const [shareText, setShareText] = useState("")
