@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
-import { FiUser, FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 
 interface UserProfileProps {
   onLogout?: () => void;
@@ -71,7 +71,6 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
     return (
       <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
         <div className="text-center text-gray-400">
-          <FiUser size={48} className="mx-auto mb-4 text-gray-600" />
           <p>Loading profile...</p>
         </div>
       </div>
@@ -86,9 +85,6 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
-            <FiUser size={20} className="text-white" />
-          </div>
           
           <div>
             <h3 className="text-lg font-semibold text-white">
@@ -133,7 +129,6 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
             
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <FiUser className="text-purple-400" />
                 <span className="text-white font-semibold">0</span>
               </div>
               <p className="text-xs text-gray-400">Total Shares</p>
