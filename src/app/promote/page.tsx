@@ -426,10 +426,10 @@ export default function PromotePage() {
 Tables: ${data.tables.join(', ')}
 
 Users table columns:
-${data.users_table_structure.map((col: any) => `- ${col.column_name} (${col.data_type})`).join('\n')}
+${data.users_table_structure.map((col: { column_name: string; data_type: string }) => `- ${col.column_name} (${col.data_type})`).join('\n')}
 
 Promotions table columns:
-${data.promotions_table_structure.map((col: any) => `- ${col.column_name} (${col.data_type})`).join('\n')}
+${data.promotions_table_structure.map((col: { column_name: string; data_type: string }) => `- ${col.column_name} (${col.data_type})`).join('\n')}
                   `.trim();
                   alert(message);
                 } else {
