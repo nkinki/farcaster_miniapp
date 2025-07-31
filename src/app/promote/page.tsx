@@ -229,8 +229,12 @@ export default function PromotePage() {
         })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Success response:', data);
         const newPromo = convertDbToPromoCast(data.promotion);
         
         setPromoCasts(prev => [newPromo, ...prev]);
@@ -250,11 +254,12 @@ export default function PromotePage() {
         alert("Campaign created successfully!")
       } else {
         const errorData = await response.json();
-        alert(`Failed to create campaign: ${errorData.error}`)
+        console.error('API Error:', errorData);
+        alert(`Failed to create campaign: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Error creating campaign:', error);
-      alert('Failed to create campaign. Please try again.')
+      console.error('Network Error creating campaign:', error);
+      alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsCreating(false);
     }
@@ -369,8 +374,25 @@ export default function PromotePage() {
           />
         </div>
 
-        {/* Create Campaign Button */}
-        <div className="flex justify-center mb-8">
+        {/* Test Database Connection */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/test-db');
+                const data = await response.json();
+                console.log('Database test result:', data);
+                alert(data.status === 'success' ? 'Database connection working!' : `Database error: ${data.error}`);
+              } catch (error) {
+                console.error('Test failed:', error);
+                alert('Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+              }
+            }}
+            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          >
+            Test DB Connection
+          </button>
+          
           <button
             onClick={async () => {
               setShowForm((v) => !v);
