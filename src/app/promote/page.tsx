@@ -568,68 +568,7 @@ export default function PromotePage() {
         </div>
 
         {/* Start Promo Campaign Button */}
-        <div className="flex justify-center gap-4 mb-8">
-          <button
-            onClick={async () => {
-              try {
-                const response = await fetch('/api/check-shares');
-                const data = await response.json();
-                console.log('Shares check:', data);
-                
-                if (data.status === 'success') {
-                  const message = `
-Shares table columns:
-${data.shares_table_structure.map((col: { column_name: string; data_type: string }) => `- ${col.column_name} (${col.data_type})`).join('\n')}
-
-Total shares: ${data.total_shares}
-
-Recent shares:
-${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; shared_at: string }) => `- FID: ${share.sharer_fid}, Campaign: ${share.promotion_id}, Date: ${share.shared_at}`).join('\n')}
-                  `.trim();
-                  alert(message);
-                } else {
-                  alert(`Check failed: ${data.error}`);
-                }
-              } catch (error) {
-                console.error('Check failed:', error);
-                alert('Check failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-              }
-            }}
-            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
-          >
-            Check Shares
-          </button>
-          
-          <button
-            onClick={async () => {
-              if (isAuthenticated && currentUser.fid) {
-                try {
-                  const response = await fetch(`/api/users?fid=${currentUser.fid}`);
-                  const data = await response.json();
-                  console.log('User stats:', data);
-                  
-                  if (data.user) {
-                    alert(`
-User Stats:
-- Total Earnings: ${data.user.total_earnings || 0} $CHESS
-- Total Shares: ${data.user.total_shares || 0}
-- Pending Claims: ${data.user.total_earnings || 0} $CHESS
-                    `.trim());
-                  } else {
-                    alert('No user data found');
-                  }
-                } catch (error) {
-                  console.error('User stats check failed:', error);
-                  alert('User stats check failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-                }
-              } else {
-                alert('User not authenticated');
-              }
-            }}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-          >
-            Check User Stats
-          </button>
+        <div className="flex justify-center mb-8">
           
           <button
             onClick={async () => {
