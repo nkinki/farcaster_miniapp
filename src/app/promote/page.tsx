@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { sdk } from "@farcaster/frame-sdk"
+import { sdk } from "@farcaster/miniapp-sdk"
 import { useProfile, useSignIn } from '@farcaster/auth-kit'
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
