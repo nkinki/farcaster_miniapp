@@ -106,6 +106,7 @@ export default function PromotePage() {
   // Database state
   const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
   const [loading, setLoading] = useState(true)
+  const [sharingPromoId, setSharingPromoId] = useState<string | null>(null)
 
   useEffect(() => {
     // Check haptics support
@@ -325,17 +326,27 @@ export default function PromotePage() {
       return;
     }
 
+    setSharingPromoId(promo.id);
+    
     try {
       // Create share text
       const shareText = promo.shareText || `Check out this amazing post! ${promo.castUrl}`;
       
       // Use Farcaster SDK to compose cast
-      await sdk.actions.composeCast({
+      const castResult = await sdk.actions.composeCast({
         text: shareText,
         embeds: [promo.castUrl]
       });
 
-      // Record share in database
+      // Check if cast was actually published (not cancelled)
+      if (!castResult || !castResult.cast) {
+        console.log('Cast was cancelled or failed:', castResult);
+        return; // Don't record share if cast was cancelled
+      }
+
+      console.log('Cast published successfully:', castResult);
+
+      // Record share in database only after successful cast
       const response = await fetch('/api/shares', {
         method: 'POST',
         headers: {
@@ -379,7 +390,13 @@ export default function PromotePage() {
       }
     } catch (error) {
       console.error('Error sharing promo:', error);
+      if (error instanceof Error && error.message.includes('cancelled')) {
+        console.log('User cancelled the cast');
+        return; // Don't show error for user cancellation
+      }
       alert(`Share failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setSharingPromoId(null);
     }
   }
 
@@ -618,10 +635,20 @@ export default function PromotePage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleSharePromo(promo)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
+                    disabled={sharingPromoId === promo.id}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <FiShare2 size={16} />
-                    Share & Earn {promo.rewardPerShare} $CHESS
+                    {sharingPromoId === promo.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Sharing...
+                      </>
+                    ) : (
+                      <>
+                        <FiShare2 size={16} />
+                        Share & Earn {promo.rewardPerShare} $CHESS
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
