@@ -37,6 +37,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user can share this promotion (48h limit)
+    const canShare = await db.canUserSharePromotion(sharerFid, promotionId, 48);
+    if (!canShare) {
+      return NextResponse.json(
+        { error: 'You can only share this campaign once every 48 hours' },
+        { status: 429 }
+      );
+    }
+
     // Create share
     const share = await db.createShare({
       promotionId,

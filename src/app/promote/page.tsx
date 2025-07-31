@@ -383,6 +383,10 @@ export default function PromotePage() {
         }
         
         alert(`Successfully shared! You earned ${promo.rewardPerShare} $CHESS!`);
+      } else if (response.status === 429) {
+        const errorData = await response.json();
+        console.error('Share limit reached:', errorData);
+        alert(errorData.error);
       } else {
         const errorData = await response.json();
         console.error('Share failed:', errorData);
@@ -635,13 +639,24 @@ export default function PromotePage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleSharePromo(promo)}
-                    disabled={sharingPromoId === promo.id}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={sharingPromoId === promo.id || promo.author.fid === currentUser.fid}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 ${
+                      promo.author.fid === currentUser.fid
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        : sharingPromoId === promo.id
+                        ? 'bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                    }`}
                   >
                     {sharingPromoId === promo.id ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         Sharing...
+                      </>
+                    ) : promo.author.fid === currentUser.fid ? (
+                      <>
+                        <FiShare2 size={16} />
+                        Your Campaign
                       </>
                     ) : (
                       <>

@@ -158,6 +158,27 @@ export const db = {
     return result.rows;
   },
 
+  async canUserSharePromotion(sharerFid: number, promotionId: number, hoursLimit: number = 48) {
+    const query = `
+      SELECT last_shared_at 
+      FROM shares 
+      WHERE sharer_fid = $1 AND promotion_id = $2
+      ORDER BY last_shared_at DESC 
+      LIMIT 1
+    `;
+    const result = await pool.query(query, [sharerFid, promotionId]);
+    
+    if (result.rows.length === 0) {
+      return true; // User has never shared this promotion
+    }
+    
+    const lastSharedAt = new Date(result.rows[0].last_shared_at);
+    const now = new Date();
+    const hoursSinceLastShare = (now.getTime() - lastSharedAt.getTime()) / (1000 * 60 * 60);
+    
+    return hoursSinceLastShare >= hoursLimit;
+  },
+
   // Users
   async createOrUpdateUser(data: {
     fid: number;
