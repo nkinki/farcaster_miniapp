@@ -467,6 +467,17 @@ export default function PromotePage() {
     }
   }, [promoCasts, isAuthenticated, currentUser.fid]);
 
+  // Auto-refresh timers every minute
+  useEffect(() => {
+    if (isAuthenticated && currentUser.fid && promoCasts.length > 0) {
+      const interval = setInterval(() => {
+        fetchShareTimers();
+      }, 60000); // Refresh every minute
+
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, currentUser.fid, promoCasts.length]);
+
   // Auto-fill cast URL if coming from cast context
   useEffect(() => {
     if (context?.location?.type === 'cast_embed' && context.location.cast?.embeds?.[0]) {
@@ -738,12 +749,18 @@ ${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; sha
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleSharePromo(promo)}
-                    disabled={sharingPromoId === promo.id || promo.author.fid === currentUser.fid}
+                    disabled={
+                      sharingPromoId === promo.id || 
+                      promo.author.fid === currentUser.fid ||
+                      (shareTimers[promo.id] && !shareTimers[promo.id].canShare)
+                    }
                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 ${
                       promo.author.fid === currentUser.fid
                         ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         : sharingPromoId === promo.id
                         ? 'bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                        : shareTimers[promo.id] && !shareTimers[promo.id].canShare
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
                     }`}
                   >
@@ -756,6 +773,11 @@ ${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; sha
                       <>
                         <FiShare2 size={16} />
                         Your Campaign
+                      </>
+                    ) : shareTimers[promo.id] && !shareTimers[promo.id].canShare ? (
+                      <>
+                        <FiShare2 size={16} />
+                        {formatTimeRemaining(shareTimers[promo.id].timeRemaining)}
                       </>
                     ) : (
                       <>
