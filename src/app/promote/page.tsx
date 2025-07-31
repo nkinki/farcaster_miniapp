@@ -6,7 +6,6 @@ import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } fr
 import Image from "next/image"
 import Link from "next/link"
 import UserProfile from "@/components/UserProfile"
-import ConnectButton from "@/components/ConnectButton"
 
 // Types
 interface PromoCast {
@@ -193,16 +192,7 @@ export default function PromotePage() {
 
         {/* User Profile */}
         <div className="mb-8">
-          {isAuthenticated ? (
-            <UserProfile />
-          ) : (
-            <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-white mb-4">Connect to Start Promoting</h2>
-                <ConnectButton />
-              </div>
-            </div>
-          )}
+          <UserProfile />
         </div>
 
         {/* Create Campaign Button */}

@@ -18,7 +18,7 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
       <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
         <div className="text-center text-gray-400">
           <FiUser size={48} className="mx-auto mb-4 text-gray-600" />
-          <p>Please connect your Farcaster account</p>
+          <p>Loading profile...</p>
         </div>
       </div>
     )
