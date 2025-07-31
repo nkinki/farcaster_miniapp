@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
-import { FiUser, FiDollarSign, FiTrendingUp, FiLogOut } from 'react-icons/fi'
+import { FiUser, FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 import Image from 'next/image'
 
 interface UserProfileProps {
@@ -23,6 +23,7 @@ interface FarcasterContext {
 export default function UserProfile({ onLogout }: UserProfileProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
+  const [isExpanded, setIsExpanded] = useState(false)
   
   useEffect(() => {
     // Get Farcaster user context
@@ -49,11 +50,6 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
       setProfile(null)
     })
   }, [])
-  
-  const signOut = () => {
-    console.log('Sign out - this would close the mini app in Farcaster environment')
-    onLogout?.()
-  }
 
   if (!isAuthenticated || !profile) {
     return (
@@ -66,82 +62,87 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
     )
   }
 
-  const handleLogout = () => {
-    signOut()
-    onLogout?.()
-  }
-
   return (
-    <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">Profile</h2>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm"
-        >
-          <FiLogOut size={14} />
-          Logout
-        </button>
-      </div>
-
-      <div className="flex items-center gap-4 mb-6">
-        {profile.pfp ? (
-          <Image 
-            src={profile.pfp} 
-            alt="Profile" 
-            width={64} 
-            height={64} 
-            className="w-16 h-16 rounded-full border-2 border-purple-500"
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center">
-            <FiUser size={24} className="text-white" />
-          </div>
-        )}
-        
-        <div>
-          <h3 className="text-lg font-semibold text-white">
-            {profile.displayName || 'Unknown User'}
-          </h3>
-          <p className="text-purple-300">@{profile.username}</p>
-          <p className="text-sm text-gray-400">FID: {profile.fid}</p>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="text-center p-3 bg-[#181c23] rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiDollarSign className="text-green-400" />
-            <span className="text-white font-semibold">0</span>
-          </div>
-          <p className="text-xs text-gray-400">Total Earnings</p>
-        </div>
-        
-        <div className="text-center p-3 bg-[#181c23] rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiTrendingUp className="text-blue-400" />
-            <span className="text-white font-semibold">0</span>
-          </div>
-          <p className="text-xs text-gray-400">Pending Claims</p>
-        </div>
-        
-        <div className="text-center p-3 bg-[#181c23] rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiUser className="text-purple-400" />
-            <span className="text-white font-semibold">0</span>
-          </div>
-          <p className="text-xs text-gray-400">Total Shares</p>
-        </div>
-      </div>
-
-      {/* Claim Button */}
-      <button
-        className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={true} // Will be enabled when there are pending claims
+    <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
+      {/* Header - Always visible */}
+      <div 
+        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[#2a2f42] transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
       >
-        Claim All Earnings (0 $CHESS)
-      </button>
+        <div className="flex items-center gap-4">
+          {profile.pfp ? (
+            <Image 
+              src={profile.pfp} 
+              alt="Profile" 
+              width={48} 
+              height={48} 
+              className="w-12 h-12 rounded-full border-2 border-purple-500"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
+              <FiUser size={20} className="text-white" />
+            </div>
+          )}
+          
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              {profile.displayName || 'Unknown User'}
+            </h3>
+            <p className="text-purple-300 text-sm">@{profile.username}</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400">FID: {profile.fid}</span>
+          {isExpanded ? (
+            <FiChevronUp size={20} className="text-purple-400" />
+          ) : (
+            <FiChevronDown size={20} className="text-purple-400" />
+          )}
+        </div>
+      </div>
+
+      {/* Expandable Content */}
+      <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+        isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+      }`}>
+        <div className="px-6 pb-6">
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="text-center p-3 bg-[#181c23] rounded-lg">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <FiDollarSign className="text-green-400" />
+                <span className="text-white font-semibold">0</span>
+              </div>
+              <p className="text-xs text-gray-400">Total Earnings</p>
+            </div>
+            
+            <div className="text-center p-3 bg-[#181c23] rounded-lg">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <FiTrendingUp className="text-blue-400" />
+                <span className="text-white font-semibold">0</span>
+              </div>
+              <p className="text-xs text-gray-400">Pending Claims</p>
+            </div>
+            
+            <div className="text-center p-3 bg-[#181c23] rounded-lg">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <FiUser className="text-purple-400" />
+                <span className="text-white font-semibold">0</span>
+              </div>
+              <p className="text-xs text-gray-400">Total Shares</p>
+            </div>
+          </div>
+
+          {/* Claim Button */}
+          <button
+            className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={true} // Will be enabled when there are pending claims
+          >
+            Claim All Earnings (0 $CHESS)
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
