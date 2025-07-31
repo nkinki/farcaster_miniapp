@@ -70,18 +70,7 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          {profile.pfp ? (
-            <img 
-              src={profile.pfp} 
-              alt="Profile" 
-              className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-          ) : null}
-          <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${profile.pfp ? 'hidden' : ''}`}>
+          <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
             <FiUser size={20} className="text-white" />
           </div>
           
