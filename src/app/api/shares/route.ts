@@ -44,13 +44,18 @@ export async function POST(request: NextRequest) {
 
     // Check if user can share this promotion (48h limit)
     console.log('Checking share limit for user:', sharerFid, 'promotion:', promotionId);
-    const canShare = await db.canUserSharePromotion(sharerFid, promotionId, 48);
-    console.log('Can share result:', canShare);
+    const shareCheck = await db.canUserSharePromotion(sharerFid, promotionId, 48);
+    console.log('Can share result:', shareCheck);
     
-    if (!canShare) {
+    if (!shareCheck.canShare) {
       console.log('Share limit reached for user:', sharerFid, 'promotion:', promotionId);
+      const hours = Math.floor(shareCheck.timeRemaining);
+      const minutes = Math.floor((shareCheck.timeRemaining - hours) * 60);
       return NextResponse.json(
-        { error: 'You can only share this campaign once every 48h' },
+        { 
+          error: `You can only share this campaign once every 48h. Time remaining: ${hours}h ${minutes}m`,
+          timeRemaining: shareCheck.timeRemaining
+        },
         { status: 429 }
       );
     }

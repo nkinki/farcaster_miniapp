@@ -169,12 +169,13 @@ export const db = {
     const result = await pool.query(query, [sharerFid, promotionId]);
     
     if (result.rows.length === 0) {
-      return true; // User has never shared this promotion
+      return { canShare: true, timeRemaining: 0 };
     }
     
     const lastSharedAt = new Date(result.rows[0].shared_at);
     const now = new Date();
     const hoursSinceLastShare = (now.getTime() - lastSharedAt.getTime()) / (1000 * 60 * 60);
+    const timeRemaining = Math.max(0, hoursLimit - hoursSinceLastShare);
     
     console.log('Share check:', {
       sharerFid,
@@ -183,10 +184,14 @@ export const db = {
       now,
       hoursSinceLastShare,
       hoursLimit,
+      timeRemaining,
       canShare: hoursSinceLastShare >= hoursLimit
     });
     
-    return hoursSinceLastShare >= hoursLimit;
+    return { 
+      canShare: hoursSinceLastShare >= hoursLimit,
+      timeRemaining: timeRemaining
+    };
   },
 
   // Users

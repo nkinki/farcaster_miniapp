@@ -107,6 +107,7 @@ export default function PromotePage() {
   const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
   const [loading, setLoading] = useState(true)
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null)
+  const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({})
 
   useEffect(() => {
     // Check haptics support
@@ -173,6 +174,8 @@ export default function PromotePage() {
 
     fetchPromotions();
   }, []);
+
+
 
   // Use real user data if authenticated, otherwise mock data
   const currentUser = isAuthenticated && profile ? {
@@ -414,6 +417,13 @@ export default function PromotePage() {
   const calculateProgress = (promo: PromoCast) => {
     const spent = promo.totalBudget - promo.remainingBudget
     return (spent / promo.totalBudget) * 100
+  }
+
+  const formatTimeRemaining = (hours: number) => {
+    if (hours <= 0) return 'Ready to share';
+    const h = Math.floor(hours);
+    const m = Math.floor((hours - h) * 60);
+    return `${h}h ${m}m remaining`;
   }
 
   // Auto-check and adjust rewards every 30 seconds
@@ -708,6 +718,15 @@ ${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; sha
                     )}
                   </button>
                 </div>
+                
+                {/* Share Timer Info */}
+                {promo.author.fid !== currentUser.fid && (
+                  <div className="text-center mt-2">
+                    <div className="text-xs text-gray-400">
+                      ⏰ Share limit: 48h per campaign
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
