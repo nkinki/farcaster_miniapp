@@ -32,11 +32,24 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
       
       if (farcasterUser?.fid) {
         setIsAuthenticated(true)
+        // Try to get a proper profile picture URL
+        let pfpUrl = farcasterUser.pfp;
+        
+        // If pfp is a relative URL, make it absolute
+        if (pfpUrl && !pfpUrl.startsWith('http')) {
+          pfpUrl = `https://warpcast.com${pfpUrl}`;
+        }
+        
+        // If still no pfp, use a default
+        if (!pfpUrl) {
+          pfpUrl = "https://i.seadn.io/gae/2hDpuTi-0AMKvoZJGd-yKWvK4tKdQr_kLIpB_qSeMau2TNGCNidAosMEvrEXFO9Gbdtmlp_qL4r9CgJj8qLbqg7Q?auto=format&dpr=1&w=1000";
+        }
+        
         setProfile({
           fid: farcasterUser.fid,
           username: farcasterUser.username || "user",
           displayName: farcasterUser.displayName || "Current User",
-          pfp: farcasterUser.pfp || "https://i.seadn.io/gae/2hDpuTi-0AMKvoZJGd-yKWvK4tKdQr_kLIpB_qSeMau2TNGCNidAosMEvrEXFO9Gbdtmlp_qL4r9CgJj8qLbqg7Q?auto=format&dpr=1&w=1000"
+          pfp: pfpUrl
         })
         console.log('User authenticated in UserProfile:', farcasterUser)
         console.log('Profile PFP URL:', farcasterUser.pfp)
