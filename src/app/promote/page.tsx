@@ -1,11 +1,22 @@
 "use client"
 
-import { useState } from "react"
-import { useProfile } from '@farcaster/auth-kit'
+import { useState, useEffect } from "react"
+import { sdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
 import UserProfile from "@/components/UserProfile"
+
+interface FarcasterUser {
+  fid: number;
+  username?: string;
+  displayName?: string;
+  pfp?: string;
+}
+
+interface FarcasterContext {
+  user?: FarcasterUser;
+}
 
 // Types
 interface PromoCast {
@@ -81,14 +92,41 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  // Use AuthKit for authentication
-  const { isAuthenticated, profile } = useProfile()
+  // Use mini app SDK for authentication
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [profile, setProfile] = useState<FarcasterUser | null>(null)
   
-    // Use real user data if authenticated, otherwise mock data
+  useEffect(() => {
+    // Get Farcaster user context
+    sdk.context.then((ctx: FarcasterContext) => {
+      const farcasterUser = ctx.user
+      console.log('Farcaster user context in promote:', farcasterUser)
+      
+      if (farcasterUser?.fid) {
+        setIsAuthenticated(true)
+        setProfile({
+          fid: farcasterUser.fid,
+          username: farcasterUser.username || "user",
+          displayName: farcasterUser.displayName || "Current User",
+          pfp: farcasterUser.pfp
+        })
+        console.log('User authenticated in promote:', farcasterUser)
+      } else {
+        setIsAuthenticated(false)
+        setProfile(null)
+      }
+    }).catch((error) => {
+      console.error('Error getting Farcaster context in promote:', error)
+      setIsAuthenticated(false)
+      setProfile(null)
+    })
+  }, [])
+  
+  // Use real user data if authenticated, otherwise mock data
   const currentUser = isAuthenticated && profile ? {
     fid: profile.fid || 0,
-    username: (profile as { username?: string }).username || "user",
-    displayName: (profile as { displayName?: string }).displayName || "Current User"
+    username: profile.username || "user",
+    displayName: profile.displayName || "Current User"
   } : {
     fid: 1234,
     username: "user",

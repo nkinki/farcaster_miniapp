@@ -1,17 +1,54 @@
 "use client"
 
-import { useState } from 'react'
-import { useProfile } from '@farcaster/auth-kit'
+import { useState, useEffect } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
 import { FiUser, FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 
 interface UserProfileProps {
   onLogout?: () => void;
 }
 
+interface FarcasterUser {
+  fid: number;
+  username?: string;
+  displayName?: string;
+  pfp?: string;
+}
+
+interface FarcasterContext {
+  user?: FarcasterUser;
+}
+
 export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [profile, setProfile] = useState<FarcasterUser | null>(null)
   
-  const { isAuthenticated, profile } = useProfile()
+  useEffect(() => {
+    // Get Farcaster user context
+    sdk.context.then((ctx: FarcasterContext) => {
+      const farcasterUser = ctx.user
+      console.log('Farcaster user context in UserProfile:', farcasterUser)
+      
+      if (farcasterUser?.fid) {
+        setIsAuthenticated(true)
+        setProfile({
+          fid: farcasterUser.fid,
+          username: farcasterUser.username || "user",
+          displayName: farcasterUser.displayName || "Current User",
+          pfp: farcasterUser.pfp
+        })
+        console.log('User authenticated in UserProfile:', farcasterUser)
+      } else {
+        setIsAuthenticated(false)
+        setProfile(null)
+      }
+    }).catch((error) => {
+      console.error('Error getting Farcaster context in UserProfile:', error)
+      setIsAuthenticated(false)
+      setProfile(null)
+    })
+  }, [])
 
   if (!isAuthenticated || !profile) {
     return (
@@ -32,9 +69,9 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          {(profile as { avatar?: string }).avatar ? (
+          {profile.pfp ? (
             <img 
-              src={(profile as { avatar?: string }).avatar} 
+              src={profile.pfp} 
               alt="Profile" 
               className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
               onError={(e) => {
@@ -43,7 +80,7 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
               }}
             />
           ) : null}
-          <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${(profile as { avatar?: string }).avatar ? 'hidden' : ''}`}>
+          <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${profile.pfp ? 'hidden' : ''}`}>
             <FiUser size={20} className="text-white" />
           </div>
           
