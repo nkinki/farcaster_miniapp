@@ -54,9 +54,10 @@ CREATE TABLE IF NOT EXISTS shares (
 );
 
 -- Add foreign key constraint if it doesn't exist (simplified)
-ALTER TABLE shares DROP CONSTRAINT IF EXISTS shares_promotion_id_fkey;
-ALTER TABLE shares ADD CONSTRAINT shares_promotion_id_fkey 
-    FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE;
+-- Note: This constraint might already exist, so we'll skip it for now
+-- ALTER TABLE shares DROP CONSTRAINT IF EXISTS shares_promotion_id_fkey;
+-- ALTER TABLE shares ADD CONSTRAINT shares_promotion_id_fkey 
+--     FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE;
 
 -- Create indexes if they don't exist
 CREATE INDEX IF NOT EXISTS idx_promotions_fid ON promotions(fid);
@@ -76,14 +77,15 @@ END;
 $$ language 'plpgsql';
 
 -- Create triggers if they don't exist
-DROP TRIGGER IF EXISTS update_promotions_updated_at ON promotions;
-CREATE TRIGGER update_promotions_updated_at 
-    BEFORE UPDATE ON promotions 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+-- Note: These triggers might already exist, so we'll skip them for now
+-- DROP TRIGGER IF EXISTS update_promotions_updated_at ON promotions;
+-- CREATE TRIGGER update_promotions_updated_at 
+--     BEFORE UPDATE ON promotions 
+--     FOR EACH ROW 
+--     EXECUTE FUNCTION update_updated_at_column();
 
-DROP TRIGGER IF EXISTS update_users_updated_at ON users;
-CREATE TRIGGER update_users_updated_at 
-    BEFORE UPDATE ON users 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column(); 
+-- DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+-- CREATE TRIGGER update_users_updated_at 
+--     BEFORE UPDATE ON users 
+--     FOR EACH ROW 
+--     EXECUTE FUNCTION update_updated_at_column(); 
