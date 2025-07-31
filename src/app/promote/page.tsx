@@ -88,8 +88,8 @@ export default function PromotePage() {
     // Use real user data if authenticated, otherwise mock data
   const currentUser = isAuthenticated && profile ? {
     fid: profile.fid || 0,
-    username: (profile as any).username || "user",
-    displayName: (profile as any).displayName || "Current User"
+    username: (profile as { username?: string }).username || "user",
+    displayName: (profile as { displayName?: string }).displayName || "Current User"
   } : {
     fid: 1234,
     username: "user",
