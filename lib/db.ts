@@ -160,10 +160,10 @@ export const db = {
 
   async canUserSharePromotion(sharerFid: number, promotionId: number, hoursLimit: number = 48) {
     const query = `
-      SELECT last_shared_at 
+      SELECT shared_at 
       FROM shares 
       WHERE sharer_fid = $1 AND promotion_id = $2
-      ORDER BY last_shared_at DESC 
+      ORDER BY shared_at DESC 
       LIMIT 1
     `;
     const result = await pool.query(query, [sharerFid, promotionId]);
@@ -172,9 +172,19 @@ export const db = {
       return true; // User has never shared this promotion
     }
     
-    const lastSharedAt = new Date(result.rows[0].last_shared_at);
+    const lastSharedAt = new Date(result.rows[0].shared_at);
     const now = new Date();
     const hoursSinceLastShare = (now.getTime() - lastSharedAt.getTime()) / (1000 * 60 * 60);
+    
+    console.log('Share check:', {
+      sharerFid,
+      promotionId,
+      lastSharedAt,
+      now,
+      hoursSinceLastShare,
+      hoursLimit,
+      canShare: hoursSinceLastShare >= hoursLimit
+    });
     
     return hoursSinceLastShare >= hoursLimit;
   },

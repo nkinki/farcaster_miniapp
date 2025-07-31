@@ -42,18 +42,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user can share this promotion (48h limit)
+    // Check if user can share this promotion (48h limit) - TEMPORARILY DISABLED
     console.log('Checking share limit for user:', sharerFid, 'promotion:', promotionId);
     const canShare = await db.canUserSharePromotion(sharerFid, promotionId, 48);
     console.log('Can share result:', canShare);
     
-    if (!canShare) {
-      console.log('Share limit reached for user:', sharerFid, 'promotion:', promotionId);
-      return NextResponse.json(
-        { error: 'You can only share this campaign once every 48h' },
-        { status: 429 }
-      );
-    }
+    // Temporarily disable 48h limit for testing
+    // if (!canShare) {
+    //   console.log('Share limit reached for user:', sharerFid, 'promotion:', promotionId);
+    //   return NextResponse.json(
+    //     { error: 'You can only share this campaign once every 48h' },
+    //     { status: 429 }
+    //   );
+    // }
 
     // Create share
     console.log('Creating share in database...');
