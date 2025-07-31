@@ -383,6 +383,9 @@ export default function PromotePage() {
         };
         setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
         
+        // Refresh share timers
+        await fetchShareTimers();
+        
         // Haptic feedback
         if (hapticsSupported) {
           try {
@@ -434,6 +437,35 @@ export default function PromotePage() {
 
     return () => clearInterval(interval);
   }, [promoCasts, checkAndAdjustReward]);
+
+  // Fetch share timers for current user
+  const fetchShareTimers = async () => {
+    if (isAuthenticated && currentUser.fid) {
+      try {
+        const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
+        if (response.ok) {
+          const data = await response.json();
+          const timersMap: Record<string, { canShare: boolean; timeRemaining: number }> = {};
+          data.timers.forEach((timer: { promotionId: number; canShare: boolean; timeRemaining: number }) => {
+            timersMap[timer.promotionId.toString()] = {
+              canShare: timer.canShare,
+              timeRemaining: timer.timeRemaining
+            };
+          });
+          setShareTimers(timersMap);
+        }
+      } catch (error) {
+        console.error('Error fetching share timers:', error);
+      }
+    }
+  };
+
+  // Fetch timers when promotions load
+  useEffect(() => {
+    if (promoCasts.length > 0) {
+      fetchShareTimers();
+    }
+  }, [promoCasts, isAuthenticated, currentUser.fid]);
 
   // Auto-fill cast URL if coming from cast context
   useEffect(() => {
@@ -680,6 +712,21 @@ ${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; sha
                     <p className="text-xs text-gray-400">Progress</p>
                   </div>
                 </div>
+
+                {/* Share Timer Display */}
+                {promo.author.fid !== currentUser.fid && shareTimers[promo.id] && (
+                  <div className="mb-4 p-3 bg-[#181c23] rounded-lg border border-purple-500">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-purple-400">⏰</span>
+                      <span className="text-white font-semibold">
+                        {shareTimers[promo.id].canShare 
+                          ? "Ready to share!" 
+                          : formatTimeRemaining(shareTimers[promo.id].timeRemaining)
+                        }
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
                   <div 
