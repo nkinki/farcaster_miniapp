@@ -563,7 +563,12 @@ export default function PromotePage() {
 
         {/* Campaigns List */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-white mb-4">Active Campaigns</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">Active Campaigns</h2>
+            <div className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-lg">
+              ⏰ Share limit: 48h per campaign
+            </div>
+          </div>
           {promoCasts.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 text-lg mb-2">No campaigns yet</div>

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const canShare = await db.canUserSharePromotion(sharerFid, promotionId, 48);
     if (!canShare) {
       return NextResponse.json(
-        { error: 'You can only share this campaign once every 48 hours' },
+        { error: 'You can only share this campaign once every 48h' },
         { status: 429 }
       );
     }
