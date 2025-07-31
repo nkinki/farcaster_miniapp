@@ -6,6 +6,7 @@ import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift } fr
 import type { IconType } from "react-icons";
 import React from "react"
 import Link from "next/link"
+import Image from "next/image"
 
 // Tipusok
 interface Miniapp {
@@ -78,7 +79,7 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
       onClick={onOpen}
     >
       <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
-      <img src={app.iconUrl} alt={`${app.name} logo`} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
+      <Image src={app.iconUrl} alt={`${app.name} logo`} width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
       
       {/* JAVÍTÁS: A statisztikák most már itt, egy függőleges blokkban jelennek meg */}
       <div className="flex-1 min-w-0">
@@ -154,7 +155,7 @@ export default function Home() {
     
     // Get Farcaster user context
     sdk.context.then((ctx) => {
-      const farcasterUser = ctx.user as any
+      const farcasterUser = ctx.user as { fid?: number; username?: string; displayName?: string; pfp?: string } | undefined
       console.log('Farcaster user context:', farcasterUser)
       if (farcasterUser?.fid) {
         console.log('User authenticated:', farcasterUser)
@@ -263,7 +264,7 @@ export default function Home() {
           <header className="mb-6 text-center">
              <div className="flex justify-center items-center mb-2">
                <div className="flex items-center gap-2">
-                 <img src="/icon.png" alt="AppRank icon" className="w-12 h-12" />
+                 <Image src="/icon.png" alt="AppRank icon" width={48} height={48} className="w-12 h-12" />
                  <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
                    APPRANK
                  </h1>
