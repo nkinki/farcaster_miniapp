@@ -170,9 +170,7 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
                        From: {context.location.type.replace('_', ' ')}
                      </p>
                    )}
-                   <p className="text-xs text-gray-500 mt-1">
-                     Haptics: {hapticsSupported ? '✅ Supported' : '❌ Not supported'}
-                   </p>
+
           </div>
         </div>
         

@@ -340,11 +340,10 @@ export default function Home() {
                     }
                   }
                 }}
-                title="Touch for haptic feedback"
+
               >
                 <div className="flex items-center justify-between px-2 mb-1">
                   <div className="text-xs text-cyan-400 font-medium">⭐ Favorites</div>
-                  <div className="text-xs text-gray-500">Touch for haptic feedback</div>
                 </div>
                 <div className="flex flex-col gap-2">
                   {favoriteApps.map((app) => (
