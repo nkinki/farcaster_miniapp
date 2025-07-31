@@ -32,7 +32,7 @@ export default function Web3Providers({ children }: Web3ProvidersProps) {
         <AuthKitProvider config={{ 
           domain: 'apprank.xyz',
           relay: 'https://relay.farcaster.xyz',
-          rpcUrl: 'https://ethereum.publicnode.com',
+          rpcUrl: 'https://mainnet.optimism.io',
           siweUri: 'https://apprank.xyz'
         }}>
           {children}

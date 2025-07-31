@@ -36,9 +36,10 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
           fid: farcasterUser.fid,
           username: farcasterUser.username || "user",
           displayName: farcasterUser.displayName || "Current User",
-          pfp: farcasterUser.pfp
+          pfp: farcasterUser.pfp || "https://i.seadn.io/gae/2hDpuTi-0AMKvoZJGd-yKWvK4tKdQr_kLIpB_qSeMau2TNGCNidAosMEvrEXFO9Gbdtmlp_qL4r9CgJj8qLbqg7Q?auto=format&dpr=1&w=1000"
         })
         console.log('User authenticated in UserProfile:', farcasterUser)
+        console.log('Profile PFP URL:', farcasterUser.pfp)
       } else {
         setIsAuthenticated(false)
         setProfile(null)
@@ -69,19 +70,23 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          {profile.pfp ? (
-            <img 
-              src={profile.pfp} 
-              alt="Profile" 
-              className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-          ) : null}
-          <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${profile.pfp ? 'hidden' : ''}`}>
-            <FiUser size={20} className="text-white" />
+          <div className="relative">
+            {profile.pfp ? (
+              <img 
+                src={profile.pfp} 
+                alt="Profile" 
+                className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
+                onError={(e) => {
+                  console.log('Image failed to load:', profile.pfp);
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+                onLoad={() => console.log('Image loaded successfully:', profile.pfp)}
+              />
+            ) : null}
+            <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${profile.pfp ? 'hidden' : ''}`}>
+              <FiUser size={20} className="text-white" />
+            </div>
           </div>
           
           <div>
