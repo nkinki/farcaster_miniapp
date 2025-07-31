@@ -129,8 +129,23 @@ export default function Home() {
   const [search, setSearch] = useState("")
   const [openMiniapp, setOpenMiniapp] = useState<Miniapp | null>(null)
   const [openMiniappIndex, setOpenMiniappIndex] = useState<number | null>(null)
+  const [hapticsSupported, setHapticsSupported] = useState(false)
 
-  useEffect(() => {
+    useEffect(() => {
+    // Check haptics support
+    const checkHaptics = async () => {
+      try {
+        await sdk.haptics.impactOccurred('light');
+        setHapticsSupported(true);
+        console.log('Haptics supported: true');
+      } catch (error) {
+        setHapticsSupported(false);
+        console.log('Haptics not supported:', error);
+      }
+    };
+    
+    checkHaptics();
+
     const savedFavorites = localStorage.getItem("farcaster-favorites")
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites))
@@ -152,7 +167,7 @@ export default function Home() {
 
     // Farcaster natív "Add Mini App" prompt minden indításkor
     sdk.actions.addMiniApp();
-    
+
     // Get Farcaster user context
     sdk.context.then((ctx) => {
       const farcasterUser = ctx.user as { fid?: number; username?: string; displayName?: string; pfp?: string } | undefined
@@ -169,7 +184,16 @@ export default function Home() {
     if (!loading) sdk.actions.ready()
   }, [loading])
 
-  const toggleFavorite = (domain: string) => {
+  const toggleFavorite = async (domain: string) => {
+    // Haptic feedback for favorite toggle
+    if (hapticsSupported) {
+      try {
+        await sdk.haptics.impactOccurred('light');
+      } catch (error) {
+        console.log('Haptics error:', error);
+      }
+    }
+    
     const newFavorites = favorites.includes(domain)
       ? favorites.filter((id) => id !== domain)
       : [...favorites, domain]
@@ -202,8 +226,17 @@ export default function Home() {
     );
   }, [miniapps, filter, search, favorites]);
 
-  const openMiniappByIndex = (index: number, apps: Miniapp[]) => {
+  const openMiniappByIndex = async (index: number, apps: Miniapp[]) => {
     if (index >= 0 && index < apps.length) {
+      // Haptic feedback for opening miniapp
+      if (hapticsSupported) {
+        try {
+          await sdk.haptics.impactOccurred('medium');
+        } catch (error) {
+          console.log('Haptics error:', error);
+        }
+      }
+      
       setOpenMiniapp(apps[index]);
       setOpenMiniappIndex(index);
     }
@@ -287,7 +320,32 @@ export default function Home() {
           
           <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#a64d79] w-full">
             {favoriteApps.length > 0 && (
-              <div className="sticky top-0 z-20 bg-[#23283a] py-2">
+              <div 
+                className="sticky top-0 z-20 bg-[#23283a] py-2 cursor-pointer hover:bg-[#2a2f42] transition-colors"
+                onTouchStart={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.impactOccurred('light');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
+                    }
+                  }
+                }}
+                onMouseDown={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.impactOccurred('light');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
+                    }
+                  }
+                }}
+                title="Touch for haptic feedback"
+              >
+                <div className="flex items-center justify-between px-2 mb-1">
+                  <div className="text-xs text-cyan-400 font-medium">⭐ Favorites</div>
+                  <div className="text-xs text-gray-500">Touch for haptic feedback</div>
+                </div>
                 <div className="flex flex-col gap-2">
                   {favoriteApps.map((app) => (
                     <MiniappCard
@@ -335,7 +393,18 @@ export default function Home() {
           {/* BELSŐ NAVIGÁCIÓ GOMB */}
           <div className="mt-8 text-center">
             <Link href="/promote" className="inline-block">
-              <span className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+              <span 
+                className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                onClick={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.impactOccurred('medium');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
+                    }
+                  }
+                }}
+              >
                 🚀 Create Promotion
               </span>
             </Link>
@@ -355,7 +424,16 @@ export default function Home() {
                       : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
                   }`}
                   style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
-                  onClick={() => setFilter(category)}
+                  onClick={async () => {
+                    if (hapticsSupported) {
+                      try {
+                        await sdk.haptics.selectionChanged();
+                      } catch (error) {
+                        console.log('Haptics error:', error);
+                      }
+                    }
+                    setFilter(category);
+                  }}
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
                     <IconComponent size={16} />
@@ -365,7 +443,16 @@ export default function Home() {
               );
             })}
              <button
-              onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.notificationOccurred('success');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
+                  }
+                }
+                sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
+              }}
               className="flex-1 py-6 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
             >

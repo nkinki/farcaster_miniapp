@@ -178,20 +178,6 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
         
                          <div className="flex items-center gap-2">
                    <span className="text-sm text-gray-400">FID: {profile.fid}</span>
-                   <button
-                     onClick={async () => {
-                       try {
-                         await sdk.haptics.impactOccurred('heavy');
-                         console.log('Haptic test successful!');
-                       } catch (error) {
-                         console.log('Haptic test failed:', error);
-                       }
-                     }}
-                     className="px-2 py-1 bg-red-600 text-white text-xs rounded"
-                     title="Test haptics"
-                   >
-                     Test
-                   </button>
                    {isExpanded ? (
                      <FiChevronUp size={20} className="text-purple-400" />
                    ) : (
