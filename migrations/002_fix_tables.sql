@@ -13,40 +13,16 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Add username column to users table if it doesn't exist
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'users' AND column_name = 'username') THEN
-        ALTER TABLE users ADD COLUMN username VARCHAR(255) NOT NULL DEFAULT 'unknown';
-    END IF;
-END $$;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(255) NOT NULL DEFAULT 'unknown';
 
 -- Add display_name column to users table if it doesn't exist
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'users' AND column_name = 'display_name') THEN
-        ALTER TABLE users ADD COLUMN display_name VARCHAR(255);
-    END IF;
-END $$;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);
 
 -- Add total_earnings column to users table if it doesn't exist
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'users' AND column_name = 'total_earnings') THEN
-        ALTER TABLE users ADD COLUMN total_earnings INTEGER DEFAULT 0;
-    END IF;
-END $$;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS total_earnings INTEGER DEFAULT 0;
 
 -- Add total_shares column to users table if it doesn't exist
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'users' AND column_name = 'total_shares') THEN
-        ALTER TABLE users ADD COLUMN total_shares INTEGER DEFAULT 0;
-    END IF;
-END $$;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS total_shares INTEGER DEFAULT 0;
 
 -- Check and create promotions table if it doesn't exist
 CREATE TABLE IF NOT EXISTS promotions (
@@ -77,15 +53,10 @@ CREATE TABLE IF NOT EXISTS shares (
     reward_amount INTEGER NOT NULL
 );
 
--- Add foreign key constraint if it doesn't exist
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints 
-                   WHERE constraint_name = 'shares_promotion_id_fkey') THEN
-        ALTER TABLE shares ADD CONSTRAINT shares_promotion_id_fkey 
-        FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE;
-    END IF;
-END $$;
+-- Add foreign key constraint if it doesn't exist (simplified)
+ALTER TABLE shares DROP CONSTRAINT IF EXISTS shares_promotion_id_fkey;
+ALTER TABLE shares ADD CONSTRAINT shares_promotion_id_fkey 
+    FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE;
 
 -- Create indexes if they don't exist
 CREATE INDEX IF NOT EXISTS idx_promotions_fid ON promotions(fid);
