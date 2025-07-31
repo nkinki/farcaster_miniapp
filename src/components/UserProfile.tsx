@@ -36,18 +36,40 @@ interface PromoCast {
 
 interface FarcasterContext {
   user?: FarcasterUser;
+  client?: {
+    platformType?: 'web' | 'mobile';
+    safeAreaInsets?: {
+      top: number;
+      bottom: number;
+      left: number;
+      right: number;
+    };
+  };
+  location?: {
+    type: string;
+    cast?: {
+      hash: string;
+      text: string;
+      embeds?: string[];
+    };
+  };
 }
 
 export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEditPromo }: UserProfileProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
+  const [context, setContext] = useState<FarcasterContext | null>(null)
   
   useEffect(() => {
     // Get Farcaster user context
     sdk.context.then((ctx: FarcasterContext) => {
       const farcasterUser = ctx.user
       console.log('Farcaster user context in UserProfile:', farcasterUser)
+      console.log('Platform type:', ctx.client?.platformType)
+      console.log('Location type:', ctx.location?.type)
+      
+      setContext(ctx)
       
       if (farcasterUser?.fid) {
         setIsAuthenticated(true)
@@ -79,11 +101,26 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
     )
   }
 
+  const isMobile = context?.client?.platformType === 'mobile'
+  const safeArea = context?.client?.safeAreaInsets
+  
   return (
-    <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
+    <div 
+      className={`bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden ${
+        isMobile ? 'mx-2' : 'mx-0'
+      }`}
+      style={{
+        marginTop: safeArea?.top || 0,
+        marginBottom: safeArea?.bottom || 0,
+        marginLeft: safeArea?.left || 0,
+        marginRight: safeArea?.right || 0,
+      }}
+    >
       {/* Header - Always visible */}
       <div 
-        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[#2a2f42] transition-colors"
+        className={`flex items-center justify-between cursor-pointer hover:bg-[#2a2f42] transition-colors ${
+          isMobile ? 'p-4' : 'p-6'
+        }`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
@@ -103,6 +140,11 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
               {profile.displayName || 'Unknown User'}
             </h3>
             <p className="text-purple-300 text-sm">@{profile.username}</p>
+            {context?.location?.type && (
+              <p className="text-xs text-gray-500 mt-1">
+                From: {context.location.type.replace('_', ' ')}
+              </p>
+            )}
           </div>
         </div>
         

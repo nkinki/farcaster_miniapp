@@ -16,6 +16,23 @@ interface FarcasterUser {
 
 interface FarcasterContext {
   user?: FarcasterUser;
+  client?: {
+    platformType?: 'web' | 'mobile';
+    safeAreaInsets?: {
+      top: number;
+      bottom: number;
+      left: number;
+      right: number;
+    };
+  };
+  location?: {
+    type: string;
+    cast?: {
+      hash: string;
+      text: string;
+      embeds?: string[];
+    };
+  };
 }
 
 // Types
@@ -95,12 +112,17 @@ export default function PromotePage() {
   // Use mini app SDK for authentication
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
+  const [context, setContext] = useState<FarcasterContext | null>(null)
   
   useEffect(() => {
     // Get Farcaster user context
     sdk.context.then((ctx: FarcasterContext) => {
       const farcasterUser = ctx.user
       console.log('Farcaster user context in promote:', farcasterUser)
+      console.log('Platform type:', ctx.client?.platformType)
+      console.log('Location type:', ctx.location?.type)
+      
+      setContext(ctx)
       
       if (farcasterUser?.fid) {
         setIsAuthenticated(true)
@@ -233,8 +255,29 @@ export default function PromotePage() {
     return () => clearInterval(interval);
   }, [promoCasts, checkAndAdjustReward]);
 
+  // Auto-fill cast URL if coming from cast context
+  useEffect(() => {
+    if (context?.location?.type === 'cast_embed' && context.location.cast?.embeds?.[0]) {
+      setCastUrl(context.location.cast.embeds[0]);
+      console.log('Auto-filled cast URL from context:', context.location.cast.embeds[0]);
+    }
+  }, [context]);
+
+  const isMobile = context?.client?.platformType === 'mobile'
+  const safeArea = context?.client?.safeAreaInsets
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6">
+    <div 
+      className={`min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 ${
+        isMobile ? 'px-2' : 'px-4'
+      } py-6`}
+      style={{
+        paddingTop: (safeArea?.top || 0) + 24,
+        paddingBottom: (safeArea?.bottom || 0) + 24,
+        paddingLeft: (safeArea?.left || 0) + (isMobile ? 8 : 16),
+        paddingRight: (safeArea?.right || 0) + (isMobile ? 8 : 16),
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
