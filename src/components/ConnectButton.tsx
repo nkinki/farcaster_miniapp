@@ -1,10 +1,13 @@
 "use client"
 
-import { useFarcasterAccount } from '@farcaster/auth-kit'
 import { FiUser } from 'react-icons/fi'
 
 export default function ConnectButton() {
-  const { isConnected, signIn } = useFarcasterAccount()
+  // Temporarily disabled until we fix Farcaster auth
+  const isConnected = false
+  const signIn = () => {
+    console.log('Sign in functionality temporarily disabled')
+  }
 
   if (isConnected) {
     return null // Don't show connect button if already connected

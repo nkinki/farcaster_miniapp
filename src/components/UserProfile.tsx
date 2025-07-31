@@ -1,6 +1,5 @@
 "use client"
 
-import { useFarcasterAccount } from '@farcaster/auth-kit'
 import { FiUser, FiDollarSign, FiTrendingUp, FiLogOut } from 'react-icons/fi'
 import Image from 'next/image'
 
@@ -9,7 +8,12 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ onLogout }: UserProfileProps) {
-  const { account, isConnected, signOut } = useFarcasterAccount()
+  // Temporarily disabled until we fix Farcaster auth
+  const isConnected = false
+  const account: any = null
+  const signOut = () => {
+    console.log('Sign out functionality temporarily disabled')
+  }
 
   if (!isConnected || !account) {
     return (
