@@ -3,13 +3,12 @@
 import { useState } from 'react'
 import { useProfile } from '@farcaster/auth-kit'
 import { FiUser, FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp } from 'react-icons/fi'
-import Image from 'next/image'
 
 interface UserProfileProps {
   onLogout?: () => void;
 }
 
-export default function UserProfile({ onLogout }: UserProfileProps) {
+export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   
   const { isAuthenticated, profile } = useProfile()
@@ -33,9 +32,9 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          {(profile as any).avatar ? (
+          {(profile as { avatar?: string }).avatar ? (
             <img 
-              src={(profile as any).avatar} 
+              src={(profile as { avatar?: string }).avatar} 
               alt="Profile" 
               className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
               onError={(e) => {
@@ -44,7 +43,7 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
               }}
             />
           ) : null}
-          <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${(profile as any).avatar ? 'hidden' : ''}`}>
+          <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${(profile as { avatar?: string }).avatar ? 'hidden' : ''}`}>
             <FiUser size={20} className="text-white" />
           </div>
           
