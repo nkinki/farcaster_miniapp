@@ -63,16 +63,20 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
   const [hapticsSupported, setHapticsSupported] = useState(false)
   
   useEffect(() => {
-    // Check haptics support
-    sdk.getCapabilities().then((capabilities) => {
-      const hasHaptics = capabilities.includes('haptics.impactOccurred') || 
-                        capabilities.includes('haptics.notificationOccurred') ||
-                        capabilities.includes('haptics.selectionChanged');
-      setHapticsSupported(hasHaptics);
-      console.log('Haptics supported:', hasHaptics);
-    }).catch(() => {
-      setHapticsSupported(false);
-    });
+    // Check haptics support - try to use haptics directly
+    const checkHaptics = async () => {
+      try {
+        // Try to call a haptic function to see if it's available
+        await sdk.haptics.impactOccurred('light');
+        setHapticsSupported(true);
+        console.log('Haptics supported: true');
+      } catch (error) {
+        setHapticsSupported(false);
+        console.log('Haptics not supported:', error);
+      }
+    };
+    
+    checkHaptics();
 
     // Get Farcaster user context
     sdk.context.then((ctx: FarcasterContext) => {
@@ -161,22 +165,39 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
               {profile.displayName || 'Unknown User'}
             </h3>
             <p className="text-purple-300 text-sm">@{profile.username}</p>
-            {context?.location?.type && (
-              <p className="text-xs text-gray-500 mt-1">
-                From: {context.location.type.replace('_', ' ')}
-              </p>
-            )}
+                               {context?.location?.type && (
+                     <p className="text-xs text-gray-500 mt-1">
+                       From: {context.location.type.replace('_', ' ')}
+                     </p>
+                   )}
+                   <p className="text-xs text-gray-500 mt-1">
+                     Haptics: {hapticsSupported ? '✅ Supported' : '❌ Not supported'}
+                   </p>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">FID: {profile.fid}</span>
-          {isExpanded ? (
-            <FiChevronUp size={20} className="text-purple-400" />
-          ) : (
-            <FiChevronDown size={20} className="text-purple-400" />
-          )}
-        </div>
+                         <div className="flex items-center gap-2">
+                   <span className="text-sm text-gray-400">FID: {profile.fid}</span>
+                   <button
+                     onClick={async () => {
+                       try {
+                         await sdk.haptics.impactOccurred('heavy');
+                         console.log('Haptic test successful!');
+                       } catch (error) {
+                         console.log('Haptic test failed:', error);
+                       }
+                     }}
+                     className="px-2 py-1 bg-red-600 text-white text-xs rounded"
+                     title="Test haptics"
+                   >
+                     Test
+                   </button>
+                   {isExpanded ? (
+                     <FiChevronUp size={20} className="text-purple-400" />
+                   ) : (
+                     <FiChevronDown size={20} className="text-purple-400" />
+                   )}
+                 </div>
       </div>
 
       {/* Expandable Content */}

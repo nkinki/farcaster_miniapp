@@ -116,16 +116,20 @@ export default function PromotePage() {
   const [hapticsSupported, setHapticsSupported] = useState(false)
   
   useEffect(() => {
-    // Check haptics support
-    sdk.getCapabilities().then((capabilities) => {
-      const hasHaptics = capabilities.includes('haptics.impactOccurred') || 
-                        capabilities.includes('haptics.notificationOccurred') ||
-                        capabilities.includes('haptics.selectionChanged');
-      setHapticsSupported(hasHaptics);
-      console.log('Haptics supported:', hasHaptics);
-    }).catch(() => {
-      setHapticsSupported(false);
-    });
+    // Check haptics support - try to use haptics directly
+    const checkHaptics = async () => {
+      try {
+        // Try to call a haptic function to see if it's available
+        await sdk.haptics.impactOccurred('light');
+        setHapticsSupported(true);
+        console.log('Haptics supported: true');
+      } catch (error) {
+        setHapticsSupported(false);
+        console.log('Haptics not supported:', error);
+      }
+    };
+    
+    checkHaptics();
 
     // Get Farcaster user context
     sdk.context.then((ctx: FarcasterContext) => {
