@@ -60,8 +60,20 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
   const [context, setContext] = useState<FarcasterContext | null>(null)
+  const [hapticsSupported, setHapticsSupported] = useState(false)
   
   useEffect(() => {
+    // Check haptics support
+    sdk.getCapabilities().then((capabilities) => {
+      const hasHaptics = capabilities.includes('haptics.impactOccurred') || 
+                        capabilities.includes('haptics.notificationOccurred') ||
+                        capabilities.includes('haptics.selectionChanged');
+      setHapticsSupported(hasHaptics);
+      console.log('Haptics supported:', hasHaptics);
+    }).catch(() => {
+      setHapticsSupported(false);
+    });
+
     // Get Farcaster user context
     sdk.context.then((ctx: FarcasterContext) => {
       const farcasterUser = ctx.user
@@ -121,7 +133,16 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
         className={`flex items-center justify-between cursor-pointer hover:bg-[#2a2f42] transition-colors ${
           isMobile ? 'p-4' : 'p-6'
         }`}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={async () => {
+          setIsExpanded(!isExpanded);
+          if (hapticsSupported) {
+            try {
+              await sdk.haptics.selectionChanged();
+            } catch (error) {
+              console.log('Haptics error:', error);
+            }
+          }
+        }}
       >
         <div className="flex items-center gap-4">
           {profile.pfpUrl && (
@@ -210,7 +231,16 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
                         <p className="text-sm text-gray-400">Reward: {promo.rewardPerShare} $CHESS</p>
                       </div>
                       <button
-                        onClick={() => onEditPromo?.(promo)}
+                        onClick={async () => {
+                          if (hapticsSupported) {
+                            try {
+                              await sdk.haptics.impactOccurred('light');
+                            } catch (error) {
+                              console.log('Haptics error:', error);
+                            }
+                          }
+                          onEditPromo?.(promo);
+                        }}
                         className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors"
                       >
                         Edit

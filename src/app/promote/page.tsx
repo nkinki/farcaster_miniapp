@@ -113,8 +113,20 @@ export default function PromotePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
   const [context, setContext] = useState<FarcasterContext | null>(null)
+  const [hapticsSupported, setHapticsSupported] = useState(false)
   
   useEffect(() => {
+    // Check haptics support
+    sdk.getCapabilities().then((capabilities) => {
+      const hasHaptics = capabilities.includes('haptics.impactOccurred') || 
+                        capabilities.includes('haptics.notificationOccurred') ||
+                        capabilities.includes('haptics.selectionChanged');
+      setHapticsSupported(hasHaptics);
+      console.log('Haptics supported:', hasHaptics);
+    }).catch(() => {
+      setHapticsSupported(false);
+    });
+
     // Get Farcaster user context
     sdk.context.then((ctx: FarcasterContext) => {
       const farcasterUser = ctx.user
@@ -169,11 +181,25 @@ export default function PromotePage() {
 
   const handleCreateCampaign = async () => {
     if (!castUrl.trim()) {
+      if (hapticsSupported) {
+        try {
+          await sdk.haptics.notificationOccurred('error');
+        } catch (error) {
+          console.log('Haptics error:', error);
+        }
+      }
       alert("Please enter a cast URL")
       return
     }
 
     if (!isAuthenticated) {
+      if (hapticsSupported) {
+        try {
+          await sdk.haptics.notificationOccurred('error');
+        } catch (error) {
+          console.log('Haptics error:', error);
+        }
+      }
       alert("Please connect your Farcaster account first")
       return
     }
@@ -181,7 +207,7 @@ export default function PromotePage() {
     setIsCreating(true)
     
     // Mock API call
-    setTimeout(() => {
+    setTimeout(async () => {
       const newPromoCast: PromoCast = {
         id: Date.now().toString(),
         castUrl: castUrl,
@@ -208,12 +234,21 @@ export default function PromotePage() {
       // Note: In a real implementation, you would use the Farcaster API to compose casts
       console.log('Campaign created, would compose cast with:', shareText || 'Check out this cast!')
       
+      // Haptic feedback for successful campaign creation
+      if (hapticsSupported) {
+        try {
+          await sdk.haptics.notificationOccurred('success');
+        } catch (error) {
+          console.log('Haptics error:', error);
+        }
+      }
+      
       alert("Campaign created successfully!")
     }, 1000)
   }
 
   // Auto-adjust reward if too low and no shares
-  const checkAndAdjustReward = (promo: PromoCast) => {
+  const checkAndAdjustReward = async (promo: PromoCast) => {
     if (promo.sharesCount === 0 && promo.rewardPerShare < 2000) {
       const newReward = Math.min(promo.rewardPerShare * 1.5, 5000);
       const updatedPromo = { ...promo, rewardPerShare: Math.round(newReward) };
@@ -221,6 +256,15 @@ export default function PromotePage() {
       setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
       
       console.log(`Auto-adjusted reward for promo ${promo.id} from ${promo.rewardPerShare} to ${newReward} $CHESS`);
+      
+      // Haptic feedback for auto-adjustment
+      if (hapticsSupported) {
+        try {
+          await sdk.haptics.notificationOccurred('warning');
+        } catch (error) {
+          console.log('Haptics error:', error);
+        }
+      }
     }
   }
 
@@ -309,7 +353,16 @@ export default function PromotePage() {
         {/* Create Campaign Button */}
         <div className="flex justify-center mb-8">
           <button
-            onClick={() => setShowForm((v) => !v)}
+            onClick={async () => {
+              setShowForm((v) => !v);
+              if (hapticsSupported) {
+                try {
+                  await sdk.haptics.impactOccurred('medium');
+                } catch (error) {
+                  console.log('Haptics error:', error);
+                }
+              }
+            }}
             className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
             aria-expanded={showForm}
             aria-controls="promo-form"
