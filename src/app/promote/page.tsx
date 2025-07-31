@@ -304,10 +304,83 @@ export default function PromotePage() {
     }
   }, [hapticsSupported])
 
-  const handleSharePromo = (promo: PromoCast) => {
-    // Note: In a real implementation, you would use the Farcaster API to compose casts
-    console.log('Sharing promo:', promo)
-    alert('Share functionality coming soon!')
+  const handleSharePromo = async (promo: PromoCast) => {
+    if (!isAuthenticated) {
+      alert('Please connect your Farcaster account first');
+      return;
+    }
+
+    if (promo.author.fid === currentUser.fid) {
+      alert('You cannot share your own campaign');
+      return;
+    }
+
+    if (promo.status !== 'active') {
+      alert('This campaign is not active');
+      return;
+    }
+
+    if (promo.remainingBudget < promo.rewardPerShare) {
+      alert('This campaign has insufficient budget');
+      return;
+    }
+
+    try {
+      // Create share text
+      const shareText = promo.shareText || `Check out this amazing post! ${promo.castUrl}`;
+      
+      // Use Farcaster SDK to compose cast
+      await sdk.actions.composeCast({
+        text: shareText,
+        embeds: [promo.castUrl]
+      });
+
+      // Record share in database
+      const response = await fetch('/api/shares', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          promotionId: parseInt(promo.id),
+          sharerFid: currentUser.fid,
+          sharerUsername: currentUser.username,
+          shareText: shareText,
+          rewardAmount: promo.rewardPerShare
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Share created:', data);
+        
+        // Update local state
+        const updatedPromo = {
+          ...promo,
+          sharesCount: promo.sharesCount + 1,
+          remainingBudget: promo.remainingBudget - promo.rewardPerShare
+        };
+        setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
+        
+        // Haptic feedback
+        if (hapticsSupported) {
+          try {
+            await sdk.haptics.notificationOccurred('success');
+          } catch (error) {
+            console.log('Haptics error:', error);
+          }
+        }
+        
+        alert(`Successfully shared! You earned ${promo.rewardPerShare} $CHESS!`);
+      } else {
+        const errorData = await response.json();
+        console.error('Share failed:', errorData);
+        alert(`Failed to record share: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error sharing promo:', error);
+      alert(`Share failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   const calculateProgress = (promo: PromoCast) => {

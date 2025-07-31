@@ -46,10 +46,19 @@ export async function POST(request: NextRequest) {
       rewardAmount
     });
 
+    // Get current promotion to calculate new values
+    const currentPromotion = await db.getPromotionById(promotionId);
+    if (!currentPromotion) {
+      return NextResponse.json(
+        { error: 'Promotion not found' },
+        { status: 404 }
+      );
+    }
+
     // Update promotion shares count and remaining budget
     await db.updatePromotion(promotionId, {
-      sharesCount: 1, // Increment by 1
-      remainingBudget: -rewardAmount // Decrease by reward amount
+      sharesCount: currentPromotion.shares_count + 1,
+      remainingBudget: currentPromotion.remaining_budget - rewardAmount
     });
 
     return NextResponse.json({ share }, { status: 201 });
