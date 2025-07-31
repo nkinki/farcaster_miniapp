@@ -54,59 +54,40 @@ interface PromoCast {
   status: 'active' | 'paused' | 'completed';
 }
 
-// Mock data for demo
-const mockPromoCasts: PromoCast[] = [
-  {
-    id: "1",
-    castUrl: "https://farcaster.xyz/0x123...",
-    author: {
-      fid: 1234,
-      username: "alice",
-      displayName: "Alice",
-      pfpUrl: "https://example.com/alice.jpg"
-    },
-    rewardPerShare: 1000,
-    totalBudget: 10000,
-    sharesCount: 8,
-    remainingBudget: 2000,
-    shareText: "Check out this awesome post!",
-    createdAt: "2024-01-15T10:00:00Z",
-    status: 'active'
+// Database types
+interface DatabasePromotion {
+  id: number;
+  fid: number;
+  username: string;
+  display_name: string | null;
+  cast_url: string;
+  share_text: string | null;
+  reward_per_share: number;
+  total_budget: number;
+  shares_count: number;
+  remaining_budget: number;
+  status: 'active' | 'paused' | 'completed';
+  created_at: string;
+  updated_at: string;
+}
+
+// Helper function to convert database promotion to PromoCast
+const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
+  id: dbPromo.id.toString(),
+  castUrl: dbPromo.cast_url,
+  author: {
+    fid: dbPromo.fid,
+    username: dbPromo.username,
+    displayName: dbPromo.display_name || dbPromo.username,
   },
-  {
-    id: "2", 
-    castUrl: "https://farcaster.xyz/0x456...",
-    author: {
-      fid: 5678,
-      username: "bob",
-      displayName: "Bob",
-      pfpUrl: "https://example.com/bob.jpg"
-    },
-    rewardPerShare: 500,
-    totalBudget: 5000,
-    sharesCount: 10,
-    remainingBudget: 0,
-    shareText: "Amazing content!",
-    createdAt: "2024-01-14T15:30:00Z",
-    status: 'completed'
-  },
-  {
-    id: "3",
-    castUrl: "https://farcaster.xyz/0x789...", 
-    author: {
-      fid: 9012,
-      username: "charlie",
-      displayName: "Charlie",
-      pfpUrl: "https://example.com/charlie.jpg"
-    },
-    rewardPerShare: 2000,
-    totalBudget: 20000,
-    sharesCount: 5,
-    remainingBudget: 10000,
-    createdAt: "2024-01-13T09:15:00Z",
-    status: 'active'
-  }
-];
+  rewardPerShare: dbPromo.reward_per_share,
+  totalBudget: dbPromo.total_budget,
+  sharesCount: dbPromo.shares_count,
+  remainingBudget: dbPromo.remaining_budget,
+  shareText: dbPromo.share_text || undefined,
+  createdAt: dbPromo.created_at,
+  status: dbPromo.status
+});
 
 export default function PromotePage() {
   // Use mini app SDK for authentication
@@ -115,11 +96,22 @@ export default function PromotePage() {
   const [context, setContext] = useState<FarcasterContext | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
   
+  // Campaign creation state
+  const [showForm, setShowForm] = useState(false)
+  const [castUrl, setCastUrl] = useState("")
+  const [shareText, setShareText] = useState("")
+  const [rewardPerShare, setRewardPerShare] = useState(1000)
+  const [totalBudget, setTotalBudget] = useState(10000)
+  const [isCreating, setIsCreating] = useState(false)
+  
+  // Database state
+  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
-    // Check haptics support - try to use haptics directly
+    // Check haptics support
     const checkHaptics = async () => {
       try {
-        // Try to call a haptic function to see if it's available
         await sdk.haptics.impactOccurred('light');
         setHapticsSupported(true);
         console.log('Haptics supported: true');
@@ -160,8 +152,28 @@ export default function PromotePage() {
     })
   }, [])
 
+  // Fetch promotions from database
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetch('/api/promotions');
+        if (response.ok) {
+          const data = await response.json();
+          const convertedPromos = data.promotions.map(convertDbToPromoCast);
+          setPromoCasts(convertedPromos);
+        } else {
+          console.error('Failed to fetch promotions');
+        }
+      } catch (error) {
+        console.error('Error fetching promotions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  
+    fetchPromotions();
+  }, []);
+
   // Use real user data if authenticated, otherwise mock data
   const currentUser = isAuthenticated && profile ? {
     fid: profile.fid || 0,
@@ -172,16 +184,6 @@ export default function PromotePage() {
     username: "user",
     displayName: "Current User"
   }
-  
-  const [castUrl, setCastUrl] = useState("")
-  const [rewardPerShare, setRewardPerShare] = useState(1000)
-  const [shareText, setShareText] = useState("")
-  const [campaignBudget, setCampaignBudget] = useState(10000)
-  const [promoCasts, setPromoCasts] = useState<PromoCast[]>(mockPromoCasts)
-  const [isCreating, setIsCreating] = useState(false)
-  const [showForm, setShowForm] = useState(false)
-
-  // AuthKit handles authentication automatically
 
   const handleCreateCampaign = async () => {
     if (!castUrl.trim()) {
@@ -210,88 +212,101 @@ export default function PromotePage() {
 
     setIsCreating(true)
     
-    // Mock API call
-    setTimeout(async () => {
-      const newPromoCast: PromoCast = {
-        id: Date.now().toString(),
-        castUrl: castUrl,
-        author: {
+    try {
+      // Create promotion in database
+      const response = await fetch('/api/promotions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           fid: currentUser.fid,
           username: currentUser.username,
           displayName: currentUser.displayName,
-        },
-        rewardPerShare: rewardPerShare,
-        totalBudget: campaignBudget,
-        sharesCount: 0,
-        remainingBudget: campaignBudget,
-        shareText: shareText || undefined,
-        createdAt: new Date().toISOString(),
-        status: 'active'
-      }
-      
-      setPromoCasts(prev => [newPromoCast, ...prev])
-      setCastUrl("")
-      setShareText("")
-      setIsCreating(false)
-      setShowForm(false)
-      
-      // Note: In a real implementation, you would use the Farcaster API to compose casts
-      console.log('Campaign created, would compose cast with:', shareText || 'Check out this cast!')
-      
-      // Haptic feedback for successful campaign creation
-      if (hapticsSupported) {
-        try {
-          await sdk.haptics.notificationOccurred('success');
-        } catch (error) {
-          console.log('Haptics error:', error);
+          castUrl: castUrl,
+          shareText: shareText || undefined,
+          rewardPerShare: rewardPerShare,
+          totalBudget: totalBudget
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const newPromo = convertDbToPromoCast(data.promotion);
+        
+        setPromoCasts(prev => [newPromo, ...prev]);
+        setCastUrl("");
+        setShareText("");
+        setShowForm(false);
+        
+        // Haptic feedback for successful campaign creation
+        if (hapticsSupported) {
+          try {
+            await sdk.haptics.notificationOccurred('success');
+          } catch (error) {
+            console.log('Haptics error:', error);
+          }
         }
+        
+        alert("Campaign created successfully!")
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to create campaign: ${errorData.error}`)
       }
-      
-      alert("Campaign created successfully!")
-    }, 1000)
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      alert('Failed to create campaign. Please try again.')
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   // Auto-adjust reward if too low and no shares
   const checkAndAdjustReward = async (promo: PromoCast) => {
     if (promo.sharesCount === 0 && promo.rewardPerShare < 2000) {
       const newReward = Math.min(promo.rewardPerShare * 1.5, 5000);
-      const updatedPromo = { ...promo, rewardPerShare: Math.round(newReward) };
       
-      setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
-      
-      console.log(`Auto-adjusted reward for promo ${promo.id} from ${promo.rewardPerShare} to ${newReward} $CHESS`);
-      
-      // Haptic feedback for auto-adjustment
-      if (hapticsSupported) {
-        try {
-          await sdk.haptics.notificationOccurred('warning');
-        } catch (error) {
-          console.log('Haptics error:', error);
+      try {
+        const response = await fetch(`/api/promotions/${promo.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            rewardPerShare: Math.round(newReward)
+          })
+        });
+
+        if (response.ok) {
+          const updatedPromo = { ...promo, rewardPerShare: Math.round(newReward) };
+          setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
+          
+          console.log(`Auto-adjusted reward for promo ${promo.id} from ${promo.rewardPerShare} to ${newReward} $CHESS`);
+          
+          // Haptic feedback for auto-adjustment
+          if (hapticsSupported) {
+            try {
+              await sdk.haptics.notificationOccurred('warning');
+            } catch (error) {
+              console.log('Haptics error:', error);
+            }
+          }
         }
+      } catch (error) {
+        console.error('Error updating promotion:', error);
       }
     }
   }
 
   const handleSharePromo = (promo: PromoCast) => {
-    const shareMessage = promo.shareText 
-      ? promo.shareText 
-      : `Check out this promotion! ${promo.rewardPerShare} $CHESS reward per share!`;
-    console.log('Would share promo:', shareMessage);
     // Note: In a real implementation, you would use the Farcaster API to compose casts
+    console.log('Sharing promo:', promo)
+    alert('Share functionality coming soon!')
   }
 
-  const sortedPromoCasts = [...promoCasts].sort((a, b) => {
-    // First sort by shares (higher first)
-    if (b.sharesCount !== a.sharesCount) {
-      return b.sharesCount - a.sharesCount
-    }
-    // Then by $CHESS value (lower first)
-    return a.rewardPerShare - b.rewardPerShare
-  })
-
   const calculateProgress = (promo: PromoCast) => {
-    const maxShares = promo.totalBudget / promo.rewardPerShare;
-    return Math.min((promo.sharesCount / maxShares) * 100, 100);
+    const spent = promo.totalBudget - promo.remainingBudget
+    return (spent / promo.totalBudget) * 100
   }
 
   // Auto-check and adjust rewards every 30 seconds
@@ -301,7 +316,7 @@ export default function PromotePage() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [promoCasts, checkAndAdjustReward]);
+  }, [promoCasts]);
 
   // Auto-fill cast URL if coming from cast context
   useEffect(() => {
@@ -313,9 +328,17 @@ export default function PromotePage() {
 
   const isMobile = context?.client?.platformType === 'mobile'
   const safeArea = context?.client?.safeAreaInsets
-  
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
+        <div className="text-purple-400 text-2xl font-bold animate-pulse">Loading promotions...</div>
+      </div>
+    )
+  }
+
   return (
-    <div 
+    <div
       className={`min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 ${
         isMobile ? 'px-2' : 'px-4'
       } py-6`}
@@ -329,25 +352,18 @@ export default function PromotePage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition text-sm"
-          >
-            <FiArrowLeft size={14} />
-            Back
+          <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors">
+            <FiArrowLeft size={20} />
+            <span>Back to AppRank</span>
           </Link>
-          <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
-            PROMOTION
-          </h1>
-          <div className="w-24"></div>
+          <h1 className="text-2xl font-bold text-white">Promotion Campaigns</h1>
         </div>
 
         {/* User Profile */}
         <div className="mb-8">
-          <UserProfile 
+          <UserProfile
             userPromos={promoCasts.filter(promo => promo.author.fid === currentUser.fid)}
             onEditPromo={(promo) => {
-              // TODO: Implement edit functionality
               console.log('Edit promo:', promo);
               alert('Edit functionality coming soon!');
             }}
@@ -376,184 +392,161 @@ export default function PromotePage() {
           </button>
         </div>
 
-        {/* Collapsible Form */}
-        <div
-          id="promo-form"
-          className={`overflow-hidden transition-all duration-500 ${
-            showForm ? "max-h-[1000px] opacity-100 mb-8" : "max-h-0 opacity-0 mb-0"
-          }`}
-        >
-          <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] mb-8">
-            <h2 className="text-xl font-bold text-white mb-6">Create New Promotion</h2>
-            
-            <div className="space-y-6">
-              {/* Cast URL */}
+        {/* Campaign Creation Form */}
+        {showForm && (
+          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
+            <h2 className="text-xl font-bold text-white mb-4">Create New Campaign</h2>
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-purple-200 mb-2">
-                  Cast URL
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Cast URL</label>
                 <input
-                  type="text"
+                  type="url"
                   value={castUrl}
                   onChange={(e) => setCastUrl(e.target.value)}
-                  placeholder="Enter cast URL"
-                  className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="https://farcaster.xyz/..."
+                  className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              {/* Reward per Share */}
               <div>
-                <label className="block text-sm font-medium text-purple-200 mb-2">
-                  Reward per Share
-                </label>
-                <select
-                  value={rewardPerShare}
-                  onChange={(e) => setRewardPerShare(Number(e.target.value))}
-                  className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value={500}>500 $CHESS</option>
-                  <option value={1000}>1,000 $CHESS</option>
-                  <option value={2000}>2,000 $CHESS</option>
-                  <option value={5000}>5,000 $CHESS</option>
-                  <option value={10000}>10,000 $CHESS</option>
-                </select>
-              </div>
-
-              {/* Share Text */}
-              <div>
-                <label className="block text-sm font-medium text-purple-200 mb-2">
-                  Share Text (Optional)
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Share Text (Optional)</label>
                 <textarea
                   value={shareText}
                   onChange={(e) => setShareText(e.target.value)}
-                  placeholder="Add your default share message"
+                  placeholder="Check out this amazing post!"
                   rows={3}
-                  className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
-                <p className="text-xs text-gray-400 mt-1">Leave empty for cast only</p>
               </div>
-
-              {/* Campaign Budget */}
-              <div>
-                <label className="block text-sm font-medium text-purple-200 mb-2">
-                  Campaign Budget
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[10000, 100000, 1000000, 5000000].map((budget) => (
-                    <button
-                      key={budget}
-                      onClick={() => setCampaignBudget(budget)}
-                      className={`px-4 py-3 rounded-lg font-medium transition ${
-                        campaignBudget === budget
-                          ? "bg-purple-600 text-white"
-                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      }`}
-                    >
-                      {budget >= 1000000 ? `${budget / 1000000}M` : budget >= 1000 ? `${budget / 1000}K` : budget} $CHESS
-                    </button>
-                  ))}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
+                  <input
+                    type="number"
+                    value={rewardPerShare}
+                    onChange={(e) => setRewardPerShare(parseInt(e.target.value) || 0)}
+                    min="100"
+                    step="100"
+                    className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
+                  <input
+                    type="number"
+                    value={totalBudget}
+                    onChange={(e) => setTotalBudget(parseInt(e.target.value) || 0)}
+                    min="1000"
+                    step="1000"
+                    className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
                 </div>
               </div>
-
-              {/* Start Button */}
-              <button
-                onClick={handleCreateCampaign}
-                disabled={isCreating || !castUrl.trim()}
-                className="w-full px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                {isCreating ? "Creating..." : "Start Campaign"}
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleCreateCampaign}
+                  disabled={isCreating}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreating ? "Creating..." : "Create Campaign"}
+                </button>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Active Promotions List */}
-        <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
-          <h2 className="text-xl font-bold text-white mb-6">Active Promotions</h2>
-          
-          <div className="space-y-4">
-            {sortedPromoCasts.map((promo) => (
-              <div key={promo.id} className="bg-[#181c23] rounded-xl p-4 border border-[#2e3650]">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    {promo.author.pfpUrl && (
-                      <Image src={promo.author.pfpUrl} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
-                    )}
-                    <div>
-                      <div className="font-semibold text-white">@{promo.author.username}</div>
-                      <div className="text-sm text-gray-400">{promo.author.displayName}</div>
+        {/* Campaigns List */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-white mb-4">Active Campaigns</h2>
+          {promoCasts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-lg mb-2">No campaigns yet</div>
+              <div className="text-gray-500">Create your first promotion campaign to get started!</div>
+            </div>
+          ) : (
+            promoCasts.map((promo) => (
+              <div key={promo.id} className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">{promo.author.username.charAt(0).toUpperCase()}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">{promo.author.displayName}</h3>
+                        <p className="text-purple-300 text-sm">@{promo.author.username}</p>
+                      </div>
                     </div>
+                    <p className="text-gray-300 text-sm break-all">{promo.castUrl}</p>
+                    {promo.shareText && (
+                      <p className="text-gray-400 text-sm mt-2 italic">"{promo.shareText}"</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       promo.status === 'active' ? 'bg-green-600 text-white' :
                       promo.status === 'paused' ? 'bg-yellow-600 text-white' :
                       'bg-gray-600 text-white'
                     }`}>
                       {promo.status}
-                    </div>
-                    <button 
-                      onClick={() => handleSharePromo(promo)} 
-                      className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm transition-colors flex items-center gap-1"
-                    >
-                      <FiShare2 size={12} />
-                      Share
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="text-sm text-gray-300 mb-3 truncate">
-                  {promo.castUrl}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                  <div className="flex items-center gap-2">
-                    <FiShare2 className="text-purple-400" />
-                    <span className="text-white">{promo.sharesCount} shares</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FiDollarSign className="text-green-400" />
-                    <span className="text-white">{promo.rewardPerShare} $CHESS</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FiUsers className="text-blue-400" />
-                    <span className="text-white">{promo.remainingBudget} remaining</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FiTrendingUp className="text-yellow-400" />
-                    <span className="text-white">{Math.round(calculateProgress(promo))}%</span>
+                    </span>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="mb-3">
-                  <div className="flex justify-between text-xs text-gray-400 mb-1">
-                    <span>Progress</span>
-                    <span>{promo.sharesCount} / {Math.floor(promo.totalBudget / promo.rewardPerShare)} shares</span>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="text-center p-3 bg-[#181c23] rounded-lg">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <FiDollarSign className="text-green-400" />
+                      <span className="text-white font-semibold">{promo.rewardPerShare}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">Reward per Share</p>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${calculateProgress(promo)}%` }}
-                    ></div>
+                  <div className="text-center p-3 bg-[#181c23] rounded-lg">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <FiUsers className="text-blue-400" />
+                      <span className="text-white font-semibold">{promo.sharesCount}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">Total Shares</p>
+                  </div>
+                  <div className="text-center p-3 bg-[#181c23] rounded-lg">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <FiTrendingUp className="text-purple-400" />
+                      <span className="text-white font-semibold">{promo.remainingBudget}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">Remaining Budget</p>
+                  </div>
+                  <div className="text-center p-3 bg-[#181c23] rounded-lg">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-white font-semibold">{Math.round(calculateProgress(promo))}%</span>
+                    </div>
+                    <p className="text-xs text-gray-400">Progress</p>
                   </div>
                 </div>
-                
-                {promo.shareText && (
-                  <div className="mt-3 p-2 bg-gray-800 rounded text-sm text-gray-300">
-                    &ldquo;{promo.shareText}&rdquo;
-                  </div>
-                )}
+
+                <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${calculateProgress(promo)}%` }}
+                  ></div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleSharePromo(promo)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
+                  >
+                    <FiShare2 size={16} />
+                    Share & Earn {promo.rewardPerShare} $CHESS
+                  </button>
+                </div>
               </div>
-            ))}
-            
-            {sortedPromoCasts.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                No active promotions yet
-              </div>
-            )}
-          </div>
+            ))
+          )}
         </div>
       </div>
     </div>

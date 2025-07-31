@@ -165,11 +165,7 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
               {profile.displayName || 'Unknown User'}
             </h3>
             <p className="text-purple-300 text-sm">@{profile.username}</p>
-                               {context?.location?.type && (
-                     <p className="text-xs text-gray-500 mt-1">
-                       From: {context.location.type.replace('_', ' ')}
-                     </p>
-                   )}
+            
 
           </div>
         </div>
