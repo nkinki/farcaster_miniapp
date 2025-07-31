@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
-import Image from "next/image"
 import Link from "next/link"
 import UserProfile from "@/components/UserProfile"
 
@@ -316,7 +315,7 @@ export default function PromotePage() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [promoCasts]);
+  }, [promoCasts, checkAndAdjustReward]);
 
   // Auto-fill cast URL if coming from cast context
   useEffect(() => {
@@ -483,9 +482,9 @@ export default function PromotePage() {
                       </div>
                     </div>
                     <p className="text-gray-300 text-sm break-all">{promo.castUrl}</p>
-                    {promo.shareText && (
-                      <p className="text-gray-400 text-sm mt-2 italic">"{promo.shareText}"</p>
-                    )}
+                                         {promo.shareText && (
+                       <p className="text-gray-400 text-sm mt-2 italic">&ldquo;{promo.shareText}&rdquo;</p>
+                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
