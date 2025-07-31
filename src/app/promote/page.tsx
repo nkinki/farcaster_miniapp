@@ -415,6 +415,38 @@ export default function PromotePage() {
           
           <button
             onClick={async () => {
+              console.log('Checking table structure...');
+              try {
+                const response = await fetch('/api/check-tables');
+                const data = await response.json();
+                console.log('Table structure:', data);
+                
+                if (data.status === 'success') {
+                  const message = `
+Tables: ${data.tables.join(', ')}
+
+Users table columns:
+${data.users_table_structure.map((col: any) => `- ${col.column_name} (${col.data_type})`).join('\n')}
+
+Promotions table columns:
+${data.promotions_table_structure.map((col: any) => `- ${col.column_name} (${col.data_type})`).join('\n')}
+                  `.trim();
+                  alert(message);
+                } else {
+                  alert(`Check failed: ${data.error}`);
+                }
+              } catch (error) {
+                console.error('Check failed:', error);
+                alert('Check failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+              }
+            }}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Check Tables
+          </button>
+          
+          <button
+            onClick={async () => {
               console.log('Current user data:', currentUser);
               console.log('Form data:', {
                 castUrl,
