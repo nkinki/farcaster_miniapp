@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/frame-sdk"
+import { useProfile, useSignIn } from '@farcaster/auth-kit'
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
 import UserProfile from "@/components/UserProfile"
+import ConnectButton from "@/components/ConnectButton"
 
 // Types
 interface PromoCast {
@@ -81,13 +83,19 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  // Mock user data for now
-  const mockUser = {
+  const { profile, isAuthenticated } = useProfile()
+  const { signIn } = useSignIn({})
+  
+  // Use real user data if authenticated, otherwise mock data
+  const currentUser = isAuthenticated && profile ? {
+    fid: profile.fid || 0,
+    username: profile.username || "user",
+    displayName: profile.displayName || "Current User"
+  } : {
     fid: 1234,
-    username: "user",
+    username: "user", 
     displayName: "Current User"
   }
-  const isConnected = true
   
   const [castUrl, setCastUrl] = useState("")
   const [rewardPerShare, setRewardPerShare] = useState(1000)
@@ -107,8 +115,8 @@ export default function PromotePage() {
       return
     }
 
-    if (!isConnected) {
-      alert("Please connect your wallet first")
+    if (!isAuthenticated) {
+      alert("Please connect your Farcaster account first")
       return
     }
 
@@ -120,9 +128,9 @@ export default function PromotePage() {
         id: Date.now().toString(),
         castUrl: castUrl,
         author: {
-          fid: mockUser.fid,
-          username: mockUser.username,
-          displayName: mockUser.displayName,
+          fid: currentUser.fid,
+          username: currentUser.username,
+          displayName: currentUser.displayName,
         },
         rewardPerShare: rewardPerShare,
         totalBudget: campaignBudget,
@@ -200,7 +208,16 @@ export default function PromotePage() {
 
         {/* User Profile */}
         <div className="mb-8">
-          <UserProfile />
+          {isAuthenticated ? (
+            <UserProfile />
+          ) : (
+            <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-white mb-4">Connect to Start Promoting</h2>
+                <ConnectButton />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Create Campaign Button */}

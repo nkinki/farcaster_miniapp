@@ -1,5 +1,6 @@
 "use client"
 
+import { useProfile, useSignIn } from '@farcaster/auth-kit'
 import { FiUser, FiDollarSign, FiTrendingUp, FiLogOut } from 'react-icons/fi'
 import Image from 'next/image'
 
@@ -7,22 +8,11 @@ interface UserProfileProps {
   onLogout?: () => void;
 }
 
-interface FarcasterAccount {
-  fid: number;
-  username: string;
-  displayName: string;
-  pfpUrl?: string;
-}
-
 export default function UserProfile({ onLogout }: UserProfileProps) {
-  // Temporarily disabled until we fix Farcaster auth
-  const isConnected = false
-  const account: FarcasterAccount | null = null
-  const signOut = () => {
-    console.log('Sign out functionality temporarily disabled')
-  }
+  const { profile, isAuthenticated } = useProfile()
+  const { signOut } = useSignIn({})
 
-  if (!isConnected || !account) {
+  if (!isAuthenticated || !profile) {
     return (
       <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
         <div className="text-center text-gray-400">
@@ -31,11 +21,6 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
         </div>
       </div>
     )
-  }
-
-  // Type guard to ensure account is not null
-  if (!account) {
-    return null
   }
 
   const handleLogout = () => {
@@ -57,9 +42,9 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
       </div>
 
       <div className="flex items-center gap-4 mb-6">
-        {(account as FarcasterAccount).pfpUrl ? (
+        {profile.pfpUrl ? (
           <Image 
-            src={(account as FarcasterAccount).pfpUrl!} 
+            src={profile.pfpUrl} 
             alt="Profile" 
             width={64} 
             height={64} 
@@ -73,10 +58,10 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
         
         <div>
           <h3 className="text-lg font-semibold text-white">
-            {(account as FarcasterAccount).displayName || 'Unknown User'}
+            {profile.displayName || 'Unknown User'}
           </h3>
-          <p className="text-purple-300">@{(account as FarcasterAccount).username}</p>
-          <p className="text-sm text-gray-400">FID: {(account as FarcasterAccount).fid}</p>
+          <p className="text-purple-300">@{profile.username}</p>
+          <p className="text-sm text-gray-400">FID: {profile.fid}</p>
         </div>
       </div>
 
