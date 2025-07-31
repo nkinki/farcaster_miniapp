@@ -221,7 +221,28 @@ export const db = {
       SELECT * FROM users WHERE fid = $1
     `;
     const result = await pool.query(query, [fid]);
-    return result.rows[0];
+    const user = result.rows[0];
+    
+    if (!user) {
+      return null;
+    }
+    
+    // Calculate real share statistics
+    const sharesQuery = `
+      SELECT 
+        COUNT(*) as total_shares,
+        SUM(reward_amount) as total_earnings
+      FROM shares 
+      WHERE sharer_fid = $1
+    `;
+    const sharesResult = await pool.query(sharesQuery, [fid]);
+    const shareStats = sharesResult.rows[0];
+    
+    return {
+      ...user,
+      total_shares: parseInt(shareStats.total_shares) || 0,
+      total_earnings: parseInt(shareStats.total_earnings) || 0
+    };
   },
 
   async updateUserEarnings(fid: number, earnings: number) {

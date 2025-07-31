@@ -505,7 +505,7 @@ export default function PromotePage() {
             setUserStats({
               totalEarnings: data.user.total_earnings || 0,
               totalShares: data.user.total_shares || 0,
-              pendingClaims: data.user.total_earnings || 0 // For now, all earnings are pending
+              pendingClaims: data.user.total_earnings || 0 // All earnings are pending until claimed
             });
           }
         }
@@ -598,6 +598,37 @@ ${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; sha
             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
           >
             Check Shares
+          </button>
+          
+          <button
+            onClick={async () => {
+              if (isAuthenticated && currentUser.fid) {
+                try {
+                  const response = await fetch(`/api/users?fid=${currentUser.fid}`);
+                  const data = await response.json();
+                  console.log('User stats:', data);
+                  
+                  if (data.user) {
+                    alert(`
+User Stats:
+- Total Earnings: ${data.user.total_earnings || 0} $CHESS
+- Total Shares: ${data.user.total_shares || 0}
+- Pending Claims: ${data.user.total_earnings || 0} $CHESS
+                    `.trim());
+                  } else {
+                    alert('No user data found');
+                  }
+                } catch (error) {
+                  console.error('User stats check failed:', error);
+                  alert('User stats check failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                }
+              } else {
+                alert('User not authenticated');
+              }
+            }}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+          >
+            Check User Stats
           </button>
           
           <button
