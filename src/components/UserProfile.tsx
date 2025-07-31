@@ -14,19 +14,28 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
   const [profile, setProfile] = useState<any>(null)
   
   useEffect(() => {
-    // Check if we're in Farcaster environment
-    sdk.actions.ready().then(() => {
-      console.log('Mini app ready in UserProfile')
-      setIsAuthenticated(true)
-      // Mock profile for now - in real Farcaster environment this would come from the SDK
-      setProfile({
-        fid: 1234,
-        username: "user",
-        displayName: "Current User"
-      })
+    // Get Farcaster user context
+    sdk.context.then((ctx) => {
+      const farcasterUser = ctx.user as any
+      console.log('Farcaster user context in UserProfile:', farcasterUser)
+      
+      if (farcasterUser?.fid) {
+        setIsAuthenticated(true)
+        setProfile({
+          fid: farcasterUser.fid,
+          username: farcasterUser.username || "user",
+          displayName: farcasterUser.displayName || "Current User",
+          pfpUrl: farcasterUser.pfp
+        })
+        console.log('User authenticated in UserProfile:', farcasterUser)
+      } else {
+        setIsAuthenticated(false)
+        setProfile(null)
+      }
     }).catch((error) => {
-      console.error('Mini app not ready in UserProfile:', error)
+      console.error('Error getting Farcaster context in UserProfile:', error)
       setIsAuthenticated(false)
+      setProfile(null)
     })
   }, [])
   

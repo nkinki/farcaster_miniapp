@@ -88,20 +88,36 @@ export default function PromotePage() {
   const [profile, setProfile] = useState<any>(null)
   
   useEffect(() => {
-    // Check if we're in Farcaster environment
-    sdk.actions.ready().then(() => {
-      console.log('Mini app ready')
-      setIsAuthenticated(true)
-      // Mock profile for now - in real Farcaster environment this would come from the SDK
-      setProfile({
-        fid: 1234,
-        username: "user",
-        displayName: "Current User"
-      })
+    // Get Farcaster user context
+    sdk.context.then((ctx) => {
+      const farcasterUser = ctx.user as any
+      console.log('Farcaster user context in promote:', farcasterUser)
+      
+      if (farcasterUser?.fid) {
+        setIsAuthenticated(true)
+        setProfile({
+          fid: farcasterUser.fid,
+          username: farcasterUser.username || "user",
+          displayName: farcasterUser.displayName || "Current User",
+          pfpUrl: farcasterUser.pfp
+        })
+        console.log('User authenticated in promote:', farcasterUser)
+      } else {
+        setIsAuthenticated(false)
+        setProfile(null)
+      }
     }).catch((error) => {
-      console.error('Mini app not ready:', error)
+      console.error('Error getting Farcaster context in promote:', error)
       setIsAuthenticated(false)
+      setProfile(null)
     })
+    
+    // Also call ready for compatibility
+    try {
+      sdk.actions.ready()
+    } catch (e) {
+      console.error('Ready error:', e)
+    }
   }, [])
   
   // Use real user data if authenticated, otherwise mock data

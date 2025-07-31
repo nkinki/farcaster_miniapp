@@ -11,12 +11,19 @@ export default function ConnectButton() {
   const [error, setError] = useState<any>(null)
 
   useEffect(() => {
-    // Check if we're in Farcaster environment
-    sdk.actions.ready().then(() => {
-      console.log('Mini app ready in ConnectButton')
-      setIsConnected(true)
+    // Get Farcaster user context
+    sdk.context.then((ctx) => {
+      const farcasterUser = ctx.user as any
+      console.log('Farcaster user context in ConnectButton:', farcasterUser)
+      
+      if (farcasterUser?.fid) {
+        setIsConnected(true)
+        console.log('User connected in ConnectButton:', farcasterUser)
+      } else {
+        setIsConnected(false)
+      }
     }).catch((error) => {
-      console.error('Mini app not ready in ConnectButton:', error)
+      console.error('Error getting Farcaster context in ConnectButton:', error)
       setIsConnected(false)
     })
   }, [])

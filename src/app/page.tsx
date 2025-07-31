@@ -151,6 +151,17 @@ export default function Home() {
 
     // Farcaster natív "Add Mini App" prompt minden indításkor
     sdk.actions.addMiniApp();
+    
+    // Get Farcaster user context
+    sdk.context.then((ctx) => {
+      const farcasterUser = ctx.user as any
+      console.log('Farcaster user context:', farcasterUser)
+      if (farcasterUser?.fid) {
+        console.log('User authenticated:', farcasterUser)
+      }
+    }).catch((error) => {
+      console.error('Error getting Farcaster context:', error)
+    })
   }, [])
   
   useEffect(() => {
