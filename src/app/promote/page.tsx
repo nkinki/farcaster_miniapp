@@ -180,9 +180,11 @@ export default function PromotePage() {
     displayName: profile.displayName || "Current User"
   } : {
     fid: 1234,
-    username: "user",
-    displayName: "Current User"
+    username: "testuser",
+    displayName: "Test User"
   }
+  
+  console.log('Current user state:', { isAuthenticated, profile, currentUser });
 
   const handleCreateCampaign = async () => {
     if (!castUrl.trim()) {
@@ -407,6 +409,44 @@ export default function PromotePage() {
             className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
           >
             Debug Form Data
+          </button>
+          
+          <button
+            onClick={async () => {
+              console.log('Testing campaign creation...');
+              try {
+                const testData = {
+                  fid: currentUser.fid,
+                  username: currentUser.username,
+                  displayName: currentUser.displayName,
+                  castUrl: "https://farcaster.xyz/test-cast",
+                  shareText: "Test campaign",
+                  rewardPerShare: 1000,
+                  totalBudget: 10000
+                };
+                console.log('Sending test data:', testData);
+                
+                const response = await fetch('/api/promotions', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(testData)
+                });
+                
+                console.log('Test response status:', response.status);
+                const data = await response.json();
+                console.log('Test response data:', data);
+                
+                alert(response.ok ? 'Test campaign created!' : `Test failed: ${data.error}`);
+              } catch (error) {
+                console.error('Test campaign creation failed:', error);
+                alert('Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+              }
+            }}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+          >
+            Test Campaign Creation
           </button>
           
           <button
