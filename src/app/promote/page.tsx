@@ -397,6 +397,24 @@ export default function PromotePage() {
           
           <button
             onClick={async () => {
+              console.log('Running database migration...');
+              try {
+                const response = await fetch('/api/migrate', { method: 'POST' });
+                const data = await response.json();
+                console.log('Migration response:', data);
+                alert(data.status === 'success' ? 'Migration completed!' : `Migration failed: ${data.error}`);
+              } catch (error) {
+                console.error('Migration failed:', error);
+                alert('Migration failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+              }
+            }}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          >
+            Run Migration
+          </button>
+          
+          <button
+            onClick={async () => {
               console.log('Current user data:', currentUser);
               console.log('Form data:', {
                 castUrl,
