@@ -1,25 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { sdk } from "@farcaster/miniapp-sdk"
-// import { useProfile, useSignIn } from '@farcaster/auth-kit'
+import { useState } from "react"
+import { useProfile } from '@farcaster/auth-kit'
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
 import UserProfile from "@/components/UserProfile"
 import ConnectButton from "@/components/ConnectButton"
-
-// Types
-interface FarcasterUser {
-  fid: number;
-  username?: string;
-  displayName?: string;
-  pfp?: string;
-}
-
-interface FarcasterContext {
-  user?: FarcasterUser;
-}
 
 // Types
 interface PromoCast {
@@ -95,51 +82,17 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  // Use mini app SDK for auth instead of AuthKit
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [profile, setProfile] = useState<FarcasterUser | null>(null)
+  // Use AuthKit for authentication
+  const { isAuthenticated, profile } = useProfile()
   
-  useEffect(() => {
-    // Get Farcaster user context
-    sdk.context.then((ctx: FarcasterContext) => {
-      const farcasterUser = ctx.user
-      console.log('Farcaster user context in promote:', farcasterUser)
-      
-      if (farcasterUser?.fid) {
-        setIsAuthenticated(true)
-        setProfile({
-          fid: farcasterUser.fid,
-          username: farcasterUser.username || "user",
-          displayName: farcasterUser.displayName || "Current User",
-          pfp: farcasterUser.pfp
-        })
-        console.log('User authenticated in promote:', farcasterUser)
-      } else {
-        setIsAuthenticated(false)
-        setProfile(null)
-      }
-    }).catch((error) => {
-      console.error('Error getting Farcaster context in promote:', error)
-      setIsAuthenticated(false)
-      setProfile(null)
-    })
-    
-    // Also call ready for compatibility
-    try {
-      sdk.actions.ready()
-    } catch (e) {
-      console.error('Ready error:', e)
-    }
-  }, [])
-  
-  // Use real user data if authenticated, otherwise mock data
+    // Use real user data if authenticated, otherwise mock data
   const currentUser = isAuthenticated && profile ? {
     fid: profile.fid || 0,
-    username: profile.username || "user",
-    displayName: profile.displayName || "Current User"
+    username: (profile as any).username || "user",
+    displayName: (profile as any).displayName || "Current User"
   } : {
     fid: 1234,
-    username: "user", 
+    username: "user",
     displayName: "Current User"
   }
   
@@ -151,9 +104,7 @@ export default function PromotePage() {
   const [isCreating, setIsCreating] = useState(false)
   const [showForm, setShowForm] = useState(false)
 
-  useEffect(() => {
-    sdk.actions.ready()
-  }, [])
+  // AuthKit handles authentication automatically
 
   const handleCreateCampaign = async () => {
     if (!castUrl.trim()) {
@@ -193,18 +144,8 @@ export default function PromotePage() {
       setIsCreating(false)
       setShowForm(false)
       
-      // Use Frame SDK composeCast instead of external URL
-      if (shareText.trim()) {
-        sdk.actions.composeCast({
-          text: shareText,
-          embeds: [castUrl]
-        })
-      } else {
-        sdk.actions.composeCast({
-          text: `Check out this cast!`,
-          embeds: [castUrl]
-        })
-      }
+      // Note: In a real implementation, you would use the Farcaster API to compose casts
+      console.log('Campaign created, would compose cast with:', shareText || 'Check out this cast!')
       
       alert("Campaign created successfully!")
     }, 1000)
@@ -214,10 +155,8 @@ export default function PromotePage() {
     const shareMessage = promo.shareText 
       ? promo.shareText 
       : `Check out this promotion! ${promo.rewardPerShare} $CHESS reward per share!`;
-    sdk.actions.composeCast({
-      text: shareMessage,
-      embeds: [promo.castUrl]
-    });
+    console.log('Would share promo:', shareMessage);
+    // Note: In a real implementation, you would use the Farcaster API to compose casts
   }
 
   const sortedPromoCasts = [...promoCasts].sort((a, b) => {

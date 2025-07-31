@@ -1,63 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { sdk } from '@farcaster/miniapp-sdk'
+import { useSignIn, useProfile } from '@farcaster/auth-kit'
 import { FiUser } from 'react-icons/fi'
 
-interface FarcasterUser {
-  fid: number;
-  username?: string;
-  displayName?: string;
-  pfp?: string;
-}
-
-interface FarcasterContext {
-  user?: FarcasterUser;
-}
-
 export default function ConnectButton() {
-  const [isConnected, setIsConnected] = useState(false)
-  const [isPolling, setIsPolling] = useState(false)
-  const [isError, setIsError] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const { signIn, isPolling, isError, error } = useSignIn()
+  const { isAuthenticated } = useProfile()
 
-  useEffect(() => {
-    // Get Farcaster user context
-    sdk.context.then((ctx: FarcasterContext) => {
-      const farcasterUser = ctx.user
-      console.log('Farcaster user context in ConnectButton:', farcasterUser)
-      
-      if (farcasterUser?.fid) {
-        setIsConnected(true)
-        console.log('User connected in ConnectButton:', farcasterUser)
-      } else {
-        setIsConnected(false)
-      }
-    }).catch((error) => {
-      console.error('Error getting Farcaster context in ConnectButton:', error)
-      setIsConnected(false)
-    })
-  }, [])
-
-  const signIn = async () => {
-    console.log('Sign in - this would open Farcaster auth in mini app environment')
-    setIsPolling(true)
-    setIsError(false)
-    
-    try {
-      // In Farcaster environment, this would trigger the native auth flow
-      await sdk.actions.ready()
-      setIsConnected(true)
-      setIsPolling(false)
-    } catch (error) {
-      console.error('Sign in error:', error)
-      setIsError(true)
-      setError(error instanceof Error ? error : new Error('Unknown error'))
-      setIsPolling(false)
-    }
-  }
-
-  if (isConnected) {
+  if (isAuthenticated) {
     return null // Don't show connect button if already connected
   }
 
