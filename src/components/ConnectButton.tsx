@@ -4,16 +4,27 @@ import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { FiUser } from 'react-icons/fi'
 
+interface FarcasterUser {
+  fid: number;
+  username?: string;
+  displayName?: string;
+  pfp?: string;
+}
+
+interface FarcasterContext {
+  user?: FarcasterUser;
+}
+
 export default function ConnectButton() {
   const [isConnected, setIsConnected] = useState(false)
   const [isPolling, setIsPolling] = useState(false)
   const [isError, setIsError] = useState(false)
-  const [error, setError] = useState<any>(null)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     // Get Farcaster user context
-    sdk.context.then((ctx) => {
-      const farcasterUser = ctx.user as any
+    sdk.context.then((ctx: FarcasterContext) => {
+      const farcasterUser = ctx.user
       console.log('Farcaster user context in ConnectButton:', farcasterUser)
       
       if (farcasterUser?.fid) {
@@ -41,7 +52,7 @@ export default function ConnectButton() {
     } catch (error) {
       console.error('Sign in error:', error)
       setIsError(true)
-      setError(error)
+      setError(error instanceof Error ? error : new Error('Unknown error'))
       setIsPolling(false)
     }
   }

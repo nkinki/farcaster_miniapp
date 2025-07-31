@@ -9,14 +9,25 @@ interface UserProfileProps {
   onLogout?: () => void;
 }
 
+interface FarcasterUser {
+  fid: number;
+  username?: string;
+  displayName?: string;
+  pfp?: string;
+}
+
+interface FarcasterContext {
+  user?: FarcasterUser;
+}
+
 export default function UserProfile({ onLogout }: UserProfileProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<FarcasterUser | null>(null)
   
   useEffect(() => {
     // Get Farcaster user context
-    sdk.context.then((ctx) => {
-      const farcasterUser = ctx.user as any
+    sdk.context.then((ctx: FarcasterContext) => {
+      const farcasterUser = ctx.user
       console.log('Farcaster user context in UserProfile:', farcasterUser)
       
       if (farcasterUser?.fid) {
@@ -25,7 +36,7 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
           fid: farcasterUser.fid,
           username: farcasterUser.username || "user",
           displayName: farcasterUser.displayName || "Current User",
-          pfpUrl: farcasterUser.pfp
+          pfp: farcasterUser.pfp
         })
         console.log('User authenticated in UserProfile:', farcasterUser)
       } else {
@@ -74,9 +85,9 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
       </div>
 
       <div className="flex items-center gap-4 mb-6">
-        {profile.pfpUrl ? (
+        {profile.pfp ? (
           <Image 
-            src={profile.pfpUrl} 
+            src={profile.pfp} 
             alt="Profile" 
             width={64} 
             height={64} 
