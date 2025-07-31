@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '../../../../lib/db';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     console.log('Testing database connection...');
     
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       status: 'error',
       message: 'Database connection failed',
       error: error instanceof Error ? error.message : 'Unknown error',
-      code: error instanceof Error && 'code' in error ? (error as any).code : undefined
+      code: error instanceof Error && 'code' in error ? (error as { code?: string }).code : undefined
     }, { status: 500 });
   }
 } 

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Link from "next/link"
-import UserProfile from "@/components/UserProfile"
+import UserProfile from "../../components/UserProfile"
 
 interface FarcasterUser {
   fid: number;
