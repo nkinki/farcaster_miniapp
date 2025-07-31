@@ -71,18 +71,19 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
       >
         <div className="flex items-center gap-4">
           {profile.pfp ? (
-            <Image 
+            <img 
               src={profile.pfp} 
               alt="Profile" 
-              width={48} 
-              height={48} 
-              className="w-12 h-12 rounded-full border-2 border-purple-500"
+              className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
             />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
-              <FiUser size={20} className="text-white" />
-            </div>
-          )}
+          ) : null}
+          <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${profile.pfp ? 'hidden' : ''}`}>
+            <FiUser size={20} className="text-white" />
+          </div>
           
           <div>
             <h3 className="text-lg font-semibold text-white">
