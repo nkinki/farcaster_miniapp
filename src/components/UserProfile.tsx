@@ -10,7 +10,14 @@ interface UserProfileProps {
 
 export default function UserProfile({ onLogout }: UserProfileProps) {
   const { profile, isAuthenticated } = useProfile()
-  const { signOut } = useSignIn({})
+  const { signOut } = useSignIn({
+    onSuccess: (data) => {
+      console.log('Sign out successful:', data)
+    },
+    onError: (error) => {
+      console.error('Sign out error:', error)
+    }
+  })
 
   if (!isAuthenticated || !profile) {
     return (
