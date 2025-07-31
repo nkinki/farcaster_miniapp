@@ -7,10 +7,17 @@ interface UserProfileProps {
   onLogout?: () => void;
 }
 
+interface FarcasterAccount {
+  fid: number;
+  username: string;
+  displayName: string;
+  pfpUrl?: string;
+}
+
 export default function UserProfile({ onLogout }: UserProfileProps) {
   // Temporarily disabled until we fix Farcaster auth
   const isConnected = false
-  const account: any = null
+  const account: FarcasterAccount | null = null
   const signOut = () => {
     console.log('Sign out functionality temporarily disabled')
   }
@@ -24,6 +31,11 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
         </div>
       </div>
     )
+  }
+
+  // Type guard to ensure account is not null
+  if (!account) {
+    return null
   }
 
   const handleLogout = () => {
@@ -45,9 +57,9 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
       </div>
 
       <div className="flex items-center gap-4 mb-6">
-        {account.pfpUrl ? (
+        {(account as FarcasterAccount).pfpUrl ? (
           <Image 
-            src={account.pfpUrl} 
+            src={(account as FarcasterAccount).pfpUrl!} 
             alt="Profile" 
             width={64} 
             height={64} 
@@ -61,10 +73,10 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
         
         <div>
           <h3 className="text-lg font-semibold text-white">
-            {account.displayName || 'Unknown User'}
+            {(account as FarcasterAccount).displayName || 'Unknown User'}
           </h3>
-          <p className="text-purple-300">@{account.username}</p>
-          <p className="text-sm text-gray-400">FID: {account.fid}</p>
+          <p className="text-purple-300">@{(account as FarcasterAccount).username}</p>
+          <p className="text-sm text-gray-400">FID: {(account as FarcasterAccount).fid}</p>
         </div>
       </div>
 
