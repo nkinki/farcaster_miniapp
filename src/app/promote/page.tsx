@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Link from "next/link"
@@ -266,7 +266,7 @@ export default function PromotePage() {
   }
 
   // Auto-adjust reward if too low and no shares
-  const checkAndAdjustReward = async (promo: PromoCast) => {
+  const checkAndAdjustReward = useCallback(async (promo: PromoCast) => {
     if (promo.sharesCount === 0 && promo.rewardPerShare < 2000) {
       const newReward = Math.min(promo.rewardPerShare * 1.5, 5000);
       
@@ -300,7 +300,7 @@ export default function PromotePage() {
         console.error('Error updating promotion:', error);
       }
     }
-  }
+  }, [hapticsSupported])
 
   const handleSharePromo = (promo: PromoCast) => {
     // Note: In a real implementation, you would use the Farcaster API to compose casts
@@ -391,6 +391,22 @@ export default function PromotePage() {
             className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
           >
             Test DB Connection
+          </button>
+          
+          <button
+            onClick={async () => {
+              console.log('Current user data:', currentUser);
+              console.log('Form data:', {
+                castUrl,
+                shareText,
+                rewardPerShare,
+                totalBudget
+              });
+              alert(`Debug: User FID: ${currentUser.fid}, Username: ${currentUser.username}`);
+            }}
+            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+          >
+            Debug Form Data
           </button>
           
           <button
