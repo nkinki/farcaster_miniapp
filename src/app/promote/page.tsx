@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { useProfile, useSignIn } from '@farcaster/auth-kit'
+// import { useProfile, useSignIn } from '@farcaster/auth-kit'
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
@@ -83,8 +83,26 @@ const mockPromoCasts: PromoCast[] = [
 ];
 
 export default function PromotePage() {
-  const { profile, isAuthenticated } = useProfile()
-  const { signIn } = useSignIn({})
+  // Use mini app SDK for auth instead of AuthKit
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
+  
+  useEffect(() => {
+    // Check if we're in Farcaster environment
+    sdk.actions.ready().then(() => {
+      console.log('Mini app ready')
+      setIsAuthenticated(true)
+      // Mock profile for now - in real Farcaster environment this would come from the SDK
+      setProfile({
+        fid: 1234,
+        username: "user",
+        displayName: "Current User"
+      })
+    }).catch((error) => {
+      console.error('Mini app not ready:', error)
+      setIsAuthenticated(false)
+    })
+  }, [])
   
   // Use real user data if authenticated, otherwise mock data
   const currentUser = isAuthenticated && profile ? {

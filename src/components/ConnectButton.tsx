@@ -1,17 +1,43 @@
 "use client"
 
-import { useSignIn } from '@farcaster/auth-kit'
+import { useState, useEffect } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
 import { FiUser } from 'react-icons/fi'
 
 export default function ConnectButton() {
-  const { signIn, isConnected, isError, error, isPolling } = useSignIn({
-    onSuccess: (data) => {
-      console.log('Sign in successful:', data)
-    },
-    onError: (error) => {
+  const [isConnected, setIsConnected] = useState(false)
+  const [isPolling, setIsPolling] = useState(false)
+  const [isError, setIsError] = useState(false)
+  const [error, setError] = useState<any>(null)
+
+  useEffect(() => {
+    // Check if we're in Farcaster environment
+    sdk.actions.ready().then(() => {
+      console.log('Mini app ready in ConnectButton')
+      setIsConnected(true)
+    }).catch((error) => {
+      console.error('Mini app not ready in ConnectButton:', error)
+      setIsConnected(false)
+    })
+  }, [])
+
+  const signIn = async () => {
+    console.log('Sign in - this would open Farcaster auth in mini app environment')
+    setIsPolling(true)
+    setIsError(false)
+    
+    try {
+      // In Farcaster environment, this would trigger the native auth flow
+      await sdk.actions.ready()
+      setIsConnected(true)
+      setIsPolling(false)
+    } catch (error) {
       console.error('Sign in error:', error)
+      setIsError(true)
+      setError(error)
+      setIsPolling(false)
     }
-  })
+  }
 
   if (isConnected) {
     return null // Don't show connect button if already connected

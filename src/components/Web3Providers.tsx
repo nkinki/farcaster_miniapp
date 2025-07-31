@@ -30,8 +30,10 @@ export default function Web3Providers({ children }: Web3ProvidersProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AuthKitProvider config={{ 
-          domain: typeof window !== 'undefined' ? window.location.hostname : 'localhost',
-          relay: 'https://relay.farcaster.xyz'
+          domain: 'apprank.xyz',
+          relay: 'https://relay.farcaster.xyz',
+          rpcUrl: 'https://ethereum.publicnode.com',
+          siweUri: 'https://apprank.xyz'
         }}>
           {children}
         </AuthKitProvider>

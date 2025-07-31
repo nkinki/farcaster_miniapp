@@ -1,6 +1,7 @@
 "use client"
 
-import { useProfile, useSignIn } from '@farcaster/auth-kit'
+import { useState, useEffect } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
 import { FiUser, FiDollarSign, FiTrendingUp, FiLogOut } from 'react-icons/fi'
 import Image from 'next/image'
 
@@ -9,15 +10,30 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ onLogout }: UserProfileProps) {
-  const { profile, isAuthenticated } = useProfile()
-  const { signOut } = useSignIn({
-    onSuccess: (data) => {
-      console.log('Sign out successful:', data)
-    },
-    onError: (error) => {
-      console.error('Sign out error:', error)
-    }
-  })
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
+  
+  useEffect(() => {
+    // Check if we're in Farcaster environment
+    sdk.actions.ready().then(() => {
+      console.log('Mini app ready in UserProfile')
+      setIsAuthenticated(true)
+      // Mock profile for now - in real Farcaster environment this would come from the SDK
+      setProfile({
+        fid: 1234,
+        username: "user",
+        displayName: "Current User"
+      })
+    }).catch((error) => {
+      console.error('Mini app not ready in UserProfile:', error)
+      setIsAuthenticated(false)
+    })
+  }, [])
+  
+  const signOut = () => {
+    console.log('Sign out - this would close the mini app in Farcaster environment')
+    onLogout?.()
+  }
 
   if (!isAuthenticated || !profile) {
     return (
