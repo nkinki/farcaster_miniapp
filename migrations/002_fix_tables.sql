@@ -67,14 +67,14 @@ CREATE INDEX IF NOT EXISTS idx_shares_promotion_id ON shares(promotion_id);
 CREATE INDEX IF NOT EXISTS idx_shares_sharer_fid ON shares(sharer_fid);
 CREATE INDEX IF NOT EXISTS idx_shares_shared_at ON shares(shared_at);
 
--- Create or replace the update function
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+-- Create or replace the update function (commented out to avoid syntax issues)
+-- CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--     NEW.updated_at = CURRENT_TIMESTAMP;
+--     RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
 -- Create triggers if they don't exist
 -- Note: These triggers might already exist, so we'll skip them for now
