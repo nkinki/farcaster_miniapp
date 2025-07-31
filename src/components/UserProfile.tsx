@@ -14,6 +14,7 @@ interface FarcasterUser {
   fid: number;
   username?: string;
   displayName?: string;
+  pfpUrl?: string;
 }
 
 interface PromoCast {
@@ -53,7 +54,8 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
         setProfile({
           fid: farcasterUser.fid,
           username: farcasterUser.username || "user",
-          displayName: farcasterUser.displayName || "Current User"
+          displayName: farcasterUser.displayName || "Current User",
+          pfpUrl: farcasterUser.pfpUrl
         })
         console.log('User authenticated in UserProfile:', farcasterUser)
       } else {
@@ -85,6 +87,16 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
+          {profile.pfpUrl && (
+            <img 
+              src={profile.pfpUrl} 
+              alt="Profile" 
+              className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
           
           <div>
             <h3 className="text-lg font-semibold text-white">

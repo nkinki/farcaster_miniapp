@@ -11,7 +11,7 @@ interface FarcasterUser {
   fid: number;
   username?: string;
   displayName?: string;
-  pfp?: string;
+  pfpUrl?: string;
 }
 
 interface FarcasterContext {
@@ -107,7 +107,8 @@ export default function PromotePage() {
         setProfile({
           fid: farcasterUser.fid,
           username: farcasterUser.username || "user",
-          displayName: farcasterUser.displayName || "Current User"
+          displayName: farcasterUser.displayName || "Current User",
+          pfpUrl: farcasterUser.pfpUrl
         })
         console.log('User authenticated in promote:', farcasterUser)
       } else {
