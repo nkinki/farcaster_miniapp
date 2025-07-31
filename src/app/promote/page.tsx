@@ -107,8 +107,7 @@ export default function PromotePage() {
         setProfile({
           fid: farcasterUser.fid,
           username: farcasterUser.username || "user",
-          displayName: farcasterUser.displayName || "Current User",
-          pfp: farcasterUser.pfp
+          displayName: farcasterUser.displayName || "Current User"
         })
         console.log('User authenticated in promote:', farcasterUser)
       } else {
@@ -121,6 +120,8 @@ export default function PromotePage() {
       setProfile(null)
     })
   }, [])
+
+
   
   // Use real user data if authenticated, otherwise mock data
   const currentUser = isAuthenticated && profile ? {
@@ -188,6 +189,18 @@ export default function PromotePage() {
     }, 1000)
   }
 
+  // Auto-adjust reward if too low and no shares
+  const checkAndAdjustReward = (promo: PromoCast) => {
+    if (promo.sharesCount === 0 && promo.rewardPerShare < 2000) {
+      const newReward = Math.min(promo.rewardPerShare * 1.5, 5000);
+      const updatedPromo = { ...promo, rewardPerShare: Math.round(newReward) };
+      
+      setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
+      
+      console.log(`Auto-adjusted reward for promo ${promo.id} from ${promo.rewardPerShare} to ${newReward} $CHESS`);
+    }
+  }
+
   const handleSharePromo = (promo: PromoCast) => {
     const shareMessage = promo.shareText 
       ? promo.shareText 
@@ -210,6 +223,15 @@ export default function PromotePage() {
     return Math.min((promo.sharesCount / maxShares) * 100, 100);
   }
 
+  // Auto-check and adjust rewards every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      promoCasts.forEach(checkAndAdjustReward);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [promoCasts, checkAndAdjustReward]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6">
       <div className="max-w-4xl mx-auto">
@@ -230,7 +252,14 @@ export default function PromotePage() {
 
         {/* User Profile */}
         <div className="mb-8">
-          <UserProfile />
+          <UserProfile 
+            userPromos={promoCasts.filter(promo => promo.author.fid === currentUser.fid)}
+            onEditPromo={(promo) => {
+              // TODO: Implement edit functionality
+              console.log('Edit promo:', promo);
+              alert('Edit functionality coming soon!');
+            }}
+          />
         </div>
 
         {/* Create Campaign Button */}

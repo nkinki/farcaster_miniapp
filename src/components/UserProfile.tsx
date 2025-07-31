@@ -6,20 +6,38 @@ import { FiUser, FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp } from '
 
 interface UserProfileProps {
   onLogout?: () => void;
+  userPromos?: PromoCast[];
+  onEditPromo?: (promo: PromoCast) => void;
 }
 
 interface FarcasterUser {
   fid: number;
   username?: string;
   displayName?: string;
-  pfp?: string;
+}
+
+interface PromoCast {
+  id: string;
+  castUrl: string;
+  author: {
+    fid: number;
+    username: string;
+    displayName: string;
+  };
+  rewardPerShare: number;
+  totalBudget: number;
+  sharesCount: number;
+  remainingBudget: number;
+  shareText?: string;
+  createdAt: string;
+  status: 'active' | 'paused' | 'completed';
 }
 
 interface FarcasterContext {
   user?: FarcasterUser;
 }
 
-export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
+export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEditPromo }: UserProfileProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
@@ -32,27 +50,12 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
       
       if (farcasterUser?.fid) {
         setIsAuthenticated(true)
-        // Try to get a proper profile picture URL
-        let pfpUrl = farcasterUser.pfp;
-        
-        // If pfp is a relative URL, make it absolute
-        if (pfpUrl && !pfpUrl.startsWith('http')) {
-          pfpUrl = `https://warpcast.com${pfpUrl}`;
-        }
-        
-        // If still no pfp, use a default
-        if (!pfpUrl) {
-          pfpUrl = "https://i.seadn.io/gae/2hDpuTi-0AMKvoZJGd-yKWvK4tKdQr_kLIpB_qSeMau2TNGCNidAosMEvrEXFO9Gbdtmlp_qL4r9CgJj8qLbqg7Q?auto=format&dpr=1&w=1000";
-        }
-        
         setProfile({
           fid: farcasterUser.fid,
           username: farcasterUser.username || "user",
-          displayName: farcasterUser.displayName || "Current User",
-          pfp: pfpUrl
+          displayName: farcasterUser.displayName || "Current User"
         })
         console.log('User authenticated in UserProfile:', farcasterUser)
-        console.log('Profile PFP URL:', farcasterUser.pfp)
       } else {
         setIsAuthenticated(false)
         setProfile(null)
@@ -83,23 +86,8 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          <div className="relative">
-            {profile.pfp ? (
-              <img 
-                src={profile.pfp} 
-                alt="Profile" 
-                className="w-12 h-12 rounded-full border-2 border-purple-500 object-cover"
-                onError={(e) => {
-                  console.log('Image failed to load:', profile.pfp);
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-                onLoad={() => console.log('Image loaded successfully:', profile.pfp)}
-              />
-            ) : null}
-            <div className={`w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center ${profile.pfp ? 'hidden' : ''}`}>
-              <FiUser size={20} className="text-white" />
-            </div>
+          <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
+            <FiUser size={20} className="text-white" />
           </div>
           
           <div>
@@ -159,6 +147,42 @@ export default function UserProfile({ onLogout: _onLogout }: UserProfileProps) {
           >
             Claim All Earnings (0 $CHESS)
           </button>
+
+          {/* User's Own Promos */}
+          {userPromos.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold text-white mb-4">My Promotions</h4>
+              <div className="space-y-3">
+                {userPromos.map((promo) => (
+                  <div key={promo.id} className="bg-[#181c23] rounded-lg p-4 border border-gray-700">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <p className="text-white font-medium truncate">{promo.castUrl}</p>
+                        <p className="text-sm text-gray-400">Reward: {promo.rewardPerShare} $CHESS</p>
+                      </div>
+                      <button
+                        onClick={() => onEditPromo?.(promo)}
+                        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Shares: {promo.sharesCount}</span>
+                      <span>Budget: {promo.remainingBudget}/{promo.totalBudget}</span>
+                      <span className={`px-2 py-1 rounded ${
+                        promo.status === 'active' ? 'bg-green-600 text-white' :
+                        promo.status === 'paused' ? 'bg-yellow-600 text-white' :
+                        'bg-gray-600 text-white'
+                      }`}>
+                        {promo.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
