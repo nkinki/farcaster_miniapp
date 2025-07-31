@@ -774,11 +774,6 @@ ${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; sha
                         <FiShare2 size={16} />
                         Your Campaign
                       </>
-                    ) : shareTimers[promo.id] && !shareTimers[promo.id].canShare ? (
-                      <>
-                        <FiShare2 size={16} />
-                        {formatTimeRemaining(shareTimers[promo.id].timeRemaining)}
-                      </>
                     ) : (
                       <>
                         <FiShare2 size={16} />
