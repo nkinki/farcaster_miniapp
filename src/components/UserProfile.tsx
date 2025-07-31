@@ -8,6 +8,11 @@ interface UserProfileProps {
   onLogout?: () => void;
   userPromos?: PromoCast[];
   onEditPromo?: (promo: PromoCast) => void;
+  userStats?: {
+    totalEarnings: number;
+    totalShares: number;
+    pendingClaims: number;
+  };
 }
 
 interface FarcasterUser {
@@ -55,7 +60,7 @@ interface FarcasterContext {
   };
 }
 
-export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEditPromo }: UserProfileProps) {
+export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEditPromo, userStats }: UserProfileProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
@@ -190,7 +195,7 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <FiDollarSign className="text-green-400" />
-                <span className="text-white font-semibold">0</span>
+                <span className="text-white font-semibold">{userStats?.totalEarnings || 0}</span>
               </div>
               <p className="text-xs text-gray-400">Total Earnings</p>
             </div>
@@ -198,14 +203,14 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <FiTrendingUp className="text-blue-400" />
-                <span className="text-white font-semibold">0</span>
+                <span className="text-white font-semibold">{userStats?.pendingClaims || 0}</span>
               </div>
               <p className="text-xs text-gray-400">Pending Claims</p>
             </div>
             
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <span className="text-white font-semibold">0</span>
+                <span className="text-white font-semibold">{userStats?.totalShares || 0}</span>
               </div>
               <p className="text-xs text-gray-400">Total Shares</p>
             </div>
@@ -214,9 +219,9 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
           {/* Claim Button */}
           <button
             className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={true} // Will be enabled when there are pending claims
+            disabled={!userStats?.pendingClaims || userStats.pendingClaims === 0}
           >
-            Claim All Earnings (0 $CHESS)
+            Claim All Earnings ({userStats?.pendingClaims || 0} $CHESS)
           </button>
 
           {/* User's Own Promos */}

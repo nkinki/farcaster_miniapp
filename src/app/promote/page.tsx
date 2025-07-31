@@ -108,6 +108,11 @@ export default function PromotePage() {
   const [loading, setLoading] = useState(true)
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null)
   const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({})
+  const [userStats, setUserStats] = useState<{ totalEarnings: number; totalShares: number; pendingClaims: number }>({
+    totalEarnings: 0,
+    totalShares: 0,
+    pendingClaims: 0
+  })
 
   useEffect(() => {
     // Check haptics support
@@ -386,6 +391,9 @@ export default function PromotePage() {
         // Refresh share timers
         await fetchShareTimers();
         
+        // Refresh user stats
+        await fetchUserStats();
+        
         // Haptic feedback
         if (hapticsSupported) {
           try {
@@ -486,6 +494,34 @@ export default function PromotePage() {
     }
   }, [context]);
 
+  // Fetch user statistics
+  const fetchUserStats = async () => {
+    if (isAuthenticated && currentUser.fid) {
+      try {
+        const response = await fetch(`/api/users?fid=${currentUser.fid}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setUserStats({
+              totalEarnings: data.user.total_earnings || 0,
+              totalShares: data.user.total_shares || 0,
+              pendingClaims: data.user.total_earnings || 0 // For now, all earnings are pending
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user stats:', error);
+      }
+    }
+  };
+
+  // Fetch user stats when authenticated
+  useEffect(() => {
+    if (isAuthenticated && currentUser.fid) {
+      fetchUserStats();
+    }
+  }, [isAuthenticated, currentUser.fid]);
+
   const isMobile = context?.client?.platformType === 'mobile'
   const safeArea = context?.client?.safeAreaInsets
 
@@ -527,6 +563,7 @@ export default function PromotePage() {
               console.log('Edit promo:', promo);
               alert('Edit functionality coming soon!');
             }}
+            userStats={userStats}
           />
         </div>
 
