@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { FarcasterKitProvider } from '@farcaster/auth-kit'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -11,13 +12,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-const config = {
-  domain: typeof window !== 'undefined' ? window.location.host : 'localhost',
-  siweUri: typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000/login',
-  rpcUrl: 'https://mainnet.optimism.io',
-  relay: 'https://relay.farcaster.xyz',
-};
 
 export const metadata: Metadata = {
   title: "APPRANK",
@@ -35,33 +29,26 @@ export const metadata: Metadata = {
     ],
   },
   other: {
-    "fc:frame": JSON.stringify({
-      version: "next",
-      imageUrl: "https://farcaster-miniapp-rangsor.vercel.app/og-image.png",
-      buttons: [
-        {
-          label: "🏆 View Rankings",
-          action: "post",
-        },
-      ],
-      postUrl: "https://farcaster-miniapp-rangsor.vercel.app/api/frame",
-    }),
+    "fc:frame": "vNext",
     "fc:frame:image": "https://farcaster-miniapp-rangsor.vercel.app/og-image.png",
     "fc:frame:button:1": "🏆 View Rankings",
     "fc:frame:post_url": "https://farcaster-miniapp-rangsor.vercel.app/api/frame",
+    "fc:frame:input:text": "optional",
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <head>
-        <meta
-          name="fc:frame"
-          content='{"version":"next","imageUrl":"https://farcaster-miniapp-rangsor.vercel.app/og-image.png","button":{"title":"Open AppRank","action":{"type":"launch_frame","url":"https://farc-nu.vercel.app/"}}}'
-        />
-      </head>
-      <body>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <FarcasterKitProvider>
+          {children}
+        </FarcasterKitProvider>
+      </body>
     </html>
   );
 }

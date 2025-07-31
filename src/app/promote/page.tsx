@@ -5,6 +5,7 @@ import { sdk } from "@farcaster/frame-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Image from "next/image"
 import Link from "next/link"
+import UserProfile from "@/components/UserProfile"
 
 // Types
 interface PromoCast {
@@ -195,6 +196,11 @@ export default function PromotePage() {
             PROMOTION
           </h1>
           <div className="w-24"></div>
+        </div>
+
+        {/* User Profile */}
+        <div className="mb-8">
+          <UserProfile />
         </div>
 
         {/* Create Campaign Button */}
