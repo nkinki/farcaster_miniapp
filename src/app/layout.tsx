@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ClientAuthProvider from "@/components/ClientAuthProvider"
+import Web3Providers from "@/components/Web3Providers"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,9 +45,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ClientAuthProvider>
+        <Web3Providers>
           {children}
-        </ClientAuthProvider>
+        </Web3Providers>
       </body>
     </html>
   );
