@@ -184,7 +184,7 @@ export default function PromotePage() {
     displayName: "Test User"
   }
   
-  console.log('Current user state:', { isAuthenticated, profile, currentUser });
+
 
   const handleCreateCampaign = async () => {
     if (!castUrl.trim()) {
@@ -376,128 +376,8 @@ export default function PromotePage() {
           />
         </div>
 
-        {/* Test Database Connection */}
-        <div className="flex justify-center gap-4 mb-8">
-          <button
-            onClick={async () => {
-              try {
-                const response = await fetch('/api/test-db');
-                const data = await response.json();
-                console.log('Database test result:', data);
-                alert(data.status === 'success' ? 'Database connection working!' : `Database error: ${data.error}`);
-              } catch (error) {
-                console.error('Test failed:', error);
-                alert('Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-              }
-            }}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-          >
-            Test DB Connection
-          </button>
-          
-          <button
-            onClick={async () => {
-              console.log('Running database migration...');
-              try {
-                const response = await fetch('/api/migrate', { method: 'POST' });
-                const data = await response.json();
-                console.log('Migration response:', data);
-                alert(data.status === 'success' ? 'Migration completed!' : `Migration failed: ${data.error}`);
-              } catch (error) {
-                console.error('Migration failed:', error);
-                alert('Migration failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-              }
-            }}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-          >
-            Run Migration
-          </button>
-          
-          <button
-            onClick={async () => {
-              console.log('Checking table structure...');
-              try {
-                const response = await fetch('/api/check-tables');
-                const data = await response.json();
-                console.log('Table structure:', data);
-                
-                if (data.status === 'success') {
-                  const message = `
-Tables: ${data.tables.join(', ')}
-
-Users table columns:
-${data.users_table_structure.map((col: { column_name: string; data_type: string }) => `- ${col.column_name} (${col.data_type})`).join('\n')}
-
-Promotions table columns:
-${data.promotions_table_structure.map((col: { column_name: string; data_type: string }) => `- ${col.column_name} (${col.data_type})`).join('\n')}
-                  `.trim();
-                  alert(message);
-                } else {
-                  alert(`Check failed: ${data.error}`);
-                }
-              } catch (error) {
-                console.error('Check failed:', error);
-                alert('Check failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-              }
-            }}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Check Tables
-          </button>
-          
-          <button
-            onClick={async () => {
-              console.log('Current user data:', currentUser);
-              console.log('Form data:', {
-                castUrl,
-                shareText,
-                rewardPerShare,
-                totalBudget
-              });
-              alert(`Debug: User FID: ${currentUser.fid}, Username: ${currentUser.username}`);
-            }}
-            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
-          >
-            Debug Form Data
-          </button>
-          
-          <button
-            onClick={async () => {
-              console.log('Testing campaign creation...');
-              try {
-                const testData = {
-                  fid: currentUser.fid,
-                  username: currentUser.username,
-                  displayName: currentUser.displayName,
-                  castUrl: "https://farcaster.xyz/test-cast",
-                  shareText: "Test campaign",
-                  rewardPerShare: 1000,
-                  totalBudget: 10000
-                };
-                console.log('Sending test data:', testData);
-                
-                const response = await fetch('/api/promotions', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(testData)
-                });
-                
-                console.log('Test response status:', response.status);
-                const data = await response.json();
-                console.log('Test response data:', data);
-                
-                alert(response.ok ? 'Test campaign created!' : `Test failed: ${data.error}`);
-              } catch (error) {
-                console.error('Test campaign creation failed:', error);
-                alert('Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-              }
-            }}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-          >
-            Test Campaign Creation
-          </button>
+        {/* Start Promo Campaign Button */}
+        <div className="flex justify-center mb-8">
           
           <button
             onClick={async () => {
