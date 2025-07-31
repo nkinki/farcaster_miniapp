@@ -26,7 +26,12 @@ export async function PATCH(
     }
 
     // Build update data
-    const updateData: any = {};
+    const updateData: {
+      rewardPerShare?: number;
+      status?: 'active' | 'paused' | 'completed';
+      sharesCount?: number;
+      remainingBudget?: number;
+    } = {};
     if (rewardPerShare !== undefined) updateData.rewardPerShare = rewardPerShare;
     if (status !== undefined) updateData.status = status;
     if (sharesCount !== undefined) updateData.sharesCount = sharesCount;
