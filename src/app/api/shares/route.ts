@@ -26,11 +26,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/shares called');
+    
     const body = await request.json();
+    console.log('Share request body:', body);
+    
     const { promotionId, sharerFid, sharerUsername, shareText, rewardAmount } = body;
 
     // Validate required fields
     if (!promotionId || !sharerFid || !sharerUsername || !rewardAmount) {
+      console.error('Missing required fields:', { promotionId, sharerFid, sharerUsername, rewardAmount });
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -38,8 +43,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user can share this promotion (48h limit)
+    console.log('Checking share limit for user:', sharerFid, 'promotion:', promotionId);
     const canShare = await db.canUserSharePromotion(sharerFid, promotionId, 48);
+    console.log('Can share result:', canShare);
+    
     if (!canShare) {
+      console.log('Share limit reached for user:', sharerFid, 'promotion:', promotionId);
       return NextResponse.json(
         { error: 'You can only share this campaign once every 48h' },
         { status: 429 }
@@ -47,6 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create share
+    console.log('Creating share in database...');
     const share = await db.createShare({
       promotionId,
       sharerFid,
@@ -54,6 +64,7 @@ export async function POST(request: NextRequest) {
       shareText,
       rewardAmount
     });
+    console.log('Share created:', share);
 
     // Get current promotion to calculate new values
     const currentPromotion = await db.getPromotionById(promotionId);
