@@ -494,7 +494,7 @@ ${data.shares_table_structure.map((col: { column_name: string; data_type: string
 Total shares: ${data.total_shares}
 
 Recent shares:
-${data.recent_shares.map((share: any) => `- FID: ${share.sharer_fid}, Campaign: ${share.promotion_id}, Date: ${share.shared_at}`).join('\n')}
+${data.recent_shares.map((share: { sharer_fid: number; promotion_id: number; shared_at: string }) => `- FID: ${share.sharer_fid}, Campaign: ${share.promotion_id}, Date: ${share.shared_at}`).join('\n')}
                   `.trim();
                   alert(message);
                 } else {
