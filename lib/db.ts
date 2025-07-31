@@ -33,7 +33,7 @@ export const db = {
   }) {
     const query = `
       INSERT INTO promotions (fid, username, display_name, cast_url, share_text, reward_per_share, total_budget, remaining_budget)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
     const values = [
@@ -43,7 +43,8 @@ export const db = {
       data.castUrl,
       data.shareText,
       data.rewardPerShare,
-      data.totalBudget
+      data.totalBudget,
+      data.totalBudget // remaining_budget starts equal to total_budget
     ];
     
     const result = await pool.query(query, values);

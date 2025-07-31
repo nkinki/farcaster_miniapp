@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('POST /api/promotions called');
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
     
     const body = await request.json();
     console.log('Request body:', body);
@@ -42,11 +43,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Creating user...');
+    console.log('Creating user with data:', { fid, username, displayName });
     // Create or update user
-    await db.createOrUpdateUser({ fid, username, displayName });
+    const user = await db.createOrUpdateUser({ fid, username, displayName });
+    console.log('User created/updated:', user);
 
-    console.log('Creating promotion...');
+    console.log('Creating promotion with data:', {
+      fid,
+      username,
+      displayName,
+      castUrl,
+      shareText,
+      rewardPerShare,
+      totalBudget
+    });
     // Create promotion
     const promotion = await db.createPromotion({
       fid,
