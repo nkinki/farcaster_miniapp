@@ -249,14 +249,14 @@ export function useFarcasterPromo() {
       abi: FARCASTER_PROMO_ABI,
       functionName: 'createCampaign',
       args,
-      value,
+      ...(value && { value }),
     }),
     fundCampaign: (args: any, value?: bigint) => fundCampaign({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,
       abi: FARCASTER_PROMO_ABI,
       functionName: 'fundCampaign',
       args,
-      value,
+      ...(value && { value }),
     }),
     claimFromTreasury: () => claimFromTreasury({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,
