@@ -35,13 +35,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     setSelectedAmount(amount)
   }
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`
-    } else if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`
+  const formatNumber = (num: number | bigint): string => {
+    const numValue = typeof num === 'bigint' ? Number(num) : num
+    if (numValue >= 1000000) {
+      return `${(numValue / 1000000).toFixed(1)}M`
+    } else if (numValue >= 1000) {
+      return `${(numValue / 1000).toFixed(1)}K`
     }
-    return num.toString()
+    return numValue.toString()
   }
 
   const handlePayment = async () => {
@@ -116,7 +117,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
             <div className="mt-2 text-xs text-gray-400">
               Address: {address?.slice(0, 6)}...{address?.slice(-4)}
               <br />
-              Balance: {formatNumber(Number(balance))} CHESS
+              Balance: {formatNumber(balance)} CHESS
             </div>
           )}
           {!isConnected && (
