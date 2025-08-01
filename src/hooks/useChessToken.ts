@@ -77,6 +77,9 @@ export function useChessToken() {
     approveHash: approveData,
     
     // Helper functions
-    needsApproval: (amount: bigint) => (allowance || BigInt(0)) < amount,
+    needsApproval: (amount: bigint) => {
+      const currentAllowance = BigInt(allowance?.toString() || '0');
+      return currentAllowance < amount;
+    },
   }
 } 
