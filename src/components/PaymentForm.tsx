@@ -36,7 +36,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
   // Wagmi hooks
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash, createCampaign, isCreatingCampaign: isCreatingCampaignFromHook, createCampaignHash: createCampaignData } = useFarcasterPromo()
-  const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
+  const { balance, allowance, approve, isApproving, needsApproval, isApproveSuccess, approveError } = useChessToken()
 
   // Neon DB promotion data (only for existing campaigns)
   const { promotion, loading: promotionLoading, error: promotionError } = usePromotion(
@@ -237,6 +237,25 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     }
   }, [createCampaignData, promotionId, newCampaignData])
 
+  // Handle approval success
+  useEffect(() => {
+    if (isApproveSuccess) {
+      console.log('CHESS token approval successful!')
+      // Refresh allowance data
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    }
+  }, [isApproveSuccess])
+
+  // Handle approval error
+  useEffect(() => {
+    if (approveError) {
+      console.error('CHESS token approval failed:', approveError)
+      setError(`Approval failed: ${approveError.message}`)
+    }
+  }, [approveError])
+
   // Save new campaign to Neon DB after successful blockchain creation
   const saveNewCampaignToDb = async (blockchainHash: string) => {
     if (!newCampaignData) return
@@ -308,6 +327,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           {/* Approval Status */}
           {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && (
             <p>Approved: {needsApproval(BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)) ? 'No' : 'Yes'}</p>
+          )}
+          
+          {/* Approval Success/Error Status */}
+          {isApproveSuccess && (
+            <p className="text-green-400">✓ Approval successful!</p>
+          )}
+          {approveError && (
+            <p className="text-red-400">✗ Approval failed: {approveError.message}</p>
           )}
           
           {campaignLoading ? (
@@ -504,14 +531,65 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && 
              needsApproval(BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)) && (
               <button
-                onClick={() => approve([
-                  CONTRACTS.FarcasterPromo as `0x${string}`,
-                  BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
-                ])}
+                onClick={() => approve({
+                  address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+                  abi: [
+                    {
+                      "inputs": [
+                        {"internalType": "address", "name": "spender", "type": "address"},
+                        {"internalType": "uint256", "name": "amount", "type": "uint256"}
+                      ],
+                      "name": "approve",
+                      "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                      "stateMutability": "nonpayable",
+                      "type": "function"
+                    }
+                  ],
+                  functionName: 'approve',
+                  args: [
+                    CONTRACTS.FarcasterPromo as `0x${string}`,
+                    BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
+                  ],
+                  gas: BigInt(50000) // Explicit gas limit for approval
+                })}
                 disabled={isApproving}
                 className="w-full mt-2 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
               >
                 {isApproving ? 'Approving...' : 'Approve CHESS Token'}
+              </button>
+            )}
+
+            {/* Retry Approval Button - Show if approval failed */}
+            {approveError && (
+              <button
+                onClick={() => {
+                  setError("") // Clear previous error
+                  approve({
+                    address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+                    abi: [
+                      {
+                        "inputs": [
+                          {"internalType": "address", "name": "spender", "type": "address"},
+                          {"internalType": "uint256", "name": "amount", "type": "uint256"}
+                        ],
+                        "name": "approve",
+                        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                        "stateMutability": "nonpayable",
+                        "type": "function"
+                      }
+                    ],
+                    functionName: 'approve',
+                    args: [
+                      CONTRACTS.FarcasterPromo as `0x${string}`,
+                      BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
+                    ],
+                    gas: BigInt(50000) // Explicit gas limit for approval
+                  })
+                }}
+                disabled={isApproving}
+                className="w-full mt-2 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                {isApproving ? 'Retrying...' : 'Retry Approval'}
               </button>
             )}
           </div>

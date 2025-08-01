@@ -110,8 +110,18 @@ export function useChessToken() {
   const { 
     data: approveData, 
     writeContract: approve, 
-    isPending: isApproving 
+    isPending: isApproving,
+    error: approveError,
+    isSuccess: isApproveSuccess
   } = useWriteContract()
+
+  // Log approval events
+  console.log('Approval status:', {
+    isApproving,
+    isApproveSuccess,
+    approveError: approveError?.message,
+    approveData
+  })
 
   return {
     // Read data
@@ -128,6 +138,8 @@ export function useChessToken() {
     
     // Loading states
     isApproving,
+    isApproveSuccess,
+    approveError,
     
     // Transaction hash
     approveHash: approveData,
