@@ -29,7 +29,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   // Wagmi hooks
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash } = useFarcasterPromo()
-  const { balance } = useChessToken()
+  const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount)
@@ -68,10 +68,19 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
       
       console.log('PaymentForm debug:', {
         amount: amount.toString(),
+        allowance: allowance.toString(),
+        needsApproval: needsApproval(amount),
         farcasterPromoAddress: CONTRACTS.FarcasterPromo
       })
       
-      // Fund campaign directly (no approval check)
+      // Check if approval is needed
+      if (needsApproval(amount)) {
+        console.log('Approval needed, calling approve...')
+        approve([CONTRACTS.FarcasterPromo, amount])
+        return
+      }
+
+      console.log('No approval needed, calling fundCampaign...')
       fundCampaign([BigInt(promotionId), amount])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed")
@@ -79,6 +88,13 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   }
 
   const finalAmount = selectedAmount
+
+  // Handle successful approval
+  useEffect(() => {
+    if (isApproving) {
+      console.log('Approval in progress...')
+    }
+  }, [isApproving])
 
   // Handle successful funding
   useEffect(() => {
@@ -117,10 +133,15 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               <br />
               Balance: {formatNumber(balance)} CHESS
               <br />
+              Allowance: {formatNumber(allowance)} CHESS
+              <br />
+              {isApproving && <span className="text-yellow-400">Approving...</span>}
+              <br />
               <button
                 onClick={() => {
                   console.log('Debug info:', {
                     balance: balance.toString(),
+                    allowance: allowance.toString(),
                     selectedAmount,
                     farcasterPromoAddress: CONTRACTS.FarcasterPromo
                   })
