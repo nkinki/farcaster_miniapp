@@ -43,6 +43,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     query: {
       enabled: isConnected && finalAmount > 0,
     },
+    // Base hálózat gas konfiguráció
+    gas: BigInt(150000), // Explicit gas limit
   })
 
   const handleAmountSelect = (amount: number) => {
@@ -85,7 +87,9 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         allowance: allowance.toString(),
         needsApproval: needsApproval(amount),
         farcasterPromoAddress: CONTRACTS.FarcasterPromo,
-        simulationError: simulationError?.message
+        simulationError: simulationError?.message,
+        simulationData: simulationData,
+        gasEstimate: simulationData?.request?.gas?.toString(),
       })
       
       // Check for simulation errors first
@@ -154,6 +158,12 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               <br />
               Allowance: {formatNumber(allowance)} CHESS
               <br />
+              {simulationData?.request?.gas && (
+                <>
+                  Gas Estimate: {simulationData.request.gas.toString()}
+                  <br />
+                </>
+              )}
               {isApproving && <span className="text-yellow-400">Approving...</span>}
               <br />
               <button
@@ -162,7 +172,9 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                     balance: balance.toString(),
                     allowance: allowance.toString(),
                     selectedAmount,
-                    farcasterPromoAddress: CONTRACTS.FarcasterPromo
+                    farcasterPromoAddress: CONTRACTS.FarcasterPromo,
+                    simulationData,
+                    gasEstimate: simulationData?.request?.gas?.toString(),
                   })
                 }}
                 className="text-xs text-blue-400 hover:text-blue-300 mt-1"
