@@ -31,6 +31,21 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   // Blockchain campaign check (for compatibility)
   const { exists: campaignExists, campaign: blockchainCampaign, error: campaignError, isLoading: campaignLoading } = useCampaignExists(BigInt(promotionId))
 
+  // Add timeout for loading state
+  const [loadingTimeout, setLoadingTimeout] = useState(false)
+  
+  useEffect(() => {
+    if (campaignLoading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true)
+      }, 10000) // 10 seconds timeout
+      
+      return () => clearTimeout(timer)
+    } else {
+      setLoadingTimeout(false)
+    }
+  }, [campaignLoading])
+
   // Simulate campaign creation
   const { data: createSimulationData, error: createSimulationError } = useSimulateContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
@@ -44,7 +59,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
       true // divisible
     ] : undefined,
     query: {
-      enabled: isConnected && !!promotion && !campaignExists,
+      enabled: isConnected && !!promotion && !campaignExists && !campaignLoading,
     },
   })
 
@@ -231,9 +246,21 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         )}
 
         {/* Campaign Creation Form */}
-        {!campaignExists && !campaignLoading && promotion && promotion.status === 'active' && (
+        {!campaignExists && promotion && promotion.status === 'active' && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-white mb-4">Create Blockchain Campaign</h3>
+            
+            {campaignLoading && !loadingTimeout && (
+              <div className="mb-4 p-3 bg-blue-900 bg-opacity-20 rounded-lg">
+                <p className="text-blue-400 text-sm">Checking blockchain campaign status...</p>
+              </div>
+            )}
+            
+            {loadingTimeout && (
+              <div className="mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
+                <p className="text-yellow-400 text-sm">Loading timeout. You can still create the campaign.</p>
+              </div>
+            )}
             
             {/* Reward Per Share Slider */}
             <div className="mb-6">
