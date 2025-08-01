@@ -1,6 +1,6 @@
 "use client"
 
-import { useContractRead, useContractWrite, useWaitForTransaction, useAccount } from 'wagmi'
+import { useReadContract, useWriteContract, useAccount } from 'wagmi'
 import { CONTRACTS } from '@/config/contracts'
 
 // ERC20 ABI for CHESS token
@@ -78,53 +78,53 @@ export function useChessToken() {
   const { address } = useAccount()
 
   // Read functions
-  const { data: balance } = useContractRead({
+  const { data: balance } = useReadContract({
     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
     abi: ERC20_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
-    enabled: !!address,
+    query: {
+      enabled: !!address,
+    },
   })
 
-  const { data: allowance } = useContractRead({
+  const { data: allowance } = useReadContract({
     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
     abi: ERC20_ABI,
     functionName: 'allowance',
     args: address ? [address, CONTRACTS.FarcasterPromo] : undefined,
-    enabled: !!address,
+    query: {
+      enabled: !!address,
+    },
   })
 
   // Write functions
   const { 
     data: approveData, 
-    write: approve, 
-    isLoading: isApproving 
-  } = useContractWrite({
-    address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-    abi: ERC20_ABI,
-    functionName: 'approve',
-  })
-
-  // Wait for transaction
-  const { isLoading: isApprovingPending } = useWaitForTransaction({
-    hash: approveData?.hash,
-  })
+    writeContract: approve, 
+    isPending: isApproving 
+  } = useWriteContract()
 
   return {
     // Read data
-    balance: balance || 0n,
-    allowance: allowance || 0n,
+    balance: balance || BigInt(0),
+    allowance: allowance || BigInt(0),
     
     // Write functions
-    approve,
+    approve: (args: any) => approve({
+      address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: 'approve',
+      args,
+    }),
     
     // Loading states
-    isApproving: isApproving || isApprovingPending,
+    isApproving,
     
     // Transaction hash
-    approveHash: approveData?.hash,
+    approveHash: approveData,
     
     // Helper functions
-    needsApproval: (amount: bigint) => (allowance || 0n) < amount,
+    needsApproval: (amount: bigint) => (allowance || BigInt(0)) < amount,
   }
 } 

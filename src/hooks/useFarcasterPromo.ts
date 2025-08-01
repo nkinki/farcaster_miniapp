@@ -1,6 +1,6 @@
 "use client"
 
-import { useContractRead, useContractWrite, useWaitForTransaction, useAccount } from 'wagmi'
+import { useReadContract, useWriteContract, useAccount } from 'wagmi'
 import { CONTRACTS } from '@/config/contracts'
 
 // ABI import - we'll need to add this
@@ -203,94 +203,87 @@ export function useFarcasterPromo() {
   const { address } = useAccount()
 
   // Read functions
-  const { data: totalCampaigns } = useContractRead({
+  const { data: totalCampaigns } = useReadContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
     functionName: 'getTotalCampaigns',
   })
 
-  const { data: claimableAmount } = useContractRead({
+  const { data: claimableAmount } = useReadContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
     functionName: 'getClaimableAmount',
     args: address ? [address] : undefined,
-    enabled: !!address,
+    query: {
+      enabled: !!address,
+    },
   })
 
   // Write functions
   const { 
     data: createCampaignData, 
-    write: createCampaign, 
-    isLoading: isCreatingCampaign 
-  } = useContractWrite({
-    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-    abi: FARCASTER_PROMO_ABI,
-    functionName: 'createCampaign',
-  })
+    writeContract: createCampaign, 
+    isPending: isCreatingCampaign 
+  } = useWriteContract()
 
   const { 
     data: fundCampaignData, 
-    write: fundCampaign, 
-    isLoading: isFundingCampaign 
-  } = useContractWrite({
-    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-    abi: FARCASTER_PROMO_ABI,
-    functionName: 'fundCampaign',
-  })
+    writeContract: fundCampaign, 
+    isPending: isFundingCampaign 
+  } = useWriteContract()
 
   const { 
     data: claimTreasuryData, 
-    write: claimFromTreasury, 
-    isLoading: isClaimingTreasury 
-  } = useContractWrite({
-    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-    abi: FARCASTER_PROMO_ABI,
-    functionName: 'claimFromTreasury',
-  })
-
-  // Wait for transactions
-  const { isLoading: isCreatingCampaignPending } = useWaitForTransaction({
-    hash: createCampaignData?.hash,
-  })
-
-  const { isLoading: isFundingCampaignPending } = useWaitForTransaction({
-    hash: fundCampaignData?.hash,
-  })
-
-  const { isLoading: isClaimingTreasuryPending } = useWaitForTransaction({
-    hash: claimTreasuryData?.hash,
-  })
+    writeContract: claimFromTreasury, 
+    isPending: isClaimingTreasury 
+  } = useWriteContract()
 
   return {
     // Read data
-    totalCampaigns: totalCampaigns || 0n,
-    claimableAmount: claimableAmount || 0n,
+    totalCampaigns: totalCampaigns || BigInt(0),
+    claimableAmount: claimableAmount || BigInt(0),
     
     // Write functions
-    createCampaign,
-    fundCampaign,
-    claimFromTreasury,
+    createCampaign: (args: any) => createCampaign({
+      address: CONTRACTS.FarcasterPromo as `0x${string}`,
+      abi: FARCASTER_PROMO_ABI,
+      functionName: 'createCampaign',
+      args,
+    }),
+    fundCampaign: (args: any) => fundCampaign({
+      address: CONTRACTS.FarcasterPromo as `0x${string}`,
+      abi: FARCASTER_PROMO_ABI,
+      functionName: 'fundCampaign',
+      args,
+    }),
+    claimFromTreasury: () => claimFromTreasury({
+      address: CONTRACTS.FarcasterPromo as `0x${string}`,
+      abi: FARCASTER_PROMO_ABI,
+      functionName: 'claimFromTreasury',
+    }),
     
     // Loading states
-    isCreatingCampaign: isCreatingCampaign || isCreatingCampaignPending,
-    isFundingCampaign: isFundingCampaign || isFundingCampaignPending,
-    isClaimingTreasury: isClaimingTreasury || isClaimingTreasuryPending,
+    isCreatingCampaign,
+    isFundingCampaign,
+    isClaimingTreasury,
     
     // Transaction hashes
-    createCampaignHash: createCampaignData?.hash,
-    fundCampaignHash: fundCampaignData?.hash,
-    claimTreasuryHash: claimTreasuryData?.hash,
+    createCampaignHash: createCampaignData,
+    fundCampaignHash: fundCampaignData,
+    claimTreasuryHash: claimTreasuryData,
   }
 }
 
 // Hook for getting campaign details
 export function useCampaign(campaignId: bigint | undefined) {
-  const { data: campaign } = useContractRead({
+  const { data: campaign } = useReadContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
     functionName: 'getCampaign',
     args: campaignId ? [campaignId] : undefined,
-    enabled: !!campaignId,
+    query: {
+      enabled: !!campaignId,
+    },
   })
 
   return campaign
