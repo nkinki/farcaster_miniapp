@@ -5,7 +5,8 @@ import { FiDollarSign, FiCreditCard, FiCheck, FiAlertCircle } from "react-icons/
 import { CONTRACTS } from "@/config/contracts"
 import { useFarcasterPromo } from "@/hooks/useFarcasterPromo"
 import { useChessToken } from "@/hooks/useChessToken"
-import { useAccount } from "wagmi"
+import { useAccount, useSimulateContract } from "wagmi"
+import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"
 
 interface PaymentFormProps {
   promotionId: string
@@ -30,6 +31,19 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash } = useFarcasterPromo()
   const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
+  
+  const finalAmount = selectedAmount
+
+  // Simulate contract call for gas estimation
+  const { data: simulationData, error: simulationError } = useSimulateContract({
+    address: CONTRACTS.FarcasterPromo as `0x${string}`,
+    abi: FARCASTER_PROMO_ABI,
+    functionName: 'fundCampaign',
+    args: [BigInt(promotionId), BigInt(finalAmount)],
+    query: {
+      enabled: isConnected && finalAmount > 0,
+    },
+  })
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount)
@@ -70,8 +84,15 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         amount: amount.toString(),
         allowance: allowance.toString(),
         needsApproval: needsApproval(amount),
-        farcasterPromoAddress: CONTRACTS.FarcasterPromo
+        farcasterPromoAddress: CONTRACTS.FarcasterPromo,
+        simulationError: simulationError?.message
       })
+      
+      // Check for simulation errors first
+      if (simulationError) {
+        setError(`Transaction simulation failed: ${simulationError.message}`)
+        return
+      }
       
       // Check if approval is needed
       if (needsApproval(amount)) {
@@ -86,8 +107,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
       setError(err instanceof Error ? err.message : "Payment failed")
     }
   }
-
-  const finalAmount = selectedAmount
 
   // Handle successful approval
   useEffect(() => {
