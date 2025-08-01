@@ -72,7 +72,10 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     allowanceLoading,
     isApproving,
     isApproveSuccess,
-    approveError: approveError?.message
+    approveError: approveError?.message,
+    userAgent: navigator.userAgent,
+    isFarcasterApp: navigator.userAgent.includes('Farcaster') || window.location.hostname.includes('farcaster'),
+    platform: context?.client?.platformType || 'unknown'
   })
 
   // Neon DB promotion data (only for existing campaigns)
@@ -396,6 +399,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             <p className="text-red-300 font-bold text-xs">🔧 DEBUG INFO:</p>
             <p className="text-red-200 text-xs">Balance: {balanceLoading ? 'Loading...' : balanceError ? `Error: ${balanceError.message}` : balance?.toString() || '0'}</p>
             <p className="text-red-200 text-xs">Allowance: {allowanceLoading ? 'Loading...' : allowanceError ? `Error: ${allowanceError.message}` : allowance?.toString() || '0'}</p>
+            <p className="text-red-200 text-xs">Needs Approval: {needsApproval(BigInt(10000) * BigInt(10 ** 18)) ? 'Yes' : 'No'}</p>
             <p className="text-red-200 text-xs">CHESS Token: {CONTRACTS.CHESS_TOKEN.substring(0, 6)}...{CONTRACTS.CHESS_TOKEN.substring(CONTRACTS.CHESS_TOKEN.length - 4)}</p>
             <p className="text-red-200 text-xs">Approving: {isApproving ? 'Yes' : 'No'}</p>
             <p className="text-red-200 text-xs">Approve Success: {isApproveSuccess ? 'Yes' : 'No'}</p>
@@ -427,43 +431,36 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             </button>
           </div>
           
-          {/* Wallet Connection Button for Browser */}
+          {/* Farcaster Miniapp Wallet Status */}
           {!isConnected && (
             <div className="mt-2 space-y-2">
+              <div className="p-3 bg-yellow-900 bg-opacity-50 rounded border border-yellow-500">
+                <p className="text-yellow-300 font-bold text-sm">📱 Farcaster Miniapp</p>
+                <p className="text-yellow-200 text-xs">Wallet should connect automatically</p>
+                <p className="text-yellow-200 text-xs">If not connected, try refreshing the app</p>
+              </div>
+              
               <button
                 onClick={() => {
-                  // Try MetaMask first
-                  window.ethereum?.request({ method: 'eth_requestAccounts' })
-                    .then((accounts: string[]) => {
-                      console.log('MetaMask connected:', accounts[0])
-                      // Check and switch to Base network
-                      checkAndSwitchToBase()
-                    })
-                    .catch((error: any) => {
-                      console.error('MetaMask connection failed:', error)
-                    })
+                  console.log('🔄 Attempting to refresh wallet connection...');
+                  // Force wallet refresh
+                  window.location.reload();
                 }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
               >
-                Connect MetaMask
+                🔄 Refresh Wallet Connection
               </button>
-              
-              <div className="text-xs text-gray-400 text-center">
-                <p>For Farcaster Mini App: Wallet connects automatically</p>
-                <p>For Browser: Use MetaMask with Base network</p>
-              </div>
             </div>
           )}
 
-          {/* Base Network Check */}
+          {/* Farcaster Miniapp Network Info */}
           {isConnected && (
             <div className="mt-2">
-              <button
-                onClick={checkAndSwitchToBase}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-              >
-                Switch to Base Network
-              </button>
+              <div className="p-2 bg-green-900 bg-opacity-50 rounded border border-green-500">
+                <p className="text-green-300 font-bold text-xs">✅ Wallet Connected</p>
+                <p className="text-green-200 text-xs">Farcaster Miniapp Wallet</p>
+                <p className="text-green-200 text-xs">Network: Base (automatic)</p>
+              </div>
             </div>
           )}
           
@@ -736,7 +733,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           {campaignExists && promotion && (
             <>
               {/* Approval Button for Funding */}
-              {needsApproval(BigInt(promotion.total_budget) * BigInt(10 ** 18)) && (
+              {needsApproval(BigInt(10000) * BigInt(10 ** 18)) && (
                 <button
                   onClick={() => approve({
                     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
@@ -744,7 +741,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                     functionName: 'approve',
                     args: [
                       CONTRACTS.FarcasterPromo as `0x${string}`,
-                      BigInt(promotion.total_budget) * BigInt(10 ** 18)
+                      BigInt(10000) * BigInt(10 ** 18)  // 10K CHESS allowance
                     ],
                     gas: BigInt(50000)
                   })}
