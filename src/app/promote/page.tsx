@@ -6,7 +6,7 @@ import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } fr
 import Link from "next/link"
 import UserProfile from "../../components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
-import { useAutoConnect } from "../../hooks/useAutoConnect"
+import { useAccount } from "wagmi"
 
 interface FarcasterUser {
   fid: number;
@@ -97,8 +97,8 @@ export default function PromotePage() {
   const [context, setContext] = useState<FarcasterContext | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
   
-  // Auto-connect wallet
-  const { isConnected: isWalletConnected, address: walletAddress, isAutoConnecting } = useAutoConnect()
+  // Wallet connection (handled by Farcaster Mini App connector)
+  const { isConnected: isWalletConnected, address: walletAddress } = useAccount()
   
   // Campaign creation state
   const [showForm, setShowForm] = useState(false)
@@ -585,7 +585,7 @@ export default function PromotePage() {
         {/* Wallet Status Debug */}
         <div className="mb-4 p-3 bg-gray-800 rounded-lg">
           <div className="text-sm text-gray-300">
-            Wallet Status: {isWalletConnected ? "Connected" : isAutoConnecting ? "Connecting..." : "Not Connected"}
+            Wallet Status: {isWalletConnected ? "Connected" : "Not Connected"}
           </div>
           {isWalletConnected && walletAddress && (
             <div className="text-xs text-gray-400 mt-1">
