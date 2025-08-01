@@ -82,8 +82,11 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         return
       }
 
-      // Fund campaign
-      fundCampaign([BigInt(promotionId), amount])
+      // Calculate platform fee in ETH (0.5% of CHESS amount)
+      const platformFee = BigInt(Math.floor(selectedAmount * 0.005))
+      
+      // Fund campaign with ETH fee
+      fundCampaign([BigInt(promotionId), amount], platformFee)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed")
     }
@@ -168,7 +171,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         {/* Payment Summary */}
         <div className="bg-gray-800 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-300">Amount:</span>
+            <span className="text-gray-300">CHESS Amount:</span>
             <span className="text-white font-semibold">
               {formatNumber(finalAmount)} $CHESS
             </span>
@@ -176,14 +179,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           <div className="flex items-center justify-between mb-2">
             <span className="text-gray-300">Platform Fee (0.5%):</span>
             <span className="text-gray-400">
-              {formatNumber(Math.floor(finalAmount * 0.005))} $CHESS
+              {formatNumber(Math.floor(finalAmount * 0.005))} ETH
             </span>
           </div>
           <div className="border-t border-gray-600 pt-2">
             <div className="flex items-center justify-between">
               <span className="text-gray-300">Campaign Budget:</span>
               <span className="text-green-400 font-semibold">
-                {formatNumber(Math.floor(finalAmount * 0.995))} $CHESS
+                {formatNumber(finalAmount)} $CHESS
               </span>
             </div>
           </div>
