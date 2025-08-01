@@ -28,7 +28,7 @@ export async function GET(
       SELECT 
           id, fid, username, display_name, cast_url, share_text,
           reward_per_share, total_budget, shares_count, remaining_budget,
-          status, created_at, updated_at
+          status, blockchain_hash, created_at, updated_at
       FROM promotions
       WHERE id = ${id};
     `;

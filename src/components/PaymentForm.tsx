@@ -13,23 +13,40 @@ interface PaymentFormProps {
   promotionId: string
   onPaymentComplete: (amount: number, hash: string) => void
   onCancel: () => void
+  // New props for new campaign creation
+  newCampaignData?: {
+    castUrl: string
+    shareText: string
+    rewardPerShare: number
+    totalBudget: number
+    user: {
+      fid: number
+      username: string
+      displayName: string
+    }
+  }
 }
 
-export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }: PaymentFormProps) {
-  const [rewardPerShare, setRewardPerShare] = useState<number>(10000) // Default 10k
+export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, newCampaignData }: PaymentFormProps) {
+  const [rewardPerShare, setRewardPerShare] = useState<number>(newCampaignData?.rewardPerShare || 10000) // Default 10k
   const [error, setError] = useState<string>("")
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false)
+  const [isSavingToDb, setIsSavingToDb] = useState(false)
 
   // Wagmi hooks
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash, createCampaign, isCreatingCampaign: isCreatingCampaignFromHook, createCampaignHash: createCampaignData } = useFarcasterPromo()
   const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
 
-  // Neon DB promotion data
-  const { promotion, loading: promotionLoading, error: promotionError } = usePromotion(Number(promotionId))
+  // Neon DB promotion data (only for existing campaigns)
+  const { promotion, loading: promotionLoading, error: promotionError } = usePromotion(
+    promotionId === 'new' ? undefined : Number(promotionId)
+  )
 
   // Blockchain campaign check (for compatibility)
-  const { exists: campaignExists, campaign: blockchainCampaign, error: campaignError, isLoading: campaignLoading } = useCampaignExists(BigInt(promotionId))
+  const { exists: campaignExists, campaign: blockchainCampaign, error: campaignError, isLoading: campaignLoading } = useCampaignExists(
+    promotionId === 'new' ? undefined : BigInt(promotionId)
+  )
 
   // Add timeout for loading state
   const [loadingTimeout, setLoadingTimeout] = useState(false)
@@ -46,12 +63,18 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     }
   }, [campaignLoading])
 
-  // Simulate campaign creation
+  // Simulate campaign creation for new campaigns
   const { data: createSimulationData, error: createSimulationError } = useSimulateContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
     functionName: 'createCampaign',
-    args: promotion ? [
+    args: newCampaignData ? [
+      newCampaignData.castUrl.startsWith('http') ? newCampaignData.castUrl : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
+      newCampaignData.shareText || 'Share this promotion!',
+      BigInt(newCampaignData.rewardPerShare),
+      BigInt(newCampaignData.totalBudget),
+      true // divisible
+    ] : promotion ? [
       promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
       promotion.share_text || 'Share this promotion!',
       BigInt(rewardPerShare),
@@ -59,7 +82,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
       true // divisible
     ] : undefined,
     query: {
-      enabled: isConnected && !!promotion && !campaignExists && !campaignLoading,
+      enabled: isConnected && (!!newCampaignData || (!!promotion && !campaignExists && !campaignLoading)),
     },
   })
 
@@ -79,13 +102,35 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
       return
     }
 
-    if (!promotion) {
-      setError(`Promotion ${promotionId} does not exist in database`)
+    // For new campaigns, validate newCampaignData
+    if (promotionId === 'new') {
+      if (!newCampaignData) {
+        setError("New campaign data is missing")
+        return
+      }
+    } else {
+      // For existing campaigns, validate promotion
+      if (!promotion) {
+        setError(`Promotion ${promotionId} does not exist in database`)
+        return
+      }
+
+      if (promotion.status !== 'active') {
+        setError(`Promotion ${promotionId} is not active (status: ${promotion.status})`)
+        return
+      }
+    }
+
+    // Check CHESS balance
+    const requiredAmount = BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))
+    if (balance < requiredAmount) {
+      setError(`Insufficient CHESS balance. Required: ${formatNumber(Number(requiredAmount))}, Available: ${formatNumber(Number(balance))}`)
       return
     }
 
-    if (promotion.status !== 'active') {
-      setError(`Promotion ${promotionId} is not active (status: ${promotion.status})`)
+    // Check approval
+    if (needsApproval(requiredAmount)) {
+      setError("Please approve CHESS token spending first")
       return
     }
 
@@ -93,7 +138,9 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
 
     try {
       setIsCreatingCampaign(true)
-      console.log('Creating blockchain campaign for promotion:', promotion)
+      
+      const campaignData = promotionId === 'new' ? newCampaignData! : promotion!
+      console.log('Creating blockchain campaign for:', campaignData)
       
       // Check for simulation errors first
       if (createSimulationError) {
@@ -124,14 +171,70 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   // Handle successful campaign creation
   useEffect(() => {
     if (createCampaignData) {
-      console.log('Campaign created successfully:', createCampaignData)
-      setIsCreatingCampaign(false)
-      // Refresh campaign status after creation
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
+      console.log('Campaign created successfully on blockchain:', createCampaignData)
+      
+      // If this is a new campaign, save to Neon DB
+      if (promotionId === 'new' && newCampaignData) {
+        saveNewCampaignToDb(createCampaignData)
+      } else {
+        setIsCreatingCampaign(false)
+        // Refresh campaign status after creation
+        setTimeout(() => {
+          window.location.reload()
+        }, 2000)
+      }
     }
-  }, [createCampaignData])
+  }, [createCampaignData, promotionId, newCampaignData])
+
+  // Save new campaign to Neon DB after successful blockchain creation
+  const saveNewCampaignToDb = async (blockchainHash: string) => {
+    if (!newCampaignData) return
+
+    try {
+      setIsSavingToDb(true)
+      console.log('Saving new campaign to Neon DB:', newCampaignData)
+
+      const response = await fetch('/api/promotions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fid: newCampaignData.user.fid,
+          username: newCampaignData.user.username,
+          displayName: newCampaignData.user.displayName,
+          castUrl: newCampaignData.castUrl,
+          shareText: newCampaignData.shareText || undefined,
+          rewardPerShare: newCampaignData.rewardPerShare,
+          totalBudget: newCampaignData.totalBudget,
+          blockchainHash: blockchainHash // Store the blockchain transaction hash
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Campaign saved to Neon DB successfully:', data)
+        
+        // Call onPaymentComplete with the blockchain hash
+        onPaymentComplete(newCampaignData.totalBudget, blockchainHash)
+        
+        // Reset form
+        setIsCreatingCampaign(false)
+        setIsSavingToDb(false)
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to save to Neon DB:', errorData)
+        setError(`Campaign created on blockchain but failed to save to database: ${errorData.error || 'Unknown error'}`)
+        setIsCreatingCampaign(false)
+        setIsSavingToDb(false)
+      }
+    } catch (error) {
+      console.error('Error saving to Neon DB:', error)
+      setError(`Campaign created on blockchain but failed to save to database: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setIsCreatingCampaign(false)
+      setIsSavingToDb(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -141,6 +244,20 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           <p><strong>Wallet Status:</strong></p>
           <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
           <p>Address: {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Not connected'}</p>
+          
+          {/* CHESS Token Balance */}
+          <p>CHESS Balance: {balance ? `${(Number(balance) / 1e18).toFixed(2)}` : '0'} $CHESS</p>
+          
+          {/* Required Amount */}
+          {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && (
+            <p>Required: {formatNumber(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))} $CHESS</p>
+          )}
+          
+          {/* Approval Status */}
+          {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && (
+            <p>Approved: {needsApproval(BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) ? 'No' : 'Yes'}</p>
+          )}
+          
           {campaignLoading ? (
             <span className="text-yellow-400">Checking campaign...</span>
           ) : campaignExists ? (
@@ -158,7 +275,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         </div>
 
         {/* Campaign Creation Notice */}
-        {!promotion && !promotionLoading && (
+        {promotionId === 'new' && !newCampaignData && (
+          <div className="flex items-center gap-2 text-red-400 mb-4 p-3 bg-red-900 bg-opacity-20 rounded-lg">
+            <FiAlertCircle />
+            <div className="text-sm">
+              <p>New campaign data is missing.</p>
+              <p className="text-xs mt-1">Please try again or contact support.</p>
+            </div>
+          </div>
+        )}
+
+        {promotionId !== 'new' && !promotion && !promotionLoading && (
           <div className="flex items-center gap-2 text-yellow-400 mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
             <FiAlertCircle />
             <div className="text-sm">
@@ -168,7 +295,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           </div>
         )}
 
-        {promotion && promotion.status !== 'active' && (
+        {promotionId !== 'new' && promotion && promotion.status !== 'active' && (
           <div className="flex items-center gap-2 text-orange-400 mb-4 p-3 bg-orange-900 bg-opacity-20 rounded-lg">
             <FiAlertCircle />
             <div className="text-sm">
@@ -178,7 +305,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           </div>
         )}
 
-        {!campaignExists && !campaignLoading && promotion && promotion.status === 'active' && (
+        {promotionId !== 'new' && !campaignExists && !campaignLoading && promotion && promotion.status === 'active' && (
           <div className="flex items-center gap-2 text-blue-400 mb-4 p-3 bg-blue-900 bg-opacity-20 rounded-lg">
             <FiAlertCircle />
             <div className="text-sm">
@@ -189,9 +316,11 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         )}
 
         {/* Campaign Creation Form */}
-        {!campaignExists && promotion && promotion.status === 'active' && (
+        {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && !campaignExists && promotion && promotion.status === 'active')) && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Create Blockchain Campaign</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              {promotionId === 'new' ? 'Create New Campaign' : 'Create Blockchain Campaign'}
+            </h3>
             
             {campaignLoading && !loadingTimeout && (
               <div className="mb-4 p-3 bg-blue-900 bg-opacity-20 rounded-lg">
@@ -205,47 +334,49 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               </div>
             )}
             
-            {/* Reward Per Share Buttons */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Reward Per Share: {formatNumber(rewardPerShare)} $CHESS
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => handleRewardPerShareChange(1000)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    rewardPerShare === 1000
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  1K $CHESS
-                </button>
-                <button
-                  onClick={() => handleRewardPerShareChange(5000)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    rewardPerShare === 5000
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  5K $CHESS
-                </button>
-                <button
-                  onClick={() => handleRewardPerShareChange(10000)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    rewardPerShare === 10000
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  10K $CHESS
-                </button>
+            {/* Reward Per Share Buttons - only for existing campaigns */}
+            {promotionId !== 'new' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Reward Per Share: {formatNumber(rewardPerShare)} $CHESS
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => handleRewardPerShareChange(1000)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 1000
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    1K $CHESS
+                  </button>
+                  <button
+                    onClick={() => handleRewardPerShareChange(5000)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 5000
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    5K $CHESS
+                  </button>
+                  <button
+                    onClick={() => handleRewardPerShareChange(10000)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 10000
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    10K $CHESS
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Amount users receive for each share (divisible)
+                </p>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Amount users receive for each share (divisible)
-              </p>
-            </div>
+            )}
 
             {/* Campaign Summary */}
             <div className="bg-gray-800 rounded-lg p-4 mb-4">
@@ -254,20 +385,23 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                 <div className="flex justify-between">
                   <span className="text-gray-400">Cast URL:</span>
                   <span className="text-white truncate max-w-[200px]">
-                    {promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`}
+                    {promotionId === 'new' 
+                      ? (newCampaignData?.castUrl.startsWith('http') ? newCampaignData.castUrl : `https://warpcast.com/~/conversations/${newCampaignData?.castUrl}`)
+                      : (promotion?.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion?.cast_url}`)
+                    }
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Share Text:</span>
-                  <span className="text-white">"{promotion.share_text || 'Share this promotion!'}"</span>
+                  <span className="text-white">"{promotionId === 'new' ? (newCampaignData?.shareText || 'Share this promotion!') : (promotion?.share_text || 'Share this promotion!')}"</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Reward Per Share:</span>
-                  <span className="text-green-400">{formatNumber(rewardPerShare)} $CHESS</span>
+                  <span className="text-green-400">{formatNumber(promotionId === 'new' ? (newCampaignData?.rewardPerShare || 0) : rewardPerShare)} $CHESS</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Total Budget:</span>
-                  <span className="text-blue-400">{formatNumber(promotion.total_budget)} $CHESS</span>
+                  <span className="text-blue-400">{formatNumber(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))} $CHESS</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Divisible:</span>
@@ -279,11 +413,28 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
             {/* Create Campaign Button */}
             <button
               onClick={handleCreateCampaign}
-              disabled={isCreatingCampaign || isCreatingCampaignFromHook}
+              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              {isCreatingCampaign || isCreatingCampaignFromHook ? 'Creating Campaign...' : 'Create Blockchain Campaign'}
+              {isCreatingCampaign || isCreatingCampaignFromHook ? 'Creating Campaign...' : 
+               isSavingToDb ? 'Saving to Database...' : 
+               promotionId === 'new' ? 'Create New Campaign' : 'Create Blockchain Campaign'}
             </button>
+
+            {/* Approval Button - Show if approval is needed */}
+            {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && 
+             needsApproval(BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) && (
+              <button
+                onClick={() => approve([
+                  CONTRACTS.FarcasterPromo as `0x${string}`,
+                  BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))
+                ])}
+                disabled={isApproving}
+                className="w-full mt-2 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                {isApproving ? 'Approving...' : 'Approve CHESS Token'}
+              </button>
+            )}
           </div>
         )}
 

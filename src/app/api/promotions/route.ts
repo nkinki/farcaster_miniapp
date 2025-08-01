@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         SELECT 
             id, fid, username, display_name, cast_url, share_text,
             reward_per_share, total_budget, shares_count, remaining_budget,
-            status, created_at, updated_at
+            status, blockchain_hash, created_at, updated_at
         FROM promotions
         WHERE status = ${status}
         ORDER BY created_at DESC
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('Request body:', body);
     
-    const { fid, username, displayName, castUrl, shareText, rewardPerShare, totalBudget } = body;
+    const { fid, username, displayName, castUrl, shareText, rewardPerShare, totalBudget, blockchainHash } = body;
 
     // Validate required fields
     if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget) {
@@ -74,17 +74,18 @@ export async function POST(request: NextRequest) {
       castUrl,
       shareText,
       rewardPerShare,
-      totalBudget
+      totalBudget,
+      blockchainHash
     });
 
     // Create promotion directly in Neon DB
     const [promotion] = await sql`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, remaining_budget
+        reward_per_share, total_budget, remaining_budget, blockchain_hash
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null},
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, ${blockchainHash || null}
       )
       RETURNING *;
     `;

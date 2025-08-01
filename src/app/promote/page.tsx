@@ -53,6 +53,7 @@ interface PromoCast {
   shareText?: string;
   createdAt: string;
   status: 'active' | 'paused' | 'completed';
+  blockchainHash?: string;
 }
 
 // Database types
@@ -68,6 +69,7 @@ interface DatabasePromotion {
   shares_count: number;
   remaining_budget: number;
   status: 'active' | 'paused' | 'completed';
+  blockchain_hash: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -87,8 +89,9 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   remainingBudget: dbPromo.remaining_budget,
   shareText: dbPromo.share_text || undefined,
   createdAt: dbPromo.created_at,
-  status: dbPromo.status
-});
+  status: dbPromo.status,
+  blockchainHash: dbPromo.blockchain_hash || undefined,
+})
 
 export default function PromotePage() {
   // Use mini app SDK for authentication
@@ -205,11 +208,43 @@ export default function PromotePage() {
 
 
   const handlePaymentComplete = (amount: number, txHash: string) => {
-    console.log(`Payment completed: ${amount} CHESS, TX: ${txHash}`)
-    setShowPaymentForm(false)
-    setSelectedCampaignId("")
-    // Refresh promotions after payment
-    fetchPromotions()
+    console.log('Payment completed:', { amount, txHash })
+    
+    if (selectedCampaignId === 'new') {
+      // New campaign was created successfully
+      console.log('New campaign created successfully with hash:', txHash)
+      
+      // Reset form
+      setCastUrl("")
+      setShareText("")
+      setShowForm(false)
+      setShowPaymentForm(false)
+      setSelectedCampaignId("")
+      
+      // Refresh the promotions list
+      fetchPromotions()
+      
+      // Haptic feedback for successful campaign creation
+      if (hapticsSupported) {
+        try {
+          sdk.haptics.notificationOccurred('success');
+        } catch (error) {
+          console.log('Haptics error:', error);
+        }
+      }
+      
+      alert("Campaign created successfully on blockchain and saved to database!")
+    } else {
+      // Existing campaign was funded
+      console.log('Campaign funded successfully with hash:', txHash)
+      setShowPaymentForm(false)
+      setSelectedCampaignId("")
+      
+      // Refresh the promotions list
+      fetchPromotions()
+      
+      alert(`Campaign funded successfully! Transaction hash: ${txHash}`)
+    }
   }
 
   const handlePaymentCancel = () => {
@@ -247,57 +282,36 @@ export default function PromotePage() {
       return
     }
 
+    if (!isWalletConnected) {
+      if (hapticsSupported) {
+        try {
+          await sdk.haptics.notificationOccurred('error');
+        } catch (error) {
+          console.log('Haptics error:', error);
+        }
+      }
+      alert("Please connect your wallet first")
+      return
+    }
+
     setIsCreating(true)
     
     try {
-      // Create promotion in database
-      const response = await fetch('/api/promotions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fid: currentUser.fid,
-          username: currentUser.username,
-          displayName: currentUser.displayName,
-          castUrl: castUrl,
-          shareText: shareText || undefined,
-          rewardPerShare: rewardPerShare,
-          totalBudget: totalBudget
-        })
+      // First, create campaign on blockchain
+      console.log('Creating blockchain campaign with data:', {
+        castUrl,
+        shareText: shareText || 'Share this promotion!',
+        rewardPerShare,
+        totalBudget
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      // Open payment form for blockchain campaign creation
+      setSelectedCampaignId('new') // Special ID for new campaign
+      setShowPaymentForm(true)
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Success response:', data);
-        const newPromo = convertDbToPromoCast(data.promotion);
-        
-        setPromoCasts(prev => [newPromo, ...prev]);
-        setCastUrl("");
-        setShareText("");
-        setShowForm(false);
-        
-        // Haptic feedback for successful campaign creation
-        if (hapticsSupported) {
-          try {
-            await sdk.haptics.notificationOccurred('success');
-          } catch (error) {
-            console.log('Haptics error:', error);
-          }
-        }
-        
-        alert("Campaign created successfully!")
-      } else {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        alert(`Failed to create campaign: ${errorData.error || 'Unknown error'}`)
-      }
     } catch (error) {
-      console.error('Network Error creating campaign:', error);
-      alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('Error preparing campaign creation:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsCreating(false);
     }
@@ -1002,6 +1016,17 @@ export default function PromotePage() {
           promotionId={selectedCampaignId}
           onPaymentComplete={handlePaymentComplete}
           onCancel={handlePaymentCancel}
+          newCampaignData={selectedCampaignId === 'new' ? {
+            castUrl: castUrl,
+            shareText: shareText || 'Share this promotion!',
+            rewardPerShare: rewardPerShare,
+            totalBudget: totalBudget,
+            user: {
+              fid: currentUser.fid,
+              username: currentUser.username,
+              displayName: currentUser.displayName
+            }
+          } : undefined}
         />
       )}
     </div>
