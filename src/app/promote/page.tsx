@@ -657,24 +657,6 @@ export default function PromotePage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
-                  <input
-                    type="number"
-                    value={rewardPerShare}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
-                      // Csak 1000-es osztható értékek
-                      const roundedValue = Math.floor(value / 1000) * 1000;
-                      setRewardPerShare(roundedValue);
-                    }}
-                    min="1000"
-                    step="1000"
-                    placeholder="1000, 2000, 3000..."
-                    className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Must be divisible by 1000 (e.g., 1000, 2000, 5000, 10000)</p>
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
                   <div className="grid grid-cols-3 gap-2">
                     <button
@@ -734,6 +716,64 @@ export default function PromotePage() {
                 </div>
               </div>
               
+              {/* Reward Per Share Buttons */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
+                <div className="grid grid-cols-5 gap-2">
+                  <button
+                    onClick={() => setRewardPerShare(1000)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 1000
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    1K
+                  </button>
+                  <button
+                    onClick={() => setRewardPerShare(2000)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 2000
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    2K
+                  </button>
+                  <button
+                    onClick={() => setRewardPerShare(5000)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 5000
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    5K
+                  </button>
+                  <button
+                    onClick={() => setRewardPerShare(10000)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 10000
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    10K
+                  </button>
+                  <button
+                    onClick={() => setRewardPerShare(20000)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      rewardPerShare === 20000
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    20K
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Amount users receive for each share</p>
+              </div>
+              
               {/* Campaign Summary */}
               <div className="bg-gray-800 rounded-lg p-4 mb-4">
                 <h4 className="text-sm font-medium text-gray-300 mb-2">Campaign Summary</h4>
@@ -760,13 +800,19 @@ export default function PromotePage() {
                     <span className="text-gray-400">Max Shares:</span>
                     <span className="text-purple-400">{Math.floor(totalBudget / rewardPerShare)} shares</span>
                   </div>
+                  {rewardPerShare > totalBudget && (
+                    <div className="flex justify-between">
+                      <span className="text-red-400">⚠️ Invalid:</span>
+                      <span className="text-red-400">Reward &gt; Budget</span>
+                    </div>
+                  )}
                 </div>
               </div>
               
               <div className="flex gap-4">
                 <button
                   onClick={handleCreateCampaign}
-                  disabled={isCreating || !castUrl || rewardPerShare <= 0 || rewardPerShare % 1000 !== 0 || totalBudget <= 0 || rewardPerShare > totalBudget}
+                  disabled={isCreating || !castUrl || rewardPerShare <= 0 || totalBudget <= 0 || rewardPerShare > totalBudget}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating ? "Creating..." : "Create Campaign"}
@@ -784,13 +830,10 @@ export default function PromotePage() {
                 <div className="mt-2 text-red-400 text-sm">⚠️ Cast URL is required</div>
               )}
               {rewardPerShare <= 0 && (
-                <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share must be greater than 0</div>
-              )}
-              {rewardPerShare > 0 && rewardPerShare % 1000 !== 0 && (
-                <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share must be divisible by 1000</div>
+                <div className="mt-2 text-red-400 text-sm">⚠️ Please select a reward per share</div>
               )}
               {totalBudget <= 0 && (
-                <div className="mt-2 text-red-400 text-sm">⚠️ Total budget must be greater than 0</div>
+                <div className="mt-2 text-red-400 text-sm">⚠️ Please select a total budget</div>
               )}
               {rewardPerShare > totalBudget && (
                 <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share cannot be greater than total budget</div>
