@@ -303,6 +303,56 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     }
   }
 
+  const checkAndSwitchToBase = async () => {
+    if (!window.ethereum) {
+      setError("MetaMask not found. Please install MetaMask.")
+      return
+    }
+
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x2105' }], // Base network chainId (8453 in hex)
+      });
+      console.log('Switched to Base network successfully.');
+      // Optionally, refresh allowance or other data if needed
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error: any) {
+      if (error.code === 4902) { // Chain not added
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: '0x2105', // Base network chainId (8453 in hex)
+                chainName: 'Base',
+                nativeCurrency: {
+                  name: 'Base',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+                rpcUrls: ['https://mainnet.base.org'],
+                blockExplorerUrls: ['https://basescan.org'],
+              },
+            ],
+          });
+          console.log('Base network added and switched successfully.');
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (addError: any) {
+          console.error('Failed to add Base network:', addError);
+          setError(`Failed to add Base network: ${addError.message}`);
+        }
+      } else {
+        console.error('Failed to switch to Base network:', error);
+        setError(`Failed to switch to Base network: ${error.message}`);
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md mx-4">
@@ -315,21 +365,42 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           
           {/* Wallet Connection Button for Browser */}
           {!isConnected && (
-            <button
-              onClick={() => {
-                // Trigger wallet connection
-                window.ethereum?.request({ method: 'eth_requestAccounts' })
-                  .then((accounts: string[]) => {
-                    console.log('Wallet connected:', accounts[0])
-                  })
-                  .catch((error: any) => {
-                    console.error('Wallet connection failed:', error)
-                  })
-              }}
-              className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-            >
-              Connect Wallet (MetaMask)
-            </button>
+            <div className="mt-2 space-y-2">
+              <button
+                onClick={() => {
+                  // Try MetaMask first
+                  window.ethereum?.request({ method: 'eth_requestAccounts' })
+                    .then((accounts: string[]) => {
+                      console.log('MetaMask connected:', accounts[0])
+                      // Check and switch to Base network
+                      checkAndSwitchToBase()
+                    })
+                    .catch((error: any) => {
+                      console.error('MetaMask connection failed:', error)
+                    })
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                Connect MetaMask
+              </button>
+              
+              <div className="text-xs text-gray-400 text-center">
+                <p>For Farcaster Mini App: Wallet connects automatically</p>
+                <p>For Browser: Use MetaMask with Base network</p>
+              </div>
+            </div>
+          )}
+
+          {/* Base Network Check */}
+          {isConnected && (
+            <div className="mt-2">
+              <button
+                onClick={checkAndSwitchToBase}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                Switch to Base Network
+              </button>
+            </div>
           )}
           
           {/* CHESS Token Balance - Only show for funding, not creation */}
