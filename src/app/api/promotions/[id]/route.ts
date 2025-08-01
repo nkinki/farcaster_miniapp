@@ -1,58 +1,52 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../../lib/db';
+import { NextRequest, NextResponse } from 'next/server'
+import { neon } from '@neondatabase/serverless'
 
-export async function PATCH(
+export const dynamic = 'force-dynamic';
+
+if (!process.env.NEON_DB_URL) {
+  throw new Error('NEON_DB_URL környezeti változó nincs beállítva')
+}
+
+const sql = neon(process.env.NEON_DB_URL);
+
+export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
+    const id = parseInt(params.id)
+    
     if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid promotion ID' },
         { status: 400 }
-      );
+      )
     }
 
-    const body = await request.json();
-    const { rewardPerShare, status, sharesCount, remainingBudget } = body;
+    const [promotion] = await sql`
+      SELECT 
+          id, fid, username, display_name, cast_url, share_text,
+          reward_per_share, total_budget, shares_count, remaining_budget,
+          status, created_at, updated_at
+      FROM promotions
+      WHERE id = ${id};
+    `;
 
-    // Validate that at least one field is provided
-    if (!rewardPerShare && !status && sharesCount === undefined && remainingBudget === undefined) {
-      return NextResponse.json(
-        { error: 'No fields to update' },
-        { status: 400 }
-      );
-    }
-
-    // Build update data
-    const updateData: {
-      rewardPerShare?: number;
-      status?: 'active' | 'paused' | 'completed';
-      sharesCount?: number;
-      remainingBudget?: number;
-    } = {};
-    if (rewardPerShare !== undefined) updateData.rewardPerShare = rewardPerShare;
-    if (status !== undefined) updateData.status = status;
-    if (sharesCount !== undefined) updateData.sharesCount = sharesCount;
-    if (remainingBudget !== undefined) updateData.remainingBudget = remainingBudget;
-
-    // Update promotion
-    const updatedPromotion = await db.updatePromotion(id, updateData);
-    
-    if (!updatedPromotion) {
+    if (!promotion) {
       return NextResponse.json(
         { error: 'Promotion not found' },
         { status: 404 }
-      );
+      )
     }
 
-    return NextResponse.json({ promotion: updatedPromotion });
+    return NextResponse.json({
+      promotion
+    });
+
   } catch (error) {
-    console.error('Error updating promotion:', error);
+    console.error('API hiba:', error);
     return NextResponse.json(
-      { error: 'Failed to update promotion' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

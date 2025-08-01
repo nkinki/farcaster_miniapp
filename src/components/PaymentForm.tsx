@@ -244,11 +244,35 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                 <p>Promotion Username: {promotion.username}</p>
                 <p>Remaining Budget: {promotion.remaining_budget}</p>
                 <p>Total Budget: {promotion.total_budget}</p>
+                <p>Reward Per Share: {promotion.reward_per_share}</p>
+                <p>Cast URL: {promotion.cast_url?.substring(0, 50)}...</p>
               </>
             )}
             {promotionError && (
               <p className="text-red-400">Promotion Error: {promotionError}</p>
             )}
+            <p>Blockchain Campaign Exists: {campaignExists ? 'Yes' : 'No'}</p>
+            <p>Blockchain Campaign Loading: {campaignLoading ? 'Yes' : 'No'}</p>
+            {campaignError && (
+              <p className="text-red-400">Blockchain Error: {campaignError.message}</p>
+            )}
+            <button
+              onClick={async () => {
+                try {
+                  console.log('Testing API endpoint...')
+                  const response = await fetch(`/api/promotions/${promotionId}`)
+                  const data = await response.json()
+                  console.log('API Response:', { status: response.status, data })
+                  alert(`API Status: ${response.status}\nData: ${JSON.stringify(data, null, 2)}`)
+                } catch (err) {
+                  console.error('API Test Error:', err)
+                  alert(`API Test Error: ${err}`)
+                }
+              }}
+              className="text-xs text-green-400 hover:text-green-300 mt-2 bg-green-900 px-2 py-1 rounded"
+            >
+              Test API Endpoint
+            </button>
           </div>
         </div>
 
@@ -295,12 +319,32 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         )}
 
         {/* Campaign Creation Notice */}
-        {!campaignExists && !campaignLoading && (
+        {!promotion && !promotionLoading && (
           <div className="flex items-center gap-2 text-yellow-400 mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
             <FiAlertCircle />
             <div className="text-sm">
-              <p>Campaign {promotionId} does not exist.</p>
-              <p className="text-xs mt-1">You need to create this campaign first before funding it.</p>
+              <p>Promotion {promotionId} does not exist in database.</p>
+              <p className="text-xs mt-1">Check if the promotion was created correctly in Neon DB.</p>
+            </div>
+          </div>
+        )}
+
+        {promotion && promotion.status !== 'active' && (
+          <div className="flex items-center gap-2 text-orange-400 mb-4 p-3 bg-orange-900 bg-opacity-20 rounded-lg">
+            <FiAlertCircle />
+            <div className="text-sm">
+              <p>Promotion {promotionId} is not active.</p>
+              <p className="text-xs mt-1">Current status: {promotion.status}</p>
+            </div>
+          </div>
+        )}
+
+        {!campaignExists && !campaignLoading && promotion && promotion.status === 'active' && (
+          <div className="flex items-center gap-2 text-blue-400 mb-4 p-3 bg-blue-900 bg-opacity-20 rounded-lg">
+            <FiAlertCircle />
+            <div className="text-sm">
+              <p>Promotion exists in DB but not on blockchain.</p>
+              <p className="text-xs mt-1">You need to create the blockchain campaign first.</p>
             </div>
           </div>
         )}
