@@ -661,11 +661,18 @@ export default function PromotePage() {
                   <input
                     type="number"
                     value={rewardPerShare}
-                    onChange={(e) => setRewardPerShare(parseInt(e.target.value) || 0)}
-                    min="100"
-                    step="100"
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      // Csak 1000-es osztható értékek
+                      const roundedValue = Math.floor(value / 1000) * 1000;
+                      setRewardPerShare(roundedValue);
+                    }}
+                    min="1000"
+                    step="1000"
+                    placeholder="1000, 2000, 3000..."
                     className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Must be divisible by 1000 (e.g., 1000, 2000, 5000, 10000)</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
@@ -759,7 +766,7 @@ export default function PromotePage() {
               <div className="flex gap-4">
                 <button
                   onClick={handleCreateCampaign}
-                  disabled={isCreating || !castUrl || rewardPerShare <= 0 || totalBudget <= 0 || rewardPerShare > totalBudget}
+                  disabled={isCreating || !castUrl || rewardPerShare <= 0 || rewardPerShare % 1000 !== 0 || totalBudget <= 0 || rewardPerShare > totalBudget}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating ? "Creating..." : "Create Campaign"}
@@ -778,6 +785,9 @@ export default function PromotePage() {
               )}
               {rewardPerShare <= 0 && (
                 <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share must be greater than 0</div>
+              )}
+              {rewardPerShare > 0 && rewardPerShare % 1000 !== 0 && (
+                <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share must be divisible by 1000</div>
               )}
               {totalBudget <= 0 && (
                 <div className="mt-2 text-red-400 text-sm">⚠️ Total budget must be greater than 0</div>
