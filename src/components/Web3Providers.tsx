@@ -19,7 +19,7 @@ export default function Web3Providers({ children }: Web3ProvidersProps) {
         <AuthKitProvider config={{ 
           domain: 'apprank.xyz',
           relay: 'https://relay.farcaster.xyz',
-          rpcUrl: 'https://mainnet.optimism.io',
+          rpcUrl: 'https://mainnet.optimism.io', // Optimism RPC for Farcaster Auth
           siweUri: 'https://apprank.xyz'
         }}>
           {children}

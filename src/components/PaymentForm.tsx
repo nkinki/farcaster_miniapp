@@ -271,18 +271,16 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                 <input
                   type="range"
                   min="1000"
-                  max="100000"
-                  step="1000"
+                  max="10000"
+                  step="4000"
                   value={rewardPerShare}
                   onChange={(e) => handleRewardPerShareChange(Number(e.target.value))}
                   className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>1K</span>
-                  <span>25K</span>
-                  <span>50K</span>
-                  <span>75K</span>
-                  <span>100K</span>
+                  <span>5K</span>
+                  <span>10K</span>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-1">
