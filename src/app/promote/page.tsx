@@ -6,6 +6,7 @@ import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } fr
 import Link from "next/link"
 import UserProfile from "../../components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
+import { useAutoConnect } from "../../hooks/useAutoConnect"
 
 interface FarcasterUser {
   fid: number;
@@ -95,6 +96,9 @@ export default function PromotePage() {
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
   const [context, setContext] = useState<FarcasterContext | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
+  
+  // Auto-connect wallet
+  const { isConnected: isWalletConnected } = useAutoConnect()
   
   // Campaign creation state
   const [showForm, setShowForm] = useState(false)
@@ -576,6 +580,13 @@ export default function PromotePage() {
             <span>Back to AppRank</span>
           </Link>
           <h1 className="text-2xl font-bold text-white">Promotion Campaigns</h1>
+        </div>
+
+        {/* Wallet Status Debug */}
+        <div className="mb-4 p-3 bg-gray-800 rounded-lg">
+          <div className="text-sm text-gray-300">
+            Wallet Status: {isWalletConnected ? "Connected" : "Not Connected"}
+          </div>
         </div>
 
         {/* User Profile */}
