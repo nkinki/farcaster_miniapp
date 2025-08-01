@@ -72,7 +72,9 @@ export function useChessToken() {
       amount: amount.toString(),
       currentAllowance: currentAllowance.toString(),
       needs,
-      allowanceRaw: allowance
+      allowanceRaw: allowance,
+      amountInCHESS: Number(amount) / 1e18,
+      allowanceInCHESS: Number(currentAllowance) / 1e18
     });
     return needs;
   };

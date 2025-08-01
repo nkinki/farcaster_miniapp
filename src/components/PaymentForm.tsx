@@ -396,8 +396,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           {/* Debug Panel */}
           <div className="mt-3 p-2 bg-red-900 bg-opacity-50 rounded border border-red-500">
             <p className="text-red-300 font-bold text-xs">🔧 DEBUG INFO:</p>
-            <p className="text-red-200 text-xs">Balance: {balanceLoading ? 'Loading...' : balanceError ? `Error: ${balanceError.message}` : balance?.toString() || '0'}</p>
-            <p className="text-red-200 text-xs">Allowance: {allowanceLoading ? 'Loading...' : allowanceError ? `Error: ${allowanceError.message}` : allowance?.toString() || '0'}</p>
+            <p className="text-red-200 text-xs">Balance: {balanceLoading ? 'Loading...' : balanceError ? `Error: ${balanceError.message}` : balance ? `${(Number(balance) / 1e18).toFixed(2)} CHESS` : '0 CHESS'}</p>
+            <p className="text-red-200 text-xs">Allowance: {allowanceLoading ? 'Loading...' : allowanceError ? `Error: ${allowanceError.message}` : allowance ? `${(Number(allowance) / 1e18).toFixed(2)} CHESS` : '0 CHESS'}</p>
             <p className="text-red-200 text-xs">Needs Approval: {needsApproval(BigInt(10000) * BigInt(10 ** 18)) ? 'Yes' : 'No'}</p>
             <p className="text-red-200 text-xs">CHESS Token: {CONTRACTS.CHESS_TOKEN.substring(0, 6)}...{CONTRACTS.CHESS_TOKEN.substring(CONTRACTS.CHESS_TOKEN.length - 4)}</p>
             <p className="text-red-200 text-xs">Approving: {isApproving ? 'Yes' : 'No'}</p>
@@ -427,6 +427,20 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               className="mt-2 px-2 py-1 bg-red-700 hover:bg-red-600 text-white text-xs rounded"
             >
               📋 Log Full Debug
+            </button>
+            
+            <button
+              onClick={() => {
+                console.log('🚀 FORCE APPROVE TEST');
+                approve([
+                  CONTRACTS.FarcasterPromo as `0x${string}`,
+                  BigInt(10000) * BigInt(10 ** 18)  // 10K CHESS allowance
+                ]);
+              }}
+              disabled={isApproving}
+              className="mt-2 px-2 py-1 bg-green-700 hover:bg-green-600 text-white text-xs rounded"
+            >
+              🚀 Force Approve 10K CHESS
             </button>
           </div>
           
@@ -665,32 +679,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                promotionId === 'new' ? 'Create New Campaign' : 'Create Blockchain Campaign'}
             </button>
 
-            {/* Test Button - Only for new campaigns */}
-            {promotionId === 'new' && newCampaignData && (
-              <button
-                onClick={() => {
-                  // Test with minimal values
-                  const testArgs = [
-                    'https://warpcast.com/~/conversations/test',
-                    'Test campaign',
-                    BigInt(1), // 1 wei reward per share
-                    BigInt(1000), // 1000 wei total budget
-                    true
-                  ]
-                  console.log('Testing with minimal values:', testArgs)
-                  createCampaign({
-                    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-                    abi: FARCASTER_PROMO_ABI,
-                    functionName: 'createCampaign',
-                    args: testArgs
-                  })
-                }}
-                disabled={isCreatingCampaign || isCreatingCampaignFromHook}
-                className="w-full mt-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-              >
-                Test with Minimal Values
-              </button>
-            )}
+
 
             {/* Manual Create Button - Bypass simulation */}
             {promotionId === 'new' && newCampaignData && (
