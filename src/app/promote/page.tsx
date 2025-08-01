@@ -164,24 +164,24 @@ export default function PromotePage() {
   }, [])
 
   // Fetch promotions from database
-  useEffect(() => {
-    const fetchPromotions = async () => {
-      try {
-        const response = await fetch('/api/promotions');
-        if (response.ok) {
-          const data = await response.json();
-          const convertedPromos = data.promotions.map(convertDbToPromoCast);
-          setPromoCasts(convertedPromos);
-        } else {
-          console.error('Failed to fetch promotions');
-        }
-      } catch (error) {
-        console.error('Error fetching promotions:', error);
-      } finally {
-        setLoading(false);
+  const fetchPromotions = async () => {
+    try {
+      const response = await fetch('/api/promotions');
+      if (response.ok) {
+        const data = await response.json();
+        const convertedPromos = data.promotions.map(convertDbToPromoCast);
+        setPromoCasts(convertedPromos);
+      } else {
+        console.error('Failed to fetch promotions');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching promotions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPromotions();
   }, []);
 
