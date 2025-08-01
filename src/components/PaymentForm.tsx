@@ -124,7 +124,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           </div>
           {isConnected && (
             <div className="mt-2 text-xs text-gray-400">
+              Address: {address?.slice(0, 6)}...{address?.slice(-4)}
+              <br />
               Balance: {formatNumber(Number(balance))} CHESS
+            </div>
+          )}
+          {!isConnected && (
+            <div className="mt-2 text-xs text-red-400">
+              Please connect your wallet to fund campaigns
             </div>
           )}
         </div>
