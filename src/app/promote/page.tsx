@@ -98,7 +98,7 @@ export default function PromotePage() {
   const [hapticsSupported, setHapticsSupported] = useState(false)
   
   // Auto-connect wallet
-  const { isConnected: isWalletConnected } = useAutoConnect()
+  const { isConnected: isWalletConnected, address: walletAddress, isAutoConnecting } = useAutoConnect()
   
   // Campaign creation state
   const [showForm, setShowForm] = useState(false)
@@ -585,8 +585,13 @@ export default function PromotePage() {
         {/* Wallet Status Debug */}
         <div className="mb-4 p-3 bg-gray-800 rounded-lg">
           <div className="text-sm text-gray-300">
-            Wallet Status: {isWalletConnected ? "Connected" : "Not Connected"}
+            Wallet Status: {isWalletConnected ? "Connected" : isAutoConnecting ? "Connecting..." : "Not Connected"}
           </div>
+          {isWalletConnected && walletAddress && (
+            <div className="text-xs text-gray-400 mt-1">
+              Address: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </div>
+          )}
         </div>
 
         {/* User Profile */}
