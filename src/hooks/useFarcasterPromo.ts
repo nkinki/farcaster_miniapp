@@ -244,19 +244,17 @@ export function useFarcasterPromo() {
     claimableAmount: claimableAmount || BigInt(0),
     
     // Write functions
-    createCampaign: (args: any, value?: bigint) => createCampaign({
+    createCampaign: (args: any) => createCampaign({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,
       abi: FARCASTER_PROMO_ABI,
       functionName: 'createCampaign',
       args,
-      value: value || undefined,
     }),
-    fundCampaign: (args: any, value?: bigint) => fundCampaign({
+    fundCampaign: (args: any) => fundCampaign({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,
       abi: FARCASTER_PROMO_ABI,
       functionName: 'fundCampaign',
       args,
-      value: value || undefined,
     }),
     claimFromTreasury: () => claimFromTreasury({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,

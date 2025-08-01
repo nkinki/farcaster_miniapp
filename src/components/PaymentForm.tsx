@@ -82,11 +82,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         return
       }
 
-      // Calculate platform fee in ETH (0.5% of CHESS amount)
-      const platformFee = BigInt(Math.floor(selectedAmount * 0.005))
-      
-      // Fund campaign with ETH fee
-      fundCampaign([BigInt(promotionId), amount], platformFee)
+      // Fund campaign (ETH fee will be handled by smart contract)
+      fundCampaign([BigInt(promotionId), amount])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed")
     }
