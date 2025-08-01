@@ -9,6 +9,15 @@ import { useAccount, useSimulateContract } from "wagmi"
 import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"
 import { CONTRACTS } from "@/config/contracts"
 
+// TypeScript declaration for window.ethereum
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+    };
+  }
+}
+
 interface PaymentFormProps {
   promotionId: string
   onPaymentComplete: (amount: number, hash: string) => void
@@ -303,6 +312,25 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
           <p>Address: {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Not connected'}</p>
           <p>Contract: {CONTRACTS.FarcasterPromo.substring(0, 6)}...{CONTRACTS.FarcasterPromo.substring(CONTRACTS.FarcasterPromo.length - 4)}</p>
+          
+          {/* Wallet Connection Button for Browser */}
+          {!isConnected && (
+            <button
+              onClick={() => {
+                // Trigger wallet connection
+                window.ethereum?.request({ method: 'eth_requestAccounts' })
+                  .then((accounts: string[]) => {
+                    console.log('Wallet connected:', accounts[0])
+                  })
+                  .catch((error: any) => {
+                    console.error('Wallet connection failed:', error)
+                  })
+              }}
+              className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+              Connect Wallet (MetaMask)
+            </button>
+          )}
           
           {/* CHESS Token Balance - Only show for funding, not creation */}
           {promotionId !== 'new' && (
