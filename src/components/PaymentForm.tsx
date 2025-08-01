@@ -59,8 +59,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     abi: FARCASTER_PROMO_ABI,
     functionName: 'createCampaign',
     args: promotion ? [
-      promotion.cast_url,
-      promotion.share_text || '',
+      promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
+      promotion.share_text || 'Share this promotion!', // Default text if empty
       BigInt(promotion.reward_per_share),
       BigInt(promotion.total_budget),
       true // divisible
@@ -287,6 +287,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                 <p>Total Budget: {promotion.total_budget}</p>
                 <p>Reward Per Share: {promotion.reward_per_share}</p>
                 <p>Cast URL: {promotion.cast_url?.substring(0, 50)}...</p>
+                <p>Processed Cast URL: {promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`}</p>
+                <p>Share Text: {promotion.share_text || 'Share this promotion!'}</p>
               </>
             )}
             {promotionError && (
