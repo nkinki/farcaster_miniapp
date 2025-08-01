@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
-import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp, FiCreditCard } from 'react-icons/fi'
+import { useAccount } from 'wagmi'
 
 interface UserProfileProps {
   onLogout?: () => void;
@@ -66,6 +67,9 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
   const [context, setContext] = useState<FarcasterContext | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
+  
+  // Wallet connection
+  const { address, isConnected } = useAccount()
   
   useEffect(() => {
     // Check haptics support - try to use haptics directly
@@ -171,6 +175,12 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
             </h3>
             <p className="text-purple-300 text-sm">@{profile.username}</p>
             
+            {isConnected && (
+              <p className="text-sm text-gray-400 mt-1 flex items-center gap-1">
+                <FiCreditCard size={12} />
+                {address?.substring(0, 6)}...{address?.substring(address.length - 4)}
+              </p>
+            )}
 
           </div>
         </div>
@@ -190,6 +200,17 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
         isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="px-6 pb-6">
+          {/* Wallet Info */}
+          {isConnected && (
+            <div className="mb-4 p-3 bg-[#181c23] rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-2">
+                <FiCreditCard className="text-purple-400" />
+                <span className="text-white font-semibold text-sm">Connected Wallet</span>
+              </div>
+              <p className="text-gray-300 text-sm font-mono">{address}</p>
+            </div>
+          )}
+
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
