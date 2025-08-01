@@ -29,7 +29,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   // Wagmi hooks
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash } = useFarcasterPromo()
-  const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
+  const { balance, allowance, approve, isApproving, needsApproval, approveHash } = useChessToken()
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount)
@@ -80,14 +80,24 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     }
   }
 
+  const finalAmount = selectedAmount
+
+  // Handle successful approval
+  useEffect(() => {
+    if (approveHash) {
+      console.log('Approve transaction successful:', approveHash)
+      // After approval, automatically proceed with funding
+      const amount = BigInt(finalAmount)
+      fundCampaign([BigInt(promotionId), amount])
+    }
+  }, [approveHash, finalAmount, promotionId, fundCampaign])
+
   // Handle successful funding
   useEffect(() => {
     if (fundCampaignHash) {
       onPaymentComplete(selectedAmount, fundCampaignHash)
     }
   }, [fundCampaignHash, selectedAmount, onPaymentComplete])
-
-  const finalAmount = selectedAmount
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -118,6 +128,10 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               Address: {address?.slice(0, 6)}...{address?.slice(-4)}
               <br />
               Balance: {formatNumber(balance)} CHESS
+              <br />
+              Allowance: {formatNumber(allowance)} CHESS
+              <br />
+              {isApproving && <span className="text-yellow-400">Approving...</span>}
             </div>
           )}
           {!isConnected && (
