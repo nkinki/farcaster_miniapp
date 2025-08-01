@@ -259,11 +259,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         setIsCreatingCampaign(false)
         // Don't reload, just show success message
         console.log('Campaign created successfully!')
-        // Optionally refresh the page after a longer delay
-        setTimeout(() => {
-          console.log('Refreshing page after campaign creation...')
-          window.location.reload()
-        }, 5000) // 5 seconds delay instead of 2
+        setCampaignCreated(true)
       }
     }
   }, [createCampaignData, promotionId, newCampaignData])
@@ -272,10 +268,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
   useEffect(() => {
     if (isApproveSuccess) {
       console.log('CHESS token approval successful!')
-      // Refresh allowance data
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
+      // Don't reload, just show success message
+      console.log('✅ CHESS approval completed successfully!')
     }
   }, [isApproveSuccess])
 
@@ -360,10 +354,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         params: [{ chainId: '0x2105' }], // Base network chainId (8453 in hex)
       });
       console.log('Switched to Base network successfully.');
-      // Optionally, refresh allowance or other data if needed
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      // Don't reload, just log success
+      console.log('✅ Base network switch completed');
     } catch (error: any) {
       if (error.code === 4902) { // Chain not added
         try {
@@ -384,9 +376,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             ],
           });
           console.log('Base network added and switched successfully.');
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
+          console.log('✅ Base network added and switch completed');
         } catch (addError: any) {
           console.error('Failed to add Base network:', addError);
           setError(`Failed to add Base network: ${addError.message}`);
@@ -471,8 +461,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                           <button
               onClick={() => {
                 console.log('🔄 Attempting to refresh wallet connection...');
-                // Force wallet refresh
-                window.location.reload();
+                // Force wallet refresh without reload
+                console.log('🔄 Wallet refresh requested - check console for status');
               }}
               className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
             >

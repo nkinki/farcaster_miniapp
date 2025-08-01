@@ -233,7 +233,7 @@ export default function PromotePage() {
         }
       }
       
-      alert("Campaign created successfully on blockchain and saved to database!")
+      console.log("🎉 Campaign created successfully on blockchain and saved to database!")
     } else {
       // Existing campaign was funded
       console.log('Campaign funded successfully with hash:', txHash)
@@ -243,7 +243,7 @@ export default function PromotePage() {
       // Refresh the promotions list
       fetchPromotions()
       
-      alert(`Campaign funded successfully! Transaction hash: ${txHash}`)
+      console.log(`🎉 Campaign funded successfully! Transaction hash: ${txHash}`)
     }
   }
 
