@@ -152,25 +152,11 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
 
         {/* Payment Summary */}
         <div className="bg-gray-800 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-300">CHESS Amount:</span>
-            <span className="text-white font-semibold">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-300">Campaign Budget:</span>
+            <span className="text-green-400 font-semibold">
               {formatNumber(finalAmount)} $CHESS
             </span>
-          </div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-300">Platform Fee (0.5%):</span>
-            <span className="text-gray-400">
-              {formatNumber(Math.floor(finalAmount * 0.005))} ETH
-            </span>
-          </div>
-          <div className="border-t border-gray-600 pt-2">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-300">Campaign Budget:</span>
-              <span className="text-green-400 font-semibold">
-                {formatNumber(finalAmount)} $CHESS
-              </span>
-            </div>
           </div>
         </div>
 
