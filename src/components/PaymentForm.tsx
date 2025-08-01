@@ -24,7 +24,6 @@ const PAYMENT_OPTIONS = [
 
 export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }: PaymentFormProps) {
   const [selectedAmount, setSelectedAmount] = useState<number>(10000)
-  const [customAmount, setCustomAmount] = useState<string>("")
   const [error, setError] = useState<string>("")
   
   // Wagmi hooks
@@ -34,15 +33,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount)
-    setCustomAmount("")
-  }
-
-  const handleCustomAmountChange = (value: string) => {
-    setCustomAmount(value)
-    const numValue = parseInt(value.replace(/,/g, ""))
-    if (!isNaN(numValue)) {
-      setSelectedAmount(numValue)
-    }
   }
 
   const formatNumber = (num: number): string => {
@@ -73,7 +63,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     setError("")
 
     try {
-      const amount = BigInt(selectedAmount)
+      const amount = BigInt(finalAmount)
       
       // Check if approval is needed
       if (needsApproval(amount)) {
@@ -96,7 +86,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     }
   }, [fundCampaignHash, selectedAmount, onPaymentComplete])
 
-  const finalAmount = customAmount ? parseInt(customAmount.replace(/,/g, "")) : selectedAmount
+  const finalAmount = selectedAmount
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -147,7 +137,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                 key={option.value}
                 onClick={() => handleAmountSelect(option.value)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                  selectedAmount === option.value && !customAmount
+                  selectedAmount === option.value
                     ? "bg-purple-600 text-white"
                     : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                 }`}
@@ -157,19 +147,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
             ))}
           </div>
 
-          {/* Custom Amount */}
-          <div>
-            <label className="block text-sm font-medium text-purple-200 mb-2">
-              Custom Amount
-            </label>
-            <input
-              type="text"
-              value={customAmount}
-              onChange={(e) => handleCustomAmountChange(e.target.value)}
-              placeholder="Enter amount in $CHESS"
-              className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-          </div>
+
         </div>
 
         {/* Payment Summary */}
