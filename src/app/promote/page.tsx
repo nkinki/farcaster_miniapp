@@ -669,20 +669,97 @@ export default function PromotePage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
-                  <input
-                    type="number"
-                    value={totalBudget}
-                    onChange={(e) => setTotalBudget(parseInt(e.target.value) || 0)}
-                    min="1000"
-                    step="1000"
-                    className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => setTotalBudget(10000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        totalBudget === 10000
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      10K
+                    </button>
+                    <button
+                      onClick={() => setTotalBudget(100000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        totalBudget === 100000
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      100K
+                    </button>
+                    <button
+                      onClick={() => setTotalBudget(500000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        totalBudget === 500000
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      500K
+                    </button>
+                    <button
+                      onClick={() => setTotalBudget(1000000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        totalBudget === 1000000
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      1M
+                    </button>
+                    <button
+                      onClick={() => setTotalBudget(5000000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        totalBudget === 5000000
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      5M
+                    </button>
+                    <div className="px-3 py-2 bg-gray-800 text-gray-400 text-center text-sm">
+                      {totalBudget.toLocaleString()}
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {/* Campaign Summary */}
+              <div className="bg-gray-800 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-gray-300 mb-2">Campaign Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Cast URL:</span>
+                    <span className="text-white truncate max-w-[200px]">
+                      {castUrl || 'Not set'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Share Text:</span>
+                    <span className="text-white">"{shareText || 'No custom text'}"</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Reward Per Share:</span>
+                    <span className="text-green-400">{rewardPerShare.toLocaleString()} $CHESS</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total Budget:</span>
+                    <span className="text-blue-400">{totalBudget.toLocaleString()} $CHESS</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Max Shares:</span>
+                    <span className="text-purple-400">{Math.floor(totalBudget / rewardPerShare)} shares</span>
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex gap-4">
                 <button
                   onClick={handleCreateCampaign}
-                  disabled={isCreating}
+                  disabled={isCreating || !castUrl || rewardPerShare <= 0 || totalBudget <= 0 || rewardPerShare > totalBudget}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating ? "Creating..." : "Create Campaign"}
@@ -694,6 +771,20 @@ export default function PromotePage() {
                   Cancel
                 </button>
               </div>
+              
+              {/* Validation Messages */}
+              {!castUrl && (
+                <div className="mt-2 text-red-400 text-sm">⚠️ Cast URL is required</div>
+              )}
+              {rewardPerShare <= 0 && (
+                <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share must be greater than 0</div>
+              )}
+              {totalBudget <= 0 && (
+                <div className="mt-2 text-red-400 text-sm">⚠️ Total budget must be greater than 0</div>
+              )}
+              {rewardPerShare > totalBudget && (
+                <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share cannot be greater than total budget</div>
+              )}
             </div>
           </div>
         )}
