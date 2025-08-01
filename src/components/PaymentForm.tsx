@@ -1,57 +1,35 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { FiDollarSign, FiCreditCard, FiCheck, FiAlertCircle } from "react-icons/fi"
-import { CONTRACTS } from "@/config/contracts"
+import { useState, useEffect } from "react"
+import { FiAlertCircle } from "react-icons/fi"
 import { useFarcasterPromo, useCampaignExists } from "@/hooks/useFarcasterPromo"
 import { useChessToken } from "@/hooks/useChessToken"
 import { usePromotion } from "@/hooks/usePromotions"
 import { useAccount, useSimulateContract } from "wagmi"
 import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"
+import { CONTRACTS } from "@/config/contracts"
 
 interface PaymentFormProps {
   promotionId: string
-  onPaymentComplete: (amount: number, txHash: string) => void
+  onPaymentComplete: (amount: number, hash: string) => void
   onCancel: () => void
 }
 
-const PAYMENT_OPTIONS = [
-  { value: 10000, label: "10K $CHESS" },
-  { value: 100000, label: "100K $CHESS" },
-  { value: 500000, label: "500K $CHESS" },
-  { value: 1000000, label: "1M $CHESS" },
-  { value: 5000000, label: "5M $CHESS" },
-  { value: 10000000, label: "10M $CHESS" },
-]
-
 export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }: PaymentFormProps) {
-  const [selectedAmount, setSelectedAmount] = useState<number>(10000)
+  const [rewardPerShare, setRewardPerShare] = useState<number>(10000) // Default 10k
   const [error, setError] = useState<string>("")
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false)
-  
+
   // Wagmi hooks
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash, createCampaign, isCreatingCampaign: isCreatingCampaignFromHook, createCampaignHash: createCampaignData } = useFarcasterPromo()
   const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
-  
+
   // Neon DB promotion data
   const { promotion, loading: promotionLoading, error: promotionError } = usePromotion(Number(promotionId))
-  
+
   // Blockchain campaign check (for compatibility)
   const { exists: campaignExists, campaign: blockchainCampaign, error: campaignError, isLoading: campaignLoading } = useCampaignExists(BigInt(promotionId))
-  
-  const finalAmount = selectedAmount
-
-  // Simulate contract call for gas estimation
-  const { data: simulationData, error: simulationError } = useSimulateContract({
-    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-    abi: FARCASTER_PROMO_ABI,
-    functionName: 'fundCampaign',
-    args: [BigInt(promotionId), BigInt(finalAmount)],
-    query: {
-      enabled: isConnected && finalAmount > 0,
-    },
-  })
 
   // Simulate campaign creation
   const { data: createSimulationData, error: createSimulationError } = useSimulateContract({
@@ -60,8 +38,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     functionName: 'createCampaign',
     args: promotion ? [
       promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
-      promotion.share_text || 'Share this promotion!', // Default text if empty
-      BigInt(promotion.reward_per_share),
+      promotion.share_text || 'Share this promotion!',
+      BigInt(rewardPerShare),
       BigInt(promotion.total_budget),
       true // divisible
     ] : undefined,
@@ -70,114 +48,63 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     },
   })
 
-  const handleAmountSelect = (amount: number) => {
-    setSelectedAmount(amount)
+  const handleRewardPerShareChange = (value: number) => {
+    setRewardPerShare(value)
   }
 
-  const formatNumber = (num: number | bigint): string => {
-    const numValue = typeof num === 'bigint' ? Number(num) : num
-    if (numValue >= 1000000) {
-      return `${(numValue / 1000000).toFixed(1)}M`
-    } else if (numValue >= 1000) {
-      return `${(numValue / 1000).toFixed(1)}K`
-    }
-    return numValue.toString()
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`
+    return num.toString()
   }
 
-  const handlePayment = async () => {
+  const handleCreateCampaign = async () => {
     if (!isConnected) {
       setError("Please connect your wallet first")
       return
     }
 
-    if (selectedAmount <= 0) {
-      setError("Please select a valid amount")
-      return
-    }
-
-    if (BigInt(selectedAmount) > balance) {
-      setError("Insufficient CHESS balance")
-      return
-    }
-
-    // Check if promotion exists in Neon DB
     if (!promotion) {
       setError(`Promotion ${promotionId} does not exist in database`)
       return
     }
 
-    // Check if promotion is active
     if (promotion.status !== 'active') {
       setError(`Promotion ${promotionId} is not active (status: ${promotion.status})`)
-      return
-    }
-
-    // Check if enough budget remains
-    if (selectedAmount > promotion.remaining_budget) {
-      setError(`Insufficient budget. Remaining: ${promotion.remaining_budget}, Requested: ${selectedAmount}`)
       return
     }
 
     setError("")
 
     try {
-      const amount = BigInt(finalAmount)
-
-      console.log('PaymentForm debug:', {
-        amount: amount.toString(),
-        allowance: allowance.toString(),
-        needsApproval: needsApproval(amount),
-        farcasterPromoAddress: CONTRACTS.FarcasterPromo,
-        simulationError: simulationError?.message,
-        simulationData: simulationData,
-        gasEstimate: simulationData?.request?.gas?.toString(),
-        promotion,
-        campaignExists,
-        campaignId: promotionId,
-      })
-
+      setIsCreatingCampaign(true)
+      console.log('Creating blockchain campaign for promotion:', promotion)
+      
       // Check for simulation errors first
-      if (simulationError) {
-        if (simulationError.message.includes("insufficient funds")) {
+      if (createSimulationError) {
+        if (createSimulationError.message.includes("insufficient funds")) {
           setError("Insufficient ETH for gas fees.")
         } else {
-          setError(`Transaction simulation failed: ${simulationError.message}`)
+          setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
         }
+        setIsCreatingCampaign(false)
         return
       }
-
-      // Check if approval is needed
-      if (needsApproval(amount)) {
-        console.log('Approval needed, calling approve...')
-        approve([CONTRACTS.FarcasterPromo, amount])
-        return
-      }
-
+      
       // Use simulation request directly
-      if (simulationData?.request) {
-        console.log('No approval needed, calling fundCampaign with simulation request...')
-        fundCampaign(simulationData.request)
+      if (createSimulationData?.request) {
+        console.log('Creating campaign with simulation request...')
+        createCampaign(createSimulationData.request)
       } else {
-        setError("Transaction simulation not ready")
+        setError("Campaign creation simulation not ready")
+        setIsCreatingCampaign(false)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment failed")
+      console.error('Error creating blockchain campaign:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create campaign')
+      setIsCreatingCampaign(false)
     }
   }
-
-  // Handle successful approval
-  useEffect(() => {
-    if (isApproving) {
-      console.log('Approval in progress...')
-    }
-  }, [isApproving])
-
-  // Handle successful funding
-  useEffect(() => {
-    if (fundCampaignHash) {
-      onPaymentComplete(selectedAmount, fundCampaignHash)
-    }
-  }, [fundCampaignHash, selectedAmount, onPaymentComplete])
 
   // Handle successful campaign creation
   useEffect(() => {
@@ -194,82 +121,25 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md mx-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <FiDollarSign className="text-purple-400" />
-            Fund Campaign
-          </h2>
-          <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-white transition"
-          >
-            ✕
-          </button>
-        </div>
-
         {/* Wallet Status */}
-        <div className="mb-6 p-3 bg-gray-800 rounded-lg">
-          <div className="flex items-center gap-2 text-sm">
-            <FiDollarSign className="text-blue-400" />
-            <span className="text-gray-300">
-              {isConnected ? "Wallet Connected" : "Wallet Not Connected"}
-            </span>
-          </div>
-          {isConnected && (
-            <div className="mt-2 text-xs text-gray-400">
-              Address: {address?.slice(0, 6)}...{address?.slice(-4)}
-              <br />
-              Balance: {formatNumber(balance)} CHESS
-              <br />
-              Allowance: {formatNumber(allowance)} CHESS
-              <br />
-              {simulationData?.request?.gas && (
-                <>
-                  Gas Estimate: {simulationData.request.gas.toString()}
-                  <br />
-                </>
-              )}
-              {campaignLoading ? (
-                <span className="text-yellow-400">Checking campaign...</span>
-              ) : campaignExists ? (
-                <span className="text-green-400">Campaign {promotionId} exists ✓</span>
-              ) : (
-                <span className="text-red-400">Campaign {promotionId} not found ✗</span>
-              )}
-              <br />
-              {createSimulationData && (
-                <span className="text-blue-400">Create Gas: {createSimulationData.request.gas?.toString()}</span>
-              )}
-              <br />
-              {isApproving && <span className="text-yellow-400">Approving...</span>}
-              <br />
-              <button
-                onClick={() => {
-                  console.log('Debug info:', {
-                    balance: balance.toString(),
-                    allowance: allowance.toString(),
-                    selectedAmount,
-                    farcasterPromoAddress: CONTRACTS.FarcasterPromo,
-                    simulationData,
-                    gasEstimate: simulationData?.request?.gas?.toString(),
-                    promotion,
-                    campaignExists,
-                    campaignId: promotionId,
-                    blockchainCampaign,
-                    campaignError,
-                  })
-                }}
-                className="text-xs text-blue-400 hover:text-blue-300 mt-1"
-              >
-                Debug Info
-              </button>
-            </div>
+        <div className="mb-4 p-3 bg-gray-800 rounded-lg text-sm">
+          <p><strong>Wallet Status:</strong></p>
+          <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+          <p>Address: {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Not connected'}</p>
+          {campaignLoading ? (
+            <span className="text-yellow-400">Checking campaign...</span>
+          ) : campaignExists ? (
+            <span className="text-green-400">Campaign {promotionId} exists ✓</span>
+          ) : (
+            <span className="text-red-400">Campaign {promotionId} not found ✗</span>
           )}
-          {!isConnected && (
-            <div className="mt-2 text-xs text-red-400">
-              Please connect your wallet to fund campaigns
-            </div>
+          <br />
+          {createSimulationData && (
+            <span className="text-blue-400">Create Gas: {createSimulationData.request.gas?.toString()}</span>
           )}
+          <br />
+          {isApproving && <span className="text-yellow-400">Approving...</span>}
+          <br />
         </div>
 
         {/* Debug Info */}
@@ -329,48 +199,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           </div>
         </div>
 
-        {/* Payment Options */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-purple-200 mb-3">
-            Select Amount
-          </label>
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {PAYMENT_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleAmountSelect(option.value)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                  selectedAmount === option.value
-                    ? "bg-purple-600 text-white"
-                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-
-
-        </div>
-
-        {/* Payment Summary */}
-        <div className="bg-gray-800 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-300">Campaign Budget:</span>
-            <span className="text-green-400 font-semibold">
-              {formatNumber(finalAmount)} $CHESS
-            </span>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="flex items-center gap-2 text-red-400 mb-4 p-3 bg-red-900 bg-opacity-20 rounded-lg">
-            <FiAlertCircle />
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
-
         {/* Campaign Creation Notice */}
         {!promotion && !promotionLoading && (
           <div className="flex items-center gap-2 text-yellow-400 mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
@@ -397,44 +225,89 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
             <FiAlertCircle />
             <div className="text-sm">
               <p>Promotion exists in DB but not on blockchain.</p>
-              <p className="text-xs mt-1">You need to create the blockchain campaign first.</p>
-              <button
-                onClick={async () => {
-                  try {
-                    setIsCreatingCampaign(true)
-                    console.log('Creating blockchain campaign for promotion:', promotion)
-                    
-                    // Check for simulation errors first
-                    if (createSimulationError) {
-                      if (createSimulationError.message.includes("insufficient funds")) {
-                        setError("Insufficient ETH for gas fees.")
-                      } else {
-                        setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
-                      }
-                      setIsCreatingCampaign(false)
-                      return
-                    }
-                    
-                    // Use simulation request directly
-                    if (createSimulationData?.request) {
-                      console.log('Creating campaign with simulation request...')
-                      createCampaign(createSimulationData.request)
-                    } else {
-                      setError("Campaign creation simulation not ready")
-                      setIsCreatingCampaign(false)
-                    }
-                  } catch (err) {
-                    console.error('Error creating blockchain campaign:', err)
-                    setError(err instanceof Error ? err.message : 'Failed to create campaign')
-                    setIsCreatingCampaign(false)
-                  }
-                }}
-                disabled={isCreatingCampaign || isCreatingCampaignFromHook}
-                className="text-xs text-blue-300 hover:text-blue-200 mt-2 bg-blue-800 px-2 py-1 rounded disabled:opacity-50"
-              >
-                {isCreatingCampaign || isCreatingCampaignFromHook ? 'Creating...' : 'Create Blockchain Campaign'}
-              </button>
+              <p className="text-xs mt-1">Create the blockchain campaign to enable funding.</p>
             </div>
+          </div>
+        )}
+
+        {/* Campaign Creation Form */}
+        {!campaignExists && !campaignLoading && promotion && promotion.status === 'active' && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Create Blockchain Campaign</h3>
+            
+            {/* Reward Per Share Slider */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Reward Per Share: {formatNumber(rewardPerShare)} $CHESS
+              </label>
+              <div className="relative">
+                <input
+                  type="range"
+                  min="1000"
+                  max="100000"
+                  step="1000"
+                  value={rewardPerShare}
+                  onChange={(e) => handleRewardPerShareChange(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                  <span>1K</span>
+                  <span>25K</span>
+                  <span>50K</span>
+                  <span>75K</span>
+                  <span>100K</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Amount users receive for each share (divisible)
+              </p>
+            </div>
+
+            {/* Campaign Summary */}
+            <div className="bg-gray-800 rounded-lg p-4 mb-4">
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Campaign Summary</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Cast URL:</span>
+                  <span className="text-white truncate max-w-[200px]">
+                    {promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Share Text:</span>
+                  <span className="text-white">"{promotion.share_text || 'Share this promotion!'}"</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Reward Per Share:</span>
+                  <span className="text-green-400">{formatNumber(rewardPerShare)} $CHESS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Total Budget:</span>
+                  <span className="text-blue-400">{formatNumber(promotion.total_budget)} $CHESS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Divisible:</span>
+                  <span className="text-green-400">Yes ✓</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Create Campaign Button */}
+            <button
+              onClick={handleCreateCampaign}
+              disabled={isCreatingCampaign || isCreatingCampaignFromHook}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              {isCreatingCampaign || isCreatingCampaignFromHook ? 'Creating Campaign...' : 'Create Blockchain Campaign'}
+            </button>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="flex items-center gap-2 text-red-400 mb-4 p-3 bg-red-900 bg-opacity-20 rounded-lg">
+            <FiAlertCircle />
+            <span className="text-sm">{error}</span>
           </div>
         )}
 
@@ -442,46 +315,51 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            disabled={isApproving || isFundingCampaign}
-            className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 transition"
+            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
           >
             Cancel
           </button>
-          <button
-            onClick={handlePayment}
-            disabled={isApproving || isFundingCampaign || finalAmount <= 0}
-            className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-semibold transition flex items-center justify-center gap-2"
-          >
-            {isApproving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Approving CHESS...
-              </>
-            ) : isFundingCampaign ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Funding Campaign...
-              </>
-            ) : (
-              <>
-                <FiCreditCard />
-                Pay {formatNumber(finalAmount)} $CHESS
-              </>
-            )}
-          </button>
+          {campaignExists && (
+            <button
+              onClick={() => onPaymentComplete(0, '')}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              Fund Campaign
+            </button>
+          )}
         </div>
 
         {/* Security Notice */}
-        <div className="mt-4 p-3 bg-blue-900 bg-opacity-20 rounded-lg">
-          <div className="flex items-start gap-2">
-            <FiCheck className="text-blue-400 mt-0.5 flex-shrink-0" />
-            <div className="text-xs text-blue-300">
-              <p className="font-semibold mb-1">Secure Payment</p>
-              <p>Your payment will be processed through our smart contract. No funds are held by the platform.</p>
-            </div>
-          </div>
+        <div className="mt-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
+          <p className="text-xs text-yellow-400">
+            <strong>Security Notice:</strong> This transaction creates a campaign on the blockchain. 
+            Make sure all details are correct before proceeding.
+          </p>
         </div>
       </div>
+
+      {/* Custom Slider Styles */}
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #3B82F6;
+          cursor: pointer;
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        
+        .slider::-moz-range-thumb {
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #3B82F6;
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+      `}</style>
     </div>
   )
 } 
