@@ -51,8 +51,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     query: {
       enabled: isConnected && finalAmount > 0,
     },
-    // Base hálózat gas konfiguráció
-    gas: BigInt(150000), // Explicit gas limit
   })
 
   // Simulate campaign creation
@@ -70,8 +68,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     query: {
       enabled: isConnected && !!promotion && !campaignExists,
     },
-    // Base hálózat gas konfiguráció
-    gas: BigInt(200000), // Explicit gas limit for createCampaign
   })
 
   const handleAmountSelect = (amount: number) => {
@@ -126,7 +122,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
 
     try {
       const amount = BigInt(finalAmount)
-      
+
       console.log('PaymentForm debug:', {
         amount: amount.toString(),
         allowance: allowance.toString(),
@@ -139,13 +135,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         campaignExists,
         campaignId: promotionId,
       })
-      
+
       // Check for simulation errors first
       if (simulationError) {
-        setError(`Transaction simulation failed: ${simulationError.message}`)
+        if (simulationError.message.includes("insufficient funds")) {
+          setError("Insufficient ETH for gas fees.")
+        } else {
+          setError(`Transaction simulation failed: ${simulationError.message}`)
+        }
         return
       }
-      
+
       // Check if approval is needed
       if (needsApproval(amount)) {
         console.log('Approval needed, calling approve...')
@@ -153,8 +153,13 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         return
       }
 
-      console.log('No approval needed, calling fundCampaign...')
-      fundCampaign([BigInt(promotionId), amount])
+      // Use simulation request directly
+      if (simulationData?.request) {
+        console.log('No approval needed, calling fundCampaign with simulation request...')
+        fundCampaign(simulationData.request)
+      } else {
+        setError("Transaction simulation not ready")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed")
     }
@@ -399,19 +404,23 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                     
                     // Check for simulation errors first
                     if (createSimulationError) {
-                      setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
+                      if (createSimulationError.message.includes("insufficient funds")) {
+                        setError("Insufficient ETH for gas fees.")
+                      } else {
+                        setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
+                      }
                       setIsCreatingCampaign(false)
                       return
                     }
                     
-                    // Create campaign on blockchain using promotion data
-                    createCampaign([
-                      promotion.cast_url,
-                      promotion.share_text || '',
-                      BigInt(promotion.reward_per_share),
-                      BigInt(promotion.total_budget),
-                      true // divisible
-                    ])
+                    // Use simulation request directly
+                    if (createSimulationData?.request) {
+                      console.log('Creating campaign with simulation request...')
+                      createCampaign(createSimulationData.request)
+                    } else {
+                      setError("Campaign creation simulation not ready")
+                      setIsCreatingCampaign(false)
+                    }
                   } catch (err) {
                     console.error('Error creating blockchain campaign:', err)
                     setError(err instanceof Error ? err.message : 'Failed to create campaign')

@@ -256,16 +256,12 @@ export function useFarcasterPromo() {
       abi: FARCASTER_PROMO_ABI,
       functionName: 'createCampaign',
       args,
-      // Base hálózat gas konfiguráció
-      gas: BigInt(200000), // Explicit gas limit for createCampaign
     }),
     fundCampaign: (args: any) => fundCampaign({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,
       abi: FARCASTER_PROMO_ABI,
       functionName: 'fundCampaign',
       args,
-      // Base hálózat gas konfiguráció
-      gas: BigInt(150000), // Explicit gas limit for fundCampaign
     }),
     claimFromTreasury: () => claimFromTreasury({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,

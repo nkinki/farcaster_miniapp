@@ -124,8 +124,6 @@ export function useChessToken() {
       abi: ERC20_ABI,
       functionName: 'approve',
       args,
-      // Base hálózat gas konfiguráció
-      gas: BigInt(50000), // Explicit gas limit
     }),
     
     // Loading states
