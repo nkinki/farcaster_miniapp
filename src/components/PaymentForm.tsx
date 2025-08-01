@@ -74,8 +74,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     isApproveSuccess,
     approveError: approveError?.message,
     userAgent: navigator.userAgent,
-    isFarcasterApp: navigator.userAgent.includes('Farcaster') || window.location.hostname.includes('farcaster'),
-    platform: context?.client?.platformType || 'unknown'
+    isFarcasterApp: navigator.userAgent.includes('Farcaster') || window.location.hostname.includes('farcaster')
   })
 
   // Neon DB promotion data (only for existing campaigns)
@@ -440,16 +439,31 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                 <p className="text-yellow-200 text-xs">If not connected, try refreshing the app</p>
               </div>
               
-              <button
-                onClick={() => {
-                  console.log('🔄 Attempting to refresh wallet connection...');
-                  // Force wallet refresh
-                  window.location.reload();
-                }}
-                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-              >
-                🔄 Refresh Wallet Connection
-              </button>
+                          <button
+              onClick={() => {
+                console.log('🔄 Attempting to refresh wallet connection...');
+                // Force wallet refresh
+                window.location.reload();
+              }}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+              🔄 Refresh Wallet Connection
+            </button>
+            
+            <button
+              onClick={() => {
+                console.log('🧪 Testing wallet connection...');
+                console.log('Wallet status:', {
+                  isConnected,
+                  address,
+                  balance: balance?.toString(),
+                  allowance: allowance?.toString()
+                });
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+              🧪 Test Wallet Connection
+            </button>
             </div>
           )}
 
@@ -735,16 +749,18 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               {/* Approval Button for Funding */}
               {needsApproval(BigInt(10000) * BigInt(10 ** 18)) && (
                 <button
-                  onClick={() => approve({
-                    address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-                    abi: CHESS_TOKEN_ABI,
-                    functionName: 'approve',
-                    args: [
+                  onClick={() => {
+                    console.log('🎯 Approve button clicked');
+                    console.log('📋 Approve parameters:', {
+                      spender: CONTRACTS.FarcasterPromo,
+                      amount: BigInt(10000) * BigInt(10 ** 18)
+                    });
+                    
+                    approve([
                       CONTRACTS.FarcasterPromo as `0x${string}`,
                       BigInt(10000) * BigInt(10 ** 18)  // 10K CHESS allowance
-                    ],
-                    gas: BigInt(50000)
-                  })}
+                    ]);
+                  }}
                   disabled={isApproving}
                   className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
                 >

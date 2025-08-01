@@ -86,12 +86,19 @@ export function useChessToken() {
       functionName: 'approve'
     });
     
-    return approve({
-      address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-      abi: CHESS_TOKEN_ABI,
-      functionName: 'approve',
-      args,
-    });
+    try {
+      const result = approve({
+        address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+        abi: CHESS_TOKEN_ABI,
+        functionName: 'approve',
+        args,
+      });
+      console.log('✅ Approve call successful:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Approve call failed:', error);
+      throw error;
+    }
   };
 
   return {
