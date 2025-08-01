@@ -5,6 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Link from "next/link"
 import UserProfile from "../../components/UserProfile"
+import PaymentForm from "../../components/PaymentForm"
 
 interface FarcasterUser {
   fid: number;
@@ -98,6 +99,10 @@ export default function PromotePage() {
   // Campaign creation state
   const [showForm, setShowForm] = useState(false)
   const [castUrl, setCastUrl] = useState("")
+  
+  // Payment form state
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("")
   const [shareText, setShareText] = useState("")
   const [rewardPerShare, setRewardPerShare] = useState(1000)
   const [totalBudget, setTotalBudget] = useState(10000)
@@ -194,6 +199,24 @@ export default function PromotePage() {
   }
   
 
+
+  const handlePaymentComplete = (amount: number, txHash: string) => {
+    console.log(`Payment completed: ${amount} CHESS, TX: ${txHash}`)
+    setShowPaymentForm(false)
+    setSelectedCampaignId("")
+    // Refresh promotions after payment
+    fetchPromotions()
+  }
+
+  const handlePaymentCancel = () => {
+    setShowPaymentForm(false)
+    setSelectedCampaignId("")
+  }
+
+  const openPaymentForm = (campaignId: string) => {
+    setSelectedCampaignId(campaignId)
+    setShowPaymentForm(true)
+  }
 
   const handleCreateCampaign = async () => {
     if (!castUrl.trim()) {
@@ -754,6 +777,17 @@ export default function PromotePage() {
                 </div>
 
                 <div className="flex gap-3">
+                  {/* Fund Campaign Button - only show for own campaigns */}
+                  {promo.author.fid === currentUser.fid && (
+                    <button
+                      onClick={() => openPaymentForm(promo.id)}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
+                    >
+                      <FiDollarSign />
+                      Fund Campaign
+                    </button>
+                  )}
+                  
                   <button
                     onClick={() => handleSharePromo(promo)}
                     disabled={
@@ -803,6 +837,15 @@ export default function PromotePage() {
           )}
         </div>
       </div>
+      
+      {/* Payment Form Modal */}
+      {showPaymentForm && (
+        <PaymentForm
+          promotionId={selectedCampaignId}
+          onPaymentComplete={handlePaymentComplete}
+          onCancel={handlePaymentCancel}
+        />
+      )}
     </div>
   )
 }
