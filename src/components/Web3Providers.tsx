@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { base } from 'wagmi/chains'
 import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
-import { injected } from 'wagmi/connectors'
 import { AuthKitProvider } from '@farcaster/auth-kit'
 
 const config = createConfig({
@@ -14,8 +13,7 @@ const config = createConfig({
     [base.id]: http('https://mainnet.base.org'),
   },
   connectors: [
-    miniAppConnector(),
-    injected() // For browser testing with MetaMask
+    miniAppConnector()
   ]
 })
 
