@@ -46,7 +46,34 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
   // Wagmi hooks
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash, createCampaign, isCreatingCampaign: isCreatingCampaignFromHook, createCampaignHash: createCampaignData } = useFarcasterPromo()
-  const { balance, allowance, approve, isApproving, needsApproval, isApproveSuccess, approveError } = useChessToken()
+  const { 
+    balance, 
+    allowance, 
+    approve, 
+    isApproving, 
+    needsApproval, 
+    isApproveSuccess, 
+    approveError,
+    balanceError,
+    allowanceError,
+    balanceLoading,
+    allowanceLoading
+  } = useChessToken()
+
+  // Debug logging for PaymentForm
+  console.log('🎯 PaymentForm Debug:', {
+    address,
+    isConnected,
+    balance: balance?.toString(),
+    allowance: allowance?.toString(),
+    balanceError: balanceError?.message,
+    allowanceError: allowanceError?.message,
+    balanceLoading,
+    allowanceLoading,
+    isApproving,
+    isApproveSuccess,
+    approveError: approveError?.message
+  })
 
   // Neon DB promotion data (only for existing campaigns)
   const { promotion, loading: promotionLoading, error: promotionError } = usePromotion(
@@ -363,6 +390,42 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
           <p>Address: {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Not connected'}</p>
           <p>Contract: {CONTRACTS.FarcasterPromo.substring(0, 6)}...{CONTRACTS.FarcasterPromo.substring(CONTRACTS.FarcasterPromo.length - 4)}</p>
+          
+          {/* Debug Panel */}
+          <div className="mt-3 p-2 bg-red-900 bg-opacity-50 rounded border border-red-500">
+            <p className="text-red-300 font-bold text-xs">🔧 DEBUG INFO:</p>
+            <p className="text-red-200 text-xs">Balance: {balanceLoading ? 'Loading...' : balanceError ? `Error: ${balanceError.message}` : balance?.toString() || '0'}</p>
+            <p className="text-red-200 text-xs">Allowance: {allowanceLoading ? 'Loading...' : allowanceError ? `Error: ${allowanceError.message}` : allowance?.toString() || '0'}</p>
+            <p className="text-red-200 text-xs">CHESS Token: {CONTRACTS.CHESS_TOKEN.substring(0, 6)}...{CONTRACTS.CHESS_TOKEN.substring(CONTRACTS.CHESS_TOKEN.length - 4)}</p>
+            <p className="text-red-200 text-xs">Approving: {isApproving ? 'Yes' : 'No'}</p>
+            <p className="text-red-200 text-xs">Approve Success: {isApproveSuccess ? 'Yes' : 'No'}</p>
+            {approveError && <p className="text-red-400 text-xs">Approve Error: {approveError.message}</p>}
+            
+            <button
+              onClick={() => {
+                console.log('🔍 FULL DEBUG DUMP:', {
+                  address,
+                  isConnected,
+                  balance: balance?.toString(),
+                  allowance: allowance?.toString(),
+                  balanceError: balanceError?.message,
+                  allowanceError: allowanceError?.message,
+                  balanceLoading,
+                  allowanceLoading,
+                  isApproving,
+                  isApproveSuccess,
+                  approveError: approveError?.message,
+                  contracts: CONTRACTS,
+                  promotion,
+                  promotionId,
+                  newCampaignData
+                });
+              }}
+              className="mt-2 px-2 py-1 bg-red-700 hover:bg-red-600 text-white text-xs rounded"
+            >
+              📋 Log Full Debug
+            </button>
+          </div>
           
           {/* Wallet Connection Button for Browser */}
           {!isConnected && (

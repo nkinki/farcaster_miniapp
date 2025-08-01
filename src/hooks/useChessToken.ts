@@ -7,10 +7,13 @@ import { CONTRACTS } from '@/config/contracts'
 import CHESS_TOKEN_ABI from "../../abis/ChessToken.json"
 
 export function useChessToken() {
+  console.log('🔧 useChessToken hook initialized')
+  
   const { address } = useAccount()
+  console.log('👤 User address:', address)
 
   // Read functions
-  const { data: balance } = useReadContract({
+  const { data: balance, error: balanceError, isLoading: balanceLoading } = useReadContract({
     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
     abi: CHESS_TOKEN_ABI,
     functionName: 'balanceOf',
@@ -20,7 +23,7 @@ export function useChessToken() {
     },
   })
 
-  const { data: allowance } = useReadContract({
+  const { data: allowance, error: allowanceError, isLoading: allowanceLoading } = useReadContract({
     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
     abi: CHESS_TOKEN_ABI,
     functionName: 'allowance',
@@ -30,12 +33,17 @@ export function useChessToken() {
     },
   })
 
-  // Debug logging
-  console.log('useChessToken debug:', {
+  // Enhanced debug logging
+  console.log('💰 CHESS Token Debug:', {
     address,
     balance: balance?.toString(),
+    balanceError: balanceError?.message,
+    balanceLoading,
     allowance: allowance?.toString(),
-    farcasterPromoAddress: CONTRACTS.FarcasterPromo
+    allowanceError: allowanceError?.message,
+    allowanceLoading,
+    farcasterPromoAddress: CONTRACTS.FarcasterPromo,
+    chessTokenAddress: CONTRACTS.CHESS_TOKEN
   })
 
   // Write functions
@@ -47,13 +55,44 @@ export function useChessToken() {
     isSuccess: isApproveSuccess
   } = useWriteContract()
 
-  // Log approval events
-  console.log('Approval status:', {
+  // Enhanced approval logging
+  console.log('✅ Approval Status:', {
     isApproving,
     isApproveSuccess,
     approveError: approveError?.message,
-    approveData
+    approveData: approveData?.toString(),
+    approveErrorDetails: approveError
   })
+
+  // Helper function with debug
+  const needsApproval = (amount: bigint) => {
+    const currentAllowance = BigInt(allowance?.toString() || '0');
+    const needs = currentAllowance < amount;
+    console.log('🔍 Needs Approval Check:', {
+      amount: amount.toString(),
+      currentAllowance: currentAllowance.toString(),
+      needs,
+      allowanceRaw: allowance
+    });
+    return needs;
+  };
+
+  // Enhanced approve function with debug
+  const approveWithDebug = (args: any) => {
+    console.log('🚀 Approve function called with args:', args);
+    console.log('📋 Approve contract details:', {
+      address: CONTRACTS.CHESS_TOKEN,
+      abi: CHESS_TOKEN_ABI,
+      functionName: 'approve'
+    });
+    
+    return approve({
+      address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+      abi: CHESS_TOKEN_ABI,
+      functionName: 'approve',
+      args,
+    });
+  };
 
   return {
     // Read data
@@ -61,12 +100,7 @@ export function useChessToken() {
     allowance: allowance || BigInt(0),
     
     // Write functions
-    approve: (args: any) => approve({
-      address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-      abi: CHESS_TOKEN_ABI,
-      functionName: 'approve',
-      args,
-    }),
+    approve: approveWithDebug,
     
     // Loading states
     isApproving,
@@ -77,9 +111,12 @@ export function useChessToken() {
     approveHash: approveData,
     
     // Helper functions
-    needsApproval: (amount: bigint) => {
-      const currentAllowance = BigInt(allowance?.toString() || '0');
-      return currentAllowance < amount;
-    },
+    needsApproval,
+    
+    // Debug info
+    balanceError,
+    allowanceError,
+    balanceLoading,
+    allowanceLoading
   }
 } 
