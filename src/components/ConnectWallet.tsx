@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useAccount, useConnect, useDisconnect } from "wagmi"
-import { FiWallet, FiLogOut } from "react-icons/fi"
+import { FiCreditCard, FiLogOut } from "react-icons/fi"
 
 export default function ConnectWallet() {
   const { address, isConnected } = useAccount()
@@ -35,7 +35,7 @@ export default function ConnectWallet() {
           disabled={isPending}
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
         >
-          <FiWallet size={16} />
+          <FiCreditCard size={16} />
           {isPending ? "Connecting..." : `Connect ${connector.name}`}
         </button>
       ))}
