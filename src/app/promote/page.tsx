@@ -6,6 +6,7 @@ import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } fr
 import Link from "next/link"
 import UserProfile from "../../components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
+import ConnectWallet from "../../components/ConnectWallet"
 
 interface FarcasterUser {
   fid: number;
@@ -575,7 +576,10 @@ export default function PromotePage() {
             <FiArrowLeft size={20} />
             <span>Back to AppRank</span>
           </Link>
-          <h1 className="text-2xl font-bold text-white">Promotion Campaigns</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-white">Promotion Campaigns</h1>
+            <ConnectWallet />
+          </div>
         </div>
 
         {/* User Profile */}
