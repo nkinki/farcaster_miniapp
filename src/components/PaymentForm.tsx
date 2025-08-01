@@ -55,6 +55,25 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     gas: BigInt(150000), // Explicit gas limit
   })
 
+  // Simulate campaign creation
+  const { data: createSimulationData, error: createSimulationError } = useSimulateContract({
+    address: CONTRACTS.FarcasterPromo as `0x${string}`,
+    abi: FARCASTER_PROMO_ABI,
+    functionName: 'createCampaign',
+    args: promotion ? [
+      promotion.cast_url,
+      promotion.share_text || '',
+      BigInt(promotion.reward_per_share),
+      BigInt(promotion.total_budget),
+      true // divisible
+    ] : undefined,
+    query: {
+      enabled: isConnected && !!promotion && !campaignExists,
+    },
+    // Base hálózat gas konfiguráció
+    gas: BigInt(200000), // Explicit gas limit for createCampaign
+  })
+
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount)
   }
@@ -213,6 +232,10 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                 <span className="text-red-400">Campaign {promotionId} not found ✗</span>
               )}
               <br />
+              {createSimulationData && (
+                <span className="text-blue-400">Create Gas: {createSimulationData.request.gas?.toString()}</span>
+              )}
+              <br />
               {isApproving && <span className="text-yellow-400">Approving...</span>}
               <br />
               <button
@@ -269,6 +292,12 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
             <p>Creating Campaign: {isCreatingCampaign || isCreatingCampaignFromHook ? 'Yes' : 'No'}</p>
             {createCampaignData && (
               <p className="text-green-400">Campaign Created: {createCampaignData}</p>
+            )}
+            {createSimulationData && (
+              <p className="text-green-400">Create Simulation: {createSimulationData.request.gas?.toString()} gas</p>
+            )}
+            {createSimulationError && (
+              <p className="text-red-400">Create Simulation Error: {createSimulationError.message}</p>
             )}
             {campaignError && (
               <p className="text-red-400">Blockchain Error: {campaignError.message}</p>
@@ -367,6 +396,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                   try {
                     setIsCreatingCampaign(true)
                     console.log('Creating blockchain campaign for promotion:', promotion)
+                    
+                    // Check for simulation errors first
+                    if (createSimulationError) {
+                      setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
+                      setIsCreatingCampaign(false)
+                      return
+                    }
+                    
                     // Create campaign on blockchain using promotion data
                     createCampaign([
                       promotion.cast_url,
@@ -377,7 +414,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                     ])
                   } catch (err) {
                     console.error('Error creating blockchain campaign:', err)
-                    alert(`Error creating campaign: ${err}`)
+                    setError(err instanceof Error ? err.message : 'Failed to create campaign')
                     setIsCreatingCampaign(false)
                   }
                 }}

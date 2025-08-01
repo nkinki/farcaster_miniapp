@@ -256,6 +256,8 @@ export function useFarcasterPromo() {
       abi: FARCASTER_PROMO_ABI,
       functionName: 'createCampaign',
       args,
+      // Base hálózat gas konfiguráció
+      gas: BigInt(200000), // Explicit gas limit for createCampaign
     }),
     fundCampaign: (args: any) => fundCampaign({
       address: CONTRACTS.FarcasterPromo as `0x${string}`,
