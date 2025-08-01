@@ -121,13 +121,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
       }
     }
 
-    // Check CHESS balance
-    const requiredAmount = BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
-    if (balance < requiredAmount) {
-      setError(`Insufficient CHESS balance. Required: ${formatNumber(Number(requiredAmount) / 1e18)}, Available: ${formatNumber(Number(balance) / 1e18)}`)
-      return
-    }
-
     // Check minimum values
     const rewardPerShareValue = promotionId === 'new' ? (newCampaignData?.rewardPerShare || 0) : rewardPerShare
     const totalBudgetValue = promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0)
@@ -147,11 +140,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
       return
     }
 
-    // Check approval
-    if (needsApproval(requiredAmount)) {
-      setError("Please approve CHESS token spending first")
-      return
-    }
+    // Note: createCampaign doesn't require CHESS approval - it only creates the campaign
+    // CHESS transfer happens later with fundCampaign
 
     setError("")
 
@@ -196,7 +186,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         if (createSimulationError.message.includes("insufficient funds")) {
           setError("Insufficient ETH for gas fees.")
         } else if (createSimulationError.message.includes("Execution reverted")) {
-          setError(`Contract execution reverted. This might be due to insufficient CHESS balance, invalid parameters, or contract restrictions. Error: ${createSimulationError.message}`)
+          setError(`Contract execution reverted. This might be due to invalid parameters or contract restrictions. Error: ${createSimulationError.message}`)
         } else {
           setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
         }
@@ -316,24 +306,24 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           <p>Address: {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Not connected'}</p>
           <p>Contract: {CONTRACTS.FarcasterPromo.substring(0, 6)}...{CONTRACTS.FarcasterPromo.substring(CONTRACTS.FarcasterPromo.length - 4)}</p>
           
-          {/* CHESS Token Balance */}
-          <p>CHESS Balance: {balance ? `${(Number(balance) / 1e18).toFixed(2)}` : '0'} $CHESS</p>
-          
-          {/* Required Amount */}
-          {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && (
-            <p>Required: {formatNumber(Number(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0)))} $CHESS</p>
+          {/* CHESS Token Balance - Only show for funding, not creation */}
+          {promotionId !== 'new' && (
+            <>
+              <p>CHESS Balance: {balance ? `${(Number(balance) / 1e18).toFixed(2)}` : '0'} $CHESS</p>
+              {promotion && (
+                <p>Required: {formatNumber(Number(promotion.total_budget))} $CHESS</p>
+              )}
+              {promotion && (
+                <p>Approved: {needsApproval(BigInt(promotion.total_budget) * BigInt(10 ** 18)) ? 'No' : 'Yes'}</p>
+              )}
+            </>
           )}
           
-          {/* Approval Status */}
-          {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && (
-            <p>Approved: {needsApproval(BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)) ? 'No' : 'Yes'}</p>
-          )}
-          
-          {/* Approval Success/Error Status */}
-          {isApproveSuccess && (
+          {/* Approval Success/Error Status - Only for funding */}
+          {promotionId !== 'new' && isApproveSuccess && (
             <p className="text-green-400">✓ Approval successful!</p>
           )}
-          {approveError && (
+          {promotionId !== 'new' && approveError && (
             <p className="text-red-400">✗ Approval failed: {approveError.message}</p>
           )}
           
@@ -527,71 +517,12 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               </button>
             )}
 
-            {/* Approval Button - Show if approval is needed */}
-            {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && 
-             needsApproval(BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)) && (
-              <button
-                onClick={() => approve({
-                  address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-                  abi: [
-                    {
-                      "inputs": [
-                        {"internalType": "address", "name": "spender", "type": "address"},
-                        {"internalType": "uint256", "name": "amount", "type": "uint256"}
-                      ],
-                      "name": "approve",
-                      "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-                      "stateMutability": "nonpayable",
-                      "type": "function"
-                    }
-                  ],
-                  functionName: 'approve',
-                  args: [
-                    CONTRACTS.FarcasterPromo as `0x${string}`,
-                    BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
-                  ],
-                  gas: BigInt(50000) // Explicit gas limit for approval
-                })}
-                disabled={isApproving}
-                className="w-full mt-2 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-              >
-                {isApproving ? 'Approving...' : 'Approve CHESS Token'}
-              </button>
-            )}
-
-            {/* Retry Approval Button - Show if approval failed */}
-            {approveError && (
-              <button
-                onClick={() => {
-                  setError("") // Clear previous error
-                  approve({
-                    address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-                    abi: [
-                      {
-                        "inputs": [
-                          {"internalType": "address", "name": "spender", "type": "address"},
-                          {"internalType": "uint256", "name": "amount", "type": "uint256"}
-                        ],
-                        "name": "approve",
-                        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-                        "stateMutability": "nonpayable",
-                        "type": "function"
-                      }
-                    ],
-                    functionName: 'approve',
-                    args: [
-                      CONTRACTS.FarcasterPromo as `0x${string}`,
-                      BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
-                    ],
-                    gas: BigInt(50000) // Explicit gas limit for approval
-                  })
-                }}
-                disabled={isApproving}
-                className="w-full mt-2 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-              >
-                {isApproving ? 'Retrying...' : 'Retry Approval'}
-              </button>
-            )}
+            {/* Note about CHESS funding */}
+            <div className="mt-4 p-3 bg-blue-900 bg-opacity-20 rounded-lg">
+              <p className="text-xs text-blue-400">
+                <strong>Note:</strong> Campaign creation is free. CHESS token funding will be available after campaign creation.
+              </p>
+            </div>
           </div>
         )}
 
@@ -611,13 +542,49 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           >
             Cancel
           </button>
-          {campaignExists && (
-            <button
-              onClick={() => onPaymentComplete(0, '')}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              Fund Campaign
-            </button>
+          {campaignExists && promotion && (
+            <>
+              {/* Approval Button for Funding */}
+              {needsApproval(BigInt(promotion.total_budget) * BigInt(10 ** 18)) && (
+                <button
+                  onClick={() => approve({
+                    address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+                    abi: [
+                      {
+                        "inputs": [
+                          {"internalType": "address", "name": "spender", "type": "address"},
+                          {"internalType": "uint256", "name": "amount", "type": "uint256"}
+                        ],
+                        "name": "approve",
+                        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                        "stateMutability": "nonpayable",
+                        "type": "function"
+                      }
+                    ],
+                    functionName: 'approve',
+                    args: [
+                      CONTRACTS.FarcasterPromo as `0x${string}`,
+                      BigInt(promotion.total_budget) * BigInt(10 ** 18)
+                    ],
+                    gas: BigInt(50000)
+                  })}
+                  disabled={isApproving}
+                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                >
+                  {isApproving ? 'Approving...' : 'Approve CHESS'}
+                </button>
+              )}
+              
+              {/* Fund Campaign Button */}
+              {!needsApproval(BigInt(promotion.total_budget) * BigInt(10 ** 18)) && (
+                <button
+                  onClick={() => onPaymentComplete(promotion.total_budget, '')}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                >
+                  Fund Campaign
+                </button>
+              )}
+            </>
           )}
         </div>
 
