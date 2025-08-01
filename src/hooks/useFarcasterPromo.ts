@@ -219,6 +219,13 @@ export function useFarcasterPromo() {
     },
   })
 
+  // Debug logging
+  console.log('useFarcasterPromo debug:', {
+    totalCampaigns: totalCampaigns?.toString(),
+    claimableAmount: claimableAmount?.toString(),
+    address,
+  })
+
   // Write functions
   const { 
     data: createCampaignData, 
@@ -289,4 +296,24 @@ export function useCampaign(campaignId: bigint | undefined) {
   })
 
   return campaign
+}
+
+// Hook for checking campaign existence
+export function useCampaignExists(campaignId: bigint | undefined) {
+  const { data: campaign, error, isLoading } = useReadContract({
+    address: CONTRACTS.FarcasterPromo as `0x${string}`,
+    abi: FARCASTER_PROMO_ABI,
+    functionName: 'getCampaign',
+    args: campaignId ? [campaignId] : undefined,
+    query: {
+      enabled: !!campaignId,
+    },
+  })
+
+  return {
+    exists: !!campaign && campaign.active,
+    campaign,
+    error,
+    isLoading
+  }
 } 

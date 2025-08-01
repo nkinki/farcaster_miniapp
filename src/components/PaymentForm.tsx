@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react"
 import { FiDollarSign, FiCreditCard, FiCheck, FiAlertCircle } from "react-icons/fi"
 import { CONTRACTS } from "@/config/contracts"
-import { useFarcasterPromo } from "@/hooks/useFarcasterPromo"
+import { useFarcasterPromo, useCampaignExists } from "@/hooks/useFarcasterPromo"
 import { useChessToken } from "@/hooks/useChessToken"
+import { usePromotion } from "@/hooks/usePromotions"
 import { useAccount, useSimulateContract } from "wagmi"
 import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"
 
@@ -31,6 +32,12 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash } = useFarcasterPromo()
   const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
+  
+  // Neon DB promotion data
+  const { promotion, loading: promotionLoading, error: promotionError } = usePromotion(Number(promotionId))
+  
+  // Blockchain campaign check (for compatibility)
+  const { exists: campaignExists, campaign: blockchainCampaign, error: campaignError, isLoading: campaignLoading } = useCampaignExists(BigInt(promotionId))
   
   const finalAmount = selectedAmount
 
@@ -77,6 +84,24 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
       return
     }
 
+    // Check if promotion exists in Neon DB
+    if (!promotion) {
+      setError(`Promotion ${promotionId} does not exist in database`)
+      return
+    }
+
+    // Check if promotion is active
+    if (promotion.status !== 'active') {
+      setError(`Promotion ${promotionId} is not active (status: ${promotion.status})`)
+      return
+    }
+
+    // Check if enough budget remains
+    if (selectedAmount > promotion.remaining_budget) {
+      setError(`Insufficient budget. Remaining: ${promotion.remaining_budget}, Requested: ${selectedAmount}`)
+      return
+    }
+
     setError("")
 
     try {
@@ -90,6 +115,9 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         simulationError: simulationError?.message,
         simulationData: simulationData,
         gasEstimate: simulationData?.request?.gas?.toString(),
+        promotion,
+        campaignExists,
+        campaignId: promotionId,
       })
       
       // Check for simulation errors first
@@ -164,6 +192,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                   <br />
                 </>
               )}
+              {campaignLoading ? (
+                <span className="text-yellow-400">Checking campaign...</span>
+              ) : campaignExists ? (
+                <span className="text-green-400">Campaign {promotionId} exists ✓</span>
+              ) : (
+                <span className="text-red-400">Campaign {promotionId} not found ✗</span>
+              )}
+              <br />
               {isApproving && <span className="text-yellow-400">Approving...</span>}
               <br />
               <button
@@ -175,6 +211,11 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
                     farcasterPromoAddress: CONTRACTS.FarcasterPromo,
                     simulationData,
                     gasEstimate: simulationData?.request?.gas?.toString(),
+                    promotion,
+                    campaignExists,
+                    campaignId: promotionId,
+                    blockchainCampaign,
+                    campaignError,
                   })
                 }}
                 className="text-xs text-blue-400 hover:text-blue-300 mt-1"
@@ -188,6 +229,27 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               Please connect your wallet to fund campaigns
             </div>
           )}
+        </div>
+
+        {/* Debug Info */}
+        <div className="mt-4 p-3 bg-gray-800 rounded-lg">
+          <div className="text-xs text-gray-400">
+            <p><strong>Debug Info:</strong></p>
+            <p>Promotion ID: {promotionId}</p>
+            <p>Promotion Exists: {promotion ? 'Yes' : 'No'}</p>
+            <p>Promotion Loading: {promotionLoading ? 'Yes' : 'No'}</p>
+            {promotion && (
+              <>
+                <p>Promotion Status: {promotion.status}</p>
+                <p>Promotion Username: {promotion.username}</p>
+                <p>Remaining Budget: {promotion.remaining_budget}</p>
+                <p>Total Budget: {promotion.total_budget}</p>
+              </>
+            )}
+            {promotionError && (
+              <p className="text-red-400">Promotion Error: {promotionError}</p>
+            )}
+          </div>
         </div>
 
         {/* Payment Options */}
@@ -229,6 +291,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           <div className="flex items-center gap-2 text-red-400 mb-4 p-3 bg-red-900 bg-opacity-20 rounded-lg">
             <FiAlertCircle />
             <span className="text-sm">{error}</span>
+          </div>
+        )}
+
+        {/* Campaign Creation Notice */}
+        {!campaignExists && !campaignLoading && (
+          <div className="flex items-center gap-2 text-yellow-400 mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
+            <FiAlertCircle />
+            <div className="text-sm">
+              <p>Campaign {promotionId} does not exist.</p>
+              <p className="text-xs mt-1">You need to create this campaign first before funding it.</p>
+            </div>
           </div>
         )}
 
