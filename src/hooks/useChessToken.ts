@@ -3,76 +3,8 @@
 import { useReadContract, useWriteContract, useAccount } from 'wagmi'
 import { CONTRACTS } from '@/config/contracts'
 
-// ERC20 ABI for CHESS token
-const ERC20_ABI = [
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "balanceOf",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      }
-    ],
-    "name": "allowance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "approve",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-] as const
+// Import CHESS token ABI from file
+import CHESS_TOKEN_ABI from "../../abis/ChessToken.json"
 
 export function useChessToken() {
   const { address } = useAccount()
@@ -80,7 +12,7 @@ export function useChessToken() {
   // Read functions
   const { data: balance } = useReadContract({
     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-    abi: ERC20_ABI,
+    abi: CHESS_TOKEN_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
     query: {
@@ -90,7 +22,7 @@ export function useChessToken() {
 
   const { data: allowance } = useReadContract({
     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-    abi: ERC20_ABI,
+    abi: CHESS_TOKEN_ABI,
     functionName: 'allowance',
     args: address ? [address, CONTRACTS.FarcasterPromo] : undefined,
     query: {
@@ -131,7 +63,7 @@ export function useChessToken() {
     // Write functions
     approve: (args: any) => approve({
       address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-      abi: ERC20_ABI,
+      abi: CHESS_TOKEN_ABI,
       functionName: 'approve',
       args,
     }),

@@ -7,6 +7,7 @@ import { useChessToken } from "@/hooks/useChessToken"
 import { usePromotion } from "@/hooks/usePromotions"
 import { useAccount, useSimulateContract } from "wagmi"
 import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"
+import CHESS_TOKEN_ABI from "../../abis/ChessToken.json"
 import { CONTRACTS } from "@/config/contracts"
 
 // TypeScript declaration for window.ethereum
@@ -676,18 +677,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                 <button
                   onClick={() => approve({
                     address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-                    abi: [
-                      {
-                        "inputs": [
-                          {"internalType": "address", "name": "spender", "type": "address"},
-                          {"internalType": "uint256", "name": "amount", "type": "uint256"}
-                        ],
-                        "name": "approve",
-                        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-                        "stateMutability": "nonpayable",
-                        "type": "function"
-                      }
-                    ],
+                    abi: CHESS_TOKEN_ABI,
                     functionName: 'approve',
                     args: [
                       CONTRACTS.FarcasterPromo as `0x${string}`,
