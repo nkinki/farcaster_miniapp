@@ -6,6 +6,7 @@ import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } fr
 import Link from "next/link"
 import UserProfile from "../../components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
+import ConnectWallet from "../../components/ConnectWallet"
 import { useAccount } from "wagmi"
 
 interface FarcasterUser {
@@ -590,6 +591,11 @@ export default function PromotePage() {
           {isWalletConnected && walletAddress && (
             <div className="text-xs text-gray-400 mt-1">
               Address: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </div>
+          )}
+          {!isWalletConnected && (
+            <div className="mt-3">
+              <ConnectWallet />
             </div>
           )}
         </div>
