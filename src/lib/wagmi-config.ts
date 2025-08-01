@@ -6,14 +6,14 @@ import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-c
 export const config = createConfig({
   chains: [base], // ONLY Base mainnet
   transports: {
-    [base.id]: http('https://base.meowrpc.com', {
+    [base.id]: http('https://mainnet.base.org', {
       // Base hálózat specifikus beállítások - Smart contracts
       batch: {
-        batchSize: 1024,
-        wait: 16,
+        batchSize: 512,
+        wait: 32,
       },
-      retryCount: 3,
-      retryDelay: 1000,
+      retryCount: 5,
+      retryDelay: 2000,
     }),
   },
   connectors: [
