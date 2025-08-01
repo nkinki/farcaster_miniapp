@@ -71,14 +71,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     args: newCampaignData ? [
       newCampaignData.castUrl.startsWith('http') ? newCampaignData.castUrl : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
       newCampaignData.shareText || 'Share this promotion!',
-      BigInt(newCampaignData.rewardPerShare),
-      BigInt(newCampaignData.totalBudget),
+      BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18), // Proper BigInt conversion
+      BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18), // Proper BigInt conversion
       true // divisible
     ] : promotion ? [
       promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
       promotion.share_text || 'Share this promotion!',
-      BigInt(rewardPerShare),
-      BigInt(promotion.total_budget),
+      BigInt(rewardPerShare) * BigInt(10 ** 18), // Proper BigInt conversion
+      BigInt(promotion.total_budget) * BigInt(10 ** 18), // Proper BigInt conversion
       true // divisible
     ] : undefined,
     query: {
@@ -122,9 +122,28 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     }
 
     // Check CHESS balance
-    const requiredAmount = BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))
+    const requiredAmount = BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
     if (balance < requiredAmount) {
-      setError(`Insufficient CHESS balance. Required: ${formatNumber(Number(requiredAmount))}, Available: ${formatNumber(Number(balance))}`)
+      setError(`Insufficient CHESS balance. Required: ${formatNumber(Number(requiredAmount) / 1e18)}, Available: ${formatNumber(Number(balance) / 1e18)}`)
+      return
+    }
+
+    // Check minimum values
+    const rewardPerShareValue = promotionId === 'new' ? (newCampaignData?.rewardPerShare || 0) : rewardPerShare
+    const totalBudgetValue = promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0)
+    
+    if (rewardPerShareValue <= 0) {
+      setError("Reward per share must be greater than 0")
+      return
+    }
+    
+    if (totalBudgetValue <= 0) {
+      setError("Total budget must be greater than 0")
+      return
+    }
+    
+    if (rewardPerShareValue > totalBudgetValue) {
+      setError("Reward per share cannot be greater than total budget")
       return
     }
 
@@ -142,10 +161,42 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
       const campaignData = promotionId === 'new' ? newCampaignData! : promotion!
       console.log('Creating blockchain campaign for:', campaignData)
       
+      // Debug: Log the exact parameters being sent to the contract
+      const args = promotionId === 'new' ? [
+        newCampaignData!.castUrl.startsWith('http') ? newCampaignData!.castUrl : `https://warpcast.com/~/conversations/${newCampaignData!.castUrl}`,
+        newCampaignData!.shareText || 'Share this promotion!',
+        BigInt(newCampaignData!.rewardPerShare) * BigInt(10 ** 18),
+        BigInt(newCampaignData!.totalBudget) * BigInt(10 ** 18),
+        true
+      ] : [
+        promotion!.cast_url.startsWith('http') ? promotion!.cast_url : `https://warpcast.com/~/conversations/${promotion!.cast_url}`,
+        promotion!.share_text || 'Share this promotion!',
+        BigInt(rewardPerShare) * BigInt(10 ** 18),
+        BigInt(promotion!.total_budget) * BigInt(10 ** 18),
+        true
+      ]
+      
+      console.log('Contract call parameters:', {
+        castUrl: args[0],
+        shareText: args[1],
+        rewardPerShare: args[2].toString(),
+        totalBudget: args[3].toString(),
+        divisible: args[4]
+      })
+      
       // Check for simulation errors first
       if (createSimulationError) {
+        console.error('Simulation error details:', {
+          message: createSimulationError.message,
+          cause: createSimulationError.cause,
+          name: createSimulationError.name,
+          stack: createSimulationError.stack
+        })
+        
         if (createSimulationError.message.includes("insufficient funds")) {
           setError("Insufficient ETH for gas fees.")
+        } else if (createSimulationError.message.includes("Execution reverted")) {
+          setError(`Contract execution reverted. This might be due to insufficient CHESS balance, invalid parameters, or contract restrictions. Error: ${createSimulationError.message}`)
         } else {
           setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
         }
@@ -244,18 +295,19 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           <p><strong>Wallet Status:</strong></p>
           <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
           <p>Address: {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Not connected'}</p>
+          <p>Contract: {CONTRACTS.FarcasterPromo.substring(0, 6)}...{CONTRACTS.FarcasterPromo.substring(CONTRACTS.FarcasterPromo.length - 4)}</p>
           
           {/* CHESS Token Balance */}
           <p>CHESS Balance: {balance ? `${(Number(balance) / 1e18).toFixed(2)}` : '0'} $CHESS</p>
           
           {/* Required Amount */}
           {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && (
-            <p>Required: {formatNumber(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))} $CHESS</p>
+            <p>Required: {formatNumber(Number(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0)))} $CHESS</p>
           )}
           
           {/* Approval Status */}
           {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && (
-            <p>Approved: {needsApproval(BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) ? 'No' : 'Yes'}</p>
+            <p>Approved: {needsApproval(BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)) ? 'No' : 'Yes'}</p>
           )}
           
           {campaignLoading ? (
@@ -421,13 +473,40 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                promotionId === 'new' ? 'Create New Campaign' : 'Create Blockchain Campaign'}
             </button>
 
+            {/* Test Button - Only for new campaigns */}
+            {promotionId === 'new' && newCampaignData && (
+              <button
+                onClick={() => {
+                  // Test with minimal values
+                  const testArgs = [
+                    'https://warpcast.com/~/conversations/test',
+                    'Test campaign',
+                    BigInt(1), // 1 wei reward per share
+                    BigInt(1000), // 1000 wei total budget
+                    true
+                  ]
+                  console.log('Testing with minimal values:', testArgs)
+                  createCampaign({
+                    address: CONTRACTS.FarcasterPromo as `0x${string}`,
+                    abi: FARCASTER_PROMO_ABI,
+                    functionName: 'createCampaign',
+                    args: testArgs
+                  })
+                }}
+                disabled={isCreatingCampaign || isCreatingCampaignFromHook}
+                className="w-full mt-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                Test with Minimal Values
+              </button>
+            )}
+
             {/* Approval Button - Show if approval is needed */}
             {((promotionId === 'new' && newCampaignData) || (promotionId !== 'new' && promotion)) && 
-             needsApproval(BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) && (
+             needsApproval(BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)) && (
               <button
                 onClick={() => approve([
                   CONTRACTS.FarcasterPromo as `0x${string}`,
-                  BigInt(promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))
+                  BigInt((promotionId === 'new' ? (newCampaignData?.totalBudget || 0) : (promotion?.total_budget || 0))) * BigInt(10 ** 18)
                 ])}
                 disabled={isApproving}
                 className="w-full mt-2 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"

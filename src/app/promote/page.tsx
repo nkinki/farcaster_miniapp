@@ -111,8 +111,8 @@ export default function PromotePage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("")
   const [shareText, setShareText] = useState("")
-  const [rewardPerShare, setRewardPerShare] = useState(1000)
-  const [totalBudget, setTotalBudget] = useState(10000)
+  const [rewardPerShare, setRewardPerShare] = useState(1000) // Default 1k
+  const [totalBudget, setTotalBudget] = useState(10000) // Default 10k
   const [isCreating, setIsCreating] = useState(false)
   
   // Database state
