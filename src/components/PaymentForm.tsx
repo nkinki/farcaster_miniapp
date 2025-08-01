@@ -157,63 +157,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           <br />
         </div>
 
-        {/* Debug Info */}
-        <div className="mt-4 p-3 bg-gray-800 rounded-lg">
-          <div className="text-xs text-gray-400">
-            <p><strong>Debug Info:</strong></p>
-            <p>Promotion ID: {promotionId}</p>
-            <p>Promotion Exists: {promotion ? 'Yes' : 'No'}</p>
-            <p>Promotion Loading: {promotionLoading ? 'Yes' : 'No'}</p>
-            {promotion && (
-              <>
-                <p>Promotion Status: {promotion.status}</p>
-                <p>Promotion Username: {promotion.username}</p>
-                <p>Remaining Budget: {promotion.remaining_budget}</p>
-                <p>Total Budget: {promotion.total_budget}</p>
-                <p>Reward Per Share: {promotion.reward_per_share}</p>
-                <p>Cast URL: {promotion.cast_url?.substring(0, 50)}...</p>
-                <p>Processed Cast URL: {promotion.cast_url.startsWith('http') ? promotion.cast_url : `https://warpcast.com/~/conversations/${promotion.cast_url}`}</p>
-                <p>Share Text: {promotion.share_text || 'Share this promotion!'}</p>
-              </>
-            )}
-            {promotionError && (
-              <p className="text-red-400">Promotion Error: {promotionError}</p>
-            )}
-            <p>Blockchain Campaign Exists: {campaignExists ? 'Yes' : 'No'}</p>
-            <p>Blockchain Campaign Loading: {campaignLoading ? 'Yes' : 'No'}</p>
-            <p>Creating Campaign: {isCreatingCampaign || isCreatingCampaignFromHook ? 'Yes' : 'No'}</p>
-            {createCampaignData && (
-              <p className="text-green-400">Campaign Created: {createCampaignData}</p>
-            )}
-            {createSimulationData && (
-              <p className="text-green-400">Create Simulation: {createSimulationData.request.gas?.toString()} gas</p>
-            )}
-            {createSimulationError && (
-              <p className="text-red-400">Create Simulation Error: {createSimulationError.message}</p>
-            )}
-            {campaignError && (
-              <p className="text-red-400">Blockchain Error: {campaignError.message}</p>
-            )}
-            <button
-              onClick={async () => {
-                try {
-                  console.log('Testing API endpoint...')
-                  const response = await fetch(`/api/promotions/${promotionId}`)
-                  const data = await response.json()
-                  console.log('API Response:', { status: response.status, data })
-                  alert(`API Status: ${response.status}\nData: ${JSON.stringify(data, null, 2)}`)
-                } catch (err) {
-                  console.error('API Test Error:', err)
-                  alert(`API Test Error: ${err}`)
-                }
-              }}
-              className="text-xs text-green-400 hover:text-green-300 mt-2 bg-green-900 px-2 py-1 rounded"
-            >
-              Test API Endpoint
-            </button>
-          </div>
-        </div>
-
         {/* Campaign Creation Notice */}
         {!promotion && !promotionLoading && (
           <div className="flex items-center gap-2 text-yellow-400 mb-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
@@ -262,26 +205,42 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               </div>
             )}
             
-            {/* Reward Per Share Slider */}
+            {/* Reward Per Share Buttons */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Reward Per Share: {formatNumber(rewardPerShare)} $CHESS
               </label>
-              <div className="relative">
-                <input
-                  type="range"
-                  min="1000"
-                  max="10000"
-                  step="4000"
-                  value={rewardPerShare}
-                  onChange={(e) => handleRewardPerShareChange(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>1K</span>
-                  <span>5K</span>
-                  <span>10K</span>
-                </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => handleRewardPerShareChange(1000)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    rewardPerShare === 1000
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  1K $CHESS
+                </button>
+                <button
+                  onClick={() => handleRewardPerShareChange(5000)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    rewardPerShare === 5000
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  5K $CHESS
+                </button>
+                <button
+                  onClick={() => handleRewardPerShareChange(10000)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    rewardPerShare === 10000
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  10K $CHESS
+                </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Amount users receive for each share (divisible)
@@ -362,29 +321,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
           </p>
         </div>
       </div>
-
-      {/* Custom Slider Styles */}
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: #3B82F6;
-          cursor: pointer;
-          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-        }
-        
-        .slider::-moz-range-thumb {
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: #3B82F6;
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-        }
-      `}</style>
     </div>
   )
 } 
