@@ -42,6 +42,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
   const [error, setError] = useState<string>("")
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false)
   const [isSavingToDb, setIsSavingToDb] = useState(false)
+  const [campaignCreated, setCampaignCreated] = useState(false)
 
   // Wagmi hooks
   const { address, isConnected } = useAccount()
@@ -256,10 +257,13 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         saveNewCampaignToDb(createCampaignData)
       } else {
         setIsCreatingCampaign(false)
-        // Refresh campaign status after creation
+        // Don't reload, just show success message
+        console.log('Campaign created successfully!')
+        // Optionally refresh the page after a longer delay
         setTimeout(() => {
+          console.log('Refreshing page after campaign creation...')
           window.location.reload()
-        }, 2000)
+        }, 5000) // 5 seconds delay instead of 2
       }
     }
   }, [createCampaignData, promotionId, newCampaignData])
@@ -318,6 +322,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         // Reset form
         setIsCreatingCampaign(false)
         setIsSavingToDb(false)
+        
+        // Show success message instead of reloading
+        console.log('🎉 Campaign created and saved successfully!')
+        console.log('📋 Campaign details:', {
+          blockchainHash,
+          totalBudget: newCampaignData.totalBudget,
+          castUrl: newCampaignData.castUrl
+        })
+        
+        // Set campaign created flag
+        setCampaignCreated(true)
       } else {
         const errorData = await response.json()
         console.error('Failed to save to Neon DB:', errorData)
@@ -714,6 +729,21 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                 <strong>Note:</strong> Campaign creation is free. CHESS token funding will be available after campaign creation.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Success Messages */}
+        {isApproveSuccess && (
+          <div className="flex items-center gap-2 text-green-400 mb-4 p-3 bg-green-900 bg-opacity-20 rounded-lg">
+            <span className="text-lg">✅</span>
+            <span className="text-sm">CHESS token approved successfully!</span>
+          </div>
+        )}
+
+        {campaignCreated && (
+          <div className="flex items-center gap-2 text-green-400 mb-4 p-3 bg-green-900 bg-opacity-20 rounded-lg">
+            <span className="text-lg">🎉</span>
+            <span className="text-sm">Campaign created successfully on blockchain and saved to database!</span>
           </div>
         )}
 
