@@ -66,13 +66,22 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     try {
       const amount = BigInt(finalAmount)
       
+      console.log('PaymentForm debug:', {
+        amount: amount.toString(),
+        allowance: allowance.toString(),
+        needsApproval: needsApproval(amount),
+        farcasterPromoAddress: CONTRACTS.FarcasterPromo
+      })
+      
       // Check if approval is needed
       if (needsApproval(amount)) {
+        console.log('Approval needed, calling approve...')
         // Approve CHESS tokens
         approve([CONTRACTS.FarcasterPromo, amount])
         return
       }
 
+      console.log('No approval needed, calling fundCampaign...')
       // Fund campaign (ETH fee will be handled by smart contract)
       fundCampaign([BigInt(promotionId), amount])
     } catch (err) {
@@ -132,6 +141,20 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               Allowance: {formatNumber(allowance)} CHESS
               <br />
               {isApproving && <span className="text-yellow-400">Approving...</span>}
+              <br />
+              <button
+                onClick={() => {
+                  console.log('Debug info:', {
+                    balance: balance.toString(),
+                    allowance: allowance.toString(),
+                    selectedAmount,
+                    farcasterPromoAddress: CONTRACTS.FarcasterPromo
+                  })
+                }}
+                className="text-xs text-blue-400 hover:text-blue-300 mt-1"
+              >
+                Debug Info
+              </button>
             </div>
           )}
           {!isConnected && (

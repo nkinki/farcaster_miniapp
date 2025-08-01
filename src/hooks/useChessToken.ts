@@ -98,6 +98,14 @@ export function useChessToken() {
     },
   })
 
+  // Debug logging
+  console.log('useChessToken debug:', {
+    address,
+    balance: balance?.toString(),
+    allowance: allowance?.toString(),
+    farcasterPromoAddress: CONTRACTS.FarcasterPromo
+  })
+
   // Write functions
   const { 
     data: approveData, 
