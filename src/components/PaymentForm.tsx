@@ -27,10 +27,11 @@ const PAYMENT_OPTIONS = [
 export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }: PaymentFormProps) {
   const [selectedAmount, setSelectedAmount] = useState<number>(10000)
   const [error, setError] = useState<string>("")
+  const [isCreatingCampaign, setIsCreatingCampaign] = useState(false)
   
   // Wagmi hooks
   const { address, isConnected } = useAccount()
-  const { fundCampaign, isFundingCampaign, fundCampaignHash } = useFarcasterPromo()
+  const { fundCampaign, isFundingCampaign, fundCampaignHash, createCampaign, isCreatingCampaign: isCreatingCampaignFromHook, createCampaignHash: createCampaignData } = useFarcasterPromo()
   const { balance, allowance, approve, isApproving, needsApproval } = useChessToken()
   
   // Neon DB promotion data
@@ -154,6 +155,18 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
     }
   }, [fundCampaignHash, selectedAmount, onPaymentComplete])
 
+  // Handle successful campaign creation
+  useEffect(() => {
+    if (createCampaignData) {
+      console.log('Campaign created successfully:', createCampaignData)
+      setIsCreatingCampaign(false)
+      // Refresh campaign status after creation
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    }
+  }, [createCampaignData])
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md mx-4">
@@ -253,6 +266,10 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
             )}
             <p>Blockchain Campaign Exists: {campaignExists ? 'Yes' : 'No'}</p>
             <p>Blockchain Campaign Loading: {campaignLoading ? 'Yes' : 'No'}</p>
+            <p>Creating Campaign: {isCreatingCampaign || isCreatingCampaignFromHook ? 'Yes' : 'No'}</p>
+            {createCampaignData && (
+              <p className="text-green-400">Campaign Created: {createCampaignData}</p>
+            )}
             {campaignError && (
               <p className="text-red-400">Blockchain Error: {campaignError.message}</p>
             )}
@@ -345,6 +362,30 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
             <div className="text-sm">
               <p>Promotion exists in DB but not on blockchain.</p>
               <p className="text-xs mt-1">You need to create the blockchain campaign first.</p>
+              <button
+                onClick={async () => {
+                  try {
+                    setIsCreatingCampaign(true)
+                    console.log('Creating blockchain campaign for promotion:', promotion)
+                    // Create campaign on blockchain using promotion data
+                    createCampaign([
+                      promotion.cast_url,
+                      promotion.share_text || '',
+                      BigInt(promotion.reward_per_share),
+                      BigInt(promotion.total_budget),
+                      true // divisible
+                    ])
+                  } catch (err) {
+                    console.error('Error creating blockchain campaign:', err)
+                    alert(`Error creating campaign: ${err}`)
+                    setIsCreatingCampaign(false)
+                  }
+                }}
+                disabled={isCreatingCampaign || isCreatingCampaignFromHook}
+                className="text-xs text-blue-300 hover:text-blue-200 mt-2 bg-blue-800 px-2 py-1 rounded disabled:opacity-50"
+              >
+                {isCreatingCampaign || isCreatingCampaignFromHook ? 'Creating...' : 'Create Blockchain Campaign'}
+              </button>
             </div>
           </div>
         )}
