@@ -655,10 +655,10 @@ export default function PromotePage() {
                   className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
                     <button
                       onClick={() => setTotalBudget(10000)}
                       className={`px-3 py-2 rounded-lg font-medium transition-colors ${
@@ -709,69 +709,66 @@ export default function PromotePage() {
                     >
                       5M
                     </button>
-                    <div className="px-3 py-2 bg-gray-800 text-gray-400 text-center text-sm">
-                      {totalBudget.toLocaleString()}
-                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Reward Per Share Buttons */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
-                <div className="grid grid-cols-5 gap-2">
-                  <button
-                    onClick={() => setRewardPerShare(1000)}
-                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                      rewardPerShare === 1000
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    1K
-                  </button>
-                  <button
-                    onClick={() => setRewardPerShare(2000)}
-                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                      rewardPerShare === 2000
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    2K
-                  </button>
-                  <button
-                    onClick={() => setRewardPerShare(5000)}
-                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                      rewardPerShare === 5000
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    5K
-                  </button>
-                  <button
-                    onClick={() => setRewardPerShare(10000)}
-                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                      rewardPerShare === 10000
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    10K
-                  </button>
-                  <button
-                    onClick={() => setRewardPerShare(20000)}
-                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                      rewardPerShare === 20000
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    20K
-                  </button>
+                
+                {/* Reward Per Share Buttons */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
+                  <div className="grid grid-cols-5 gap-2">
+                    <button
+                      onClick={() => setRewardPerShare(1000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        rewardPerShare === 1000
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      1K
+                    </button>
+                    <button
+                      onClick={() => setRewardPerShare(2000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        rewardPerShare === 2000
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      2K
+                    </button>
+                    <button
+                      onClick={() => setRewardPerShare(5000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        rewardPerShare === 5000
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      5K
+                    </button>
+                    <button
+                      onClick={() => setRewardPerShare(10000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        rewardPerShare === 10000
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      10K
+                    </button>
+                    <button
+                      onClick={() => setRewardPerShare(20000)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        rewardPerShare === 20000
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      20K
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Amount users receive for each share</p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Amount users receive for each share</p>
               </div>
               
               {/* Campaign Summary */}
