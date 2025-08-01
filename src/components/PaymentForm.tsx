@@ -82,8 +82,21 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
       true // divisible
     ] : undefined,
     query: {
-      enabled: isConnected && (!!newCampaignData || (!!promotion && !campaignExists && !campaignLoading)),
+      enabled: isConnected && !!address && (!!newCampaignData || (!!promotion && !campaignExists && !campaignLoading)),
     },
+  })
+
+  // Debug simulation status
+  console.log('Simulation debug:', {
+    isConnected,
+    address,
+    newCampaignData: !!newCampaignData,
+    promotion: !!promotion,
+    campaignExists,
+    campaignLoading,
+    enabled: isConnected && !!address && (!!newCampaignData || (!!promotion && !campaignExists && !campaignLoading)),
+    simulationData: !!createSimulationData,
+    simulationError: createSimulationError?.message
   })
 
   const handleRewardPerShareChange = (value: number) => {
@@ -174,33 +187,18 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         divisible: args[4]
       })
       
-      // Check for simulation errors first
-      if (createSimulationError) {
-        console.error('Simulation error details:', {
-          message: createSimulationError.message,
-          cause: createSimulationError.cause,
-          name: createSimulationError.name,
-          stack: createSimulationError.stack
-        })
-        
-        if (createSimulationError.message.includes("insufficient funds")) {
-          setError("Insufficient ETH for gas fees.")
-        } else if (createSimulationError.message.includes("Execution reverted")) {
-          setError(`Contract execution reverted. This might be due to invalid parameters or contract restrictions. Error: ${createSimulationError.message}`)
-        } else {
-          setError(`Campaign creation simulation failed: ${createSimulationError.message}`)
-        }
-        setIsCreatingCampaign(false)
-        return
-      }
-      
-      // Use simulation request directly
+      // Try to use simulation if available, otherwise create directly
       if (createSimulationData?.request) {
         console.log('Creating campaign with simulation request...')
         createCampaign(createSimulationData.request)
       } else {
-        setError("Campaign creation simulation not ready")
-        setIsCreatingCampaign(false)
+        console.log('Creating campaign directly without simulation...')
+        createCampaign({
+          address: CONTRACTS.FarcasterPromo as `0x${string}`,
+          abi: FARCASTER_PROMO_ABI,
+          functionName: 'createCampaign',
+          args: args
+        })
       }
     } catch (err) {
       console.error('Error creating blockchain campaign:', err)
@@ -337,6 +335,9 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           <br />
           {createSimulationData && (
             <span className="text-blue-400">Create Gas: {createSimulationData.request.gas?.toString()}</span>
+          )}
+          {!createSimulationData && promotionId === 'new' && newCampaignData && (
+            <span className="text-orange-400">Simulation not ready - use manual create</span>
           )}
           <br />
           {isApproving && <span className="text-yellow-400">Approving...</span>}
@@ -514,6 +515,33 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                 className="w-full mt-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
               >
                 Test with Minimal Values
+              </button>
+            )}
+
+            {/* Manual Create Button - Bypass simulation */}
+            {promotionId === 'new' && newCampaignData && (
+              <button
+                onClick={() => {
+                  console.log('Manual campaign creation with data:', newCampaignData)
+                  const args = [
+                    newCampaignData.castUrl.startsWith('http') ? newCampaignData.castUrl : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
+                    newCampaignData.shareText || 'Share this promotion!',
+                    BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18),
+                    BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18),
+                    true
+                  ]
+                  console.log('Manual create args:', args)
+                  createCampaign({
+                    address: CONTRACTS.FarcasterPromo as `0x${string}`,
+                    abi: FARCASTER_PROMO_ABI,
+                    functionName: 'createCampaign',
+                    args: args
+                  })
+                }}
+                disabled={isCreatingCampaign || isCreatingCampaignFromHook}
+                className="w-full mt-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                Create Campaign (Manual)
               </button>
             )}
 

@@ -6,14 +6,14 @@ import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-c
 export const config = createConfig({
   chains: [base], // ONLY Base mainnet
   transports: {
-    [base.id]: http('https://base.meowrpc.com', {
-      // Alternative RPC endpoint for better reliability
+    [base.id]: http('https://mainnet.base.org', {
+      // Primary Base RPC endpoint
       batch: {
         batchSize: 512,
         wait: 32,
       },
-      retryCount: 5,
-      retryDelay: 2000,
+      retryCount: 3,
+      retryDelay: 1000,
     }),
   },
   connectors: [
