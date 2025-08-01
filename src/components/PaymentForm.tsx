@@ -29,7 +29,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   // Wagmi hooks
   const { address, isConnected } = useAccount()
   const { fundCampaign, isFundingCampaign, fundCampaignHash } = useFarcasterPromo()
-  const { balance, allowance, approve, isApproving, needsApproval, approveHash } = useChessToken()
+  const { balance } = useChessToken()
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount)
@@ -68,21 +68,10 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
       
       console.log('PaymentForm debug:', {
         amount: amount.toString(),
-        allowance: allowance.toString(),
-        needsApproval: needsApproval(amount),
         farcasterPromoAddress: CONTRACTS.FarcasterPromo
       })
       
-      // Check if approval is needed
-      if (needsApproval(amount)) {
-        console.log('Approval needed, calling approve...')
-        // Approve CHESS tokens
-        approve([CONTRACTS.FarcasterPromo, amount])
-        return
-      }
-
-      console.log('No approval needed, calling fundCampaign...')
-      // Fund campaign (ETH fee will be handled by smart contract)
+      // Fund campaign directly (no approval check)
       fundCampaign([BigInt(promotionId), amount])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed")
@@ -90,16 +79,6 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
   }
 
   const finalAmount = selectedAmount
-
-  // Handle successful approval
-  useEffect(() => {
-    if (approveHash) {
-      console.log('Approve transaction successful:', approveHash)
-      // After approval, automatically proceed with funding
-      const amount = BigInt(finalAmount)
-      fundCampaign([BigInt(promotionId), amount])
-    }
-  }, [approveHash, finalAmount, promotionId, fundCampaign])
 
   // Handle successful funding
   useEffect(() => {
@@ -138,15 +117,10 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
               <br />
               Balance: {formatNumber(balance)} CHESS
               <br />
-              Allowance: {formatNumber(allowance)} CHESS
-              <br />
-              {isApproving && <span className="text-yellow-400">Approving...</span>}
-              <br />
               <button
                 onClick={() => {
                   console.log('Debug info:', {
                     balance: balance.toString(),
-                    allowance: allowance.toString(),
                     selectedAmount,
                     farcasterPromoAddress: CONTRACTS.FarcasterPromo
                   })
