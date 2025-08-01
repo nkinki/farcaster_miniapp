@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { FiDollarSign, FiCreditCard, FiCheck, FiAlertCircle, FiWallet } from "react-icons/fi"
+import { FiDollarSign, FiCreditCard, FiCheck, FiAlertCircle } from "react-icons/fi"
 import { CONTRACTS } from "@/config/contracts"
 import { useFarcasterPromo } from "@/hooks/useFarcasterPromo"
 import { useChessToken } from "@/hooks/useChessToken"
@@ -117,7 +117,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel }
         {/* Wallet Status */}
         <div className="mb-6 p-3 bg-gray-800 rounded-lg">
           <div className="flex items-center gap-2 text-sm">
-            <FiWallet className="text-blue-400" />
+            <FiDollarSign className="text-blue-400" />
             <span className="text-gray-300">
               {isConnected ? "Wallet Connected" : "Wallet Not Connected"}
             </span>
