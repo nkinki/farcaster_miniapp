@@ -1,183 +1,148 @@
-// src/app/promote/page.tsx
+// src/components/PaymentForm.tsx
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { sdk } from "@farcaster/miniapp-sdk";
-import { SignInButton, useProfile } from "@farcaster/auth-kit";
-import Link from "next/link";
-import { FiArrowLeft, FiPlus, FiLoader } from "react-icons/fi";
+import { useState } from "react";
+import { FiAlertCircle, FiCheckCircle, FiLoader } from "react-icons/fi";
+import { useSimulateContract } from "wagmi";
+import { BaseError } from "viem";
 
-// Feltételezzük, hogy ezek a komponensek léteznek
-import PaymentForm from "@/components/PaymentForm";
-import UserProfile from "@/components/UserProfile"; 
+// Csak a szükséges hook-okat és adatokat importáljuk
+import { useFarcasterPromo } from "@/hooks/useFarcasterPromo";
+import { useChessToken } from "@/hooks/useChessToken";
+import { usePromotion } from "@/hooks/usePromotions";
+import { CONTRACTS } from "@/config/contracts";
+import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"; // Relatív útvonal használata
 
-// A típusok itt vannak definiálva, hogy ne legyen build hiba
-interface FarcasterUser {
-  fid: number;
-  username: string;
-  displayName: string;
-  pfpUrl?: string;
+interface PaymentFormProps {
+  promotionId: string; // 'new' vagy egy létező ID
+  onComplete: (amount: number, hash: string) => void;
+  onCancel: () => void;
+  newCampaignData?: {
+    castUrl: string;
+    shareText: string;
+    rewardPerShare: number;
+    totalBudget: number;
+  };
 }
 
-interface PromoCast {
-  id: string;
-  author: FarcasterUser;
-  castUrl: string;
-  total_budget: number;
-}
-
-export default function PromotePage() {
-  // === ÁLLAPOTKEZELÉS ===
-  const [userProfile, setUserProfile] = useState<FarcasterUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([]); 
-  const [loading, setLoading] = useState(true);
+export default function PaymentForm({ promotionId, onComplete, onCancel, newCampaignData }: PaymentFormProps) {
+  const [error, setError] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
   
-  // Űrlap állapotok
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [castUrl, setCastUrl] = useState("");
-  const [shareText, setShareText] = useState("");
-  const [rewardPerShare, setRewardPerShare] = useState(1000); // Alapértelmezett 1k
-  const [totalBudget, setTotalBudget] = useState(10000);
-  
-  // Modal állapotok
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [modalProps, setModalProps] = useState<any>(null);
+  // A hook-ok, amik a tényleges blokklánc interakciókat végzik
+  const { createCampaign, isCreatingCampaign, fundCampaign, isFundingCampaign } = useFarcasterPromo();
+  const { approve, isApproving, needsApproval } = useChessToken();
+  // Ez a hook a MEGLÉVŐ kampányok adatainak lekérdezésére szolgál
+  const { promotion } = usePromotion(promotionId === 'new' ? undefined : Number(promotionId));
 
-  // === HOOK-OK ===
-  const { profile: authKitProfile, isAuthenticated: isAuthKitAuthenticated } = useProfile();
+  const isNewCampaign = promotionId === 'new';
+  const isLoading = isCreatingCampaign || isFundingCampaign || isApproving;
 
-  // === EGYSÉGES AUTHENTIKÁCIÓS LOGIKA ===
-  useEffect(() => {
-    const authenticate = async () => {
-      try {
-        // --- JAVÍTÁS: A .context EGY PROMISE, NEM FÜGGVÉNY. A ()-t EL KELL TÁVOLÍTANI. ---
-        const context = await sdk.context;
-        if (context.user?.fid) {
-          const user = { fid: context.user.fid, username: context.user.username || "", displayName: context.user.displayName || "", pfpUrl: context.user.pfpUrl };
-          setUserProfile(user);
-          setIsAuthenticated(true);
-          console.log("Authenticated via Mini-App SDK");
-          return;
-        }
-      } catch (error) {
-        console.warn("Mini-App SDK context not available, falling back to AuthKit.");
-      }
+  // --- SZIMULÁCIÓ ÚJ KAMPÁNY LÉTREHOZÁSÁHOZ ---
+  const { data: simResult, error: simError } = useSimulateContract({
+    address: CONTRACTS.FarcasterPromo as `0x${string}`,
+    abi: FARCASTER_PROMO_ABI,
+    functionName: 'createCampaign',
+    args: newCampaignData ? [
+      newCampaignData.castUrl,
+      newCampaignData.shareText || 'Share this promotion!',
+      BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18),
+      BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18),
+      true
+    ] : undefined,
+    query: { enabled: isNewCampaign && !!newCampaignData },
+  });
 
-      if (isAuthKitAuthenticated && authKitProfile) {
-        const user = { fid: authKitProfile.fid, username: authKitProfile.username, displayName: authKitProfile.displayName, pfpUrl: authKitProfile.pfpUrl };
-        setUserProfile(user);
-        setIsAuthenticated(true);
-        console.log("Authenticated via AuthKit");
-      } else {
-        setUserProfile(null);
-        setIsAuthenticated(false);
-      }
-    };
-    authenticate().finally(() => setLoading(false));
-  }, [isAuthKitAuthenticated, authKitProfile]);
-  
-  // === ESEMÉNYKEZELŐK ===
-  const handleOpenNewCampaignModal = () => {
-    if (!userProfile) return alert("Please sign in first.");
-    if (!castUrl) return alert("Please provide a Cast URL.");
-    if (rewardPerShare > totalBudget) return alert("Reward cannot be greater than budget.");
-
-    setModalProps({
-      promotionId: 'new',
-      newCampaignData: {
-        castUrl,
-        shareText,
-        rewardPerShare,
-        totalBudget,
-        user: userProfile,
+  // --- ESEMÉNYKEZELŐK ---
+  const handleCreate = () => {
+    if (!simResult?.request) {
+      const errMsg = simError instanceof BaseError ? simError.shortMessage : "Simulation failed. Check console for details.";
+      setError(`Cannot create campaign: ${errMsg}`);
+      console.error("Simulation Error:", simError);
+      return;
+    }
+    setError("");
+    setSuccessMessage("Creating campaign on the blockchain...");
+    createCampaign(simResult.request, {
+      onSuccess: (hash) => {
+        setSuccessMessage(`Campaign created successfully!`);
+        onComplete(newCampaignData!.totalBudget, hash);
+      },
+      onError: (err) => {
+        setError(err.message);
       }
     });
-    setShowPaymentModal(true);
+  };
+
+  const handleFund = () => {
+    if (!promotion) return setError("Promotion data not found.");
+    const budget = BigInt(promotion.total_budget) * BigInt(10 ** 18);
+    setError("");
+    
+    const executeFund = () => {
+      setSuccessMessage("Funding campaign...");
+      fundCampaign({ /* Itt a te fundCampaign hook-odnak megfelelő argumentumok kellenek */ }, {
+        onSuccess: (hash) => {
+          setSuccessMessage("Funding successful!");
+          onComplete(promotion.total_budget, hash);
+        },
+        onError: (err) => {
+          setError(err.message);
+        }
+      });
+    };
+    
+    if (needsApproval(budget)) {
+      setSuccessMessage("Approval required. Please confirm in your wallet...");
+      approve([CONTRACTS.FarcasterPromo as `0x${string}`, budget], {
+        onSuccess: () => {
+          setSuccessMessage("Approval successful! Now funding...");
+          executeFund();
+        },
+        onError: (err) => {
+          setError(err.message);
+        }
+      });
+    } else {
+      executeFund();
+    }
   };
   
-  const handleOpenFundModal = (promo: PromoCast) => {
-    setModalProps({ promotionId: promo.id });
-    setShowPaymentModal(true);
-  };
-
-  if (loading) {
-    return <div className="min-h-screen bg-black flex items-center justify-center"><FiLoader className="animate-spin text-purple-400 text-4xl" /></div>;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 text-white p-4 sm:p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Fejléc */}
-        <header className="flex items-center justify-between mb-8">
-          <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors"><FiArrowLeft size={20} /><span>Back to AppRank</span></Link>
-          <div className="flex items-center gap-4">
-            {isAuthenticated && userProfile && <span className="text-sm hidden sm:block">@{userProfile.username}</span>}
-            <SignInButton />
-          </div>
-        </header>
-
-        {/* Új kampány indítása gomb */}
-        <div className="text-center mb-8">
-          <button onClick={() => setShowCreateForm(v => !v)} disabled={!isAuthenticated} className="px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-            <FiPlus className="inline-block mr-2" />
-            Start New Campaign
-          </button>
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md border border-purple-800 shadow-lg text-white">
+        <h2 className="text-xl font-bold mb-4">{isNewCampaign ? "Confirm Campaign Creation" : "Fund Existing Campaign"}</h2>
+        
+        <div className="space-y-4">
+          {isNewCampaign && newCampaignData ? (
+            <>
+              <p className="text-sm text-gray-300">You are about to create a new campaign on the Base blockchain. This transaction is free (you only pay for gas).</p>
+              <button onClick={handleCreate} disabled={isLoading || !simResult?.request} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg py-3 font-semibold flex items-center justify-center">
+                {isLoading ? <FiLoader className="animate-spin"/> : "Confirm & Create"}
+              </button>
+            </>
+          ) : promotion ? (
+            <>
+              <p className="text-sm text-gray-300">You are about to fund campaign #{promotion.id} with {promotion.total_budget.toLocaleString()} $CHESS.</p>
+              <button onClick={handleFund} disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg py-3 font-semibold flex items-center justify-center">
+                {isLoading ? <FiLoader className="animate-spin"/> : (needsApproval(BigInt(promotion.total_budget) * BigInt(10**18)) ? 'Approve & Fund' : 'Fund Campaign')}
+              </button>
+            </>
+          ) : <p className="text-center text-gray-400">Loading promotion data...</p>}
         </div>
 
-        {/* Kampánykészítő Űrlap */}
-        {showCreateForm && (
-          <div className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
-            <h2 className="text-xl font-bold mb-4">Create New Campaign</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Cast URL</label>
-                <input type="url" value={castUrl} onChange={e => setCastUrl(e.target.value)} placeholder="https://warpcast.com/..." className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
-                <div className="flex space-x-2 rounded-lg bg-[#181c23] p-1 border border-gray-600">
-                  {[1000, 5000, 10000].map(amount => (
-                    <button key={amount} type="button" onClick={() => setRewardPerShare(amount)} className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-all ${rewardPerShare === amount ? "bg-purple-600" : "hover:bg-gray-700"}`}>
-                      {amount / 1000}K
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
-                <input type="number" value={totalBudget} onChange={e => setTotalBudget(parseInt(e.target.value) || 0)} min="1000" step="1000" className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg" />
-              </div>
-              <button onClick={handleOpenNewCampaignModal} className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg font-semibold">
-                Next: Create on Blockchain
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Üzenetek */}
+        <div className="mt-4 min-h-[40px] text-sm">
+          {successMessage && <div className="flex items-center gap-2 text-green-400 p-2 bg-green-900/30 rounded-lg"><FiCheckCircle /><span>{successMessage}</span></div>}
+          {error && <div className="flex items-center gap-2 text-red-400 p-2 bg-red-900/30 rounded-lg"><FiAlertCircle /><span>{error}</span></div>}
+        </div>
 
-        {/* Kampányok listája (IDE JÖN A TE LISTÁD) */}
-        {/* <div className="space-y-4">
-            ... a te listázó kódod ...
-        </div> */}
+        {/* Bezárás gomb */}
+        <button onClick={onCancel} disabled={isLoading} className="w-full mt-2 bg-gray-700 hover:bg-gray-600 rounded-lg py-2 text-sm disabled:opacity-50">
+          Cancel
+        </button>
       </div>
-
-      {/* Modal a blokklánc tranzakciókhoz */}
-      {showPaymentModal && modalProps && (
-        <PaymentForm
-          {...modalProps}
-          onComplete={(amount, hash) => {
-            console.log(`Success! Hash: ${hash}`);
-            setShowPaymentModal(false);
-            setModalProps(null);
-            // Itt frissítheted a kampányok listáját
-          }}
-          onCancel={() => {
-            setShowPaymentModal(false);
-            setModalProps(null);
-          }}
-        />
-      )}
     </div>
   );
 }
