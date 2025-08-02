@@ -1,77 +1,80 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { sdk } from "@farcaster/miniapp-sdk"
+import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk"
+import { sdk as frameSdk } from "@farcaster/frame-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Link from "next/link"
-import UserProfile from "../../components/UserProfile"
-import PaymentForm from "../../components/PaymentForm"
+import UserProfile from "../components/UserProfile"
+import PaymentForm from "../components/PaymentForm"
 import { useAccount } from "wagmi"
 
 interface FarcasterUser {
-  fid: number;
-  username?: string;
-  displayName?: string;
-  pfpUrl?: string;
+  fid: number
+  username?: string
+  displayName?: string
+  pfpUrl?: string
+  pfp?: string // Frame SDK uses 'pfp' instead of 'pfpUrl'
 }
 
 interface FarcasterContext {
-  user?: FarcasterUser;
+  user?: FarcasterUser
   client?: {
-    platformType?: 'web' | 'mobile';
+    platformType?: "web" | "mobile"
     safeAreaInsets?: {
-      top: number;
-      bottom: number;
-      left: number;
-      right: number;
-    };
-  };
+      top: number
+      bottom: number
+      left: number
+      right: number
+    }
+    added?: boolean // Frame SDK property
+  }
   location?: {
-    type: string;
+    type: string
     cast?: {
-      hash: string;
-      text: string;
-      embeds?: string[];
-    };
-  };
+      hash: string
+      text: string
+      embeds?: string[]
+    }
+  }
 }
 
 // Types
 interface PromoCast {
-  id: string;
-  castUrl: string;
+  id: string
+  castUrl: string
   author: {
-    fid: number;
-    username: string;
-    displayName: string;
-    pfpUrl?: string;
-  };
-  rewardPerShare: number;
-  totalBudget: number;
-  sharesCount: number;
-  remainingBudget: number;
-  shareText?: string;
-  createdAt: string;
-  status: 'active' | 'paused' | 'completed';
-  blockchainHash?: string;
+    fid: number
+    username: string
+    displayName: string
+    pfpUrl?: string
+  }
+  rewardPerShare: number
+  totalBudget: number
+  sharesCount: number
+  remainingBudget: number
+  shareText?: string
+  createdAt: string
+  status: "active" | "paused" | "completed"
+  blockchainHash?: string
 }
 
 // Database types
 interface DatabasePromotion {
-  id: number;
-  fid: number;
-  username: string;
-  display_name: string | null;
-  cast_url: string;
-  share_text: string | null;
-  reward_per_share: number;
-  total_budget: number;
-  shares_count: number;
-  remaining_budget: number;
-  status: 'active' | 'paused' | 'completed';
-  blockchain_hash: string | null;
-  created_at: string;
-  updated_at: string;
+  id: number
+  fid: number
+  username: string
+  display_name: string | null
+  cast_url: string
+  share_text: string | null
+  reward_per_share: number
+  total_budget: number
+  shares_count: number
+  remaining_budget: number
+  status: "active" | "paused" | "completed"
+  blockchain_hash: string | null
+  created_at: string
+  updated_at: string
 }
 
 // Helper function to convert database promotion to PromoCast
@@ -94,19 +97,21 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
 })
 
 export default function PromotePage() {
-  // Use mini app SDK for authentication
+  // Dual SDK authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
   const [context, setContext] = useState<FarcasterContext | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
-  
-  // Wallet connection (handled by Farcaster Mini App connector)
+  const [sdkType, setSdkType] = useState<"miniapp" | "frame" | null>(null)
+  const [showAddToFavorites, setShowAddToFavorites] = useState(false)
+
+  // Wallet connection (handled by Farcaster SDK connector)
   const { isConnected: isWalletConnected, address: walletAddress } = useAccount()
-  
+
   // Campaign creation state
   const [showForm, setShowForm] = useState(false)
   const [castUrl, setCastUrl] = useState("")
-  
+
   // Payment form state
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("")
@@ -114,7 +119,7 @@ export default function PromotePage() {
   const [rewardPerShare, setRewardPerShare] = useState(1000) // Default 1k
   const [totalBudget, setTotalBudget] = useState(10000) // Default 10k
   const [isCreating, setIsCreating] = useState(false)
-  
+
   // Database state
   const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
   const [loading, setLoading] = useState(true)
@@ -123,126 +128,193 @@ export default function PromotePage() {
   const [userStats, setUserStats] = useState<{ totalEarnings: number; totalShares: number; pendingClaims: number }>({
     totalEarnings: 0,
     totalShares: 0,
-    pendingClaims: 0
+    pendingClaims: 0,
   })
 
+  // Initialize both SDKs
   useEffect(() => {
-    // Check haptics support
-    const checkHaptics = async () => {
-      try {
-        await sdk.haptics.impactOccurred('light');
-        setHapticsSupported(true);
-        console.log('Haptics supported: true');
-      } catch (error) {
-        setHapticsSupported(false);
-        console.log('Haptics not supported:', error);
-      }
-    };
-    
-    checkHaptics();
+    const initializeSDKs = async () => {
+      console.log("🔄 Initializing dual SDK support...")
 
-    // Get Farcaster user context
-    sdk.context.then((ctx: FarcasterContext) => {
-      const farcasterUser = ctx.user
-      console.log('Farcaster user context in promote:', farcasterUser)
-      console.log('Platform type:', ctx.client?.platformType)
-      console.log('Location type:', ctx.location?.type)
-      
-      setContext(ctx)
-      
-      if (farcasterUser?.fid) {
-        setIsAuthenticated(true)
-        setProfile({
-          fid: farcasterUser.fid,
-          username: farcasterUser.username || "user",
-          displayName: farcasterUser.displayName || "Current User",
-          pfpUrl: farcasterUser.pfpUrl
-        })
-        console.log('User authenticated in promote:', farcasterUser)
-      } else {
-        setIsAuthenticated(false)
-        setProfile(null)
+      // Try Mini App SDK first
+      try {
+        console.log("🎯 Attempting Mini App SDK initialization...")
+        const miniAppContext = await miniAppSdk.context
+        console.log("✅ Mini App SDK context:", miniAppContext)
+
+        if (miniAppContext.user?.fid) {
+          console.log("🎉 Mini App SDK authentication successful")
+          setSdkType("miniapp")
+          setContext(miniAppContext)
+          setProfile({
+            fid: miniAppContext.user.fid,
+            username: miniAppContext.user.username || "user",
+            displayName: miniAppContext.user.displayName || "Current User",
+            pfpUrl: miniAppContext.user.pfpUrl,
+          })
+          setIsAuthenticated(true)
+
+          // Check haptics support for Mini App
+          try {
+            await miniAppSdk.haptics.impactOccurred("light")
+            setHapticsSupported(true)
+            console.log("✅ Mini App haptics supported")
+          } catch (error) {
+            console.log("❌ Mini App haptics not supported:", error)
+          }
+
+          return // Success with Mini App SDK
+        }
+      } catch (miniAppError) {
+        console.log("⚠️ Mini App SDK failed, trying Frame SDK...", miniAppError)
       }
-    }).catch((error) => {
-      console.error('Error getting Farcaster context in promote:', error)
+
+      // Fallback to Frame SDK
+      try {
+        console.log("🖼️ Attempting Frame SDK initialization...")
+        const frameContext = await frameSdk.context
+        console.log("✅ Frame SDK context:", frameContext)
+
+        if (frameContext.user?.fid) {
+          console.log("🎉 Frame SDK authentication successful")
+          setSdkType("frame")
+          setContext(frameContext)
+          setProfile({
+            fid: frameContext.user.fid,
+            username: frameContext.user.username || "user",
+            displayName: frameContext.user.displayName || "Current User",
+            pfpUrl: frameContext.user.pfp || frameContext.user.pfpUrl,
+          })
+          setIsAuthenticated(true)
+
+          // Check for add to favorites
+          if (!frameContext.client?.added) {
+            setTimeout(() => {
+              setShowAddToFavorites(true)
+            }, 2000)
+          }
+
+          // Initialize Frame SDK
+          try {
+            await frameSdk.actions.ready()
+            console.log("✅ Frame SDK ready")
+          } catch (error) {
+            console.log("⚠️ Frame SDK ready failed:", error)
+          }
+
+          return // Success with Frame SDK
+        }
+      } catch (frameError) {
+        console.log("❌ Frame SDK also failed:", frameError)
+      }
+
+      // Both SDKs failed
+      console.log("❌ Both SDKs failed, using fallback")
       setIsAuthenticated(false)
       setProfile(null)
-    })
+      setSdkType(null)
+    }
+
+    initializeSDKs()
   }, [])
+
+  // Haptic feedback helper
+  const triggerHaptic = async (type: "light" | "medium" | "heavy" | "success" | "warning" | "error") => {
+    if (!hapticsSupported || sdkType !== "miniapp") return
+
+    try {
+      if (type === "success" || type === "warning" || type === "error") {
+        await miniAppSdk.haptics.notificationOccurred(type)
+      } else {
+        await miniAppSdk.haptics.impactOccurred(type)
+      }
+    } catch (error) {
+      console.log("Haptics error:", error)
+    }
+  }
+
+  // Add to favorites handler (Frame SDK only)
+  const handleAddToFavorites = async () => {
+    if (sdkType !== "frame") return
+
+    try {
+      await frameSdk.actions.addMiniApp()
+      setShowAddToFavorites(false)
+      console.log("🎉 App added to favorites!")
+    } catch (error) {
+      console.error("Add to favorites error:", error)
+      setShowAddToFavorites(false)
+    }
+  }
+
+  const handleDismissAddToFavorites = () => setShowAddToFavorites(false)
 
   // Fetch promotions from database
   const fetchPromotions = async () => {
     try {
-      const response = await fetch('/api/promotions');
+      const response = await fetch("/api/promotions")
       if (response.ok) {
-        const data = await response.json();
-        const convertedPromos = data.promotions.map(convertDbToPromoCast);
-        setPromoCasts(convertedPromos);
+        const data = await response.json()
+        const convertedPromos = data.promotions.map(convertDbToPromoCast)
+        setPromoCasts(convertedPromos)
       } else {
-        console.error('Failed to fetch promotions');
+        console.error("Failed to fetch promotions")
       }
     } catch (error) {
-      console.error('Error fetching promotions:', error);
+      console.error("Error fetching promotions:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchPromotions();
-  }, []);
-
-
+    fetchPromotions()
+  }, [])
 
   // Use real user data if authenticated, otherwise mock data
-  const currentUser = isAuthenticated && profile ? {
-    fid: profile.fid || 0,
-    username: profile.username || "user",
-    displayName: profile.displayName || "Current User"
-  } : {
-    fid: 1234,
-    username: "testuser",
-    displayName: "Test User"
-  }
-  
-
+  const currentUser =
+    isAuthenticated && profile
+      ? {
+          fid: profile.fid || 0,
+          username: profile.username || "user",
+          displayName: profile.displayName || "Current User",
+        }
+      : {
+          fid: 1234,
+          username: "testuser",
+          displayName: "Test User",
+        }
 
   const handlePaymentComplete = (amount: number, txHash: string) => {
-    console.log('Payment completed:', { amount, txHash })
-    
-    if (selectedCampaignId === 'new') {
+    console.log("Payment completed:", { amount, txHash })
+
+    if (selectedCampaignId === "new") {
       // New campaign was created successfully
-      console.log('New campaign created successfully with hash:', txHash)
-      
+      console.log("New campaign created successfully with hash:", txHash)
+
       // Reset form
       setCastUrl("")
       setShareText("")
       setShowForm(false)
       setShowPaymentForm(false)
       setSelectedCampaignId("")
-      
+
       // Refresh the promotions list
       fetchPromotions()
-      
+
       // Haptic feedback for successful campaign creation
-      if (hapticsSupported) {
-        try {
-          sdk.haptics.notificationOccurred('success');
-        } catch (error) {
-          console.log('Haptics error:', error);
-        }
-      }
-      
+      triggerHaptic("success")
+
       console.log("🎉 Campaign created successfully on blockchain and saved to database!")
     } else {
       // Existing campaign was funded
-      console.log('Campaign funded successfully with hash:', txHash)
+      console.log("Campaign funded successfully with hash:", txHash)
       setShowPaymentForm(false)
       setSelectedCampaignId("")
-      
+
       // Refresh the promotions list
       fetchPromotions()
-      
+
       console.log(`🎉 Campaign funded successfully! Transaction hash: ${txHash}`)
     }
   }
@@ -259,210 +331,189 @@ export default function PromotePage() {
 
   const handleCreateCampaign = async () => {
     if (!castUrl.trim()) {
-      if (hapticsSupported) {
-        try {
-          await sdk.haptics.notificationOccurred('error');
-        } catch (error) {
-          console.log('Haptics error:', error);
-        }
-      }
+      await triggerHaptic("error")
       alert("Please enter a cast URL")
       return
     }
 
     if (!isAuthenticated) {
-      if (hapticsSupported) {
-        try {
-          await sdk.haptics.notificationOccurred('error');
-        } catch (error) {
-          console.log('Haptics error:', error);
-        }
-      }
+      await triggerHaptic("error")
       alert("Please connect your Farcaster account first")
       return
     }
 
     if (!isWalletConnected) {
-      if (hapticsSupported) {
-        try {
-          await sdk.haptics.notificationOccurred('error');
-        } catch (error) {
-          console.log('Haptics error:', error);
-        }
-      }
+      await triggerHaptic("error")
       alert("Please connect your wallet first")
       return
     }
 
     setIsCreating(true)
-    
+
     try {
       // First, create campaign on blockchain
-      console.log('Creating blockchain campaign with data:', {
+      console.log("Creating blockchain campaign with data:", {
         castUrl,
-        shareText: shareText || 'Share this promotion!',
+        shareText: shareText || "Share this promotion!",
         rewardPerShare,
-        totalBudget
-      });
+        totalBudget,
+      })
 
       // Open payment form for blockchain campaign creation
-      setSelectedCampaignId('new') // Special ID for new campaign
+      setSelectedCampaignId("new") // Special ID for new campaign
       setShowPaymentForm(true)
-      
     } catch (error) {
-      console.error('Error preparing campaign creation:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error("Error preparing campaign creation:", error)
+      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
-      setIsCreating(false);
+      setIsCreating(false)
     }
   }
 
   // Auto-adjust reward if too low and no shares
   const checkAndAdjustReward = useCallback(async (promo: PromoCast) => {
     if (promo.sharesCount === 0 && promo.rewardPerShare < 2000) {
-      const newReward = Math.min(promo.rewardPerShare * 1.5, 5000);
-      
+      const newReward = Math.min(promo.rewardPerShare * 1.5, 5000)
+
       try {
         const response = await fetch(`/api/promotions/${promo.id}`, {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            rewardPerShare: Math.round(newReward)
-          })
-        });
+            rewardPerShare: Math.round(newReward),
+          }),
+        })
 
         if (response.ok) {
-          const updatedPromo = { ...promo, rewardPerShare: Math.round(newReward) };
-          setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
-          
-          console.log(`Auto-adjusted reward for promo ${promo.id} from ${promo.rewardPerShare} to ${newReward} $CHESS`);
-          
+          const updatedPromo = { ...promo, rewardPerShare: Math.round(newReward) }
+          setPromoCasts((prev) => prev.map((p) => (p.id === promo.id ? updatedPromo : p)))
+
+          console.log(`Auto-adjusted reward for promo ${promo.id} from ${promo.rewardPerShare} to ${newReward} $CHESS`)
+
           // Haptic feedback for auto-adjustment
-          if (hapticsSupported) {
-            try {
-              await sdk.haptics.notificationOccurred('warning');
-            } catch (error) {
-              console.log('Haptics error:', error);
-            }
-          }
+          await triggerHaptic("warning")
         }
       } catch (error) {
-        console.error('Error updating promotion:', error);
+        console.error("Error updating promotion:", error)
       }
     }
-  }, [hapticsSupported])
+  }, [])
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated) {
-      alert('Please connect your Farcaster account first');
-      return;
+      alert("Please connect your Farcaster account first")
+      return
     }
 
     if (promo.author.fid === currentUser.fid) {
-      alert('You cannot share your own campaign');
-      return;
+      alert("You cannot share your own campaign")
+      return
     }
 
-    if (promo.status !== 'active') {
-      alert('This campaign is not active');
-      return;
+    if (promo.status !== "active") {
+      alert("This campaign is not active")
+      return
     }
 
     if (promo.remainingBudget < promo.rewardPerShare) {
-      alert('This campaign has insufficient budget');
-      return;
+      alert("This campaign has insufficient budget")
+      return
     }
 
-    setSharingPromoId(promo.id);
-    
+    setSharingPromoId(promo.id)
+
     try {
       // Create share text
-      const shareText = promo.shareText || `Check out this amazing post! ${promo.castUrl}`;
-      
-      // Use Farcaster SDK to compose cast
-      const castResult = await sdk.actions.composeCast({
-        text: shareText,
-        embeds: [promo.castUrl]
-      });
+      const shareText = promo.shareText || `Check out this amazing post! ${promo.castUrl}`
+
+      // Use appropriate SDK for composing cast
+      let castResult
+      if (sdkType === "miniapp") {
+        castResult = await miniAppSdk.actions.composeCast({
+          text: shareText,
+          embeds: [promo.castUrl],
+        })
+      } else if (sdkType === "frame") {
+        // Frame SDK might have different API - adapt as needed
+        console.log("Frame SDK cast composition not implemented yet")
+        alert("Cast composition not available in Frame mode")
+        return
+      } else {
+        alert("No SDK available for cast composition")
+        return
+      }
 
       // Check if cast was actually published (not cancelled)
       if (!castResult || !castResult.cast) {
-        console.log('Cast was cancelled or failed:', castResult);
-        return; // Don't record share if cast was cancelled
+        console.log("Cast was cancelled or failed:", castResult)
+        return // Don't record share if cast was cancelled
       }
 
-      console.log('Cast published successfully:', castResult);
+      console.log("Cast published successfully:", castResult)
 
       // Record share in database only after successful cast
       const shareData = {
-        promotionId: parseInt(promo.id),
+        promotionId: Number.parseInt(promo.id),
         sharerFid: currentUser.fid,
         sharerUsername: currentUser.username,
         shareText: shareText,
-        rewardAmount: promo.rewardPerShare
-      };
-      
-      console.log('Sending share data to API:', shareData);
-      
-      const response = await fetch('/api/shares', {
-        method: 'POST',
+        rewardAmount: promo.rewardPerShare,
+      }
+
+      console.log("Sending share data to API:", shareData)
+
+      const response = await fetch("/api/shares", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(shareData)
-      });
-      
-      console.log('Share API response status:', response.status);
-      console.log('Share API response headers:', response.headers);
+        body: JSON.stringify(shareData),
+      })
+
+      console.log("Share API response status:", response.status)
 
       if (response.ok) {
-        const data = await response.json();
-        console.log('Share created:', data);
-        
+        const data = await response.json()
+        console.log("Share created:", data)
+
         // Update local state
         const updatedPromo = {
           ...promo,
           sharesCount: promo.sharesCount + 1,
-          remainingBudget: promo.remainingBudget - promo.rewardPerShare
-        };
-        setPromoCasts(prev => prev.map(p => p.id === promo.id ? updatedPromo : p));
-        
-        // Refresh share timers
-        await fetchShareTimers();
-        
-        // Refresh user stats
-        await fetchUserStats();
-        
-        // Haptic feedback
-        if (hapticsSupported) {
-          try {
-            await sdk.haptics.notificationOccurred('success');
-          } catch (error) {
-            console.log('Haptics error:', error);
-          }
+          remainingBudget: promo.remainingBudget - promo.rewardPerShare,
         }
-        
-        alert(`Successfully shared! You earned ${promo.rewardPerShare} $CHESS!`);
+        setPromoCasts((prev) => prev.map((p) => (p.id === promo.id ? updatedPromo : p)))
+
+        // Refresh share timers
+        await fetchShareTimers()
+
+        // Refresh user stats
+        await fetchUserStats()
+
+        // Haptic feedback
+        await triggerHaptic("success")
+
+        alert(`Successfully shared! You earned ${promo.rewardPerShare} $CHESS!`)
       } else if (response.status === 429) {
-        const errorData = await response.json();
-        console.error('Share limit reached:', errorData);
-        alert(errorData.error);
+        const errorData = await response.json()
+        console.error("Share limit reached:", errorData)
+        alert(errorData.error)
       } else {
-        const errorData = await response.json();
-        console.error('Share failed:', errorData);
-        alert(`Failed to record share: ${errorData.error}`);
+        const errorData = await response.json()
+        console.error("Share failed:", errorData)
+        alert(`Failed to record share: ${errorData.error}`)
       }
     } catch (error) {
-      console.error('Error sharing promo:', error);
-      if (error instanceof Error && error.message.includes('cancelled')) {
-        console.log('User cancelled the cast');
-        return; // Don't show error for user cancellation
+      console.error("Error sharing promo:", error)
+      if (error instanceof Error && error.message.includes("cancelled")) {
+        console.log("User cancelled the cast")
+        return // Don't show error for user cancellation
       }
-      alert(`Share failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`Share failed: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
-      setSharingPromoId(null);
+      setSharingPromoId(null)
     }
   }
 
@@ -472,98 +523,98 @@ export default function PromotePage() {
   }
 
   const formatTimeRemaining = (hours: number) => {
-    if (hours <= 0) return 'Ready to share';
-    const h = Math.floor(hours);
-    const m = Math.floor((hours - h) * 60);
-    return `${h}h ${m}m remaining`;
+    if (hours <= 0) return "Ready to share"
+    const h = Math.floor(hours)
+    const m = Math.floor((hours - h) * 60)
+    return `${h}h ${m}m remaining`
   }
 
   // Auto-check and adjust rewards every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      promoCasts.forEach(checkAndAdjustReward);
-    }, 30000);
+      promoCasts.forEach(checkAndAdjustReward)
+    }, 30000)
 
-    return () => clearInterval(interval);
-  }, [promoCasts, checkAndAdjustReward]);
+    return () => clearInterval(interval)
+  }, [promoCasts, checkAndAdjustReward])
 
   // Fetch share timers for current user
   const fetchShareTimers = async () => {
     if (isAuthenticated && currentUser.fid) {
       try {
-        const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
+        const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`)
         if (response.ok) {
-          const data = await response.json();
-          const timersMap: Record<string, { canShare: boolean; timeRemaining: number }> = {};
+          const data = await response.json()
+          const timersMap: Record<string, { canShare: boolean; timeRemaining: number }> = {}
           data.timers.forEach((timer: { promotionId: number; canShare: boolean; timeRemaining: number }) => {
             timersMap[timer.promotionId.toString()] = {
               canShare: timer.canShare,
-              timeRemaining: timer.timeRemaining
-            };
-          });
-          setShareTimers(timersMap);
+              timeRemaining: timer.timeRemaining,
+            }
+          })
+          setShareTimers(timersMap)
         }
       } catch (error) {
-        console.error('Error fetching share timers:', error);
+        console.error("Error fetching share timers:", error)
       }
     }
-  };
+  }
 
   // Fetch timers when promotions load
   useEffect(() => {
     if (promoCasts.length > 0) {
-      fetchShareTimers();
+      fetchShareTimers()
     }
-  }, [promoCasts, isAuthenticated, currentUser.fid]);
+  }, [promoCasts, isAuthenticated, currentUser.fid])
 
   // Auto-refresh timers every minute
   useEffect(() => {
     if (isAuthenticated && currentUser.fid && promoCasts.length > 0) {
       const interval = setInterval(() => {
-        fetchShareTimers();
-      }, 60000); // Refresh every minute
+        fetchShareTimers()
+      }, 60000) // Refresh every minute
 
-      return () => clearInterval(interval);
+      return () => clearInterval(interval)
     }
-  }, [isAuthenticated, currentUser.fid, promoCasts.length]);
+  }, [isAuthenticated, currentUser.fid, promoCasts.length])
 
   // Auto-fill cast URL if coming from cast context
   useEffect(() => {
-    if (context?.location?.type === 'cast_embed' && context.location.cast?.embeds?.[0]) {
-      setCastUrl(context.location.cast.embeds[0]);
-      console.log('Auto-filled cast URL from context:', context.location.cast.embeds[0]);
+    if (context?.location?.type === "cast_embed" && context.location.cast?.embeds?.[0]) {
+      setCastUrl(context.location.cast.embeds[0])
+      console.log("Auto-filled cast URL from context:", context.location.cast.embeds[0])
     }
-  }, [context]);
+  }, [context])
 
   // Fetch user statistics
   const fetchUserStats = async () => {
     if (isAuthenticated && currentUser.fid) {
       try {
-        const response = await fetch(`/api/users?fid=${currentUser.fid}`);
+        const response = await fetch(`/api/users?fid=${currentUser.fid}`)
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json()
           if (data.user) {
             setUserStats({
               totalEarnings: data.user.total_earnings || 0,
               totalShares: data.user.total_shares || 0,
-              pendingClaims: data.user.total_earnings || 0 // All earnings are pending until claimed
-            });
+              pendingClaims: data.user.total_earnings || 0, // All earnings are pending until claimed
+            })
           }
         }
       } catch (error) {
-        console.error('Error fetching user stats:', error);
+        console.error("Error fetching user stats:", error)
       }
     }
-  };
+  }
 
   // Fetch user stats when authenticated
   useEffect(() => {
     if (isAuthenticated && currentUser.fid) {
-      fetchUserStats();
+      fetchUserStats()
     }
-  }, [isAuthenticated, currentUser.fid]);
+  }, [isAuthenticated, currentUser.fid])
 
-  const isMobile = context?.client?.platformType === 'mobile'
+  const isMobile = context?.client?.platformType === "mobile"
   const safeArea = context?.client?.safeAreaInsets
 
   if (loading) {
@@ -577,7 +628,7 @@ export default function PromotePage() {
   return (
     <div
       className={`min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 ${
-        isMobile ? 'px-2' : 'px-4'
+        isMobile ? "px-2" : "px-4"
       } py-6`}
       style={{
         paddingTop: (safeArea?.top || 0) + 24,
@@ -586,6 +637,86 @@ export default function PromotePage() {
         paddingRight: (safeArea?.right || 0) + (isMobile ? 8 : 16),
       }}
     >
+      {/* Add to Favorites Modal (Frame SDK only) */}
+      {showAddToFavorites && sdkType === "frame" && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              background: "transparent",
+              border: "2px solid rgba(139, 92, 246, 0.6)",
+              borderRadius: "16px",
+              padding: "30px",
+              maxWidth: "400px",
+              width: "100%",
+              textAlign: "center",
+              boxShadow: "0 0 40px rgba(139, 92, 246, 0.4)",
+            }}
+          >
+            <div style={{ fontSize: "3em", marginBottom: "16px" }}>⭐</div>
+            <h2
+              style={{
+                margin: "0 0 12px 0",
+                fontSize: "1.4em",
+                fontWeight: "600",
+                color: "#8B5CF6",
+                textShadow: "0 0 15px #8B5CF6",
+              }}
+            >
+              Add to Favorites
+            </h2>
+            <p style={{ margin: "0 0 24px 0", opacity: 0.8, lineHeight: "1.5", color: "white" }}>
+              Get quick access and receive notifications about new campaigns!
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                onClick={handleAddToFavorites}
+                style={{
+                  background: "transparent",
+                  border: "2px solid #FF6B35",
+                  color: "#FF6B35",
+                  borderRadius: "8px",
+                  padding: "12px 24px",
+                  fontSize: "1em",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.3s",
+                }}
+              >
+                ⭐ Add to Favorites
+              </button>
+              <button
+                onClick={handleDismissAddToFavorites}
+                style={{
+                  background: "transparent",
+                  color: "rgba(255, 255, 255, 0.6)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  borderRadius: "8px",
+                  padding: "12px 24px",
+                  fontSize: "1em",
+                  cursor: "pointer",
+                }}
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -596,26 +727,28 @@ export default function PromotePage() {
           <h1 className="text-2xl font-bold text-white">Promotion Campaigns</h1>
         </div>
 
-        {/* Wallet Status Debug */}
+        {/* SDK Status Debug */}
         <div className="mb-4 p-3 bg-gray-800 rounded-lg">
           <div className="text-sm text-gray-300">
-            Wallet Status: {isWalletConnected ? "Connected" : "Not Connected"}
+            SDK: {sdkType ? `${sdkType.toUpperCase()} SDK` : "No SDK"} | Auth:{" "}
+            {isAuthenticated ? "✅ Connected" : "❌ Not Connected"} | Wallet:{" "}
+            {isWalletConnected ? "✅ Connected" : "❌ Not Connected"}
           </div>
           {isWalletConnected && walletAddress && (
             <div className="text-xs text-gray-400 mt-1">
               Address: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
             </div>
           )}
-
+          {hapticsSupported && <div className="text-xs text-green-400 mt-1">✅ Haptics supported</div>}
         </div>
 
         {/* User Profile */}
         <div className="mb-8">
           <UserProfile
-            userPromos={promoCasts.filter(promo => promo.author.fid === currentUser.fid)}
+            userPromos={promoCasts.filter((promo) => promo.author.fid === currentUser.fid)}
             onEditPromo={(promo) => {
-              console.log('Edit promo:', promo);
-              alert('Edit functionality coming soon!');
+              console.log("Edit promo:", promo)
+              alert("Edit functionality coming soon!")
             }}
             userStats={userStats}
           />
@@ -623,17 +756,10 @@ export default function PromotePage() {
 
         {/* Start Promo Campaign Button */}
         <div className="flex justify-center mb-8">
-          
           <button
             onClick={async () => {
-              setShowForm((v) => !v);
-              if (hapticsSupported) {
-                try {
-                  await sdk.haptics.impactOccurred('medium');
-                } catch (error) {
-                  console.log('Haptics error:', error);
-                }
-              }
+              setShowForm((v) => !v)
+              await triggerHaptic("medium")
             }}
             className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
             aria-expanded={showForm}
@@ -673,131 +799,54 @@ export default function PromotePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
                   <div className="grid grid-cols-5 gap-2">
-                    <button
-                      onClick={() => setTotalBudget(10000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        totalBudget === 10000
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      10K
-                    </button>
-                    <button
-                      onClick={() => setTotalBudget(100000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        totalBudget === 100000
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      100K
-                    </button>
-                    <button
-                      onClick={() => setTotalBudget(500000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        totalBudget === 500000
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      500K
-                    </button>
-                    <button
-                      onClick={() => setTotalBudget(1000000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        totalBudget === 1000000
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      1M
-                    </button>
-                    <button
-                      onClick={() => setTotalBudget(5000000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        totalBudget === 5000000
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      5M
-                    </button>
+                    {[10000, 100000, 500000, 1000000, 5000000].map((amount) => (
+                      <button
+                        key={amount}
+                        onClick={() => setTotalBudget(amount)}
+                        className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                          totalBudget === amount
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
+                      >
+                        {amount >= 1000000 ? `${amount / 1000000}M` : `${amount / 1000}K`}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                
-                {/* Reward Per Share Buttons */}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
                   <div className="grid grid-cols-5 gap-2">
-                    <button
-                      onClick={() => setRewardPerShare(1000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        rewardPerShare === 1000
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      1K
-                    </button>
-                    <button
-                      onClick={() => setRewardPerShare(2000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        rewardPerShare === 2000
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      2K
-                    </button>
-                    <button
-                      onClick={() => setRewardPerShare(5000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        rewardPerShare === 5000
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      5K
-                    </button>
-                    <button
-                      onClick={() => setRewardPerShare(10000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        rewardPerShare === 10000
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      10K
-                    </button>
-                    <button
-                      onClick={() => setRewardPerShare(20000)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                        rewardPerShare === 20000
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      20K
-                    </button>
+                    {[1000, 2000, 5000, 10000, 20000].map((amount) => (
+                      <button
+                        key={amount}
+                        onClick={() => setRewardPerShare(amount)}
+                        className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                          rewardPerShare === amount
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
+                      >
+                        {amount / 1000}K
+                      </button>
+                    ))}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Amount users receive for each share</p>
                 </div>
               </div>
-              
+
               {/* Campaign Summary */}
               <div className="bg-gray-800 rounded-lg p-4 mb-4">
                 <h4 className="text-sm font-medium text-gray-300 mb-2">Campaign Summary</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Cast URL:</span>
-                    <span className="text-white truncate max-w-[200px]">
-                      {castUrl || 'Not set'}
-                    </span>
+                    <span className="text-white truncate max-w-[200px]">{castUrl || "Not set"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Share Text:</span>
-                    <span className="text-white">"{shareText || 'No custom text'}"</span>
+                    <span className="text-white">"{shareText || "No custom text"}"</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Reward Per Share:</span>
@@ -819,11 +868,13 @@ export default function PromotePage() {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex gap-4">
                 <button
                   onClick={handleCreateCampaign}
-                  disabled={isCreating || !castUrl || rewardPerShare <= 0 || totalBudget <= 0 || rewardPerShare > totalBudget}
+                  disabled={
+                    isCreating || !castUrl || rewardPerShare <= 0 || totalBudget <= 0 || rewardPerShare > totalBudget
+                  }
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating ? "Creating..." : "Create Campaign"}
@@ -835,17 +886,13 @@ export default function PromotePage() {
                   Cancel
                 </button>
               </div>
-              
+
               {/* Validation Messages */}
-              {!castUrl && (
-                <div className="mt-2 text-red-400 text-sm">⚠️ Cast URL is required</div>
-              )}
+              {!castUrl && <div className="mt-2 text-red-400 text-sm">⚠️ Cast URL is required</div>}
               {rewardPerShare <= 0 && (
                 <div className="mt-2 text-red-400 text-sm">⚠️ Please select a reward per share</div>
               )}
-              {totalBudget <= 0 && (
-                <div className="mt-2 text-red-400 text-sm">⚠️ Please select a total budget</div>
-              )}
+              {totalBudget <= 0 && <div className="mt-2 text-red-400 text-sm">⚠️ Please select a total budget</div>}
               {rewardPerShare > totalBudget && (
                 <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share cannot be greater than total budget</div>
               )}
@@ -873,7 +920,9 @@ export default function PromotePage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">{promo.author.username.charAt(0).toUpperCase()}</span>
+                        <span className="text-white font-bold text-sm">
+                          {promo.author.username.charAt(0).toUpperCase()}
+                        </span>
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-white">{promo.author.displayName}</h3>
@@ -881,16 +930,20 @@ export default function PromotePage() {
                       </div>
                     </div>
                     <p className="text-gray-300 text-sm break-all">{promo.castUrl}</p>
-                                         {promo.shareText && (
-                       <p className="text-gray-400 text-sm mt-2 italic">&ldquo;{promo.shareText}&rdquo;</p>
-                     )}
+                    {promo.shareText && (
+                      <p className="text-gray-400 text-sm mt-2 italic">&ldquo;{promo.shareText}&rdquo;</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      promo.status === 'active' ? 'bg-green-600 text-white' :
-                      promo.status === 'paused' ? 'bg-yellow-600 text-white' :
-                      'bg-gray-600 text-white'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        promo.status === "active"
+                          ? "bg-green-600 text-white"
+                          : promo.status === "paused"
+                            ? "bg-yellow-600 text-white"
+                            : "bg-gray-600 text-white"
+                      }`}
+                    >
                       {promo.status}
                     </span>
                   </div>
@@ -932,17 +985,16 @@ export default function PromotePage() {
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-purple-400">⏰</span>
                       <span className="text-white font-semibold">
-                        {shareTimers[promo.id].canShare 
-                          ? "Ready to share!" 
-                          : formatTimeRemaining(shareTimers[promo.id].timeRemaining)
-                        }
+                        {shareTimers[promo.id].canShare
+                          ? "Ready to share!"
+                          : formatTimeRemaining(shareTimers[promo.id].timeRemaining)}
                       </span>
                     </div>
                   </div>
                 )}
 
                 <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${calculateProgress(promo)}%` }}
                   ></div>
@@ -959,22 +1011,25 @@ export default function PromotePage() {
                       Fund Campaign
                     </button>
                   )}
-                  
+
                   <button
                     onClick={() => handleSharePromo(promo)}
                     disabled={
-                      sharingPromoId === promo.id || 
+                      sharingPromoId === promo.id ||
                       promo.author.fid === currentUser.fid ||
-                      (shareTimers[promo.id] && !shareTimers[promo.id].canShare)
+                      (shareTimers[promo.id] && !shareTimers[promo.id].canShare) ||
+                      sdkType !== "miniapp" // Only allow sharing with Mini App SDK for now
                     }
                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 ${
                       promo.author.fid === currentUser.fid
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                         : sharingPromoId === promo.id
-                        ? 'bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed'
-                        : shareTimers[promo.id] && !shareTimers[promo.id].canShare
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                          ? "bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          : shareTimers[promo.id] && !shareTimers[promo.id].canShare
+                            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                            : sdkType !== "miniapp"
+                              ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                              : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                     }`}
                   >
                     {sharingPromoId === promo.id ? (
@@ -987,6 +1042,11 @@ export default function PromotePage() {
                         <FiShare2 size={16} />
                         Your Campaign
                       </>
+                    ) : sdkType !== "miniapp" ? (
+                      <>
+                        <FiShare2 size={16} />
+                        Share (Mini App Only)
+                      </>
                     ) : (
                       <>
                         <FiShare2 size={16} />
@@ -995,13 +1055,11 @@ export default function PromotePage() {
                     )}
                   </button>
                 </div>
-                
+
                 {/* Share Timer Info */}
                 {promo.author.fid !== currentUser.fid && (
                   <div className="text-center mt-2">
-                    <div className="text-xs text-gray-400">
-                      ⏰ Share limit: 48h per campaign
-                    </div>
+                    <div className="text-xs text-gray-400">⏰ Share limit: 48h per campaign</div>
                   </div>
                 )}
               </div>
@@ -1009,24 +1067,28 @@ export default function PromotePage() {
           )}
         </div>
       </div>
-      
+
       {/* Payment Form Modal */}
       {showPaymentForm && (
         <PaymentForm
           promotionId={selectedCampaignId}
           onPaymentComplete={handlePaymentComplete}
           onCancel={handlePaymentCancel}
-          newCampaignData={selectedCampaignId === 'new' ? {
-            castUrl: castUrl,
-            shareText: shareText || 'Share this promotion!',
-            rewardPerShare: rewardPerShare,
-            totalBudget: totalBudget,
-            user: {
-              fid: currentUser.fid,
-              username: currentUser.username,
-              displayName: currentUser.displayName
-            }
-          } : undefined}
+          newCampaignData={
+            selectedCampaignId === "new"
+              ? {
+                  castUrl: castUrl,
+                  shareText: shareText || "Share this promotion!",
+                  rewardPerShare: rewardPerShare,
+                  totalBudget: totalBudget,
+                  user: {
+                    fid: currentUser.fid,
+                    username: currentUser.username,
+                    displayName: currentUser.displayName,
+                  },
+                }
+              : undefined
+          }
         />
       )}
     </div>
