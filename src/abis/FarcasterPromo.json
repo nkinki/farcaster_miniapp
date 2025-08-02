@@ -2,58 +2,36 @@
 	{
 		"inputs": [
 			{
+				"internalType": "uint256[]",
+				"name": "_newAmounts",
+				"type": "uint256[]"
+			}
+		],
+		"name": "addAllowedAmounts",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
-				"name": "_chessToken",
+				"name": "_chessTokenAddress",
 				"type": "address"
 			},
 			{
 				"internalType": "address",
-				"name": "_treasuryWallet",
+				"name": "_treasuryAddress",
 				"type": "address"
 			},
 			{
-				"internalType": "address",
-				"name": "_initialOwner",
-				"type": "address"
+				"internalType": "uint256[]",
+				"name": "_allowedAmounts",
+				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "AlreadyShared",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "CampaignNotActive",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "CampaignNotFound",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "InsufficientBudget",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "InsufficientTreasuryBalance",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "InvalidAmount",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "NoRewardToClaim",
-		"type": "error"
 	},
 	{
 		"inputs": [
@@ -78,194 +56,6 @@
 		"type": "error"
 	},
 	{
-		"inputs": [],
-		"name": "TransferFailed",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "Unauthorized",
-		"type": "error"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			}
-		],
-		"name": "CampaignCompleted",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "promoter",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "castUrl",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "rewardPerShare",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "totalBudget",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "divisible",
-				"type": "bool"
-			}
-		],
-		"name": "CampaignCreated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "promoter",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "CampaignFunded",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			}
-		],
-		"name": "CampaignPaused",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			}
-		],
-		"name": "CampaignResumed",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "claimFromTreasury",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_campaignId",
-				"type": "uint256"
-			}
-		],
-		"name": "claimReward",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "_castUrl",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_shareText",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_rewardPerShare",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_totalBudget",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "_divisible",
-				"type": "bool"
-			}
-		],
-		"name": "createCampaign",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_campaignId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "fundCampaign",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -288,29 +78,49 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "_campaignId",
+				"name": "_amount",
 				"type": "uint256"
 			}
 		],
-		"name": "pauseCampaign",
+		"name": "register",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
+		"anonymous": false,
 		"inputs": [
 			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "participant",
+				"type": "address"
+			},
+			{
+				"indexed": false,
 				"internalType": "uint256",
-				"name": "_campaignId",
+				"name": "amount",
 				"type": "uint256"
 			},
 			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
 			}
 		],
-		"name": "recordShare",
+		"name": "Registered",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "_amountsToRemove",
+				"type": "uint256[]"
+			}
+		],
+		"name": "removeAllowedAmounts",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -321,69 +131,6 @@
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_campaignId",
-				"type": "uint256"
-			}
-		],
-		"name": "resumeCampaign",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "RewardClaimed",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "rewardAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "ShareRecorded",
-		"type": "event"
 	},
 	{
 		"inputs": [
@@ -399,82 +146,6 @@
 		"type": "function"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "totalClaimed",
-				"type": "uint256"
-			}
-		],
-		"name": "TreasuryClaimed",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "totalAccumulated",
-				"type": "uint256"
-			}
-		],
-		"name": "TreasuryFunded",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_campaignId",
-				"type": "uint256"
-			}
-		],
-		"name": "withdrawRemainingBudget",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "BPS_DENOMINATOR",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -482,86 +153,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "campaigns",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "promoter",
-				"type": "address"
-			},
-			{
-				"internalType": "string",
-				"name": "castUrl",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "shareText",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "rewardPerShare",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalBudget",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "remainingBudget",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "sharesCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "divisible",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "active",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "createdAt",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "accumulatedAmount",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_campaignId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "canShare",
+		"name": "ALLOWED_AMOUNTS",
 		"outputs": [
 			{
 				"internalType": "bool",
@@ -574,7 +166,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "chessToken",
+		"name": "CHESS_TOKEN",
 		"outputs": [
 			{
 				"internalType": "contract IERC20",
@@ -588,218 +180,17 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_campaignId",
-				"type": "uint256"
-			}
-		],
-		"name": "getCampaign",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "id",
-						"type": "uint256"
-					},
-					{
-						"internalType": "address",
-						"name": "promoter",
-						"type": "address"
-					},
-					{
-						"internalType": "string",
-						"name": "castUrl",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "shareText",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "rewardPerShare",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "totalBudget",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "remainingBudget",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "sharesCount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bool",
-						"name": "divisible",
-						"type": "bool"
-					},
-					{
-						"internalType": "bool",
-						"name": "active",
-						"type": "bool"
-					},
-					{
-						"internalType": "uint256",
-						"name": "createdAt",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "accumulatedAmount",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct FarcasterPromo.Campaign",
-				"name": "",
-				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
-				"name": "_user",
+				"name": "",
 				"type": "address"
 			}
 		],
-		"name": "getClaimableAmount",
+		"name": "isRegistered",
 		"outputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "bool",
 				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_campaignId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "getShare",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "campaignId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "address",
-						"name": "user",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "rewardAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bool",
-						"name": "claimed",
-						"type": "bool"
-					}
-				],
-				"internalType": "struct FarcasterPromo.Share",
-				"name": "",
-				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getTotalCampaigns",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getTreasuryInfo",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "totalAccumulated",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalClaimed",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "getUserCampaigns",
-		"outputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "",
-				"type": "uint256[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "getUserShares",
-		"outputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "",
-				"type": "uint256[]"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -820,135 +211,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "PLATFORM_FEE_BPS",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "shares",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "campaignId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "rewardAmount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "claimed",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "treasury",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "totalAccumulated",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalClaimed",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "treasuryWallet",
+		"name": "TREASURY_ADDRESS",
 		"outputs": [
 			{
 				"internalType": "address",
 				"name": "",
 				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "userCampaigns",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "userShares",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
