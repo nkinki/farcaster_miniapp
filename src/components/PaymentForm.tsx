@@ -437,8 +437,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               ? "Betöltés..."
               : balanceError
                 ? `Hiba: ${balanceError.message}`
-                : balance
-                  ? `${formatChessAmount(balance)} CHESS`
+                : balance && typeof balance === 'bigint' && balance > 0n
+                  ? `${formatChessAmount(balance as bigint)} CHESS`
                   : "0 CHESS"}
           </p>
           <p className="text-red-200 text-xs">
@@ -447,8 +447,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               ? "Betöltés..."
               : allowanceError
                 ? `Hiba: ${allowanceError.message}`
-                : allowance
-                  ? `${formatChessAmount(allowance)} CHESS`
+                : allowance && typeof allowance === 'bigint'
+                  ? `${formatChessAmount(allowance as bigint)} CHESS`
                   : "0 CHESS"}
           </p>
           <p className="text-red-200 text-xs">
