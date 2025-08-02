@@ -1,8 +1,8 @@
 "use client"
 
 import { useReadContract, useWriteContract, useAccount, useWaitForTransactionReceipt } from "wagmi"
-import { CONTRACTS } from "@/config/contracts"
-import CHESS_TOKEN_ABI from "../abis/ChessToken.json"
+import { CONTRACTS } from "@/config/contracts" // Ez az alias a src/config-ra mutat
+import CHESS_TOKEN_ABI from "../abis/ChessToken.json" // <-- EZ AZ ÚTVONAL
 
 export function useChessToken() {
   console.log("🔧 useChessToken hook initialized")

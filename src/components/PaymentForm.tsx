@@ -5,8 +5,9 @@ import { FiAlertCircle } from "react-icons/fi"
 import { useFarcasterPromo, useCampaignExists } from "../hooks/useFarcasterPromo"
 import { useChessToken } from "../hooks/useChessToken"
 import { usePromotion } from "../hooks/usePromotions"
-import { useAccount } from "wagmi"
-import { CONTRACTS } from "../config/contracts"
+import { useAccount, useSimulateContract } from "wagmi" // Hozzáadva useSimulateContract
+import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json" // Helyes útvonal
+import { CONTRACTS } from "../config/contracts" // Helyes útvonal
 
 // TypeScript declaration for window.ethereum
 declare global {
@@ -51,6 +52,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     createCampaign,
     isCreatingCampaign: isCreatingCampaignFromHook,
     createCampaignHash: createCampaignData,
+    createCampaignError, // Hozzáadva
+    createCampaignReceiptError, // Hozzáadva
   } = useFarcasterPromo()
   const {
     balance,
@@ -114,6 +117,50 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     }
   }, [campaignLoading])
 
+  // Simulate campaign creation for new campaigns (VISSZAHOZVA)
+  const { data: createSimulationData, error: createSimulationError } = useSimulateContract({
+    address: CONTRACTS.FarcasterPromo as `0x${string}`,
+    abi: FARCASTER_PROMO_ABI,
+    functionName: "createCampaign",
+    args: newCampaignData
+      ? [
+          newCampaignData.castUrl.startsWith("http")
+            ? newCampaignData.castUrl
+            : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
+          newCampaignData.shareText || "Share this promotion!",
+          BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18), // Proper BigInt conversion
+          BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18), // Proper BigInt conversion
+          true, // divisible
+        ]
+      : promotion
+        ? [
+            promotion.cast_url.startsWith("http")
+              ? promotion.cast_url
+              : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
+            promotion.share_text || "Share this promotion!",
+            BigInt(rewardPerShare) * BigInt(10 ** 18), // Proper BigInt conversion
+            BigInt(promotion.total_budget) * BigInt(10 ** 18), // Proper BigInt conversion
+            true, // divisible
+          ]
+        : undefined,
+    query: {
+      enabled: isConnected && !!address && (!!newCampaignData || (!!promotion && !campaignExists && !campaignLoading)),
+    },
+  })
+
+  // Debug simulation status
+  console.log("Simulation debug:", {
+    isConnected,
+    address,
+    newCampaignData: !!newCampaignData,
+    promotion: !!promotion,
+    campaignExists,
+    campaignLoading,
+    enabled: isConnected && !!address && (!!newCampaignData || (!!promotion && !campaignExists && !campaignLoading)),
+    simulationData: !!createSimulationData,
+    simulationError: createSimulationError?.message,
+  })
+
   const handleRewardPerShareChange = (value: number) => {
     setRewardPerShare(value)
   }
@@ -165,6 +212,12 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
 
     if (rewardPerShareValue > totalBudgetValue) {
       setError("Reward per share cannot be greater than total budget")
+      return
+    }
+
+    // Check simulation result before attempting to write
+    if (!createSimulationData && promotionId === "new" && newCampaignData) {
+      setError(createSimulationError?.message || "Campaign creation simulation failed. Check console for details.")
       return
     }
 
@@ -238,6 +291,23 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
       setError(`Approval failed: ${approveError.message}`)
     }
   }, [approveError])
+
+  // Handle create campaign errors from hook
+  useEffect(() => {
+    if (createCampaignError) {
+      console.error("Create Campaign Write Error:", createCampaignError)
+      setError(`Campaign creation failed: ${createCampaignError.message}`)
+      setIsCreatingCampaign(false)
+    }
+  }, [createCampaignError])
+
+  useEffect(() => {
+    if (createCampaignReceiptError) {
+      console.error("Create Campaign Receipt Error:", createCampaignReceiptError)
+      setError(`Campaign transaction failed: ${createCampaignReceiptError.message}`)
+      setIsCreatingCampaign(false)
+    }
+  }, [createCampaignReceiptError])
 
   // Save new campaign to Neon DB after successful blockchain creation
   const saveNewCampaignToDb = async (blockchainHash: string) => {
@@ -354,7 +424,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           <p className="text-red-200 text-xs">Approving: {isApproving ? "Yes" : "No"}</p>
           <p className="text-red-200 text-xs">Approve Success: {isApproveSuccess ? "Yes" : "No"}</p>
           {approveError && <p className="text-red-400 text-xs">Approve Error: {approveError.message}</p>}
-
+          {createSimulationError && <p className="text-red-400 text-xs">Sim Error: {createSimulationError.message}</p>}{" "}
+          {/* ÚJ */}
+          {createCampaignError && <p className="text-red-400 text-xs">Write Error: {createCampaignError.message}</p>}{" "}
+          {/* ÚJ */}
+          {createCampaignReceiptError && (
+            <p className="text-red-400 text-xs">Receipt Error: {createCampaignReceiptError.message}</p>
+          )}{" "}
+          {/* ÚJ */}
           <button
             onClick={() => {
               console.log("🚀 FORCE APPROVE TEST")
@@ -402,7 +479,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             {/* Create Campaign Button */}
             <button
               onClick={handleCreateCampaign}
-              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb}
+              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb || !createSimulationData} // Hozzáadva !createSimulationData
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
               {isCreatingCampaign || isCreatingCampaignFromHook
