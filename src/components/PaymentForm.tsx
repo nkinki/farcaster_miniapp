@@ -599,45 +599,29 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           </button>
 
           {/* Jóváhagyás gomb a finanszírozáshoz */}
-          {needsApproval(parseChessAmount(newCampaignData ? newCampaignData.totalBudget : 10000)) && (
+          {needsApproval(parseChessAmount(newCampaignData ? newCampaignData.totalBudget : 0)) && (
             <button
               onClick={async () => {
-                console.log("🎯 Jóváhagyás gomb megnyomva")
-                console.log("📋 Jóváhagyási paraméterek:", {
-                  spender: CONTRACTS.FarcasterPromo,
-                  amount: parseChessAmount(10000).toString(),
-                })
-
+                setError("");
+                if (!address || !isConnected) {
+                  setError("Kérjük, először csatlakoztassa a pénztárcáját.");
+                  return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 200));
                 try {
-                  // Clear any previous errors
-                  setError("")
-                  
-                  // Check wallet connection
-                  if (!address || !isConnected) {
-                    setError("Kérjük, először csatlakoztassa a pénztárcáját.")
-                    return
-                  }
-
-                  // Add delay to ensure connector is ready
-                  await new Promise(resolve => setTimeout(resolve, 200))
-
-                  // Use the correct function signature
-                  approveFarcasterPromo(parseChessAmount(10000))
+                  approveFarcasterPromo(parseChessAmount(newCampaignData ? newCampaignData.totalBudget : 0));
                 } catch (error) {
-                  console.error("❌ Approval button error:", error)
                   if (error instanceof Error) {
-                    if (error.message.includes('getChainId') || error.message.includes('connector')) {
-                      setError("Pénztárca kapcsolati hiba. Kérjük, csatlakoztassa újra a pénztárcáját.")
-                    } else {
-                      setError(`Jóváhagyási hiba: ${error.message}`)
-                    }
+                    setError(`Jóváhagyási hiba: ${error.message}`);
+                  } else {
+                    setError("Ismeretlen jóváhagyási hiba.");
                   }
                 }
               }}
               disabled={isApproving || !address || !isConnected}
               className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              {isApproving ? "Jóváhagyás..." : !address ? "Pénztárca csatlakoztatása szükséges" : "CHESS jóváhagyása"}
+              {isApproving ? "Jóváhagyás..." : !address ? "Pénztárca csatlakoztatása szükséges" : "CHESS jóváhagyása (teljes költségvetés)"}
             </button>
           )}
         </div>
