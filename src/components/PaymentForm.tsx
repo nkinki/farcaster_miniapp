@@ -492,7 +492,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                 // Add delay to ensure connector is ready
                 await new Promise(resolve => setTimeout(resolve, 300))
                 
-                approveFarcasterPromo(parseChessAmount(10000))
+                approveFarcasterPromo(parseChessAmount(newCampaignData ? newCampaignData.totalBudget : 10000))
               } catch (error) {
                 console.error("Debug approval error:", error)
                 if (error instanceof Error) {
@@ -599,7 +599,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           </button>
 
           {/* Jóváhagyás gomb a finanszírozáshoz */}
-          {needsApproval(parseChessAmount(10000)) && (
+          {needsApproval(parseChessAmount(newCampaignData ? newCampaignData.totalBudget : 10000)) && (
             <button
               onClick={async () => {
                 console.log("🎯 Jóváhagyás gomb megnyomva")
