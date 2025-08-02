@@ -7,6 +7,7 @@ import { useFarcasterPromo, useCampaignExists } from "../hooks/useFarcasterPromo
 import { useChessToken } from "../hooks/useChessToken"
 import { usePromotion } from "../hooks/usePromotions"
 import { useAccount, useSimulateContract } from "wagmi"
+import { parseUnits, erc20Abi } from "viem"
 import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json"
 import { CONTRACTS } from "../config/contracts"
 
@@ -71,10 +72,13 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     allowanceLoading,
     approveFarcasterPromo,
     formatChessAmount,
-    parseChessAmount,
+    // parseChessAmount,
     decimals,
     decimalMultiplier,
   } = useChessToken()
+
+  // viem parseUnits-al konvertáljuk a CHESS mennyiségeket 18 decimálisra
+  const parseChessAmount = (amount: number) => parseUnits(amount.toString(), 18)
 
   // Hibakeresési naplózás a PaymentForm-hoz
   console.log("🎯 PaymentForm Debug:", {
