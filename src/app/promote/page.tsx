@@ -8,7 +8,7 @@ import Link from "next/link"
 import UserProfile from "../../components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
 import { useAccount } from "wagmi"
-import { ConnectWalletButton } from "../../components/ConnectWalletButton" // Import the new component
+import { ConnectWalletButton } from "../../../components/ConnectWalletButton" // Corrected import path
 
 interface FarcasterUser {
   fid: number
