@@ -23,7 +23,16 @@ export function useChessToken() {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address && isConnected,
-      retry: 3,
+      retry: (failureCount, error) => {
+        // Skip retry for connector-related errors
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector') ||
+            error?.message?.includes('chain')) {
+          console.warn('Skipping retry for connector error:', error.message)
+          return false
+        }
+        return failureCount < 3
+      },
       retryDelay: 1000,
     },
   })
@@ -40,7 +49,16 @@ export function useChessToken() {
     args: address ? [address, CONTRACTS.FarcasterPromo] : undefined,
     query: {
       enabled: !!address && isConnected && !!CONTRACTS.FarcasterPromo,
-      retry: 3,
+      retry: (failureCount, error) => {
+        // Skip retry for connector-related errors
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector') ||
+            error?.message?.includes('chain')) {
+          console.warn('Skipping retry for connector error:', error.message)
+          return false
+        }
+        return failureCount < 3
+      },
       retryDelay: 1000,
     },
   })
@@ -110,13 +128,15 @@ export function useChessToken() {
     return needs
   }
 
-  // Enhanced approve function with proper parameter handling
+  // Enhanced approve function with proper parameter handling and error recovery
   const approve = (spender: `0x${string}`, amount: bigint) => {
     console.log("🚀 Approve function called:", {
       spender,
       amount: amount.toString(),
       amountInCHESS: Number(amount) / 1e18,
       contractAddress: CONTRACTS.CHESS_TOKEN,
+      isConnected,
+      address
     })
 
     if (!address || !isConnected) {
@@ -141,8 +161,15 @@ export function useChessToken() {
 
       console.log("✅ Approve transaction initiated:", result)
       return result
+
     } catch (error) {
       console.error("❌ Approve call failed:", error)
+      
+      // If it's a connector error, try to provide helpful feedback
+      if (error instanceof Error && error.message.includes('getChainId')) {
+        throw new Error("Wallet connection issue. Please disconnect and reconnect your wallet.")
+      }
+      
       throw error
     }
   }

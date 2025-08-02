@@ -430,14 +430,43 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             <p className="text-red-400 text-xs">Nyugta hiba: {createCampaignReceiptError.message}</p>
           )}{" "}
           <button
-            onClick={() => {
+            onClick={async () => {
               console.log("🚀 KÉNYSZERÍTETT JÓVÁHAGYÁS TESZT")
-              approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
+              try {
+                // Clear any previous errors
+                setError("")
+                
+                // Check wallet connection
+                if (!address || !isConnected) {
+                  setError("Pénztárca nincs csatlakoztatva")
+                  return
+                }
+                
+                console.log("Debug approval attempt:", {
+                  address,
+                  isConnected,
+                  amount: (BigInt(10000) * BigInt(10 ** 18)).toString()
+                })
+                
+                // Add delay to ensure connector is ready
+                await new Promise(resolve => setTimeout(resolve, 300))
+                
+                approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
+              } catch (error) {
+                console.error("Debug approval error:", error)
+                if (error instanceof Error) {
+                  if (error.message.includes('getChainId') || error.message.includes('connector')) {
+                    setError("Connector hiba - próbálja újra csatlakoztatni a pénztárcát")
+                  } else {
+                    setError(`Debug jóváhagyási hiba: ${error.message}`)
+                  }
+                }
+              }
             }}
-            disabled={isApproving}
-            className="mt-2 px-2 py-1 bg-green-700 hover:bg-green-600 text-white text-xs rounded"
+            disabled={isApproving || !address || !isConnected}
+            className="mt-2 px-2 py-1 bg-green-700 hover:bg-green-600 disabled:bg-gray-600 text-white text-xs rounded"
           >
-            🚀 Kényszerített jóváhagyás 10K CHESS
+            {isApproving ? "Jóváhagyás..." : "🚀 Kényszerített jóváhagyás 10K CHESS"}
           </button>
         </div>
 
@@ -531,20 +560,43 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           {/* Jóváhagyás gomb a finanszírozáshoz */}
           {needsApproval(BigInt(10000) * BigInt(10 ** 18)) && (
             <button
-              onClick={() => {
+              onClick={async () => {
                 console.log("🎯 Jóváhagyás gomb megnyomva")
                 console.log("📋 Jóváhagyási paraméterek:", {
                   spender: CONTRACTS.FarcasterPromo,
                   amount: (BigInt(10000) * BigInt(10 ** 18)).toString(),
                 })
 
-                // Használja a helyes függvény aláírást
-                approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
+                try {
+                  // Clear any previous errors
+                  setError("")
+                  
+                  // Check wallet connection
+                  if (!address || !isConnected) {
+                    setError("Kérjük, először csatlakoztassa a pénztárcáját.")
+                    return
+                  }
+
+                  // Add delay to ensure connector is ready
+                  await new Promise(resolve => setTimeout(resolve, 200))
+
+                  // Use the correct function signature
+                  approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
+                } catch (error) {
+                  console.error("❌ Approval button error:", error)
+                  if (error instanceof Error) {
+                    if (error.message.includes('getChainId') || error.message.includes('connector')) {
+                      setError("Pénztárca kapcsolati hiba. Kérjük, csatlakoztassa újra a pénztárcáját.")
+                    } else {
+                      setError(`Jóváhagyási hiba: ${error.message}`)
+                    }
+                  }
+                }
               }}
-              disabled={isApproving}
+              disabled={isApproving || !address || !isConnected}
               className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              {isApproving ? "Jóváhagyás..." : "CHESS jóváhagyása"}
+              {isApproving ? "Jóváhagyás..." : !address ? "Pénztárca csatlakoztatása szükséges" : "CHESS jóváhagyása"}
             </button>
           )}
         </div>
