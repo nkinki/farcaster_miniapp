@@ -8,13 +8,12 @@ import { SignInButton, useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
 import { FiArrowLeft, FiPlus, FiLoader } from "react-icons/fi";
 
-// Feltételezzük, hogy ezek a komponensek léteznek
 import PaymentForm from "@/components/PaymentForm";
 import UserProfile from "@/components/UserProfile"; 
 
 // A típusok itt vannak definiálva, hogy ne legyen build hiba
 interface FarcasterUser {
-  fid: number;
+  fid: number; // Ennek kötelezően számnak kell lennie
   username: string;
   displayName: string;
   pfpUrl?: string;
@@ -28,7 +27,6 @@ interface PromoCast {
 }
 
 export default function PromotePage() {
-  // === ÁLLAPOTKEZELÉS ===
   const [userProfile, setUserProfile] = useState<FarcasterUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [promoCasts, setPromoCasts] = useState<PromoCast[]>([]); 
@@ -43,23 +41,12 @@ export default function PromotePage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [modalProps, setModalProps] = useState<any>(null);
 
-  // === HOOK-OK ===
   const { profile: authKitProfile, isAuthenticated: isAuthKitAuthenticated } = useProfile();
 
-  // === EGYSÉGES AUTHENTIKÁCIÓS LOGIKA ===
   useEffect(() => {
     const authenticate = async () => {
       try {
-        //
-        // --- A KULCSFONTOSSÁGÚ, VÉGLEGES JAVÍTÁS ITT VAN ---
-        // Az sdk.context EGY PROMISE, NEM EGY FÜGGVÉNY.
-        // A ()-t EL KELL TÁVOLÍTANI A VÉGÉRŐL.
-        // HELYES: await sdk.context
-        //
         const context = await sdk.context;
-        //
-        // --- JAVÍTÁS VÉGE ---
-        //
         if (context.user?.fid) {
           const user = { fid: context.user.fid, username: context.user.username || "", displayName: context.user.displayName || "", pfpUrl: context.user.pfpUrl };
           setUserProfile(user);
@@ -72,10 +59,21 @@ export default function PromotePage() {
       }
 
       if (isAuthKitAuthenticated && authKitProfile) {
-        const user = { fid: authKitProfile.fid, username: authKitProfile.username, displayName: authKitProfile.displayName, pfpUrl: authKitProfile.pfpUrl };
-        setUserProfile(user);
-        setIsAuthenticated(true);
-        console.log("Authenticated via AuthKit");
+        // --- JAVÍTÁS ITT: Hozzáadunk egy ellenőrzést, hogy az 'authKitProfile.fid' létezik-e ---
+        // Ez biztosítja a TypeScript számára, hogy a 'fid' egy 'number', nem pedig 'undefined'.
+        // Csak akkor állítjuk be a felhasználót, ha van érvényes FID-je.
+        if (authKitProfile.fid) {
+          const user: FarcasterUser = { 
+            fid: authKitProfile.fid, // Most már biztosan 'number'
+            username: authKitProfile.username || `fid:${authKitProfile.fid}`,
+            displayName: authKitProfile.displayName || "Farcaster User",
+            pfpUrl: authKitProfile.pfpUrl
+          };
+          setUserProfile(user);
+          setIsAuthenticated(true);
+          console.log("Authenticated via AuthKit");
+        }
+        // --- JAVÍTÁS VÉGE ---
       } else {
         setUserProfile(null);
         setIsAuthenticated(false);
@@ -84,7 +82,6 @@ export default function PromotePage() {
     authenticate().finally(() => setLoading(false));
   }, [isAuthKitAuthenticated, authKitProfile]);
   
-  // === ESEMÉNYKEZELŐK ===
   const handleOpenNewCampaignModal = () => {
     if (!userProfile) return alert("Please sign in first.");
     if (!castUrl) return alert("Please provide a Cast URL.");
@@ -161,14 +158,9 @@ export default function PromotePage() {
             </div>
           </div>
         )}
-
-        {/* Kampányok listája (IDE JÖN A TE LISTÁD) */}
-        {/* <div className="space-y-4">
-            ... a te listázó kódod ...
-        </div> */}
       </div>
 
-      {/* Modal a blokklánc tranzakciókhoz */}
+      {/* Modal */}
       {showPaymentModal && modalProps && (
         <PaymentForm
           {...modalProps}
