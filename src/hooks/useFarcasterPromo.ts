@@ -1,8 +1,20 @@
 "use client"
 
 import { useReadContract, useWriteContract, useAccount, useWaitForTransactionReceipt } from "wagmi"
-import { CONTRACTS } from "../config/contracts" // Helyes útvonal
-import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json" // Helyes útvonal
+import { CONTRACTS } from "../config/contracts"
+import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json"
+
+// ÚJ: Kampány adatstruktúra interfész
+interface CampaignData {
+  castUrl: string
+  shareText: string
+  rewardPerShare: bigint
+  totalBudget: bigint
+  divisible: boolean
+  active: boolean // Ez a hiányzó 'active' tulajdonság
+  // Add hozzá ide bármilyen más tulajdonságot, amit a getCampaign visszaad
+  // Például: sharesCount: bigint; creator: `0x${string}`;
+}
 
 export function useFarcasterPromo() {
   const { address, isConnected } = useAccount()
@@ -41,7 +53,7 @@ export function useFarcasterPromo() {
     data: createCampaignHash,
     writeContract: writeCreateCampaign,
     isPending: isCreatingCampaign,
-    error: createCampaignError, // <-- EZT HOZZÁADVA
+    error: createCampaignError,
     reset: resetCreateCampaign,
   } = useWriteContract()
 
@@ -49,7 +61,7 @@ export function useFarcasterPromo() {
   const {
     isLoading: isCreateCampaignConfirming,
     isSuccess: isCreateCampaignSuccess,
-    error: createCampaignReceiptError, // <-- EZT HOZZÁADVA
+    error: createCampaignReceiptError,
   } = useWaitForTransactionReceipt({
     hash: createCampaignHash,
   })
@@ -196,8 +208,8 @@ export function useFarcasterPromo() {
     claimTreasuryHash,
 
     // Errors
-    createCampaignError, // <-- EZT VISSZAADVA
-    createCampaignReceiptError, // <-- EZT VISSZAADVA
+    createCampaignError,
+    createCampaignReceiptError,
     fundCampaignError,
     fundCampaignReceiptError,
     claimTreasuryError,
@@ -217,7 +229,7 @@ export function useFarcasterPromo() {
 // Hook for getting campaign details
 export function useCampaign(campaignId: bigint | undefined) {
   const {
-    data: campaign,
+    data: campaign, // campaign mostantól CampaignData | undefined típusú
     error,
     isLoading,
     refetch,
@@ -239,7 +251,7 @@ export function useCampaign(campaignId: bigint | undefined) {
   })
 
   return {
-    campaign,
+    campaign: campaign as CampaignData | undefined, // Biztosítjuk a visszatérési típus konzisztenciáját
     error,
     isLoading,
     refetch,
@@ -249,7 +261,7 @@ export function useCampaign(campaignId: bigint | undefined) {
 // Hook for checking campaign existence
 export function useCampaignExists(campaignId: bigint | undefined) {
   const {
-    data: campaign,
+    data: campaign, // campaign mostantól CampaignData | undefined típusú
     error,
     isLoading,
     refetch,
@@ -263,7 +275,8 @@ export function useCampaignExists(campaignId: bigint | undefined) {
     },
   })
 
-  const exists = !!campaign && campaign.active
+  // A 'campaign' most már CampaignData típusú lehet, így az 'active' tulajdonság elérhető
+  const exists = !!campaign && (campaign as CampaignData).active
 
   console.log("🔍 Campaign existence check:", {
     campaignId: campaignId?.toString(),
@@ -275,7 +288,7 @@ export function useCampaignExists(campaignId: bigint | undefined) {
 
   return {
     exists,
-    campaign,
+    campaign: campaign as CampaignData | undefined, // Biztosítjuk a visszatérési típus konzisztenciáját
     error,
     isLoading,
     refetch,
