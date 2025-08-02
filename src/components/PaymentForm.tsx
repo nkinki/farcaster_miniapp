@@ -110,7 +110,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     }
   }, [campaignLoading])
 
-  // Kampány létrehozásának szimulálása új kampányokhoz
+  // Kampány létrehozásának szimulálása új kampányokhoz - with error handling
   const { data: createSimulationData, error: createSimulationError } = useSimulateContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
@@ -138,6 +138,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         : undefined,
     query: {
       enabled: isConnected && !!address && (!!newCampaignData || (!!promotion && !campaignExists && !campaignLoading)),
+      retry: (failureCount, error) => {
+        // Skip retry for connector-related errors
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector') ||
+            error?.message?.includes('chain')) {
+          console.warn('Skipping simulation retry for connector error:', error.message)
+          return false
+        }
+        return failureCount < 2
+      },
+      retryDelay: 1000,
     },
   })
 
@@ -209,12 +220,20 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     }
 
     // Ellenőrizze a szimuláció eredményét, mielőtt írási kísérletet tesz
+    // Skip simulation check if it's a connector error
     if (!createSimulationData && promotionId === "new" && newCampaignData) {
-      setError(
-        createSimulationError?.message ||
-          "A kampány létrehozásának szimulációja sikertelen. Részletekért nézze meg a konzolt.",
-      )
-      return
+      const isConnectorError = createSimulationError?.message?.includes('getChainId') ||
+                              createSimulationError?.message?.includes('connector')
+      
+      if (!isConnectorError) {
+        setError(
+          createSimulationError?.message ||
+            "A kampány létrehozásának szimulációja sikertelen. Részletekért nézze meg a konzolt.",
+        )
+        return
+      } else {
+        console.warn("Skipping simulation check due to connector error, proceeding with campaign creation")
+      }
     }
 
     setError("")
@@ -505,7 +524,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             {/* Kampány létrehozása gomb */}
             <button
               onClick={handleCreateCampaign}
-              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb || !createSimulationData}
+              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb || (!createSimulationData && createSimulationError && !createSimulationError.message?.includes('getChainId'))}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
               {isCreatingCampaign || isCreatingCampaignFromHook

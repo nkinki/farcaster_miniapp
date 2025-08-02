@@ -19,13 +19,21 @@ interface CampaignData {
 export function useFarcasterPromo() {
   const { address, isConnected } = useAccount()
 
-  // Read functions
+  // Read functions with connector error handling
   const { data: totalCampaigns, refetch: refetchTotalCampaigns } = useReadContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
     functionName: "getTotalCampaigns",
     query: {
       enabled: !!CONTRACTS.FarcasterPromo,
+      retry: (failureCount, error) => {
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector')) {
+          console.warn('Skipping retry for connector error in totalCampaigns:', error.message)
+          return false
+        }
+        return failureCount < 3
+      },
     },
   })
 
@@ -36,6 +44,14 @@ export function useFarcasterPromo() {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address && isConnected && !!CONTRACTS.FarcasterPromo,
+      retry: (failureCount, error) => {
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector')) {
+          console.warn('Skipping retry for connector error in claimableAmount:', error.message)
+          return false
+        }
+        return failureCount < 3
+      },
     },
   })
 
@@ -102,8 +118,8 @@ export function useFarcasterPromo() {
     hash: claimTreasuryHash,
   })
 
-  // Enhanced create campaign function
-  const createCampaign = (params: {
+  // Enhanced create campaign function with connector error handling
+  const createCampaign = async (params: {
     castUrl: string
     shareText: string
     rewardPerShare: bigint
@@ -124,14 +140,25 @@ export function useFarcasterPromo() {
       throw new Error("FarcasterPromo contract address not configured")
     }
 
-    resetCreateCampaign()
+    try {
+      resetCreateCampaign()
 
-    return writeCreateCampaign({
-      address: CONTRACTS.FarcasterPromo as `0x${string}`,
-      abi: FARCASTER_PROMO_ABI,
-      functionName: "createCampaign",
-      args: [params.castUrl, params.shareText, params.rewardPerShare, params.totalBudget, params.divisible],
-    })
+      // Add small delay to ensure connector is ready
+      await new Promise(resolve => setTimeout(resolve, 300))
+
+      return writeCreateCampaign({
+        address: CONTRACTS.FarcasterPromo as `0x${string}`,
+        abi: FARCASTER_PROMO_ABI,
+        functionName: "createCampaign",
+        args: [params.castUrl, params.shareText, params.rewardPerShare, params.totalBudget, params.divisible],
+      })
+    } catch (error) {
+      console.error("Campaign creation error:", error)
+      if (error instanceof Error && error.message.includes('getChainId')) {
+        throw new Error("Wallet connection issue. Please reconnect your wallet.")
+      }
+      throw error
+    }
   }
 
   // Enhanced fund campaign function
@@ -240,6 +267,14 @@ export function useCampaign(campaignId: bigint | undefined) {
     args: campaignId ? [campaignId] : undefined,
     query: {
       enabled: !!campaignId && !!CONTRACTS.FarcasterPromo,
+      retry: (failureCount, error) => {
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector')) {
+          console.warn('Skipping retry for connector error in getCampaign:', error.message)
+          return false
+        }
+        return failureCount < 3
+      },
     },
   })
 
@@ -272,6 +307,14 @@ export function useCampaignExists(campaignId: bigint | undefined) {
     args: campaignId ? [campaignId] : undefined,
     query: {
       enabled: !!campaignId && !!CONTRACTS.FarcasterPromo,
+      retry: (failureCount, error) => {
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector')) {
+          console.warn('Skipping retry for connector error in useCampaignExists:', error.message)
+          return false
+        }
+        return failureCount < 3
+      },
     },
   })
 
