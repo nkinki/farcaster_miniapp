@@ -8,6 +8,7 @@ import Link from "next/link"
 import UserProfile from "../../components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
 import { useAccount } from "wagmi"
+import { ConnectWalletButton } from "../../components/ConnectWalletButton" // Import the new component
 
 interface FarcasterUser {
   fid: number
@@ -183,7 +184,7 @@ export default function PromotePage() {
             fid: frameContext.user.fid,
             username: frameContext.user.username || "user",
             displayName: frameContext.user.displayName || "Current User",
-            pfpUrl: (frameContext.user as any).pfp || frameContext.user.pfpUrl, // Corrected line
+            pfpUrl: (frameContext.user as any).pfp || frameContext.user.pfpUrl,
           })
           setIsAuthenticated(true)
 
@@ -731,14 +732,10 @@ export default function PromotePage() {
         <div className="mb-4 p-3 bg-gray-800 rounded-lg">
           <div className="text-sm text-gray-300">
             SDK: {sdkType ? `${sdkType.toUpperCase()} SDK` : "No SDK"} | Auth:{" "}
-            {isAuthenticated ? "✅ Connected" : "❌ Not Connected"} | Wallet:{" "}
-            {isWalletConnected ? "✅ Connected" : "❌ Not Connected"}
+            {isAuthenticated ? "✅ Connected" : "❌ Not Connected"}
           </div>
-          {isWalletConnected && walletAddress && (
-            <div className="text-xs text-gray-400 mt-1">
-              Address: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-            </div>
-          )}
+          {/* Replaced wallet status text with ConnectWalletButton */}
+          <ConnectWalletButton />
           {hapticsSupported && <div className="text-xs text-green-400 mt-1">✅ Haptics supported</div>}
         </div>
 
