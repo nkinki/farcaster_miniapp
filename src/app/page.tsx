@@ -44,7 +44,7 @@ const categoryIcons: Record<string, IconType> = {
   chess: FiGift
 };
 
-// --- SUB-COMPONENTS for clarity ---
+// --- SUB-COMPONENTS or clarity ---
 
 function RankChanges({ app }: { app: Miniapp }) {
   const renderChange = (value: number | null, label: string) => {
