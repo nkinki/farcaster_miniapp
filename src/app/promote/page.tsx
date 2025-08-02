@@ -1072,26 +1072,11 @@ export default function PromotePage() {
 
       {/* Payment Form Modal */}
       {showPaymentForm && (
-        <PaymentForm
-          promotionId={selectedCampaignId}
-          onPaymentComplete={handlePaymentComplete}
-          onCancel={handlePaymentCancel}
-          newCampaignData={
-            selectedCampaignId === "new"
-              ? {
-                  castUrl: castUrl,
-                  shareText: shareText || "Share this promotion!",
-                  rewardPerShare: rewardPerShare,
-                  totalBudget: totalBudget,
-                  user: {
-                    fid: currentUser.fid,
-                    username: currentUser.username,
-                    displayName: currentUser.displayName,
-                  },
-                }
-              : undefined
-          }
-        />
+        <PaymentForm onSuccess={() => {
+          setShowPaymentForm(false);
+          setSelectedCampaignId("");
+          fetchPromotions();
+        }} />
       )}
     </div>
   )
