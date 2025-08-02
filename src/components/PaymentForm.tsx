@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { sdk } from "@farcaster/frame-sdk"
 import { FiAlertCircle } from "react-icons/fi"
 import { useFarcasterPromo, useCampaignExists } from "../hooks/useFarcasterPromo"
 import { useChessToken } from "../hooks/useChessToken"
@@ -35,6 +36,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false)
   const [isSavingToDb, setIsSavingToDb] = useState(false)
   const [campaignCreated, setCampaignCreated] = useState(false)
+
+  // Splash screen elrejtése, amikor a komponens betöltött
+  useEffect(() => {
+    sdk.actions.ready().catch((e) => {
+      // Csak logoljuk a hibát, ne blokkolja az appot
+      console.warn("Farcaster splash screen elrejtése sikertelen:", e)
+    })
+  }, [])
 
   // Wagmi hookok
   const { address, isConnected } = useAccount()
@@ -526,6 +535,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             </div>
 
             {/* Kampány létrehozása gomb */}
+            {/* Diagnosztikai információk a gomb letiltásához */}
+            <div className="mb-2 text-xs text-yellow-300">
+              <div><b>isConnected:</b> {isConnected ? 'true' : 'false'}</div>
+              <div><b>address:</b> {address || 'nincs'}</div>
+              <div><b>isCreatingCampaign:</b> {isCreatingCampaign ? 'true' : 'false'}</div>
+              <div><b>isCreatingCampaignFromHook:</b> {isCreatingCampaignFromHook ? 'true' : 'false'}</div>
+              <div><b>isSavingToDb:</b> {isSavingToDb ? 'true' : 'false'}</div>
+              <div><b>createSimulationData:</b> {createSimulationData ? 'true' : 'false'}</div>
+              <div><b>createSimulationError:</b> {createSimulationError?.message || 'nincs'}</div>
+              <div><b>isButtonDisabled():</b> {isButtonDisabled() ? 'true' : 'false'}</div>
+            </div>
             <button
               onClick={handleCreateCampaign}
               disabled={isButtonDisabled()}
