@@ -725,19 +725,24 @@ export default function PromotePage() {
             <FiArrowLeft size={20} />
             <span>Back to AppRank</span>
           </Link>
-          <h1 className="text-2xl font-bold text-white">Promotion Campaigns</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-white">Promotion Campaigns</h1>
+            <ConnectWalletButton />
+          </div>
         </div>
 
         {/* SDK Status Debug */}
+        {/*
         <div className="mb-4 p-3 bg-gray-800 rounded-lg">
           <div className="text-sm text-gray-300">
             SDK: {sdkType ? `${sdkType.toUpperCase()} SDK` : "No SDK"} | Auth:{" "}
             {isAuthenticated ? "✅ Connected" : "❌ Not Connected"}
           </div>
-          {/* Replaced wallet status text with ConnectWalletButton */}
+          {/* Replaced wallet status text with ConnectWalletButton *}
           <ConnectWalletButton />
           {hapticsSupported && <div className="text-xs text-green-400 mt-1">✅ Haptics supported</div>}
         </div>
+        */}
 
         {/* User Profile */}
         <div className="mb-8">
