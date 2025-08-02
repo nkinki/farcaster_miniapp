@@ -10,7 +10,9 @@ import { useFarcasterPromo } from "@/hooks/useFarcasterPromo";
 import { useChessToken } from "@/hooks/useChessToken";
 import { usePromotion } from "@/hooks/usePromotions";
 import { CONTRACTS } from "@/config/contracts";
-import FARCASTER_PROMO_ABI from "@/abis/FarcasterPromo.json"; // Ellenőrizd az útvonalat
+// --- JAVÍTOTT IMPORT ÚTVONAL ---
+// Az alias helyett relatív útvonalat használunk, ami megbízhatóbb
+import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"; 
 
 interface PaymentFormProps {
   promotionId: string; // 'new' vagy egy létező ID
