@@ -445,9 +445,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           <p className="text-red-200 text-xs">Jóváhagyás folyamatban: {isApproving ? "Igen" : "Nem"}</p>
           <p className="text-red-200 text-xs">Jóváhagyás sikeres: {isApproveSuccess ? "Igen" : "Nem"}</p>
           {approveError && <p className="text-red-400 text-xs">Jóváhagyási hiba: {approveError.message}</p>}
-          {createSimulationError && (
-            <p className="text-red-400 text-xs">Szimulációs hiba: {createSimulationError.message}</p>
-          )}{" "}
+          {/* Szimuláció kikapcsolva */}
           {createCampaignError && <p className="text-red-400 text-xs">Írási hiba: {createCampaignError.message}</p>}{" "}
           {createCampaignReceiptError && (
             <p className="text-red-400 text-xs">Nyugta hiba: {createCampaignReceiptError.message}</p>
