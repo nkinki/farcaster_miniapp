@@ -2,7 +2,7 @@
 
 import { useReadContract, useWriteContract, useAccount, useWaitForTransactionReceipt } from "wagmi"
 import { CONTRACTS } from "@/config/contracts"
-import CHESS_TOKEN_ABI from "../../abis/ChessToken.json"
+import CHESS_TOKEN_ABI from "../abis/ChessToken.json"
 
 export function useChessToken() {
   console.log("🔧 useChessToken hook initialized")
@@ -63,15 +63,11 @@ export function useChessToken() {
   // Write functions with better error handling
   const {
     data: approveHash,
-    writeAsync: writeApprove,
+    writeContract: writeApprove,
     isPending: isApproving,
     error: approveError,
     reset: resetApprove,
-  } = useWriteContract({
-    address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
-    abi: CHESS_TOKEN_ABI,
-    functionName: "approve",
-  })
+  } = useWriteContract()
 
   // Wait for approval transaction
   const {
@@ -115,7 +111,7 @@ export function useChessToken() {
   }
 
   // Enhanced approve function with proper parameter handling
-  const approve = async (spender: `0x${string}`, amount: bigint) => {
+  const approve = (spender: `0x${string}`, amount: bigint) => {
     console.log("🚀 Approve function called:", {
       spender,
       amount: amount.toString(),
@@ -136,7 +132,10 @@ export function useChessToken() {
     try {
       resetApprove() // Reset previous state
 
-      const result = await writeApprove({
+      const result = writeApprove({
+        address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+        abi: CHESS_TOKEN_ABI,
+        functionName: "approve",
         args: [spender, amount],
       })
 
@@ -149,11 +148,11 @@ export function useChessToken() {
   }
 
   // Convenience function for approving FarcasterPromo contract
-  const approveFarcasterPromo = async (amount: bigint) => {
+  const approveFarcasterPromo = (amount: bigint) => {
     if (!CONTRACTS.FarcasterPromo) {
       throw new Error("FarcasterPromo contract address not configured")
     }
-    return await approve(CONTRACTS.FarcasterPromo as `0x${string}`, amount)
+    return approve(CONTRACTS.FarcasterPromo as `0x${string}`, amount)
   }
 
   return {
