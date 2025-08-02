@@ -5,7 +5,7 @@ import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk"
 import { sdk as frameSdk } from "@farcaster/frame-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } from "react-icons/fi"
 import Link from "next/link"
-import UserProfile from "../../components/UserProfile" // Corrected import path
+import UserProfile from "../../components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
 import { useAccount } from "wagmi"
 
@@ -183,7 +183,7 @@ export default function PromotePage() {
             fid: frameContext.user.fid,
             username: frameContext.user.username || "user",
             displayName: frameContext.user.displayName || "Current User",
-            pfpUrl: frameContext.user.pfp || frameContext.user.pfpUrl,
+            pfpUrl: (frameContext.user as any).pfp || frameContext.user.pfpUrl, // Corrected line
           })
           setIsAuthenticated(true)
 
