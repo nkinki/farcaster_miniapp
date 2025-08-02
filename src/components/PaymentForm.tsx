@@ -175,6 +175,22 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     return num.toString()
   }
 
+  // Helper function to check if button should be disabled
+  const isButtonDisabled = (): boolean => {
+    if (isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb) {
+      return true
+    }
+    
+    // If no simulation data and there's an error, check if it's a connector error
+    if (!createSimulationData && createSimulationError) {
+      const errorMessage = createSimulationError.message || ''
+      const isConnectorError = errorMessage.includes('getChainId') || errorMessage.includes('connector')
+      return !isConnectorError // Only disable if it's NOT a connector error
+    }
+    
+    return false
+  }
+
   const handleCreateCampaign = async () => {
     if (!isConnected) {
       setError("Kérjük, először csatlakoztassa a pénztárcáját.")
@@ -524,12 +540,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             {/* Kampány létrehozása gomb */}
             <button
               onClick={handleCreateCampaign}
-              disabled={
-                isCreatingCampaign ||
-                isCreatingCampaignFromHook ||
-                isSavingToDb ||
-                (!createSimulationData && createSimulationError && !createSimulationError.message?.includes('getChainId'))
-              }
+              disabled={isButtonDisabled()}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
               {isCreatingCampaign || isCreatingCampaignFromHook
