@@ -5,11 +5,11 @@ import { FiAlertCircle } from "react-icons/fi"
 import { useFarcasterPromo, useCampaignExists } from "../hooks/useFarcasterPromo"
 import { useChessToken } from "../hooks/useChessToken"
 import { usePromotion } from "../hooks/usePromotions"
-import { useAccount, useSimulateContract } from "wagmi" // Hozzáadva useSimulateContract
-import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json" // Helyes útvonal
-import { CONTRACTS } from "../config/contracts" // Helyes útvonal
+import { useAccount, useSimulateContract } from "wagmi"
+import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json"
+import { CONTRACTS } from "../config/contracts"
 
-// TypeScript declaration for window.ethereum
+// TypeScript deklaráció a window.ethereum-hoz
 declare global {
   interface Window {
     ethereum?: {
@@ -22,7 +22,7 @@ interface PaymentFormProps {
   promotionId: string
   onPaymentComplete: (amount: number, hash: string) => void
   onCancel: () => void
-  // New props for new campaign creation
+  // Új propok az új kampány létrehozásához
   newCampaignData?: {
     castUrl: string
     shareText: string
@@ -37,13 +37,13 @@ interface PaymentFormProps {
 }
 
 export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, newCampaignData }: PaymentFormProps) {
-  const [rewardPerShare, setRewardPerShare] = useState<number>(newCampaignData?.rewardPerShare || 10000) // Default 10k
+  const [rewardPerShare, setRewardPerShare] = useState<number>(newCampaignData?.rewardPerShare || 10000) // Alapértelmezett 10k
   const [error, setError] = useState<string>("")
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false)
   const [isSavingToDb, setIsSavingToDb] = useState(false)
   const [campaignCreated, setCampaignCreated] = useState(false)
 
-  // Wagmi hooks
+  // Wagmi hookok
   const { address, isConnected } = useAccount()
   const {
     fundCampaign,
@@ -52,8 +52,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     createCampaign,
     isCreatingCampaign: isCreatingCampaignFromHook,
     createCampaignHash: createCampaignData,
-    createCampaignError, // Hozzáadva
-    createCampaignReceiptError, // Hozzáadva
+    createCampaignError,
+    createCampaignReceiptError,
   } = useFarcasterPromo()
   const {
     balance,
@@ -70,7 +70,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     approveFarcasterPromo,
   } = useChessToken()
 
-  // Debug logging for PaymentForm
+  // Hibakeresési naplózás a PaymentForm-hoz
   console.log("🎯 PaymentForm Debug:", {
     address,
     isConnected,
@@ -87,14 +87,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     isFarcasterApp: navigator.userAgent.includes("Farcaster") || window.location.hostname.includes("farcaster"),
   })
 
-  // Neon DB promotion data (only for existing campaigns)
+  // Neon DB promóciós adatok (csak meglévő kampányokhoz)
   const {
     promotion,
     loading: promotionLoading,
     error: promotionError,
   } = usePromotion(promotionId === "new" ? undefined : Number(promotionId))
 
-  // Blockchain campaign check (for compatibility)
+  // Blokklánc kampány ellenőrzés (kompatibilitás céljából)
   const {
     exists: campaignExists,
     campaign: blockchainCampaign,
@@ -102,14 +102,14 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     isLoading: campaignLoading,
   } = useCampaignExists(promotionId === "new" ? undefined : BigInt(promotionId))
 
-  // Add timeout for loading state
+  // Időtúllépés hozzáadása a betöltési állapothoz
   const [loadingTimeout, setLoadingTimeout] = useState(false)
 
   useEffect(() => {
     if (campaignLoading) {
       const timer = setTimeout(() => {
         setLoadingTimeout(true)
-      }, 10000) // 10 seconds timeout
+      }, 10000) // 10 másodperc időtúllépés
 
       return () => clearTimeout(timer)
     } else {
@@ -117,7 +117,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     }
   }, [campaignLoading])
 
-  // Simulate campaign creation for new campaigns (VISSZAHOZVA)
+  // Kampány létrehozásának szimulálása új kampányokhoz
   const { data: createSimulationData, error: createSimulationError } = useSimulateContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
@@ -128,9 +128,9 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             ? newCampaignData.castUrl
             : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
           newCampaignData.shareText || "Share this promotion!",
-          BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18), // Proper BigInt conversion
-          BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18), // Proper BigInt conversion
-          true, // divisible
+          BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
+          BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
+          true, // osztható
         ]
       : promotion
         ? [
@@ -138,9 +138,9 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               ? promotion.cast_url
               : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
             promotion.share_text || "Share this promotion!",
-            BigInt(rewardPerShare) * BigInt(10 ** 18), // Proper BigInt conversion
-            BigInt(promotion.total_budget) * BigInt(10 ** 18), // Proper BigInt conversion
-            true, // divisible
+            BigInt(rewardPerShare) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
+            BigInt(promotion.total_budget) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
+            true, // osztható
           ]
         : undefined,
     query: {
@@ -148,7 +148,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     },
   })
 
-  // Debug simulation status
+  // Szimulációs állapot hibakeresése
   console.log("Simulation debug:", {
     isConnected,
     address,
@@ -173,51 +173,54 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
 
   const handleCreateCampaign = async () => {
     if (!isConnected) {
-      setError("Please connect your wallet first")
+      setError("Kérjük, először csatlakoztassa a pénztárcáját.")
       return
     }
 
-    // For new campaigns, validate newCampaignData
+    // Új kampányok esetén ellenőrizze a newCampaignData-t
     if (promotionId === "new") {
       if (!newCampaignData) {
-        setError("New campaign data is missing")
+        setError("Hiányoznak az új kampány adatai.")
         return
       }
     } else {
-      // For existing campaigns, validate promotion
+      // Meglévő kampányok esetén ellenőrizze a promóciót
       if (!promotion) {
-        setError(`Promotion ${promotionId} does not exist in database`)
+        setError(`A ${promotionId} promóció nem létezik az adatbázisban.`)
         return
       }
 
       if (promotion.status !== "active") {
-        setError(`Promotion ${promotionId} is not active (status: ${promotion.status})`)
+        setError(`A ${promotionId} promóció nem aktív (állapot: ${promotion.status}).`)
         return
       }
     }
 
-    // Check minimum values
+    // Ellenőrizze a minimális értékeket
     const rewardPerShareValue = promotionId === "new" ? newCampaignData?.rewardPerShare || 0 : rewardPerShare
     const totalBudgetValue = promotionId === "new" ? newCampaignData?.totalBudget || 0 : promotion?.total_budget || 0
 
     if (rewardPerShareValue <= 0) {
-      setError("Reward per share must be greater than 0")
+      setError("A megosztásonkénti jutalomnak nagyobbnak kell lennie nullánál.")
       return
     }
 
     if (totalBudgetValue <= 0) {
-      setError("Total budget must be greater than 0")
+      setError("A teljes költségvetésnek nagyobbnak kell lennie nullánál.")
       return
     }
 
     if (rewardPerShareValue > totalBudgetValue) {
-      setError("Reward per share cannot be greater than total budget")
+      setError("A megosztásonkénti jutalom nem lehet nagyobb, mint a teljes költségvetés.")
       return
     }
 
-    // Check simulation result before attempting to write
+    // Ellenőrizze a szimuláció eredményét, mielőtt írási kísérletet tesz
     if (!createSimulationData && promotionId === "new" && newCampaignData) {
-      setError(createSimulationError?.message || "Campaign creation simulation failed. Check console for details.")
+      setError(
+        createSimulationError?.message ||
+          "A kampány létrehozásának szimulációja sikertelen. Részletekért nézze meg a konzolt.",
+      )
       return
     }
 
@@ -227,21 +230,21 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
       setIsCreatingCampaign(true)
 
       const campaignData = promotionId === "new" ? newCampaignData! : promotion!
-      console.log("Creating blockchain campaign for:", campaignData)
+      console.log("Blokklánc kampány létrehozása ehhez:", campaignData)
 
-      // Use the improved createCampaign function with proper parameters
+      // Használja a továbbfejlesztett createCampaign függvényt megfelelő paraméterekkel
       if (promotionId === "new" && newCampaignData) {
         // Ideiglenes felülírás a teszteléshez:
-        const testRewardPerShare = 1000 // 1K CHESS
-        const testTotalBudget = 10000 // 10K CHESS
+        // const testRewardPerShare = 1000 // 1K CHESS
+        // const testTotalBudget = 10000 // 10K CHESS
 
         createCampaign({
           castUrl: newCampaignData.castUrl.startsWith("http")
             ? newCampaignData.castUrl
             : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
           shareText: newCampaignData.shareText || "Share this promotion!",
-          rewardPerShare: BigInt(testRewardPerShare) * BigInt(10 ** 18), // Használjuk a teszt értéket
-          totalBudget: BigInt(testTotalBudget) * BigInt(10 ** 18), // Használjuk a teszt értéket
+          rewardPerShare: BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18), // Használjuk a teszt értéket
+          totalBudget: BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18), // Használjuk a teszt értéket
           divisible: true,
         })
       } else if (promotion) {
@@ -256,70 +259,70 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
         })
       }
     } catch (err) {
-      console.error("Error creating blockchain campaign:", err)
-      setError(err instanceof Error ? err.message : "Failed to create campaign")
+      console.error("Hiba a blokklánc kampány létrehozásakor:", err)
+      setError(err instanceof Error ? err.message : "A kampány létrehozása sikertelen.")
       setIsCreatingCampaign(false)
     }
   }
 
-  // Handle successful campaign creation
+  // Sikeres kampánylétrehozás kezelése
   useEffect(() => {
     if (createCampaignData) {
-      console.log("Campaign created successfully on blockchain:", createCampaignData)
+      console.log("Kampány sikeresen létrehozva a blokkláncon:", createCampaignData)
 
-      // If this is a new campaign, save to Neon DB
+      // Ha ez egy új kampány, mentse el a Neon DB-be
       if (promotionId === "new" && newCampaignData) {
         saveNewCampaignToDb(createCampaignData)
       } else {
         setIsCreatingCampaign(false)
-        // Don't reload, just show success message
-        console.log("Campaign created successfully!")
+        // Ne töltse újra, csak mutassa a sikerüzenetet
+        console.log("Kampány sikeresen létrehozva!")
         setCampaignCreated(true)
       }
     }
   }, [createCampaignData, promotionId, newCampaignData])
 
-  // Handle approval success
+  // Jóváhagyás sikerének kezelése
   useEffect(() => {
     if (isApproveSuccess) {
-      console.log("CHESS token approval successful!")
-      // Don't reload, just show success message
-      console.log("✅ CHESS approval completed successfully!")
+      console.log("CHESS token jóváhagyása sikeres!")
+      // Ne töltse újra, csak mutassa a sikerüzenetet
+      console.log("✅ CHESS jóváhagyás sikeresen befejeződött!")
     }
   }, [isApproveSuccess])
 
-  // Handle approval error
+  // Jóváhagyási hiba kezelése
   useEffect(() => {
     if (approveError) {
-      console.error("CHESS token approval failed:", approveError)
-      setError(`Approval failed: ${approveError.message}`)
+      console.error("CHESS token jóváhagyása sikertelen:", approveError)
+      setError(`Jóváhagyás sikertelen: ${approveError.message}`)
     }
   }, [approveError])
 
-  // Handle create campaign errors from hook
+  // Kampánylétrehozási hibák kezelése a hookból
   useEffect(() => {
     if (createCampaignError) {
-      console.error("Create Campaign Write Error:", createCampaignError)
-      setError(`Campaign creation failed: ${createCampaignError.message}`)
+      console.error("Kampánylétrehozási írási hiba:", createCampaignError)
+      setError(`A kampány létrehozása sikertelen: ${createCampaignError.message}`)
       setIsCreatingCampaign(false)
     }
   }, [createCampaignError])
 
   useEffect(() => {
     if (createCampaignReceiptError) {
-      console.error("Create Campaign Receipt Error:", createCampaignReceiptError)
-      setError(`Campaign transaction failed: ${createCampaignReceiptError.message}`)
+      console.error("Kampánylétrehozási nyugta hiba:", createCampaignReceiptError)
+      setError(`A kampány tranzakciója sikertelen: ${createCampaignReceiptError.message}`)
       setIsCreatingCampaign(false)
     }
   }, [createCampaignReceiptError])
 
-  // Save new campaign to Neon DB after successful blockchain creation
+  // Új kampány mentése a Neon DB-be a sikeres blokklánc létrehozás után
   const saveNewCampaignToDb = async (blockchainHash: string) => {
     if (!newCampaignData) return
 
     try {
       setIsSavingToDb(true)
-      console.log("Saving new campaign to Neon DB:", newCampaignData)
+      console.log("Új kampány mentése a Neon DB-be:", newCampaignData)
 
       const response = await fetch("/api/promotions", {
         method: "POST",
@@ -334,42 +337,44 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           shareText: newCampaignData.shareText || undefined,
           rewardPerShare: newCampaignData.rewardPerShare,
           totalBudget: newCampaignData.totalBudget,
-          blockchainHash: blockchainHash, // Store the blockchain transaction hash
+          blockchainHash: blockchainHash, // Tárolja a blokklánc tranzakció hash-ét
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        console.log("Campaign saved to Neon DB successfully:", data)
+        console.log("Kampány sikeresen mentve a Neon DB-be:", data)
 
-        // Call onPaymentComplete with the blockchain hash
+        // Hívja meg az onPaymentComplete-t a blokklánc hash-el
         onPaymentComplete(newCampaignData.totalBudget, blockchainHash)
 
-        // Reset form
+        // Űrlap visszaállítása
         setIsCreatingCampaign(false)
         setIsSavingToDb(false)
 
-        // Show success message instead of reloading
-        console.log("🎉 Campaign created and saved successfully!")
-        console.log("📋 Campaign details:", {
+        // Sikerüzenet megjelenítése újratöltés helyett
+        console.log("🎉 Kampány sikeresen létrehozva és mentve!")
+        console.log("📋 Kampány részletei:", {
           blockchainHash,
           totalBudget: newCampaignData.totalBudget,
           castUrl: newCampaignData.castUrl,
         })
 
-        // Set campaign created flag
+        // Kampány létrehozva jelző beállítása
         setCampaignCreated(true)
       } else {
         const errorData = await response.json()
-        console.error("Failed to save to Neon DB:", errorData)
-        setError(`Campaign created on blockchain but failed to save to database: ${errorData.error || "Unknown error"}`)
+        console.error("Sikertelen mentés a Neon DB-be:", errorData)
+        setError(
+          `A kampány létrehozva a blokkláncon, de nem sikerült menteni az adatbázisba: ${errorData.error || "Ismeretlen hiba"}`,
+        )
         setIsCreatingCampaign(false)
         setIsSavingToDb(false)
       }
     } catch (error) {
-      console.error("Error saving to Neon DB:", error)
+      console.error("Hiba a Neon DB-be mentéskor:", error)
       setError(
-        `Campaign created on blockchain but failed to save to database: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `A kampány létrehozva a blokkláncon, de nem sikerült menteni az adatbázisba: ${error instanceof Error ? error.message : "Ismeretlen hiba"}`,
       )
       setIsCreatingCampaign(false)
       setIsSavingToDb(false)
@@ -379,146 +384,145 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md mx-4">
-        {/* Wallet Status */}
+        {/* Pénztárca állapota */}
         <div className="mb-4 p-3 bg-gray-800 rounded-lg text-sm">
           <p>
-            <strong>Wallet Status:</strong>
+            <strong>Pénztárca állapota:</strong>
           </p>
-          <p>Connected: {isConnected ? "Yes" : "No"}</p>
+          <p>Csatlakoztatva: {isConnected ? "Igen" : "Nem"}</p>
           <p>
-            Address:{" "}
-            {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : "Not connected"}
+            Cím:{" "}
+            {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : "Nincs csatlakoztatva"}
           </p>
           <p>
-            Contract: {CONTRACTS.FarcasterPromo.substring(0, 6)}...
+            Szerződés: {CONTRACTS.FarcasterPromo.substring(0, 6)}...
             {CONTRACTS.FarcasterPromo.substring(CONTRACTS.FarcasterPromo.length - 4)}
           </p>
         </div>
 
-        {/* Debug Panel */}
+        {/* Hibakereső panel */}
         <div className="mt-3 p-2 bg-red-900 bg-opacity-50 rounded border border-red-500">
-          <p className="text-red-300 font-bold text-xs">🔧 DEBUG INFO:</p>
+          <p className="text-red-300 font-bold text-xs">🔧 HIBAKERESÉSI INFÓ:</p>
           <p className="text-red-200 text-xs">
-            Balance:{" "}
+            Egyenleg:{" "}
             {balanceLoading
-              ? "Loading..."
+              ? "Betöltés..."
               : balanceError
-                ? `Error: ${balanceError.message}`
+                ? `Hiba: ${balanceError.message}`
                 : balance
                   ? `${(Number(balance) / 1e18).toFixed(2)} CHESS`
                   : "0 CHESS"}
           </p>
           <p className="text-red-200 text-xs">
-            Allowance:{" "}
+            Engedély:{" "}
             {allowanceLoading
-              ? "Loading..."
+              ? "Betöltés..."
               : allowanceError
-                ? `Error: ${allowanceError.message}`
+                ? `Hiba: ${allowanceError.message}`
                 : allowance
                   ? `${(Number(allowance) / 1e18).toFixed(2)} CHESS`
                   : "0 CHESS"}
           </p>
           <p className="text-red-200 text-xs">
-            Needs Approval: {needsApproval(BigInt(10000) * BigInt(10 ** 18)) ? "Yes" : "No"}
+            Jóváhagyás szükséges: {needsApproval(BigInt(10000) * BigInt(10 ** 18)) ? "Igen" : "Nem"}
           </p>
           <p className="text-red-200 text-xs">
             CHESS Token: {CONTRACTS.CHESS_TOKEN.substring(0, 6)}...
             {CONTRACTS.CHESS_TOKEN.substring(CONTRACTS.CHESS_TOKEN.length - 4)}
           </p>
-          <p className="text-red-200 text-xs">Approving: {isApproving ? "Yes" : "No"}</p>
-          <p className="text-red-200 text-xs">Approve Success: {isApproveSuccess ? "Yes" : "No"}</p>
-          {approveError && <p className="text-red-400 text-xs">Approve Error: {approveError.message}</p>}
-          {createSimulationError && <p className="text-red-400 text-xs">Sim Error: {createSimulationError.message}</p>}{" "}
-          {/* ÚJ */}
-          {createCampaignError && <p className="text-red-400 text-xs">Write Error: {createCampaignError.message}</p>}{" "}
-          {/* ÚJ */}
-          {createCampaignReceiptError && (
-            <p className="text-red-400 text-xs">Receipt Error: {createCampaignReceiptError.message}</p>
+          <p className="text-red-200 text-xs">Jóváhagyás folyamatban: {isApproving ? "Igen" : "Nem"}</p>
+          <p className="text-red-200 text-xs">Jóváhagyás sikeres: {isApproveSuccess ? "Igen" : "Nem"}</p>
+          {approveError && <p className="text-red-400 text-xs">Jóváhagyási hiba: {approveError.message}</p>}
+          {createSimulationError && (
+            <p className="text-red-400 text-xs">Szimulációs hiba: {createSimulationError.message}</p>
           )}{" "}
-          {/* ÚJ */}
+          {createCampaignError && <p className="text-red-400 text-xs">Írási hiba: {createCampaignError.message}</p>}{" "}
+          {createCampaignReceiptError && (
+            <p className="text-red-400 text-xs">Nyugta hiba: {createCampaignReceiptError.message}</p>
+          )}{" "}
           <button
             onClick={() => {
-              console.log("🚀 FORCE APPROVE TEST")
+              console.log("🚀 KÉNYSZERÍTETT JÓVÁHAGYÁS TESZT")
               approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
             }}
             disabled={isApproving}
             className="mt-2 px-2 py-1 bg-green-700 hover:bg-green-600 text-white text-xs rounded"
           >
-            🚀 Force Approve 10K CHESS
+            🚀 Kényszerített jóváhagyás 10K CHESS
           </button>
         </div>
 
-        {/* Campaign Creation Form */}
+        {/* Kampány létrehozási űrlap */}
         {promotionId === "new" && newCampaignData && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Create New Campaign</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Új kampány létrehozása</h3>
 
-            {/* Campaign Summary */}
+            {/* Kampány összefoglaló */}
             <div className="bg-gray-800 rounded-lg p-4 mb-4">
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Campaign Summary</h4>
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Kampány összefoglaló</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Cast URL:</span>
                   <span className="text-white truncate max-w-[200px]">{newCampaignData.castUrl}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Share Text:</span>
-                  <span className="text-white">"{newCampaignData.shareText || "Share this promotion!"}"</span>
+                  <span className="text-gray-400">Megosztási szöveg:</span>
+                  <span className="text-white">"{newCampaignData.shareText || "Ossza meg ezt a promóciót!"}"</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Reward Per Share:</span>
+                  <span className="text-gray-400">Jutalom megosztásonként:</span>
                   <span className="text-green-400">{formatNumber(newCampaignData.rewardPerShare)} $CHESS</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Total Budget:</span>
+                  <span className="text-gray-400">Teljes költségvetés:</span>
                   <span className="text-blue-400">{formatNumber(newCampaignData.totalBudget)} $CHESS</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Divisible:</span>
-                  <span className="text-green-400">Yes ✓</span>
+                  <span className="text-gray-400">Osztható:</span>
+                  <span className="text-green-400">Igen ✓</span>
                 </div>
               </div>
             </div>
 
-            {/* Create Campaign Button */}
+            {/* Kampány létrehozása gomb */}
             <button
               onClick={handleCreateCampaign}
-              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb || !createSimulationData} // Hozzáadva !createSimulationData
+              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb || !createSimulationData}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
               {isCreatingCampaign || isCreatingCampaignFromHook
-                ? "Creating Campaign..."
+                ? "Kampány létrehozása..."
                 : isSavingToDb
-                  ? "Saving to Database..."
-                  : "Create New Campaign"}
+                  ? "Mentés az adatbázisba..."
+                  : "Új kampány létrehozása"}
             </button>
 
-            {/* Note about CHESS funding */}
+            {/* Megjegyzés a CHESS finanszírozásról */}
             <div className="mt-4 p-3 bg-blue-900 bg-opacity-20 rounded-lg">
               <p className="text-xs text-blue-400">
-                <strong>Note:</strong> Campaign creation is free. CHESS token funding will be available after campaign
-                creation.
+                <strong>Megjegyzés:</strong> A kampány létrehozása ingyenes. A CHESS token finanszírozás a kampány
+                létrehozása után lesz elérhető.
               </p>
             </div>
           </div>
         )}
 
-        {/* Success Messages */}
+        {/* Sikerüzenetek */}
         {isApproveSuccess && (
           <div className="flex items-center gap-2 text-green-400 mb-4 p-3 bg-green-900 bg-opacity-20 rounded-lg">
             <span className="text-lg">✅</span>
-            <span className="text-sm">CHESS token approved successfully!</span>
+            <span className="text-sm">CHESS token sikeresen jóváhagyva!</span>
           </div>
         )}
 
         {campaignCreated && (
           <div className="flex items-center gap-2 text-green-400 mb-4 p-3 bg-green-900 bg-opacity-20 rounded-lg">
             <span className="text-lg">🎉</span>
-            <span className="text-sm">Campaign created successfully on blockchain and saved to database!</span>
+            <span className="text-sm">Kampány sikeresen létrehozva a blokkláncon és mentve az adatbázisba!</span>
           </div>
         )}
 
-        {/* Error Message */}
+        {/* Hibaüzenet */}
         {error && (
           <div className="flex items-center gap-2 text-red-400 mb-4 p-3 bg-red-900 bg-opacity-20 rounded-lg">
             <FiAlertCircle />
@@ -526,41 +530,41 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* Műveleti gombok */}
         <div className="flex gap-3">
           <button
             onClick={onCancel}
             className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
           >
-            Cancel
+            Mégse
           </button>
 
-          {/* Approval Button for Funding */}
+          {/* Jóváhagyás gomb a finanszírozáshoz */}
           {needsApproval(BigInt(10000) * BigInt(10 ** 18)) && (
             <button
               onClick={() => {
-                console.log("🎯 Approve button clicked")
-                console.log("📋 Approve parameters:", {
+                console.log("🎯 Jóváhagyás gomb megnyomva")
+                console.log("📋 Jóváhagyási paraméterek:", {
                   spender: CONTRACTS.FarcasterPromo,
                   amount: (BigInt(10000) * BigInt(10 ** 18)).toString(),
                 })
 
-                // Use the correct function signature
+                // Használja a helyes függvény aláírást
                 approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
               }}
               disabled={isApproving}
               className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              {isApproving ? "Approving..." : "Approve CHESS"}
+              {isApproving ? "Jóváhagyás..." : "CHESS jóváhagyása"}
             </button>
           )}
         </div>
 
-        {/* Security Notice */}
+        {/* Biztonsági figyelmeztetés */}
         <div className="mt-4 p-3 bg-yellow-900 bg-opacity-20 rounded-lg">
           <p className="text-xs text-yellow-400">
-            <strong>Security Notice:</strong> This transaction creates a campaign on the blockchain. Make sure all
-            details are correct before proceeding.
+            <strong>Biztonsági figyelmeztetés:</strong> Ez a tranzakció kampányt hoz létre a blokkláncon. Győződjön meg
+            arról, hogy minden részlet helyes, mielőtt folytatja.
           </p>
         </div>
       </div>
