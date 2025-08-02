@@ -12,9 +12,7 @@ import { FiArrowLeft, FiPlus, FiLoader } from "react-icons/fi";
 import PaymentForm from "@/components/PaymentForm";
 import UserProfile from "@/components/UserProfile"; 
 
-// --- JAVÍTÁS: A TÍPUSOK DEFINÍCIÓJA KÖZVETLENÜL ITT TÖRTÉNIK ---
-// A külső import helyett itt hozzuk létre őket, hogy a build hiba megszűnjön.
-
+// A típusok itt vannak definiálva, hogy ne legyen build hiba
 interface FarcasterUser {
   fid: number;
   username: string;
@@ -27,14 +25,7 @@ interface PromoCast {
   author: FarcasterUser;
   castUrl: string;
   total_budget: number;
-  // Ide jöhetnek a további mezők, amik a listázáshoz kellenek
-  rewardPerShare?: number;
-  sharesCount?: number;
-  remainingBudget?: number;
-  status?: 'active' | 'paused' | 'completed';
 }
-// --- JAVÍTÁS VÉGE ---
-
 
 export default function PromotePage() {
   // === ÁLLAPOTKEZELÉS ===
@@ -43,16 +34,14 @@ export default function PromotePage() {
   const [promoCasts, setPromoCasts] = useState<PromoCast[]>([]); 
   const [loading, setLoading] = useState(true);
   
-  // Űrlap állapotok
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [castUrl, setCastUrl] = useState("");
   const [shareText, setShareText] = useState("");
-  const [rewardPerShare, setRewardPerShare] = useState(1000); // Alapértelmezett 1k
+  const [rewardPerShare, setRewardPerShare] = useState(1000);
   const [totalBudget, setTotalBudget] = useState(10000);
   
-  // Modal állapotok
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [modalProps, setModalProps] = useState<any>(null); // A modalnak átadott adatok
+  const [modalProps, setModalProps] = useState<any>(null);
 
   // === HOOK-OK ===
   const { profile: authKitProfile, isAuthenticated: isAuthKitAuthenticated } = useProfile();
@@ -61,7 +50,16 @@ export default function PromotePage() {
   useEffect(() => {
     const authenticate = async () => {
       try {
-        const context = await sdk.context();
+        //
+        // --- A KULCSFONTOSSÁGÚ, VÉGLEGES JAVÍTÁS ITT VAN ---
+        // Az sdk.context EGY PROMISE, NEM EGY FÜGGVÉNY.
+        // A ()-t EL KELL TÁVOLÍTANI A VÉGÉRŐL.
+        // HELYES: await sdk.context
+        //
+        const context = await sdk.context;
+        //
+        // --- JAVÍTÁS VÉGE ---
+        //
         if (context.user?.fid) {
           const user = { fid: context.user.fid, username: context.user.username || "", displayName: context.user.displayName || "", pfpUrl: context.user.pfpUrl };
           setUserProfile(user);
@@ -92,7 +90,6 @@ export default function PromotePage() {
     if (!castUrl) return alert("Please provide a Cast URL.");
     if (rewardPerShare > totalBudget) return alert("Reward cannot be greater than budget.");
 
-    // Összegyűjtjük az adatokat a modalnak
     setModalProps({
       promotionId: 'new',
       newCampaignData: {
@@ -179,7 +176,6 @@ export default function PromotePage() {
             console.log(`Success! Hash: ${hash}`);
             setShowPaymentModal(false);
             setModalProps(null);
-            // Itt frissítheted a kampányok listáját
           }}
           onCancel={() => {
             setShowPaymentModal(false);
