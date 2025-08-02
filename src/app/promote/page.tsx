@@ -8,10 +8,33 @@ import { SignInButton, useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
 import { FiArrowLeft, FiPlus, FiLoader } from "react-icons/fi";
 
-// Feltételezzük, hogy ezek a komponensek és típusok léteznek
+// Feltételezzük, hogy ezek a komponensek léteznek
 import PaymentForm from "@/components/PaymentForm";
 import UserProfile from "@/components/UserProfile"; 
-import { PromoCast, FarcasterUser } from "@/types"; // Importáld a saját típusaidat
+
+// --- JAVÍTÁS: A TÍPUSOK DEFINÍCIÓJA KÖZVETLENÜL ITT TÖRTÉNIK ---
+// A külső import helyett itt hozzuk létre őket, hogy a build hiba megszűnjön.
+
+interface FarcasterUser {
+  fid: number;
+  username: string;
+  displayName: string;
+  pfpUrl?: string;
+}
+
+interface PromoCast {
+  id: string;
+  author: FarcasterUser;
+  castUrl: string;
+  total_budget: number;
+  // Ide jöhetnek a további mezők, amik a listázáshoz kellenek
+  rewardPerShare?: number;
+  sharesCount?: number;
+  remainingBudget?: number;
+  status?: 'active' | 'paused' | 'completed';
+}
+// --- JAVÍTÁS VÉGE ---
+
 
 export default function PromotePage() {
   // === ÁLLAPOTKEZELÉS ===
