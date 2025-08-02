@@ -231,13 +231,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
 
       // Use the improved createCampaign function with proper parameters
       if (promotionId === "new" && newCampaignData) {
+        // Ideiglenes felülírás a teszteléshez:
+        const testRewardPerShare = 1000 // 1K CHESS
+        const testTotalBudget = 10000 // 10K CHESS
+
         createCampaign({
           castUrl: newCampaignData.castUrl.startsWith("http")
             ? newCampaignData.castUrl
             : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
           shareText: newCampaignData.shareText || "Share this promotion!",
-          rewardPerShare: BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18),
-          totalBudget: BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18),
+          rewardPerShare: BigInt(testRewardPerShare) * BigInt(10 ** 18), // Használjuk a teszt értéket
+          totalBudget: BigInt(testTotalBudget) * BigInt(10 ** 18), // Használjuk a teszt értéket
           divisible: true,
         })
       } else if (promotion) {
