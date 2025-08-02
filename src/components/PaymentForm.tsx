@@ -222,8 +222,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     // Ellenőrizze a szimuláció eredményét, mielőtt írási kísérletet tesz
     // Skip simulation check if it's a connector error
     if (!createSimulationData && promotionId === "new" && newCampaignData) {
-      const isConnectorError = createSimulationError?.message?.includes('getChainId') ||
-                              createSimulationError?.message?.includes('connector')
+      const isConnectorError = (createSimulationError?.message?.includes('getChainId') ?? false) ||
+                              (createSimulationError?.message?.includes('connector') ?? false)
       
       if (!isConnectorError) {
         setError(
@@ -524,7 +524,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             {/* Kampány létrehozása gomb */}
             <button
               onClick={handleCreateCampaign}
-              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb || (!createSimulationData && createSimulationError && !createSimulationError.message?.includes('getChainId'))}
+              disabled={isCreatingCampaign || isCreatingCampaignFromHook || isSavingToDb || (!createSimulationData && createSimulationError && !(createSimulationError.message?.includes('getChainId') ?? false))}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
               {isCreatingCampaign || isCreatingCampaignFromHook
