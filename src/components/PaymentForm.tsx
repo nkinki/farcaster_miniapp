@@ -261,33 +261,17 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     try {
       setIsCreatingCampaign(true)
 
-      const campaignData = promotionId === "new" ? newCampaignData! : promotion!
-      console.log("Blokklánc kampány létrehozása ehhez:", campaignData)
-
-      // Használja a továbbfejlesztett createCampaign függvényt megfelelő paraméterekkel
+      // Csak adatbázisba mentés, NEM blokklánc tranzakció!
       if (promotionId === "new" && newCampaignData) {
-        createCampaign({
-          castUrl: newCampaignData.castUrl.startsWith("http")
-            ? newCampaignData.castUrl
-            : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
-          shareText: newCampaignData.shareText || "Share this promotion!",
-          rewardPerShare: parseChessAmount(newCampaignData.rewardPerShare),
-          totalBudget: parseChessAmount(newCampaignData.totalBudget),
-          divisible: true,
-        })
+        await saveNewCampaignToDb("");
       } else if (promotion) {
-        createCampaign({
-          castUrl: promotion.cast_url.startsWith("http")
-            ? promotion.cast_url
-            : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
-          shareText: promotion.share_text || "Share this promotion!",
-          rewardPerShare: parseChessAmount(rewardPerShare),
-          totalBudget: parseChessAmount(promotion.total_budget),
-          divisible: true,
-        })
+        // Meglévő kampány frissítése, ha szükséges
+        // await updateCampaignInDb(promotion)
       }
+      setIsCreatingCampaign(false)
+      setCampaignCreated(true)
     } catch (err) {
-      console.error("Hiba a blokklánc kampány létrehozásakor:", err)
+      console.error("Hiba a kampány mentésekor:", err)
       setError(err instanceof Error ? err.message : "A kampány létrehozása sikertelen.")
       setIsCreatingCampaign(false)
     }
