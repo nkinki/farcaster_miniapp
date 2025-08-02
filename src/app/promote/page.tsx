@@ -11,9 +11,9 @@ import { FiArrowLeft, FiPlus, FiLoader } from "react-icons/fi";
 import PaymentForm from "@/components/PaymentForm";
 import UserProfile from "@/components/UserProfile"; 
 
-// A típusok itt vannak definiálva, hogy ne legyen build hiba
+// A típusok itt vannak definiálva
 interface FarcasterUser {
-  fid: number; // Ennek kötelezően számnak kell lennie
+  fid: number;
   username: string;
   displayName: string;
   pfpUrl?: string;
@@ -59,12 +59,9 @@ export default function PromotePage() {
       }
 
       if (isAuthKitAuthenticated && authKitProfile) {
-        // --- JAVÍTÁS ITT: Hozzáadunk egy ellenőrzést, hogy az 'authKitProfile.fid' létezik-e ---
-        // Ez biztosítja a TypeScript számára, hogy a 'fid' egy 'number', nem pedig 'undefined'.
-        // Csak akkor állítjuk be a felhasználót, ha van érvényes FID-je.
         if (authKitProfile.fid) {
           const user: FarcasterUser = { 
-            fid: authKitProfile.fid, // Most már biztosan 'number'
+            fid: authKitProfile.fid,
             username: authKitProfile.username || `fid:${authKitProfile.fid}`,
             displayName: authKitProfile.displayName || "Farcaster User",
             pfpUrl: authKitProfile.pfpUrl
@@ -73,7 +70,6 @@ export default function PromotePage() {
           setIsAuthenticated(true);
           console.log("Authenticated via AuthKit");
         }
-        // --- JAVÍTÁS VÉGE ---
       } else {
         setUserProfile(null);
         setIsAuthenticated(false);
@@ -160,14 +156,16 @@ export default function PromotePage() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal a blokklánc tranzakciókhoz */}
       {showPaymentModal && modalProps && (
         <PaymentForm
           {...modalProps}
-          onComplete={(amount, hash) => {
-            console.log(`Success! Hash: ${hash}`);
+          // --- JAVÍTÁS ITT: Explicit típusok megadása a callback paramétereinek ---
+          onComplete={(amount: number, hash: string) => {
+            console.log(`Success! Amount: ${amount}, Hash: ${hash}`);
             setShowPaymentModal(false);
             setModalProps(null);
+            // Ide jöhet a lista frissítése
           }}
           onCancel={() => {
             setShowPaymentModal(false);
