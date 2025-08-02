@@ -9,14 +9,7 @@ import { useAccount, useSimulateContract } from "wagmi"
 import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json"
 import { CONTRACTS } from "../config/contracts"
 
-// TypeScript deklaráció a window.ethereum-hoz
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>
-    }
-  }
-}
+// Eltávolítva a declare global blokk a window.ethereum-hoz
 
 interface PaymentFormProps {
   promotionId: string
@@ -234,17 +227,13 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
 
       // Használja a továbbfejlesztett createCampaign függvényt megfelelő paraméterekkel
       if (promotionId === "new" && newCampaignData) {
-        // Ideiglenes felülírás a teszteléshez:
-        // const testRewardPerShare = 1000 // 1K CHESS
-        // const testTotalBudget = 10000 // 10K CHESS
-
         createCampaign({
           castUrl: newCampaignData.castUrl.startsWith("http")
             ? newCampaignData.castUrl
             : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
           shareText: newCampaignData.shareText || "Share this promotion!",
-          rewardPerShare: BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18), // Használjuk a teszt értéket
-          totalBudget: BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18), // Használjuk a teszt értéket
+          rewardPerShare: BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18),
+          totalBudget: BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18),
           divisible: true,
         })
       } else if (promotion) {
