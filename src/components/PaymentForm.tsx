@@ -61,6 +61,10 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
     balanceLoading,
     allowanceLoading,
     approveFarcasterPromo,
+    formatChessAmount,
+    parseChessAmount,
+    decimals,
+    decimalMultiplier,
   } = useChessToken()
 
   // Hibakeresési naplózás a PaymentForm-hoz
@@ -121,8 +125,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             ? newCampaignData.castUrl
             : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
           newCampaignData.shareText || "Share this promotion!",
-          BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
-          BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
+          parseChessAmount(newCampaignData.rewardPerShare), // Proper decimal conversion
+          parseChessAmount(newCampaignData.totalBudget), // Proper decimal conversion
           true, // osztható
         ]
       : promotion
@@ -131,8 +135,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               ? promotion.cast_url
               : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
             promotion.share_text || "Share this promotion!",
-            BigInt(rewardPerShare) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
-            BigInt(promotion.total_budget) * BigInt(10 ** 18), // Megfelelő BigInt konverzió
+            parseChessAmount(rewardPerShare), // Proper decimal conversion
+            parseChessAmount(promotion.total_budget), // Proper decimal conversion
             true, // osztható
           ]
         : undefined,
@@ -267,8 +271,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             ? newCampaignData.castUrl
             : `https://warpcast.com/~/conversations/${newCampaignData.castUrl}`,
           shareText: newCampaignData.shareText || "Share this promotion!",
-          rewardPerShare: BigInt(newCampaignData.rewardPerShare) * BigInt(10 ** 18),
-          totalBudget: BigInt(newCampaignData.totalBudget) * BigInt(10 ** 18),
+          rewardPerShare: parseChessAmount(newCampaignData.rewardPerShare),
+          totalBudget: parseChessAmount(newCampaignData.totalBudget),
           divisible: true,
         })
       } else if (promotion) {
@@ -277,8 +281,8 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
             ? promotion.cast_url
             : `https://warpcast.com/~/conversations/${promotion.cast_url}`,
           shareText: promotion.share_text || "Share this promotion!",
-          rewardPerShare: BigInt(rewardPerShare) * BigInt(10 ** 18),
-          totalBudget: BigInt(promotion.total_budget) * BigInt(10 ** 18),
+          rewardPerShare: parseChessAmount(rewardPerShare),
+          totalBudget: parseChessAmount(promotion.total_budget),
           divisible: true,
         })
       }
@@ -434,7 +438,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               : balanceError
                 ? `Hiba: ${balanceError.message}`
                 : balance
-                  ? `${(Number(balance) / 1e18).toFixed(2)} CHESS`
+                  ? `${formatChessAmount(balance)} CHESS`
                   : "0 CHESS"}
           </p>
           <p className="text-red-200 text-xs">
@@ -444,11 +448,11 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
               : allowanceError
                 ? `Hiba: ${allowanceError.message}`
                 : allowance
-                  ? `${(Number(allowance) / 1e18).toFixed(2)} CHESS`
+                  ? `${formatChessAmount(allowance)} CHESS`
                   : "0 CHESS"}
           </p>
           <p className="text-red-200 text-xs">
-            Jóváhagyás szükséges: {needsApproval(BigInt(10000) * BigInt(10 ** 18)) ? "Igen" : "Nem"}
+            Jóváhagyás szükséges: {needsApproval(parseChessAmount(10000)) ? "Igen" : "Nem"}
           </p>
           <p className="text-red-200 text-xs">
             CHESS Token: {CONTRACTS.CHESS_TOKEN.substring(0, 6)}...
@@ -480,13 +484,15 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                 console.log("Debug approval attempt:", {
                   address,
                   isConnected,
-                  amount: (BigInt(10000) * BigInt(10 ** 18)).toString()
+                  amount: parseChessAmount(10000).toString(),
+                  decimals,
+                  decimalMultiplier: decimalMultiplier.toString()
                 })
                 
                 // Add delay to ensure connector is ready
                 await new Promise(resolve => setTimeout(resolve, 300))
                 
-                approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
+                approveFarcasterPromo(parseChessAmount(10000))
               } catch (error) {
                 console.error("Debug approval error:", error)
                 if (error instanceof Error) {
@@ -593,13 +599,13 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
           </button>
 
           {/* Jóváhagyás gomb a finanszírozáshoz */}
-          {needsApproval(BigInt(10000) * BigInt(10 ** 18)) && (
+          {needsApproval(parseChessAmount(10000)) && (
             <button
               onClick={async () => {
                 console.log("🎯 Jóváhagyás gomb megnyomva")
                 console.log("📋 Jóváhagyási paraméterek:", {
                   spender: CONTRACTS.FarcasterPromo,
-                  amount: (BigInt(10000) * BigInt(10 ** 18)).toString(),
+                  amount: parseChessAmount(10000).toString(),
                 })
 
                 try {
@@ -616,7 +622,7 @@ export default function PaymentForm({ promotionId, onPaymentComplete, onCancel, 
                   await new Promise(resolve => setTimeout(resolve, 200))
 
                   // Use the correct function signature
-                  approveFarcasterPromo(BigInt(10000) * BigInt(10 ** 18))
+                  approveFarcasterPromo(parseChessAmount(10000))
                 } catch (error) {
                   console.error("❌ Approval button error:", error)
                   if (error instanceof Error) {

@@ -10,6 +10,42 @@ export function useChessToken() {
   const { address, isConnected } = useAccount()
   console.log("👤 User address:", address, "Connected:", isConnected)
 
+  // Read CHESS token decimals
+  const {
+    data: decimals,
+    error: decimalsError,
+    isLoading: decimalsLoading,
+  } = useReadContract({
+    address: CONTRACTS.CHESS_TOKEN as `0x${string}`,
+    abi: CHESS_TOKEN_ABI,
+    functionName: "decimals",
+    query: {
+      enabled: !!CONTRACTS.CHESS_TOKEN,
+      retry: (failureCount, error) => {
+        if (error?.message?.includes('getChainId') ||
+            error?.message?.includes('connector') ||
+            error?.message?.includes('chain')) {
+          console.warn('Skipping decimals retry for connector error:', error.message)
+          return false
+        }
+        return failureCount < 3
+      },
+      retryDelay: 1000,
+    },
+  })
+
+  // Use 18 as default decimals (standard for CHESS token)
+  const tokenDecimals = decimals ? Number(decimals) : 18
+  const decimalMultiplier = BigInt(10 ** tokenDecimals)
+
+  console.log("🔢 CHESS Token Decimals:", {
+    decimals: decimals?.toString(),
+    tokenDecimals,
+    decimalMultiplier: decimalMultiplier.toString(),
+    decimalsError: decimalsError?.message,
+    decimalsLoading,
+  })
+
   // Read functions with better error handling
   const {
     data: balance,
@@ -121,8 +157,8 @@ export function useChessToken() {
       currentAllowance: currentAllowance.toString(),
       needs,
       allowanceRaw: allowance,
-      amountInCHESS: Number(amount) / 1e18,
-      allowanceInCHESS: Number(currentAllowance) / 1e18,
+      amountInCHESS: Number(amount) / Number(decimalMultiplier),
+      allowanceInCHESS: Number(currentAllowance) / Number(decimalMultiplier),
     })
 
     return needs
@@ -133,7 +169,7 @@ export function useChessToken() {
     console.log("🚀 Approve function called:", {
       spender,
       amount: amount.toString(),
-      amountInCHESS: Number(amount) / 1e18,
+      amountInCHESS: Number(amount) / Number(decimalMultiplier),
       contractAddress: CONTRACTS.CHESS_TOKEN,
       isConnected,
       address
@@ -182,10 +218,25 @@ export function useChessToken() {
     return approve(CONTRACTS.FarcasterPromo as `0x${string}`, amount)
   }
 
+  // Helper functions for formatting
+  const formatChessAmount = (amount: bigint): string => {
+    const formatted = Number(amount) / Number(decimalMultiplier)
+    return formatted.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    })
+  }
+
+  const parseChessAmount = (amount: number): bigint => {
+    return BigInt(Math.floor(amount)) * decimalMultiplier
+  }
+
   return {
     // Read data
     balance: balance || BigInt(0),
     allowance: allowance || BigInt(0),
+    decimals: tokenDecimals,
+    decimalMultiplier,
 
     // Write functions
     approve,
@@ -201,16 +252,20 @@ export function useChessToken() {
     approvalReceiptError,
     balanceError,
     allowanceError,
+    decimalsError,
 
     // Loading states
     balanceLoading,
     allowanceLoading,
+    decimalsLoading,
 
     // Transaction hash
     approveHash,
 
     // Helper functions
     needsApproval,
+    formatChessAmount,
+    parseChessAmount,
 
     // Refetch functions
     refetchBalance,
