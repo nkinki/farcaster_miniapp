@@ -7,15 +7,14 @@ import { FiAlertCircle, FiCheckCircle, FiLoader } from "react-icons/fi";
 import { useSimulateContract } from "wagmi";
 import { BaseError } from "viem";
 
-// Csak a szükséges hook-okat és adatokat importáljuk
 import { useFarcasterPromo } from "@/hooks/useFarcasterPromo";
 import { useChessToken } from "@/hooks/useChessToken";
 import { usePromotion } from "@/hooks/usePromotions";
 import { CONTRACTS } from "@/config/contracts";
-import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json"; // Relatív útvonal használata
+import FARCASTER_PROMO_ABI from "../../abis/FarcasterPromo.json";
 
 interface PaymentFormProps {
-  promotionId: string; // 'new' vagy egy létező ID
+  promotionId: string;
   onComplete: (amount: number, hash: string) => void;
   onCancel: () => void;
   newCampaignData?: {
@@ -30,16 +29,13 @@ export default function PaymentForm({ promotionId, onComplete, onCancel, newCamp
   const [error, setError] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
   
-  // A hook-ok, amik a tényleges blokklánc interakciókat végzik
   const { createCampaign, isCreatingCampaign, fundCampaign, isFundingCampaign } = useFarcasterPromo();
   const { approve, isApproving, needsApproval } = useChessToken();
-  // Ez a hook a MEGLÉVŐ kampányok adatainak lekérdezésére szolgál
   const { promotion } = usePromotion(promotionId === 'new' ? undefined : Number(promotionId));
 
   const isNewCampaign = promotionId === 'new';
   const isLoading = isCreatingCampaign || isFundingCampaign || isApproving;
 
-  // --- SZIMULÁCIÓ ÚJ KAMPÁNY LÉTREHOZÁSÁHOZ ---
   const { data: simResult, error: simError } = useSimulateContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
@@ -54,7 +50,6 @@ export default function PaymentForm({ promotionId, onComplete, onCancel, newCamp
     query: { enabled: isNewCampaign && !!newCampaignData },
   });
 
-  // --- ESEMÉNYKEZELŐK ---
   const handleCreate = () => {
     if (!simResult?.request) {
       const errMsg = simError instanceof BaseError ? simError.shortMessage : "Simulation failed. Check console for details.";
@@ -64,12 +59,16 @@ export default function PaymentForm({ promotionId, onComplete, onCancel, newCamp
     }
     setError("");
     setSuccessMessage("Creating campaign on the blockchain...");
-    createCampaign(simResult.request, {
-      onSuccess: (hash) => {
+    
+    // --- JAVÍTÁS ITT: A 'createCampaign' egyetlen objektumot vár argumentumként,
+    // amiben benne van a request és a callbackek is.
+    createCampaign({
+      ...simResult.request, // A szimulációból kapott request adatok
+      onSuccess: (hash: string) => {
         setSuccessMessage(`Campaign created successfully!`);
         onComplete(newCampaignData!.totalBudget, hash);
       },
-      onError: (err) => {
+      onError: (err: Error) => {
         setError(err.message);
       }
     });
@@ -82,12 +81,14 @@ export default function PaymentForm({ promotionId, onComplete, onCancel, newCamp
     
     const executeFund = () => {
       setSuccessMessage("Funding campaign...");
-      fundCampaign({ /* Itt a te fundCampaign hook-odnak megfelelő argumentumok kellenek */ }, {
-        onSuccess: (hash) => {
+      // A fundCampaign hívásnak is ezt a mintát kell követnie
+      fundCampaign({
+        // ...a fundCampaign hook argumentumai...
+        onSuccess: (hash: string) => {
           setSuccessMessage("Funding successful!");
           onComplete(promotion.total_budget, hash);
         },
-        onError: (err) => {
+        onError: (err: Error) => {
           setError(err.message);
         }
       });
@@ -95,12 +96,14 @@ export default function PaymentForm({ promotionId, onComplete, onCancel, newCamp
     
     if (needsApproval(budget)) {
       setSuccessMessage("Approval required. Please confirm in your wallet...");
-      approve([CONTRACTS.FarcasterPromo as `0x${string}`, budget], {
+      // Az approve hívásnak is ezt a mintát kell követnie
+      approve({
+        args: [CONTRACTS.FarcasterPromo as `0x${string}`, budget],
         onSuccess: () => {
           setSuccessMessage("Approval successful! Now funding...");
           executeFund();
         },
-        onError: (err) => {
+        onError: (err: Error) => {
           setError(err.message);
         }
       });
@@ -132,13 +135,11 @@ export default function PaymentForm({ promotionId, onComplete, onCancel, newCamp
           ) : <p className="text-center text-gray-400">Loading promotion data...</p>}
         </div>
 
-        {/* Üzenetek */}
         <div className="mt-4 min-h-[40px] text-sm">
           {successMessage && <div className="flex items-center gap-2 text-green-400 p-2 bg-green-900/30 rounded-lg"><FiCheckCircle /><span>{successMessage}</span></div>}
           {error && <div className="flex items-center gap-2 text-red-400 p-2 bg-red-900/30 rounded-lg"><FiAlertCircle /><span>{error}</span></div>}
         </div>
 
-        {/* Bezárás gomb */}
         <button onClick={onCancel} disabled={isLoading} className="w-full mt-2 bg-gray-700 hover:bg-gray-600 rounded-lg py-2 text-sm disabled:opacity-50">
           Cancel
         </button>
