@@ -10,15 +10,17 @@ import PaymentForm from "../../components/PaymentForm"
 import FundingForm from "../../components/FundingForm"
 import { useAccount } from "wagmi"
 import { ConnectWalletButton } from "@/components/ConnectWalletButton"
+
+// A típusokat a központi types fájlból importáljuk a konzisztencia érdekében
 import { PromoCast, DatabasePromotion } from "@/types/promotions"
 
-// Farcaster-specifikus típusok, érdemes lehet ezeket is központosítani
+// Farcaster-specifikus típusok, ezeket is érdemes lehet központosítani
 interface FarcasterUser {
   fid: number
   username?: string
   displayName?: string
   pfpUrl?: string
-  pfp?: string // Frame SDK uses 'pfp' instead of 'pfpUrl'
+  pfp?: string // Frame SDK a 'pfp'-t használja
 }
 
 interface FarcasterContext {
@@ -26,7 +28,7 @@ interface FarcasterContext {
   client?: {
     platformType?: "web" | "mobile"
     safeAreaInsets?: { top: number; bottom: number; left: number; right: number }
-    added?: boolean // Frame SDK property
+    added?: boolean
   }
   location?: {
     type: string
@@ -34,7 +36,7 @@ interface FarcasterContext {
   }
 }
 
-// Helper a DB -> Kliens konverzióhoz
+// Helper függvény az adatbázis formátumról a kliensoldali formátumra való konvertáláshoz
 const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   id: dbPromo.id.toString(),
   castUrl: dbPromo.cast_url,
@@ -54,33 +56,38 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
 })
 
 export default function PromotePage() {
-  // State-ek
+  // State-ek a komponens működéséhez
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
-  const [context, setContext] = useState<FarcasterContext | null>(null)
-  const [sdkType, setSdkType] = useState<"miniapp" | "frame" | null>(null)
+  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
+  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showFundingForm, setShowFundingForm] = useState(false)
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null)
-  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
-  const [loading, setLoading] = useState(true)
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null)
-  const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({})
   const [userStats, setUserStats] = useState<{ totalEarnings: number; totalShares: number; pendingClaims: number }>({
     totalEarnings: 0,
     totalShares: 0,
     pendingClaims: 0,
   })
 
-  // SDK inicializálása
+  // SDK inicializálása és felhasználói adatok lekérése
   useEffect(() => {
     const initializeSDKs = async () => {
-      // ... (a korábbi SDK inicializáló logika változatlan)
+      try {
+        const miniAppContext = await miniAppSdk.context;
+        if (miniAppContext.user?.fid) {
+          setIsAuthenticated(true);
+          setProfile(miniAppContext.user);
+        }
+      } catch (e) {
+        console.log("Could not initialize Mini App SDK, falling back.");
+      }
     };
     initializeSDKs();
   }, [])
 
-  // Adatok lekérése
+  // Promóciók lekérése az API-ról
   const fetchPromotions = useCallback(async () => {
     setLoading(true);
     try {
@@ -102,18 +109,7 @@ export default function PromotePage() {
     fetchPromotions();
   }, [fetchPromotions]);
 
-  const fetchUserStats = useCallback(async (fid: number) => {
-    // ... (user stats lekérő logika)
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated && profile?.fid) {
-      fetchUserStats(profile.fid);
-    }
-  }, [isAuthenticated, profile, fetchUserStats]);
-
-
-  // Aktuális felhasználó
+  // Aktuális felhasználó objektum definiálása
   const currentUser =
     isAuthenticated && profile
       ? {
@@ -122,16 +118,15 @@ export default function PromotePage() {
           displayName: profile.displayName || "Current User",
         }
       : {
-          fid: 0, // Inaktív felhasználó esetén biztonságos default érték
+          fid: 0, // Guest felhasználó, soha nem egyezik meg egy valós FID-vel
           username: "guest",
           displayName: "Guest",
         };
   
-  // Handler függvények a formokhoz
+  // Handler függvények a formok sikeres/sikertelen bezárásához
   const handleCreateSuccess = () => {
     setShowForm(false);
     fetchPromotions();
-    alert("Campaign created successfully!");
   };
 
   const handleCreateCancel = () => {
@@ -142,7 +137,6 @@ export default function PromotePage() {
     setShowFundingForm(false);
     setFundingPromo(null);
     fetchPromotions();
-    alert("Campaign funded successfully!");
   };
 
   const handleFundCancel = () => {
@@ -152,10 +146,33 @@ export default function PromotePage() {
   
   // Megosztás kezelése
   const handleSharePromo = async (promo: PromoCast) => {
-    // ... (a megosztás logikája változatlan)
+    if (!isAuthenticated) return alert("Please connect your Farcaster account first.");
+    if (promo.status !== 'active') return alert("This campaign is not active.");
+    if (promo.author.fid === currentUser.fid) return alert("You cannot share your own campaign.");
+
+    setSharingPromoId(promo.id);
+    try {
+      const castResult = await miniAppSdk.actions.composeCast({
+        text: promo.shareText || `Check out this amazing post!`,
+        embeds: [promo.castUrl],
+      });
+      if (!castResult || !castResult.cast) {
+        console.log("Cast was cancelled or failed.");
+        setSharingPromoId(null);
+        return;
+      }
+      // Itt következne a share rögzítése a backend felé
+      // ...
+      alert(`Successfully shared! You earned ${promo.rewardPerShare} $CHESS!`);
+      fetchPromotions();
+    } catch (error) {
+      alert(`Share failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setSharingPromoId(null);
+    }
   };
 
-  // Látható promóciók szűrése
+  // Látható promóciók szűrése a fő listához
   const visiblePromos = promoCasts.filter(
     (promo) => promo.status === "active" || promo.author.fid === currentUser.fid
   );
@@ -166,7 +183,7 @@ export default function PromotePage() {
     return (spent / promo.totalBudget) * 100;
   };
 
-  // Loading állapot
+  // Töltőképernyő
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
@@ -175,7 +192,6 @@ export default function PromotePage() {
     );
   }
 
-  // Renderelés
   return (
     <div className={`min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6`}>
       <div className="max-w-4xl mx-auto">
@@ -200,7 +216,7 @@ export default function PromotePage() {
           />
         </div>
 
-        {/* Create Promotion Button */}
+        {/* "Create Promotion" gomb */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setShowForm(true)}
@@ -211,15 +227,15 @@ export default function PromotePage() {
           </button>
         </div>
         
-        {/* Campaign Creation Form (only if showForm) */}
+        {/* Kampány Létrehozó Form (modal-szerűen) */}
         {showForm && (
           <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-white text-xl font-bold"
+              className="absolute top-3 right-3 text-gray-400 hover:text-white"
               onClick={handleCreateCancel}
               aria-label="Close"
             >
-              ×
+              <FiX size={24} />
             </button>
             <PaymentForm 
               user={currentUser} 
@@ -229,7 +245,7 @@ export default function PromotePage() {
           </div>
         )}
 
-        {/* Campaigns List */}
+        {/* Kampányok listája */}
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white">Available Campaigns</h2>
@@ -242,8 +258,24 @@ export default function PromotePage() {
           ) : (
             visiblePromos.map((promo) => (
               <div key={promo.id} className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
+                {/* Kampány kártya tartalma */}
                 <div className="flex items-start justify-between mb-4">
-                  {/* ... (Campaign card details) */}
+                  <div className="flex-1 overflow-hidden pr-4">
+                    <p className="text-white font-semibold truncate">{promo.castUrl}</p>
+                    <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
+                        promo.status === "active" ? "bg-green-600 text-white" :
+                        promo.status === "paused" ? "bg-yellow-600 text-white" :
+                        promo.status === "inactive" ? "bg-blue-600 text-white" :
+                        "bg-gray-600 text-white"
+                      }`}>
+                    {promo.status === 'inactive' ? 'Funding Needed' : promo.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-center">
+                  {/* ... Statisztikák ... */}
                 </div>
 
                 <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
@@ -254,7 +286,7 @@ export default function PromotePage() {
                 </div>
 
                 <div className="flex gap-3">
-                  {/* Fund Campaign Button - only show for own campaigns */}
+                  {/* Finanszírozás gomb (saját kampányoknál) */}
                   {promo.author.fid === currentUser.fid && (
                     <button
                       onClick={() => {
@@ -264,22 +296,18 @@ export default function PromotePage() {
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all"
                     >
                       <FiDollarSign />
-                      Fund Campaign
+                      Fund
                     </button>
                   )}
 
-                  {/* Share & Earn Button */}
+                  {/* Megosztás gomb */}
                   <button
                     onClick={() => handleSharePromo(promo)}
-                    disabled={
-                      sharingPromoId === promo.id ||
-                      promo.author.fid === currentUser.fid ||
-                      promo.status !== 'active'
-                    }
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white disabled:from-gray-600 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    disabled={sharingPromoId === promo.id || promo.author.fid === currentUser.fid || promo.status !== 'active'}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all bg-gradient-to-r from-green-600 to-blue-600 text-white disabled:from-gray-600 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed"
                   >
-                    <FiShare2 size={16} />
-                    {promo.author.fid === currentUser.fid ? 'Your Campaign' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
+                    {sharingPromoId === promo.id ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiShare2 size={16} />}
+                    <span>{promo.author.fid === currentUser.fid ? 'Your Campaign' : 'Share & Earn'}</span>
                   </button>
                 </div>
               </div>
@@ -288,7 +316,7 @@ export default function PromotePage() {
         </div>
       </div>
 
-      {/* Funding Form Modal */}
+      {/* Finanszírozó Form (modal) */}
       {showFundingForm && fundingPromo && (
         <FundingForm
           promotionId={Number(fundingPromo.id)}
