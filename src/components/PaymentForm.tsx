@@ -93,7 +93,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
 
   // Sikeres createCampaign után mentés Neon DB-be
   useEffect(() => {
-    if (isCreateSuccess && createHash && !isSaving && autoStep !== "done") {
+    if (isCreateCampaignSuccess && createCampaignHash && !isSaving && autoStep !== "done") {
       setIsSaving(true)
       setAutoStep("saving")
       fetch("/api/promotions", {
@@ -104,14 +104,14 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
           share_text: shareText,
           reward_per_share: rewardPerShare,
           total_budget: totalBudget,
-          blockchain_hash: createHash,
+          blockchain_hash: createCampaignHash,
           status: "active"
         })
       })
         .then(res => res.json())
         .then(() => {
           setIsSaving(false)
-          setTxHash(createHash)
+          setTxHash(createCampaignHash)
           setAutoStep("done")
           if (onSuccess) onSuccess()
         })
@@ -120,7 +120,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
           setIsSaving(false)
         })
     }
-  }, [isCreateSuccess, createHash, isSaving, castUrl, shareText, rewardPerShare, totalBudget, onSuccess, autoStep])
+  }, [isCreateCampaignSuccess, createCampaignHash, isSaving, castUrl, shareText, rewardPerShare, totalBudget, onSuccess, autoStep])
 
   // Hibakezelés: ha nincs elég balance
   useEffect(() => {
