@@ -151,6 +151,27 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
   return (
     <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
       <h2 className="text-xl font-bold mb-4 text-white">Új promóció létrehozása</h2>
+
+      {/* DEBUG PANEL */}
+      <div className="mb-4 p-3 bg-gray-800 rounded-lg text-xs text-yellow-200">
+        <div><b>isConnected:</b> {isConnected ? 'true' : 'false'}</div>
+        <div><b>address:</b> {address || 'nincs'}</div>
+        <div><b>balance:</b> {balance ? balance.toString() : 'nincs'}</div>
+        <div><b>allowance:</b> {allowance ? allowance.toString() : 'nincs'}</div>
+        <div><b>rewardPerShare:</b> {rewardPerShare}</div>
+        <div><b>totalBudget:</b> {totalBudget}</div>
+        <div><b>needsApproval:</b> {needsApproval() ? 'true' : 'false'}</div>
+        <div><b>autoStep:</b> {autoStep}</div>
+        <div><b>isApproving:</b> {isApproving ? 'true' : 'false'}</div>
+        <div><b>isApproveLoading:</b> {isApproveLoading ? 'true' : 'false'}</div>
+        <div><b>isApproveSuccess:</b> {isApproveSuccess ? 'true' : 'false'}</div>
+        <div><b>isCreating:</b> {isCreating ? 'true' : 'false'}</div>
+        <div><b>isCreateLoading:</b> {isCreateLoading ? 'true' : 'false'}</div>
+        <div><b>isCreateSuccess:</b> {isCreateSuccess ? 'true' : 'false'}</div>
+        <div><b>isSaving:</b> {isSaving ? 'true' : 'false'}</div>
+        <div><b>error:</b> {error || 'nincs'}</div>
+      </div>
+
       <input
         className="mb-2 w-full p-2 rounded"
         placeholder="Cast URL"
