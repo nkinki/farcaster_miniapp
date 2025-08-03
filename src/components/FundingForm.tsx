@@ -6,7 +6,7 @@ import { useChessToken } from "../hooks/useChessToken"
 import { useFarcasterPromo } from "../hooks/useFarcasterPromo"
 
 // Types and Enums
-type PromotionStatus = "inactive" | "active"
+type PromotionStatus = "inactive" | "active" | "paused" | "completed"
 type FundingStep = "idle" | "approving" | "funding" | "creating" | "done"
 
 interface FundingFormProps {
@@ -187,6 +187,16 @@ function useFundingLogic({
         return
       }
       await handleFundCampaign()
+    } else if (status === "paused") {
+      setState(prev => ({
+        ...prev,
+        error: "This promotion is paused and cannot be funded at this time."
+      }))
+    } else if (status === "completed") {
+      setState(prev => ({
+        ...prev,
+        error: "This promotion is completed and cannot be funded."
+      }))
     } else {
       setState(prev => ({
         ...prev,
