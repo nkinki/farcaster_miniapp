@@ -10,6 +10,7 @@ interface Promo {
   rewardPerShare: number
   totalBudget: number
   status: string
+  shareText?: string
   createdAt?: string
 }
 
