@@ -8,10 +8,15 @@ import { useFarcasterPromo } from "../hooks/useFarcasterPromo"
 interface FundingFormProps {
   promotionId: number
   totalBudget: number
+  rewardPerShare: number
+  castUrl: string
+  shareText: string
+  status: string // "inactive" | "active"
+  onchainCampaignId?: number
   onSuccess?: () => void
 }
 
-export default function FundingForm({ promotionId, totalBudget, onSuccess }: FundingFormProps) {
+export default function FundingForm({ promotionId, totalBudget, rewardPerShare, castUrl, shareText, status, onchainCampaignId, onSuccess }: FundingFormProps) {
   const { address, isConnected } = useAccount()
   const {
     approveFarcasterPromo,
@@ -28,12 +33,18 @@ export default function FundingForm({ promotionId, totalBudget, onSuccess }: Fun
     isFundCampaignSuccess,
     fundCampaignHash,
     fundCampaignError,
-    isFundCampaignConfirming
+    isFundCampaignConfirming,
+    createCampaign,
+    isCreatingCampaign,
+    isCreateCampaignSuccess,
+    createCampaignHash,
+    createCampaignError,
+    isCreateCampaignConfirming
   } = useFarcasterPromo()
 
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [autoStep, setAutoStep] = useState<"idle"|"approving"|"funding"|"done">("idle")
+  const [autoStep, setAutoStep] = useState<"idle"|"approving"|"funding"|"creating"|"done">("idle")
 
   // Funding amount
   const amount = parseChessAmount(totalBudget)
@@ -50,24 +61,46 @@ export default function FundingForm({ promotionId, totalBudget, onSuccess }: Fun
     }
   }
 
-  // Funding
+  // Funding (createCampaign or fundCampaign)
   const handleFund = async () => {
     setError(null)
-    setAutoStep("funding")
-    try {
-      await fundCampaign(BigInt(promotionId), amount)
-      // PATCH status to active
-      await fetch(`/api/promotions/${promotionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "active" })
-      })
-      setSuccess(true)
-      setAutoStep("done")
-      if (onSuccess) onSuccess()
-    } catch (e: any) {
-      setError(e.message || "Funding failed")
-      setAutoStep("idle")
+    if (status === "inactive") {
+      setAutoStep("creating")
+      try {
+        // Onchain createCampaign
+        const tx = await createCampaign({
+          castUrl,
+          shareText,
+          rewardPerShare: parseChessAmount(rewardPerShare),
+          totalBudget: amount,
+          divisible: true
+        })
+        // TODO: Get campaignId from event/log, PATCH to DB
+        await fetch(`/api/promotions/${promotionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "active" })
+        })
+        setSuccess(true)
+        setAutoStep("done")
+        if (onSuccess) onSuccess()
+      } catch (e: any) {
+        setError(e.message || "Funding failed (createCampaign)")
+        setAutoStep("idle")
+      }
+    } else if (status === "active" && onchainCampaignId) {
+      setAutoStep("funding")
+      try {
+        await fundCampaign(BigInt(onchainCampaignId), amount)
+        setSuccess(true)
+        setAutoStep("done")
+        if (onSuccess) onSuccess()
+      } catch (e: any) {
+        setError(e.message || "Funding failed (fundCampaign)")
+        setAutoStep("idle")
+      }
+    } else {
+      setError("Invalid promotion state for funding.")
     }
   }
 
@@ -100,9 +133,16 @@ export default function FundingForm({ promotionId, totalBudget, onSuccess }: Fun
         <button
           className="w-full bg-blue-600 text-white py-2 rounded mb-2 disabled:opacity-50"
           onClick={handleFund}
-          disabled={isFundingCampaign || autoStep === "funding" || !hasSufficientBalance}
+          disabled={
+            (status === "inactive" && (isCreatingCampaign || autoStep === "creating")) ||
+            (status === "active" && (isFundingCampaign || autoStep === "funding")) ||
+            !hasSufficientBalance
+          }
         >
-          {isFundingCampaign || autoStep === "funding" ? "Funding..." : "Activate (onchain funding)"}
+          {(status === "inactive" && (isCreatingCampaign || autoStep === "creating")) ? "Creating..."
+            : (status === "active" && (isFundingCampaign || autoStep === "funding")) ? "Funding..."
+            : status === "inactive" ? "Activate (onchain create)"
+            : "Fund Campaign (onchain)"}
         </button>
       )}
       <div className="mt-4 text-xs text-gray-400">
