@@ -264,7 +264,6 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
             <div><b>Cast URL:</b> {castUrl || "Nincs megadva"}</div>
             <div><b>Share Text:</b> {shareText || "No custom text"}</div>
             <div><b>Reward Per Share:</b> {rewardPerShare.toLocaleString()} $CHESS</div>
-            <div><b>Total Budget:</b> {totalBudget.toLocaleString()} $CHESS</div>
             <div><b>Max Shares:</b> {maxShares} shares</div>
           </div>
           <button
