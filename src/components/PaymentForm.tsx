@@ -62,7 +62,7 @@ export default function PaymentForm({ user, onSuccess }: PaymentFormProps) {
           shareText: shareText,
           rewardPerShare: rewardPerShare,
           totalBudget: totalBudget,
-          status: "inactive"
+          status: "inactive" // ALWAYS INACTIVE ON CREATION!
         })
       })
       if (!res.ok) {
