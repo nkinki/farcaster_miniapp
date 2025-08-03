@@ -62,8 +62,19 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   }, [isConnected, address, castUrl, rewardPerShare, totalBudget, isApproving, allowance, autoStep, approveFarcasterPromo, needsApproval, parseChessAmount])
 
-  // Automatikus createCampaign, ha van elég allowance
+  // Automatikus createCampaign, ha van elég allowance (debug loggal)
   useEffect(() => {
+    console.log("Checking createCampaign conditions:", {
+      isConnected,
+      address,
+      castUrl,
+      rewardPerShare,
+      totalBudget,
+      needsApproval: needsApproval(parseChessAmount(totalBudget)),
+      isCreatingCampaign,
+      autoStep,
+      isCreateCampaignSuccess,
+    });
     if (
       isConnected &&
       address &&
@@ -139,11 +150,40 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       totalBudgetParsed: parseChessAmount(totalBudget).toString(),
     });
     if (typeof balance === "bigint" && balance < parseChessAmount(totalBudget)) {
-      setError("Nincs elég CHESS token a walletben!");
+      setError("Nincs elég CHESS token a walletben!")
     } else {
-      setError(null); // Töröljük a hibát, ha elég egyenleg van
+      setError(null)
     }
   }, [balance, totalBudget, parseChessAmount])
+
+  // Manuális trigger a gombra kattintásra
+  const handleCreateCampaign = () => {
+    if (
+      !isConnected ||
+      !address ||
+      !castUrl ||
+      rewardPerShare <= 0 ||
+      totalBudget <= 0
+    ) {
+      setError("Kérlek, tölts ki minden mezőt helyesen!")
+      return
+    }
+    if (needsApproval(parseChessAmount(totalBudget))) {
+      setError("Nincs elég engedélyezett összeg, jóváhagyás szükséges!")
+      setAutoStep("approving")
+      approveFarcasterPromo(parseChessAmount(totalBudget))
+      return
+    }
+    setError(null)
+    setAutoStep("creating")
+    createCampaign({
+      castUrl,
+      shareText,
+      rewardPerShare: parseChessAmount(rewardPerShare),
+      totalBudget: parseChessAmount(totalBudget),
+      divisible: true,
+    })
+  }
 
   return (
     <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
@@ -180,20 +220,28 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
         value={shareText}
         onChange={(e) => { setShareText(e.target.value); setAutoStep("idle"); }}
       />
-      <input
+      <select
         className="mb-2 w-full p-2 rounded"
-        type="number"
-        placeholder="Jutalom megosztásonként (CHESS)"
         value={rewardPerShare}
         onChange={(e) => { setRewardPerShare(Number(e.target.value)); setAutoStep("idle"); }}
-      />
-      <input
+      >
+        <option value={1000}>1K</option>
+        <option value={2000}>2K</option>
+        <option value={5000}>5K</option>
+        <option value={10000}>10K</option>
+        <option value={20000}>20K</option>
+      </select>
+      <select
         className="mb-2 w-full p-2 rounded"
-        type="number"
-        placeholder="Teljes költségvetés (CHESS)"
         value={totalBudget}
         onChange={(e) => { setTotalBudget(Number(e.target.value)); setAutoStep("idle"); }}
-      />
+      >
+        <option value={10000}>10K</option>
+        <option value={100000}>100K</option>
+        <option value={500000}>500K</option>
+        <option value={1000000}>1M</option>
+        <option value={5000000}>5M</option>
+      </select>
 
       <div className="mb-2 text-sm text-gray-300">
         Egyenleg: {balance ? formatChessAmount(balance) : "–"} CHESS<br />
@@ -207,6 +255,20 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       {isSaving && <div className="text-yellow-300 mb-2">Mentés Neon DB-be...</div>}
       {createCampaignHash && <div className="text-green-400 mb-2">Siker! Tranzakció hash: {createCampaignHash.toString()}</div>}
       {autoStep === "done" && <div className="text-green-400 mb-2">Promóció sikeresen létrehozva!</div>}
+
+      <button
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mt-2"
+        onClick={handleCreateCampaign}
+        disabled={isApproving || isCreatingCampaign || isSaving}
+      >
+        Create Campaign
+      </button>
+      <button
+        className="w-full bg-gray-600 hover:bg-gray-700 text-white p-2 rounded mt-2"
+        onClick={() => { setAutoStep("idle"); setError(null); }}
+      >
+        Cancel
+      </button>
     </div>
   )
 }
