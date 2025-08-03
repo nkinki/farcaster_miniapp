@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import FundingForm from "./FundingForm"
+import { useChessToken } from "../hooks/useChessToken"
 
 interface Promo {
   id: string | number
@@ -23,6 +24,51 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
   const hasPromos = promotions.length > 0
   const activePromos = promotions.filter(p => p.status === "active")
   const inactivePromos = promotions.filter(p => p.status !== "active")
+
+  // CHESS balance fedezet ellenőrzéshez
+  const { balance } = useChessToken()
+
+  // Edit mentése
+  const [editError, setEditError] = useState<string | null>(null)
+  const [editSaving, setEditSaving] = useState(false)
+  const [editSuccess, setEditSuccess] = useState(false)
+
+  const handleEditSave = async () => {
+    setEditError(null)
+    setEditSaving(true)
+    setEditSuccess(false)
+    if (!editPromo) return
+    if (editPromo.rewardPerShare <= 0 || editPromo.totalBudget <= 0) {
+      setEditError("Reward and budget must be greater than 0.")
+      setEditSaving(false)
+      return
+    }
+    if (editPromo.rewardPerShare > editPromo.totalBudget) {
+      setEditError("Reward per share cannot be greater than total budget.")
+      setEditSaving(false)
+      return
+    }
+    try {
+      const res = await fetch(`/api/promotions/${editPromo.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rewardPerShare: editPromo.rewardPerShare,
+          totalBudget: editPromo.totalBudget,
+        })
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Edit failed")
+      }
+      setEditSuccess(true)
+      setEditSaving(false)
+      setTimeout(() => setEditPromo(null), 1200)
+    } catch (e: any) {
+      setEditError(e.message || "Edit failed")
+      setEditSaving(false)
+    }
+  }
 
   return (
     <div className="mb-6">
@@ -85,12 +131,6 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                       </button>
                     ))}
                   </div>
-                  <input
-                    className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    type="number"
-                    value={editPromo.rewardPerShare}
-                    onChange={e => setEditPromo({ ...editPromo, rewardPerShare: Number(e.target.value) })}
-                  />
                 </div>
                 <div className="mb-2">
                   <label className="block text-sm text-gray-300 mb-1">Total Budget</label>
@@ -109,16 +149,23 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                       </button>
                     ))}
                   </div>
-                  <input
-                    className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    type="number"
-                    value={editPromo.totalBudget}
-                    onChange={e => setEditPromo({ ...editPromo, totalBudget: Number(e.target.value) })}
-                  />
                 </div>
+                <div className="mb-2 text-xs text-gray-300">
+                  Balance: {balance ? (Number(balance) / 1e18).toLocaleString() : "–"} CHESS<br />
+                  Needed: {editPromo.totalBudget.toLocaleString()} CHESS<br />
+                  {balance && Number(balance) / 1e18 >= editPromo.totalBudget ? (
+                    <span className="text-green-400">Sufficient balance</span>
+                  ) : (
+                    <span className="text-red-400">Insufficient balance</span>
+                  )}
+                </div>
+                {editError && <div className="mb-2 text-red-400">{editError}</div>}
+                {editSuccess && <div className="mb-2 text-green-400">Promotion updated!</div>}
                 <div className="flex gap-2 mt-4">
-                  <button className="flex-1 bg-blue-600 text-white py-2 rounded" onClick={() => setEditPromo(null)}>Close</button>
-                  {/* TODO: Save edit to backend */}
+                  <button className="flex-1 bg-blue-600 text-white py-2 rounded" onClick={handleEditSave} disabled={editSaving}>
+                    {editSaving ? "Saving..." : "Save"}
+                  </button>
+                  <button className="flex-1 bg-gray-600 text-white py-2 rounded" onClick={() => setEditPromo(null)}>Close</button>
                 </div>
               </div>
             </div>
