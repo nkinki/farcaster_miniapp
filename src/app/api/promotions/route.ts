@@ -16,8 +16,20 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
     const status = searchParams.get('status') || 'active'
 
-    const [promotionsResult, totalResult] = await Promise.all([
-      sql`
+    let promotionsResult, totalResult;
+    if (status === 'all') {
+      promotionsResult = await sql`
+        SELECT 
+            id, fid, username, display_name, cast_url, share_text,
+            reward_per_share, total_budget, shares_count, remaining_budget,
+            status, blockchain_hash, created_at, updated_at
+        FROM promotions
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `;
+      totalResult = await sql`SELECT COUNT(*) FROM promotions;`;
+    } else {
+      promotionsResult = await sql`
         SELECT 
             id, fid, username, display_name, cast_url, share_text,
             reward_per_share, total_budget, shares_count, remaining_budget,
@@ -26,9 +38,9 @@ export async function GET(request: NextRequest) {
         WHERE status = ${status}
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset};
-      `,
-      sql`SELECT COUNT(*) FROM promotions WHERE status = ${status};`
-    ]);
+      `;
+      totalResult = await sql`SELECT COUNT(*) FROM promotions WHERE status = ${status};`;
+    }
 
     const totalPromotions = parseInt(totalResult[0].count as string, 10);
 
