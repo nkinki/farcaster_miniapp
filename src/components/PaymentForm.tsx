@@ -3,7 +3,16 @@
 import { useState } from "react"
 import { useAccount } from "wagmi"
 
-export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
+interface PaymentFormProps {
+  user: {
+    fid: number
+    username: string
+    displayName?: string
+  }
+  onSuccess?: () => void
+}
+
+export default function PaymentForm({ user, onSuccess }: PaymentFormProps) {
   const [rewardPerShare, setRewardPerShare] = useState(1000)
   const [totalBudget, setTotalBudget] = useState(10000)
   const [castUrl, setCastUrl] = useState("")
@@ -46,12 +55,14 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cast_url: castUrl,
-          share_text: shareText,
-          reward_per_share: rewardPerShare,
-          total_budget: totalBudget,
-          status: "inactive",
-          owner_fid: address, // vagy user.fid, ha van Farcaster context
+          fid: user.fid,
+          username: user.username,
+          display_name: user.displayName || user.username,
+          castUrl: castUrl,
+          shareText: shareText,
+          rewardPerShare: rewardPerShare,
+          totalBudget: totalBudget,
+          status: "inactive"
         })
       })
       if (!res.ok) {
