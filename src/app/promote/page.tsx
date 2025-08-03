@@ -8,6 +8,7 @@ import Link from "next/link"
 import UserProfile from "@/components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
 import MyPromotionsDropdown from "../../components/MyPromotionsDropdown"
+import FundingForm from "../../components/FundingForm"
 import { useAccount } from "wagmi"
 import { ConnectWalletButton } from "@/components/ConnectWalletButton" // Helyes alias import
 
