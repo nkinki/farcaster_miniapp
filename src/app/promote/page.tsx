@@ -760,7 +760,7 @@ export default function PromotePage() {
         <div className="flex justify-center mb-8">
           <button
             onClick={async () => {
-              setShowForm((v) => !v)
+              setShowForm(true)
               await triggerHaptic("medium")
             }}
             className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
@@ -774,132 +774,7 @@ export default function PromotePage() {
 
         {/* Campaign Creation Form */}
         {showForm && (
-          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
-            <h2 className="text-xl font-bold text-white mb-4">Create New Campaign</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Cast URL</label>
-                <input
-                  type="url"
-                  value={castUrl}
-                  onChange={(e) => setCastUrl(e.target.value)}
-                  placeholder="https://farcaster.xyz/..."
-                  className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Share Text (Optional)</label>
-                <textarea
-                  value={shareText}
-                  onChange={(e) => setShareText(e.target.value)}
-                  placeholder="Check out this amazing post!"
-                  rows={3}
-                  className="w-full px-4 py-2 bg-[#181c23] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Total Budget ($CHESS)</label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {[10000, 100000, 500000, 1000000, 5000000].map((amount) => (
-                      <button
-                        key={amount}
-                        onClick={() => setTotalBudget(amount)}
-                        className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                          totalBudget === amount
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
-                      >
-                        {amount >= 1000000 ? `${amount / 1000000}M` : `${amount / 1000}K`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Reward per Share ($CHESS)</label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {[1000, 2000, 5000, 10000, 20000].map((amount) => (
-                      <button
-                        key={amount}
-                        onClick={() => setRewardPerShare(amount)}
-                        className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                          rewardPerShare === amount
-                            ? "bg-green-600 text-white"
-                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
-                      >
-                        {amount / 1000}K
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Amount users receive for each share</p>
-                </div>
-              </div>
-
-              {/* Campaign Summary */}
-              <div className="bg-gray-800 rounded-lg p-4 mb-4">
-                <h4 className="text-sm font-medium text-gray-300 mb-2">Campaign Summary</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Cast URL:</span>
-                    <span className="text-white truncate max-w-[200px]">{castUrl || "Not set"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Share Text:</span>
-                    <span className="text-white">"{shareText || "No custom text"}"</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Reward Per Share:</span>
-                    <span className="text-green-400">{rewardPerShare.toLocaleString()} $CHESS</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Total Budget:</span>
-                    <span className="text-blue-400">{totalBudget.toLocaleString()} $CHESS</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Max Shares:</span>
-                    <span className="text-purple-400">{Math.floor(totalBudget / rewardPerShare)} shares</span>
-                  </div>
-                  {rewardPerShare > totalBudget && (
-                    <div className="flex justify-between">
-                      <span className="text-red-400">⚠️ Invalid:</span>
-                      <span className="text-red-400">Reward &gt; Budget</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  onClick={handleCreateCampaign}
-                  disabled={
-                    isCreating || !castUrl || rewardPerShare <= 0 || totalBudget <= 0 || rewardPerShare > totalBudget
-                  }
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isCreating ? "Creating..." : "Create Campaign"}
-                </button>
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-
-              {/* Validation Messages */}
-              {!castUrl && <div className="mt-2 text-red-400 text-sm">⚠️ Cast URL is required</div>}
-              {rewardPerShare <= 0 && (
-                <div className="mt-2 text-red-400 text-sm">⚠️ Please select a reward per share</div>
-              )}
-              {totalBudget <= 0 && <div className="mt-2 text-red-400 text-sm">⚠️ Please select a total budget</div>}
-              {rewardPerShare > totalBudget && (
-                <div className="mt-2 text-red-400 text-sm">⚠️ Reward per share cannot be greater than total budget</div>
-              )}
-            </div>
-          </div>
+          <PaymentForm onSuccess={() => setShowForm(false)} />
         )}
 
         {/* Campaigns List */}
