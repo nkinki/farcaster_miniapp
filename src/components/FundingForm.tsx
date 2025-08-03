@@ -211,13 +211,14 @@ function useFundingLogic({
     const isApprovalStep = isApproving || state.step === "approving"
     const isFundingStep = (status === "inactive" && (isCreatingCampaign || state.step === "creating")) ||
                          (status === "active" && (isFundingCampaign || state.step === "funding"))
+    const cannotFund = status === "paused" || status === "completed"
 
     return {
       isProcessing,
       isApprovalStep,
       isFundingStep,
-      approveDisabled: isApprovalStep,
-      fundDisabled: isFundingStep || !balanceInfo.hasSufficientBalance
+      approveDisabled: isApprovalStep || cannotFund,
+      fundDisabled: isFundingStep || !balanceInfo.hasSufficientBalance || cannotFund
     }
   }, [state.step, isApproving, isCreatingCampaign, isFundingCampaign, status, balanceInfo.hasSufficientBalance])
 
