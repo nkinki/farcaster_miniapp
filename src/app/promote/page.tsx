@@ -966,6 +966,10 @@ export default function PromotePage() {
         <FundingForm
           promotionId={Number(fundingPromo.id)}
           totalBudget={fundingPromo.totalBudget}
+          rewardPerShare={fundingPromo.rewardPerShare}
+          castUrl={fundingPromo.castUrl}
+          shareText={fundingPromo.shareText || ""}
+          status={fundingPromo.status}
           onSuccess={() => {
             setShowFundingForm(false);
             setFundingPromo(null);
