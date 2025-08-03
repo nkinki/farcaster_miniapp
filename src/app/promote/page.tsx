@@ -756,6 +756,11 @@ export default function PromotePage() {
           />
         </div>
 
+        {/* My Promotions Dropdown (legördülő saját promók) */}
+        <div className="mb-8">
+          <MyPromotionsDropdown promotions={promoCasts.filter((promo) => promo.author.fid === currentUser.fid)} />
+        </div>
+
         {/* Campaign Creation Form (always visible) */}
         <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
           <PaymentForm user={currentUser} onSuccess={() => {/* 2. lépésre navigálás logika ide */}} />
