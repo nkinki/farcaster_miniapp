@@ -1,13 +1,9 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useState } from "react"
 import { useAccount } from "wagmi"
 import { useChessToken } from "../hooks/useChessToken"
 import { useFarcasterPromo } from "../hooks/useFarcasterPromo"
-
-// Types and Enums
-type PromotionStatus = "inactive" | "active" | "paused" | "completed"
-type FundingStep = "idle" | "approving" | "funding" | "creating" | "done"
 
 interface FundingFormProps {
   promotionId: number
@@ -15,187 +11,148 @@ interface FundingFormProps {
   rewardPerShare: number
   castUrl: string
   shareText: string
-  status: PromotionStatus
+  status: string // "inactive" | "active"
   onchainCampaignId?: number
   onSuccess?: () => void
 }
 
-interface FundingState {
-  error: string | null
-  success: boolean
-  step: FundingStep
-}
-
-// Constants
-const CHESS_DECIMALS = 1e18
-const API_ENDPOINTS = {
-  PROMOTION: (id: number) => `/api/promotions/${id}`
-} as const
-
-// Custom hook for funding logic
-function useFundingLogic({
-  promotionId,
-  totalBudget,
-  rewardPerShare,
-  castUrl,
-  shareText,
-  status,
-  onchainCampaignId,
-  onSuccess
-}: FundingFormProps) {
-  const [state, setState] = useState<FundingState>({
-    error: null,
-    success: false,
-    step: "idle"
-  })
-
+export default function FundingForm({ promotionId, totalBudget, rewardPerShare, castUrl, shareText, status, onchainCampaignId, onSuccess }: FundingFormProps) {
+  const { address, isConnected } = useAccount()
   const {
     approveFarcasterPromo,
     isApproving,
+    isApproveSuccess,
     needsApproval,
     parseChessAmount,
     balance,
     allowance,
   } = useChessToken()
-
   const {
     fundCampaign,
     isFundingCampaign,
+    isFundCampaignSuccess,
+    fundCampaignHash,
+    fundCampaignError,
+    isFundCampaignConfirming,
     createCampaign,
     isCreatingCampaign,
+    isCreateCampaignSuccess,
+    createCampaignHash,
+    createCampaignError,
+    isCreateCampaignConfirming
   } = useFarcasterPromo()
 
-  // Memoized calculations
-  const amount = useMemo(() => parseChessAmount(totalBudget), [totalBudget, parseChessAmount])
-  
-  const balanceInfo = useMemo(() => {
-    const balanceInChess = balance ? Number(balance) / CHESS_DECIMALS : 0
-    const allowanceInChess = allowance ? Number(allowance) / CHESS_DECIMALS : 0
-    const hasSufficientBalance = balanceInChess >= totalBudget
-    
-    return {
-      balance: balanceInChess,
-      allowance: allowanceInChess,
-      hasSufficientBalance,
-      formattedBalance: balanceInChess.toLocaleString(),
-      formattedAllowance: allowanceInChess.toLocaleString()
-    }
-  }, [balance, allowance, totalBudget])
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const [autoStep, setAutoStep] = useState<"idle"|"approving"|"funding"|"creating"|"done">("idle")
 
-  const needsTokenApproval = useMemo(() => needsApproval(amount), [needsApproval, amount])
+  // Funding amount
+  const amount = parseChessAmount(totalBudget)
 
-  // Reset error when step changes
-  useEffect(() => {
-    if (state.step !== "idle") {
-      setState(prev => ({ ...prev, error: null }))
-    }
-  }, [state.step])
-
-  // Error handler
-  const handleError = useCallback((error: unknown, context: string) => {
-    const message = error instanceof Error ? error.message : `${context} failed`
-    console.error(`${context} error:`, error)
-    setState(prev => ({
-      ...prev,
-      error: message,
-      step: "idle"
-    }))
-  }, [])
-
-  // Success handler
-  const handleSuccess = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      success: true,
-      step: "done"
-    }))
-    onSuccess?.()
-  }, [onSuccess])
-
-  // Approval handler
-  const handleApprove = useCallback(async () => {
-    setState(prev => ({ ...prev, step: "approving", error: null }))
-    
+  // Approve
+  const handleApprove = async () => {
+    setError(null)
+    setAutoStep("approving")
     try {
       await approveFarcasterPromo(amount)
-      // Note: Success will be handled by the hook's success state
-    } catch (error) {
-      handleError(error, "Token approval")
+    } catch (e: any) {
+      setError(e.message || "Approve failed")
+      setAutoStep("idle")
     }
-  }, [approveFarcasterPromo, amount, handleError])
+  }
 
-  // Campaign creation handler
-  const handleCreateCampaign = useCallback(async () => {
-    setState(prev => ({ ...prev, step: "creating", error: null }))
-    
-    try {
-      await createCampaign({
-        castUrl,
-        shareText,
-        rewardPerShare: parseChessAmount(rewardPerShare),
-        totalBudget: amount,
-        divisible: true
-      })
-
-      // Update promotion status in backend
-      const response = await fetch(API_ENDPOINTS.PROMOTION(promotionId), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "active" })
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to update promotion status: ${response.statusText}`)
-      }
-
-      handleSuccess()
-    } catch (error) {
-      handleError(error, "Campaign creation")
-    }
-  }, [createCampaign, castUrl, shareText, rewardPerShare, amount, promotionId, parseChessAmount, handleSuccess, handleError])
-
-  // Campaign funding handler
-  const handleFundCampaign = useCallback(async () => {
-    if (!onchainCampaignId || isNaN(Number(onchainCampaignId))) {
-      setState(prev => ({
-        ...prev,
-        error: "Invalid campaign ID for funding"
-      }))
-      return
-    }
-
-    setState(prev => ({ ...prev, step: "funding", error: null }))
-    
-    try {
-      await fundCampaign(BigInt(onchainCampaignId), amount)
-      handleSuccess()
-    } catch (error) {
-      handleError(error, "Campaign funding")
-    }
-  }, [onchainCampaignId, fundCampaign, amount, handleSuccess, handleError])
-
-  // Main funding handler
-  const handleFund = useCallback(async () => {
+  // Funding (createCampaign or fundCampaign)
+  const handleFund = async () => {
+    setError(null)
     if (status === "inactive") {
-      await handleCreateCampaign()
-    } else if (status === "active") {
-      if (!onchainCampaignId) {
-        setState(prev => ({
-          ...prev,
-          error: "This promotion is active but has no onchain campaign ID. Please contact support."
-        }))
-        return
+      setAutoStep("creating")
+      try {
+        // Onchain createCampaign
+        const tx = await createCampaign({
+          castUrl,
+          shareText,
+          rewardPerShare: parseChessAmount(rewardPerShare),
+          totalBudget: amount,
+          divisible: true
+        })
+        // TODO: campaignId-t backend event listenerből kell elmenteni!
+        await fetch(`/api/promotions/${promotionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "active" })
+        })
+        setSuccess(true)
+        setAutoStep("done")
+        if (onSuccess) onSuccess()
+      } catch (e: any) {
+        setError(e.message || "Funding failed (createCampaign)")
+        setAutoStep("idle")
       }
-      await handleFundCampaign()
-    } else if (status === "paused") {
-      setState(prev => ({
-        ...prev,
-        error: "This promotion is paused and cannot be funded at this time."
-      }))
-    } else if (status === "completed") {
-      setState(prev => ({
-        ...prev,
-        error: "This promotion is completed and cannot be funded."
+    } else if (status === "active" && onchainCampaignId && !isNaN(Number(onchainCampaignId))) {
+      setAutoStep("funding")
+      try {
+        await fundCampaign(BigInt(onchainCampaignId), amount)
+        setSuccess(true)
+        setAutoStep("done")
+        if (onSuccess) onSuccess()
+      } catch (e: any) {
+        setError(e.message || "Funding failed (fundCampaign)")
+        setAutoStep("idle")
+      }
+    } else if (status === "active" && !onchainCampaignId) {
+      setError("This promotion is active but has no onchain campaignId. Please contact support.")
+    } else {
+      setError(`This promotion cannot be funded. (Status: ${status})`)
+    }
+  }
+
+  const hasSufficientBalance = balance && Number(balance) / 1e18 >= totalBudget
+
+  return (
+    <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
+      <h2 className="text-xl font-bold mb-4 text-white">Activate Promotion (Step 2)</h2>
+      <div className="mb-2 text-sm text-gray-300">
+        Required funding: <b>{totalBudget.toLocaleString()} CHESS</b><br />
+        Balance: {balance ? (Number(balance) / 1e18).toLocaleString() : "–"} CHESS<br />
+        Allowance: {allowance ? (Number(allowance) / 1e18).toLocaleString() : "–"} CHESS<br />
+        {hasSufficientBalance ? (
+          <span className="text-green-400">Sufficient balance</span>
+        ) : (
+          <span className="text-red-400">Insufficient balance</span>
+        )}
+      </div>
+      {error && <div className="mb-2 text-red-400">{error}</div>}
+      {success && <div className="mb-2 text-green-400">Promotion successfully activated and now public!</div>}
+      {needsApproval(amount) ? (
+        <button
+          className="w-full bg-green-600 text-white py-2 rounded mb-2 disabled:opacity-50"
+          onClick={handleApprove}
+          disabled={isApproving || autoStep === "approving"}
+        >
+          {isApproving || autoStep === "approving" ? "Approving..." : "Approve CHESS"}
+        </button>
+      ) : (
+        <button
+          className="w-full bg-blue-600 text-white py-2 rounded mb-2 disabled:opacity-50"
+          onClick={handleFund}
+          disabled={
+            (status === "inactive" && (isCreatingCampaign || autoStep === "creating")) ||
+            (status === "active" && (isFundingCampaign || autoStep === "funding")) ||
+            !hasSufficientBalance
+          }
+        >
+          {(status === "inactive" && (isCreatingCampaign || autoStep === "creating")) ? "Creating..."
+            : (status === "active" && (isFundingCampaign || autoStep === "funding")) ? "Funding..."
+            : status === "inactive" ? "Activate (onchain create)"
+            : "Fund Campaign (onchain)"}
+        </button>
+      )}
+      <div className="mt-4 text-xs text-gray-400">
+        <b>Note:</b> Activation is an onchain transaction. The promotion will be public only after successful funding!
+      </div>
+    </div>
+  )
+}mpleted and cannot be funded."
       }))
     } else {
       setState(prev => ({
