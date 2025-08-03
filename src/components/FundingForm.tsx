@@ -37,7 +37,7 @@ export default function FundingForm({ promotionId, totalBudget, onSuccess }: Fun
 
   // Automatikus approve, ha kell
   const amount = parseChessAmount(totalBudget)
-  
+
   // Approve
   const handleApprove = async () => {
     setError(null)
