@@ -35,7 +35,7 @@ export default function FundingForm({ promotionId, totalBudget, onSuccess }: Fun
   const [success, setSuccess] = useState(false)
   const [autoStep, setAutoStep] = useState<"idle"|"approving"|"funding"|"done">("idle")
 
-  // Automatikus approve, ha kell
+  // Funding amount
   const amount = parseChessAmount(totalBudget)
 
   // Approve
@@ -45,7 +45,7 @@ export default function FundingForm({ promotionId, totalBudget, onSuccess }: Fun
     try {
       await approveFarcasterPromo(amount)
     } catch (e: any) {
-      setError(e.message || "Approve hiba")
+      setError(e.message || "Approve failed")
       setAutoStep("idle")
     }
   }
@@ -56,44 +56,57 @@ export default function FundingForm({ promotionId, totalBudget, onSuccess }: Fun
     setAutoStep("funding")
     try {
       await fundCampaign(BigInt(promotionId), amount)
+      // PATCH status to active
+      await fetch(`/api/promotions/${promotionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "active" })
+      })
       setSuccess(true)
       setAutoStep("done")
       if (onSuccess) onSuccess()
     } catch (e: any) {
-      setError(e.message || "Funding hiba")
+      setError(e.message || "Funding failed")
       setAutoStep("idle")
     }
   }
 
+  const hasSufficientBalance = balance && Number(balance) / 1e18 >= totalBudget
+
   return (
     <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
-      <h2 className="text-xl font-bold mb-4 text-white">Promóció aktiválása (2. lépés)</h2>
+      <h2 className="text-xl font-bold mb-4 text-white">Activate Promotion (Step 2)</h2>
       <div className="mb-2 text-sm text-gray-300">
-        Szükséges funding: <b>{totalBudget.toLocaleString()} CHESS</b><br />
-        Egyenleg: {balance ? (Number(balance) / 1e18).toLocaleString() : "–"} CHESS<br />
-        Engedélyezett: {allowance ? (Number(allowance) / 1e18).toLocaleString() : "–"} CHESS
+        Required funding: <b>{totalBudget.toLocaleString()} CHESS</b><br />
+        Balance: {balance ? (Number(balance) / 1e18).toLocaleString() : "–"} CHESS<br />
+        Allowance: {allowance ? (Number(allowance) / 1e18).toLocaleString() : "–"} CHESS<br />
+        {hasSufficientBalance ? (
+          <span className="text-green-400">Sufficient balance</span>
+        ) : (
+          <span className="text-red-400">Insufficient balance</span>
+        )}
       </div>
       {error && <div className="mb-2 text-red-400">{error}</div>}
-      {success && <div className="mb-2 text-green-400">Promóció sikeresen aktiválva!</div>}
+      {success && <div className="mb-2 text-green-400">Promotion successfully activated and now public!</div>}
       {needsApproval(amount) ? (
         <button
           className="w-full bg-green-600 text-white py-2 rounded mb-2 disabled:opacity-50"
           onClick={handleApprove}
           disabled={isApproving || autoStep === "approving"}
         >
-          {isApproving || autoStep === "approving" ? "Jóváhagyás..." : "CHESS jóváhagyása"}
+          {isApproving || autoStep === "approving" ? "Approving..." : "Approve CHESS"}
         </button>
       ) : (
         <button
           className="w-full bg-blue-600 text-white py-2 rounded mb-2 disabled:opacity-50"
           onClick={handleFund}
-          disabled={isFundingCampaign || autoStep === "funding"}
+          disabled={isFundingCampaign || autoStep === "funding" || !hasSufficientBalance}
         >
-          {isFundingCampaign || autoStep === "funding" ? "Funding..." : "Aktiválás (onchain funding)"}
+          {isFundingCampaign || autoStep === "funding" ? "Funding..." : "Activate (onchain funding)"}
         </button>
       )}
       <div className="mt-4 text-xs text-gray-400">
-        <b>Fontos:</b> Az aktiválás onchain tranzakcióval történik, a promóció csak sikeres funding után lesz publikus!
+        <b>Note:</b> Activation is an onchain transaction. The promotion will be public only after successful funding!
       </div>
     </div>
   )
