@@ -231,10 +231,17 @@ export function useChessToken() {
     return BigInt(Math.floor(amount)) * decimalMultiplier
   }
 
+  function safeBigInt(val: unknown): bigint {
+  if (typeof val === "bigint") return val
+  if (typeof val === "number" || typeof val === "boolean") return BigInt(val)
+  if (typeof val === "string" && val !== "") return BigInt(val)
+  return 0n
+  }
+  
   return {
   // Read data
-  balance: typeof balance === "bigint" ? balance : BigInt(balance || 0),
-  allowance: typeof allowance === "bigint" ? allowance : BigInt(allowance || 0),
+  balance: safeBigInt(balance),
+  allowance: safeBigInt(allowance),
   decimals: tokenDecimals,
   decimalMultiplier,
 
