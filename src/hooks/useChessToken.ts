@@ -232,11 +232,11 @@ export function useChessToken() {
   }
 
   return {
-    // Read data
-    balance: balance || BigInt(0),
-    allowance: allowance || BigInt(0),
-    decimals: tokenDecimals,
-    decimalMultiplier,
+  // Read data
+  balance: typeof balance === "bigint" ? balance : BigInt(balance || 0),
+  allowance: typeof allowance === "bigint" ? allowance : BigInt(allowance || 0),
+  decimals: tokenDecimals,
+  decimalMultiplier,
 
     // Write functions
     approve,
