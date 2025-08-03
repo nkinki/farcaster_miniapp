@@ -33,7 +33,6 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
   const { writeContractAsync } = useWriteContract();
 
   const [castUrl, setCastUrl] = useState("https://warpcast.com/dwr/0x5c7987b7");
-  // A shareText-et meghagyjuk az űrlapon, de a contract hívásból kivesszük
   const [shareText, setShareText] = useState(""); 
   const [rewardPerShare, setRewardPerShare] = useState("1000");
   const [totalBudget, setTotalBudget] = useState("10000");
@@ -79,10 +78,6 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
           const totalBudgetInWei = parseUnits(totalBudget, decimals);
           const rewardPerShareInWei = parseUnits(rewardPerShare, decimals);
 
-          // =================================================================
-          // JAVÍTÁS: Az `args` tömböt az új, 3 paraméteres szerződéshez igazítjuk.
-          // Eltávolítottuk a `shareText`-et és a `divisible` (false) értéket.
-          // =================================================================
           const hash = await writeContractAsync({
             address: PROMO_CONTRACT_ADDRESS,
             abi: PROMO_CONTRACT_ABI,
@@ -102,14 +97,13 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       }
     };
     createCampaignOnChain();
-  }, [isApproved, step, address, castUrl, rewardPerShare, totalBudget, writeContractAsync]); // A shareText itt már nem függőség
+  }, [isApproved, step, address, castUrl, rewardPerShare, totalBudget, writeContractAsync]);
   
   useEffect(() => {
     const saveToDb = async () => {
       if (isCreated && step === CreationStep.Creating) {
         setStep(CreationStep.Saving);
         try {
-          // A shareText-et elmenthetjük az adatbázisba, mert ott még van neki hely
           const response = await fetch('/api/promotions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -118,7 +112,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
               username: user.username,
               displayName: user.displayName,
               castUrl: castUrl,
-              shareText: shareText, // Ezt továbbra is elmentjük
+              shareText: shareText,
               rewardPerShare: Number(rewardPerShare),
               totalBudget: Number(totalBudget),
               blockchainHash: createTxHash,
@@ -140,22 +134,81 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
   }, [isCreated, step, castUrl, createTxHash, onSuccess, rewardPerShare, shareText, totalBudget, user]);
 
   const getButtonText = () => {
-    // ... (ez a rész változatlan)
-    return "Create & Fund Campaign";
+    switch (step) {
+      case CreationStep.Approving: return "1/2: Approving...";
+      case CreationStep.Creating: return "2/2: Creating...";
+      case CreationStep.Saving: return "Saving...";
+      case CreationStep.Done: return "Success!";
+      default: return "Create & Fund Campaign";
+    }
   };
   
   return (
     <div className="space-y-4">
-      {/* Az űrlap JSX része teljesen változatlan maradhat, mert a `shareText` mezőt továbbra is használjuk az adatbázisba mentéshez. */}
-      {/* ... */}
+      <h2 className="text-2xl font-bold text-white text-center">Create a New Promotion</h2>
+      <div>
+        <label htmlFor="castUrl" className="block text-sm font-medium text-purple-300">Cast URL*</label>
+        <input 
+          type="text" 
+          id="castUrl" 
+          value={castUrl} 
+          onChange={(e) => setCastUrl(e.target.value)} 
+          className="mt-1 block w-full bg-[#181c23] border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500" 
+          placeholder="https://warpcast.com/..."
+        />
+      </div>
+      <div>
+        <label htmlFor="shareText" className="block text-sm font-medium text-purple-300">Share Text (Optional)</label>
+        <input 
+          type="text" 
+          id="shareText" 
+          value={shareText} 
+          onChange={(e) => setShareText(e.target.value)} 
+          className="mt-1 block w-full bg-[#181c23] border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500" 
+          placeholder="Check out this amazing cast!"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="rewardPerShare" className="block text-sm font-medium text-purple-300">Reward / Share ($CHESS)*</label>
+          <input 
+            type="number" 
+            id="rewardPerShare" 
+            value={rewardPerShare} 
+            onChange={(e) => setRewardPerShare(e.target.value)} 
+            className="mt-1 block w-full bg-[#181c23] border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500" 
+          />
+        </div>
+        <div>
+          <label htmlFor="totalBudget" className="block text-sm font-medium text-purple-300">Total Budget ($CHESS)*</label>
+          <input 
+            type="number" 
+            id="totalBudget" 
+            value={totalBudget} 
+            onChange={(e) => setTotalBudget(e.target.value)} 
+            className="mt-1 block w-full bg-[#181c23] border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500" 
+          />
+        </div>
+      </div>
+      
+      {error && <p className="text-red-400 text-sm text-center bg-red-900/50 p-3 rounded-md">{error}</p>}
+      
       <div className="flex items-center gap-4 pt-4">
-        <button onClick={onCancel} disabled={step !== CreationStep.Idle} className="w-full ...">Cancel</button>
-        <button onClick={handleStartCreationProcess} disabled={step !== CreationStep.Idle || !address} className="w-full ...">
+        <button 
+          onClick={onCancel} 
+          disabled={step !== CreationStep.Idle} 
+          className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button 
+          onClick={handleStartCreationProcess} 
+          disabled={step !== CreationStep.Idle || !address} 
+          className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {getButtonText()}
         </button>
       </div>
     </div>
   );
-}```
-
-Ezzel a módosítással a frontend hívásod tökéletesen illeszkedni fog az új, letisztázott smart contractodhoz, és az `ABI encoding mismatch` hiba meg fog szűnni. Most már tényleg működnie kell
+}
