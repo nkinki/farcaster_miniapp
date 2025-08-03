@@ -774,7 +774,14 @@ export default function PromotePage() {
         </div>
         {/* Campaign Creation Form (only if showForm) */}
         {showForm && (
-          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
+          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-white text-xl font-bold"
+              onClick={() => setShowForm(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
             <PaymentForm user={currentUser} onSuccess={() => setShowForm(false)} />
           </div>
         )}
