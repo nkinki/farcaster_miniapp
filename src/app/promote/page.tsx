@@ -117,6 +117,9 @@ export default function PromotePage() {
   // Payment form state
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("")
+  // Funding form state
+  const [showFundingForm, setShowFundingForm] = useState(false)
+  const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null)
   const [shareText, setShareText] = useState("")
   const [rewardPerShare, setRewardPerShare] = useState(1000) // Default 1k
   const [totalBudget, setTotalBudget] = useState(10000) // Default 10k
@@ -890,7 +893,10 @@ export default function PromotePage() {
                   {/* Fund Campaign Button - only show for own campaigns */}
                   {promo.author.fid === currentUser.fid && (
                     <button
-                      onClick={() => openPaymentForm(promo.id)}
+                      onClick={() => {
+                        setFundingPromo(promo);
+                        setShowFundingForm(true);
+                      }}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
                     >
                       <FiDollarSign />
@@ -954,6 +960,18 @@ export default function PromotePage() {
         </div>
       </div>
 
+      {/* Funding Form Modal */}
+      {showFundingForm && fundingPromo && (
+        <FundingForm
+          promotionId={Number(fundingPromo.id)}
+          totalBudget={fundingPromo.totalBudget}
+          onSuccess={() => {
+            setShowFundingForm(false);
+            setFundingPromo(null);
+            fetchPromotions();
+          }}
+        />
+      )}
       {/* Payment Form Modal */}
       {showPaymentForm && (
         <PaymentForm
