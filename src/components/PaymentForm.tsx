@@ -71,13 +71,13 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
       <h2 className="text-xl font-bold mb-4 text-white">Új promóció létrehozása (1. lépés)</h2>
       <input
-        className="mb-2 w-full p-2 rounded"
+        className="mb-2 w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
         placeholder="Cast URL"
         value={castUrl}
         onChange={e => setCastUrl(e.target.value)}
       />
       <input
-        className="mb-2 w-full p-2 rounded"
+        className="mb-2 w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
         placeholder="Megosztási szöveg"
         value={shareText}
         onChange={e => setShareText(e.target.value)}
@@ -100,7 +100,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
           ))}
         </div>
         <input
-          className="w-full p-2 rounded bg-[#181c23] border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
           type="number"
           placeholder="Egyedi összeg (CHESS)"
           value={totalBudget}
@@ -125,7 +125,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
           ))}
         </div>
         <input
-          className="w-full p-2 rounded bg-[#181c23] border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
           type="number"
           placeholder="Egyedi összeg (CHESS)"
           value={rewardPerShare}
