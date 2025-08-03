@@ -75,19 +75,11 @@ export default function FundingForm({ promotionId, totalBudget, rewardPerShare, 
           totalBudget: amount,
           divisible: true
         })
-        // Try to get campaignId from event/log
-        let campaignId: number | undefined = undefined;
-        if (tx && tx.logs) {
-          const campaignCreatedLog = tx.logs.find((log: any) => log.eventName === "CampaignCreated")
-          if (campaignCreatedLog && campaignCreatedLog.args && campaignCreatedLog.args.campaignId) {
-            campaignId = Number(campaignCreatedLog.args.campaignId)
-          }
-        }
-        // PATCH status to active and save onchainCampaignId
+        // TODO: campaignId-t backend event listenerből kell elmenteni!
         await fetch(`/api/promotions/${promotionId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "active", onchainCampaignId: campaignId })
+          body: JSON.stringify({ status: "active" })
         })
         setSuccess(true)
         setAutoStep("done")
