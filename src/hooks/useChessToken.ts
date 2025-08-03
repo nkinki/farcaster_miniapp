@@ -235,7 +235,7 @@ export function useChessToken() {
   if (typeof val === "bigint") return val
   if (typeof val === "number" || typeof val === "boolean") return BigInt(val)
   if (typeof val === "string" && val !== "") return BigInt(val)
-  return 0n
+  return BigInt(0)
   }
   
   return {
