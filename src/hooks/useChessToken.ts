@@ -285,4 +285,44 @@ export function useChessToken() {
     // Reset function
     resetApprove,
   }
+}  allowance: safeBigInt(allowance),
+  decimals: tokenDecimals,
+  decimalMultiplier,
+
+    // Write functions
+    approve,
+    approveFarcasterPromo,
+
+    // Loading states
+    isApproving,
+    isApprovalConfirming,
+    isApproveSuccess,
+
+    // Errors
+    approveError,
+    approvalReceiptError,
+    balanceError,
+    allowanceError,
+    decimalsError,
+
+    // Loading states
+    balanceLoading,
+    allowanceLoading,
+    decimalsLoading,
+
+    // Transaction hash
+    approveHash,
+
+    // Helper functions
+    needsApproval,
+    formatChessAmount,
+    parseChessAmount,
+
+    // Refetch functions
+    refetchBalance,
+    refetchAllowance,
+
+    // Reset function
+    resetApprove,
+  }
 }
