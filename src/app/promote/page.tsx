@@ -762,10 +762,22 @@ export default function PromotePage() {
           <MyPromotionsDropdown promotions={promoCasts.filter((promo) => promo.author.fid === currentUser.fid)} />
         </div>
 
-        {/* Campaign Creation Form (always visible) */}
-        <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
-          <PaymentForm user={currentUser} onSuccess={() => {/* 2. lépésre navigálás logika ide */}} />
+        {/* Create Promotion Button */}
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            <FiPlus size={20} />
+            Create Promotion
+          </button>
         </div>
+        {/* Campaign Creation Form (only if showForm) */}
+        {showForm && (
+          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
+            <PaymentForm user={currentUser} onSuccess={() => setShowForm(false)} />
+          </div>
+        )}
 
         {/* Campaigns List */}
         <div className="space-y-4">
