@@ -141,7 +141,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
         <div><b>allowance:</b> {allowance ? allowance.toString() : 'nincs'}</div>
         <div><b>rewardPerShare:</b> {rewardPerShare}</div>
         <div><b>totalBudget:</b> {totalBudget}</div>
-        <div><b>needsApproval:</b> {needsApproval() ? 'true' : 'false'}</div>
+        <div><b>needsApproval:</b> {needsApproval(parseChessAmount(totalBudget)) ? 'true' : 'false'}</div>
         <div><b>autoStep:</b> {autoStep}</div>
         <div><b>isApproving:</b> {isApproving ? 'true' : 'false'}</div>
         <div><b>isApproveLoading:</b> {isApproveLoading ? 'true' : 'false'}</div>
