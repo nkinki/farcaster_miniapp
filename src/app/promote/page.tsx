@@ -7,6 +7,7 @@ import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiTrendingUp, FiPlus } fr
 import Link from "next/link"
 import UserProfile from "@/components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
+import MyPromotionsDropdown from "../../components/MyPromotionsDropdown"
 import { useAccount } from "wagmi"
 import { ConnectWalletButton } from "@/components/ConnectWalletButton" // Helyes alias import
 
