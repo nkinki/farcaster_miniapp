@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import FundingForm from "./FundingForm"
 
 interface Promo {
   id: string | number
@@ -17,6 +18,8 @@ interface MyPromotionsDropdownProps {
 
 export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdownProps) {
   const [open, setOpen] = useState(false)
+  const [editPromo, setEditPromo] = useState<Promo | null>(null)
+  const [fundPromo, setFundPromo] = useState<Promo | null>(null)
   const hasPromos = promotions.length > 0
   const activePromos = promotions.filter(p => p.status === "active")
   const inactivePromos = promotions.filter(p => p.status !== "active")
@@ -43,6 +46,7 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                   <div className="text-white font-bold">{promo.castUrl}</div>
                   <div className="text-xs text-gray-400">Reward: {promo.rewardPerShare} | Budget: {promo.totalBudget}</div>
                   <div className="text-xs text-green-400">Status: {promo.status}</div>
+                  <button className="mt-1 mr-2 px-2 py-1 text-xs bg-blue-700 text-white rounded" onClick={() => setEditPromo(promo)}>Edit</button>
                 </div>
               ))}
               <div className="mb-2 mt-4 text-yellow-400 font-semibold">Inactive</div>
@@ -52,9 +56,55 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                   <div className="text-white font-bold">{promo.castUrl}</div>
                   <div className="text-xs text-gray-400">Reward: {promo.rewardPerShare} | Budget: {promo.totalBudget}</div>
                   <div className="text-xs text-yellow-400">Status: {promo.status}</div>
+                  <button className="mt-1 mr-2 px-2 py-1 text-xs bg-blue-700 text-white rounded" onClick={() => setEditPromo(promo)}>Edit</button>
+                  <button className="mt-1 px-2 py-1 text-xs bg-green-700 text-white rounded" onClick={() => setFundPromo(promo)}>Add CHESS</button>
                 </div>
               ))}
             </>
+          )}
+          {/* Edit Modal */}
+          {editPromo && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+              <div className="bg-[#23283a] p-6 rounded-xl border border-[#a64d79] max-w-md w-full">
+                <h3 className="text-lg font-bold text-white mb-4">Edit Promotion</h3>
+                <div className="mb-2 text-white">Cast URL: {editPromo.castUrl}</div>
+                <div className="mb-2">
+                  <label className="block text-sm text-gray-300 mb-1">Reward per Share</label>
+                  <input
+                    className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    type="number"
+                    value={editPromo.rewardPerShare}
+                    onChange={e => setEditPromo({ ...editPromo, rewardPerShare: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="block text-sm text-gray-300 mb-1">Total Budget</label>
+                  <input
+                    className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    type="number"
+                    value={editPromo.totalBudget}
+                    onChange={e => setEditPromo({ ...editPromo, totalBudget: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button className="flex-1 bg-blue-600 text-white py-2 rounded" onClick={() => setEditPromo(null)}>Close</button>
+                  {/* TODO: Save edit to backend */}
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Funding Modal */}
+          {fundPromo && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+              <div className="bg-[#23283a] p-6 rounded-xl border border-[#a64d79] max-w-md w-full">
+                <FundingForm
+                  promotionId={Number(fundPromo.id)}
+                  totalBudget={fundPromo.totalBudget}
+                  onSuccess={() => setFundPromo(null)}
+                />
+                <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded" onClick={() => setFundPromo(null)}>Close</button>
+              </div>
+            </div>
           )}
         </div>
       )}
