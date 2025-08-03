@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { useAccount, useReadContract } from "wagmi"
 import { parseUnits, erc20Abi } from "viem"
 import { CONTRACTS } from "@/config/contracts"
 import FARCASTER_PROMO_ABI from "@/abis/FarcasterPromo.json"
+import { useFarcasterPromo } from "../hooks/useFarcasterPromo"
 
 const CHESS_TOKEN_ADDRESS = CONTRACTS.CHESS_TOKEN as `0x${string}`
 const FARCASTER_PROMO_CONTRACT = CONTRACTS.FarcasterPromo as `0x${string}`
@@ -39,12 +40,18 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
   })
 
   // 2. Approve
-  const { writeContract: approve, data: approveHash, isPending: isApproving } = useWriteContract()
-  const { isSuccess: isApproveSuccess, isLoading: isApproveLoading } = useWaitForTransactionReceipt({ hash: approveHash })
+  const { writeContract: approve, data: approveHash, isPending: isApproving } = useFarcasterPromo()
+  const { isSuccess: isApproveSuccess, isLoading: isApproveLoading } = { isSuccess: false, isLoading: false } // debug placeholder
 
-  // 3. createCampaign
-  const { writeContract: createCampaign, data: createHash, isPending: isCreating } = useWriteContract()
-  const { isSuccess: isCreateSuccess, isLoading: isCreateLoading } = useWaitForTransactionReceipt({ hash: createHash })
+  // 3. createCampaign (useFarcasterPromo)
+  const {
+    createCampaign,
+    isCreatingCampaign,
+    isCreateCampaignSuccess,
+    createCampaignHash,
+    createCampaignError,
+    isCreateCampaignConfirming
+  } = useFarcasterPromo()
 
   // Helper: parse CHESS mennyiség
   const parseChessAmount = (amount: number) => parseUnits(amount.toString(), 18)
@@ -88,27 +95,21 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       rewardPerShare > 0 &&
       totalBudget > 0 &&
       !needsApproval() &&
-      !isCreating &&
-      !isCreateLoading &&
+      !isCreatingCampaign &&
       autoStep !== "creating" &&
-      !isCreateSuccess
+      !isCreateCampaignSuccess
     ) {
       setError(null)
       setAutoStep("creating")
       createCampaign({
-        address: FARCASTER_PROMO_CONTRACT,
-        abi: FARCASTER_PROMO_ABI,
-        functionName: "createCampaign",
-        args: [
-          castUrl,
-          shareText,
-          parseChessAmount(rewardPerShare),
-          parseChessAmount(totalBudget),
-          true // divisible
-        ]
+        castUrl,
+        shareText,
+        rewardPerShare: parseChessAmount(rewardPerShare),
+        totalBudget: parseChessAmount(totalBudget),
+        divisible: true
       })
     }
-  }, [isConnected, address, castUrl, rewardPerShare, totalBudget, allowance, isCreating, isCreateLoading, autoStep, createCampaign, isCreateSuccess, shareText])
+  }, [isConnected, address, castUrl, rewardPerShare, totalBudget, allowance, isCreatingCampaign, autoStep, createCampaign, isCreateCampaignSuccess, shareText])
 
   // Sikeres createCampaign után mentés Neon DB-be
   useEffect(() => {
@@ -209,7 +210,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       {autoStep === "approving" && <div className="text-yellow-300 mb-2">Jóváhagyás folyamatban...</div>}
       {autoStep === "creating" && <div className="text-yellow-300 mb-2">Kampány létrehozása folyamatban...</div>}
       {isSaving && <div className="text-yellow-300 mb-2">Mentés Neon DB-be...</div>}
-      {txHash && <div className="text-green-400 mb-2">Siker! Tranzakció hash: {txHash}</div>}
+      {createCampaignHash && <div className="text-green-400 mb-2">Siker! Tranzakció hash: {createCampaignHash.toString()}</div>}
       {autoStep === "done" && <div className="text-green-400 mb-2">Promóció sikeresen létrehozva!</div>}
     </div>
   )
