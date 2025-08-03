@@ -756,26 +756,10 @@ export default function PromotePage() {
           />
         </div>
 
-        {/* Start Promo Campaign Button */}
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={async () => {
-              setShowForm(true)
-              await triggerHaptic("medium")
-            }}
-            className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300"
-            aria-expanded={showForm}
-            aria-controls="promo-form"
-          >
-            <FiPlus size={20} />
-            Start Promo Campaign
-          </button>
+        {/* Campaign Creation Form (always visible) */}
+        <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
+          <PaymentForm onSuccess={() => {/* 2. lépésre navigálás logika ide */}} />
         </div>
-
-        {/* Campaign Creation Form */}
-        {showForm && (
-          <PaymentForm onSuccess={() => setShowForm(false)} />
-        )}
 
         {/* Campaigns List */}
         <div className="space-y-4">
