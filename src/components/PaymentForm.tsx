@@ -124,10 +124,10 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
 
   // Hibakezelés: ha nincs elég balance
   useEffect(() => {
-    if (balance && parseChessAmount(totalBudget) > BigInt(balance)) {
+    if (typeof balance === "bigint" && parseChessAmount(totalBudget) > balance) {
       setError("Nincs elég CHESS token a walletben!")
     }
-  }, [balance, totalBudget])
+  }, [balance, totalBudget, parseChessAmount])
 
   return (
     <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
