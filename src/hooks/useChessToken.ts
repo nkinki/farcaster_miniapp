@@ -172,7 +172,11 @@ export function useChessToken() {
       amountInCHESS: Number(amount) / Number(decimalMultiplier),
       contractAddress: CONTRACTS.CHESS_TOKEN,
       isConnected,
-      address
+      address,
+      chainId: (typeof window !== 'undefined' && (window as any).ethereum?.chainId) || 'unknown',
+      wagmiChainId: (typeof window !== 'undefined' && (window as any).__wagmi__?.state?.chains?.[0]?.id) || 'unknown',
+      wagmiChains: (typeof window !== 'undefined' && (window as any).__wagmi__?.state?.chains) || 'unknown',
+      wagmiProvider: (typeof window !== 'undefined' && (window as any).__wagmi__?.state?.provider) || 'unknown',
     })
 
     if (!address || !isConnected) {
