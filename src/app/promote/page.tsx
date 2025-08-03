@@ -58,7 +58,7 @@ interface PromoCast {
   remainingBudget: number
   shareText?: string
   createdAt: string
-  status: "active" | "paused" | "completed"
+  status: "active" | "paused" | "completed" | "inactive" // Hozzáadtuk az 'inactive' státuszt is
   blockchainHash?: string
 }
 
@@ -74,7 +74,7 @@ interface DatabasePromotion {
   total_budget: number
   shares_count: number
   remaining_budget: number
-  status: "active" | "paused" | "completed"
+  status: "active" | "paused" | "completed" | "inactive" // Hozzáadtuk az 'inactive' státuszt is
   blockchain_hash: string | null
   created_at: string
   updated_at: string
@@ -258,7 +258,9 @@ export default function PromotePage() {
   // Fetch promotions from database
   const fetchPromotions = async () => {
     try {
-      const response = await fetch("/api/promotions")
+      // JAVÍTÁS: A `status=all` paraméterrel lekérjük az összes promóciót,
+      // nem csak az aktívakat. Így a felhasználó a saját inaktív promócióit is látni fogja.
+      const response = await fetch("/api/promotions?status=all")
       if (response.ok) {
         const data = await response.json()
         const convertedPromos = data.promotions.map(convertDbToPromoCast)
@@ -623,6 +625,12 @@ export default function PromotePage() {
   const isMobile = context?.client?.platformType === "mobile"
   const safeArea = context?.client?.safeAreaInsets
 
+  // JAVÍTÁS: Ezt a változót a `return` előtt definiáljuk a tisztább kódért.
+  // Csak azokat a promóciókat jelenítjük meg, amik aktívak, VAGY a bejelentkezett felhasználóhoz tartoznak.
+  const visiblePromos = promoCasts.filter(
+    (promo) => promo.status === "active" || promo.author.fid === currentUser.fid
+  )
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
@@ -736,19 +744,6 @@ export default function PromotePage() {
           </div>
         </div>
 
-        {/* SDK Status Debug */}
-        {/*
-        <div className="mb-4 p-3 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-300">
-            SDK: {sdkType ? `${sdkType.toUpperCase()} SDK` : "No SDK"} | Auth:{" "}
-            {isAuthenticated ? "✅ Connected" : "❌ Not Connected"}
-          </div>
-          {/* Replaced wallet status text with ConnectWalletButton *}
-          <ConnectWalletButton />
-          {hapticsSupported && <div className="text-xs text-green-400 mt-1">✅ Haptics supported</div>}
-        </div>
-        */}
-
         {/* User Profile */}
         <div className="mb-8">
           <UserProfile
@@ -760,11 +755,6 @@ export default function PromotePage() {
             userStats={userStats}
           />
         </div>
-
-        {/* My Promotions Dropdown (legördülő saját promók) - HIDDEN */}
-        {/* <div className="mb-8">
-          <MyPromotionsDropdown promotions={[]} />
-        </div> */}
 
         {/* Create Promotion Button */}
         <div className="flex justify-center mb-8">
@@ -793,18 +783,19 @@ export default function PromotePage() {
         {/* Campaigns List */}
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white">Active Campaigns</h2>
+            <h2 className="text-xl font-bold text-white">Available Campaigns</h2>
             <div className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-lg">
               ⏰ Share limit: 48h per campaign
             </div>
           </div>
-          {promoCasts.length === 0 ? (
+          {/* JAVÍTÁS: A `promoCasts` helyett a `visiblePromos` változót használjuk a szűrt lista megjelenítéséhez */}
+          {visiblePromos.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-400 text-lg mb-2">No campaigns yet</div>
+              <div className="text-gray-400 text-lg mb-2">No active campaigns yet</div>
               <div className="text-gray-500">Create your first promotion campaign to get started!</div>
             </div>
           ) : (
-            promoCasts.map((promo) => (
+            visiblePromos.map((promo) => (
               <div key={promo.id} className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -821,20 +812,24 @@ export default function PromotePage() {
                     </div>
                     <p className="text-gray-300 text-sm break-all">{promo.castUrl}</p>
                     {promo.shareText && (
-                      <p className="text-gray-400 text-sm mt-2 italic">&ldquo;{promo.shareText}&rdquo;</p>
+                      <p className="text-gray-400 text-sm mt-2 italic">“{promo.shareText}”</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
+                    {/* A státusz gomb most már az 'inactive' színt is kezeli */}
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         promo.status === "active"
                           ? "bg-green-600 text-white"
                           : promo.status === "paused"
                             ? "bg-yellow-600 text-white"
-                            : "bg-gray-600 text-white"
+                            : promo.status === "inactive"
+                              ? "bg-blue-600 text-white" // Szín az inaktív státuszhoz
+                              : "bg-gray-600 text-white"
                       }`}
                     >
-                      {promo.status}
+                      {/* Felhasználóbarátabb szöveg az inaktív státuszra */}
+                      {promo.status === "inactive" ? "Funding needed" : promo.status}
                     </span>
                   </div>
                 </div>
@@ -901,7 +896,7 @@ export default function PromotePage() {
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
                     >
                       <FiDollarSign />
-                      Fund Campaign
+                      {promo.status === 'inactive' ? 'Fund to Activate' : 'Fund Campaign'}
                     </button>
                   )}
 
@@ -910,11 +905,12 @@ export default function PromotePage() {
                     disabled={
                       sharingPromoId === promo.id ||
                       promo.author.fid === currentUser.fid ||
+                      promo.status !== 'active' || // Megosztás csak aktív kampány esetén
                       (shareTimers[promo.id] && !shareTimers[promo.id].canShare) ||
                       sdkType !== "miniapp" // Only allow sharing with Mini App SDK for now
                     }
                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 ${
-                      promo.author.fid === currentUser.fid
+                      promo.author.fid === currentUser.fid || promo.status !== 'active'
                         ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                         : sharingPromoId === promo.id
                           ? "bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
@@ -935,6 +931,11 @@ export default function PromotePage() {
                         <FiShare2 size={16} />
                         Your Campaign
                       </>
+                    ) : promo.status !== 'active' ? (
+                       <>
+                        <FiShare2 size={16} />
+                        Not Active
+                       </>
                     ) : sdkType !== "miniapp" ? (
                       <>
                         <FiShare2 size={16} />
