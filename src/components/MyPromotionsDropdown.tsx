@@ -181,6 +181,10 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                 <FundingForm
                   promotionId={Number(fundPromo.id)}
                   totalBudget={fundPromo.totalBudget}
+                  rewardPerShare={fundPromo.rewardPerShare}
+                  castUrl={fundPromo.castUrl}
+                  shareText={fundPromo.shareText || ""}
+                  status={fundPromo.status}
                   onSuccess={() => setFundPromo(null)}
                 />
                 <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded" onClick={() => setFundPromo(null)}>Close</button>
