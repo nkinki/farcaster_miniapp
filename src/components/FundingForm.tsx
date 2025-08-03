@@ -88,7 +88,7 @@ export default function FundingForm({ promotionId, totalBudget, rewardPerShare, 
         setError(e.message || "Funding failed (createCampaign)")
         setAutoStep("idle")
       }
-    } else if (status === "active" && onchainCampaignId) {
+    } else if (status === "active" && onchainCampaignId && !isNaN(Number(onchainCampaignId))) {
       setAutoStep("funding")
       try {
         await fundCampaign(BigInt(onchainCampaignId), amount)
@@ -99,8 +99,10 @@ export default function FundingForm({ promotionId, totalBudget, rewardPerShare, 
         setError(e.message || "Funding failed (fundCampaign)")
         setAutoStep("idle")
       }
+    } else if (status === "active" && !onchainCampaignId) {
+      setError("This promotion is active but has no onchain campaignId. Please contact support.")
     } else {
-      setError("Invalid promotion state for funding.")
+      setError(`This promotion cannot be funded. (Status: ${status})`)
     }
   }
 
