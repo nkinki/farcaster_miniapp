@@ -761,10 +761,10 @@ export default function PromotePage() {
           />
         </div>
 
-        {/* My Promotions Dropdown (legördülő saját promók) */}
-        <div className="mb-8">
-          <MyPromotionsDropdown promotions={promoCasts.filter((promo) => promo.author.fid === currentUser.fid)} />
-        </div>
+        {/* My Promotions Dropdown (legördülő saját promók) - HIDDEN */}
+        {/* <div className="mb-8">
+          <MyPromotionsDropdown promotions={[]} />
+        </div> */}
 
         {/* Create Promotion Button */}
         <div className="flex justify-center mb-8">
