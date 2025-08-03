@@ -17,10 +17,10 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
   const [txHash, setTxHash] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [autoStep, setAutoStep] = useState<"idle" | "approving" | "creating" | "saving" | "done">("idle")
+  const [showSummary, setShowSummary] = useState(false) // Új állapot a összefoglaló panelhez
 
   const { address, isConnected } = useAccount()
 
-  // 1. Lekérdezzük a balance-t és az allowance-t (csak a useChessToken hookból!)
   const {
     approveFarcasterPromo,
     isApproving,
@@ -34,7 +34,6 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     formatChessAmount,
   } = useChessToken()
 
-  // 2. createCampaign (useFarcasterPromo)
   const {
     createCampaign,
     isCreatingCampaign,
@@ -62,7 +61,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   }, [isConnected, address, castUrl, rewardPerShare, totalBudget, isApproving, allowance, autoStep, approveFarcasterPromo, needsApproval, parseChessAmount])
 
-  // Automatikus createCampaign, ha van elég allowance (debug loggal)
+  // Automatikus createCampaign, ha van elég allowance
   useEffect(() => {
     console.log("Checking createCampaign conditions:", {
       isConnected,
@@ -74,7 +73,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       isCreatingCampaign,
       autoStep,
       isCreateCampaignSuccess,
-    });
+    })
     if (
       isConnected &&
       address &&
@@ -83,11 +82,10 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       totalBudget > 0 &&
       !needsApproval(parseChessAmount(totalBudget)) &&
       !isCreatingCampaign &&
-      autoStep !== "creating" &&
+      autoStep === "creating" &&
       !isCreateCampaignSuccess
     ) {
       setError(null)
-      setAutoStep("creating")
       createCampaign({
         castUrl,
         shareText,
@@ -148,7 +146,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     console.log("Balance check:", {
       balance: balance?.toString(),
       totalBudgetParsed: parseChessAmount(totalBudget).toString(),
-    });
+    })
     if (typeof balance === "bigint" && balance < parseChessAmount(totalBudget)) {
       setError("Nincs elég CHESS token a walletben!")
     } else {
@@ -158,13 +156,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
 
   // Manuális trigger a gombra kattintásra
   const handleCreateCampaign = () => {
-    if (
-      !isConnected ||
-      !address ||
-      !castUrl ||
-      rewardPerShare <= 0 ||
-      totalBudget <= 0
-    ) {
+    if (!isConnected || !address || !castUrl || rewardPerShare <= 0 || totalBudget <= 0) {
       setError("Kérlek, tölts ki minden mezőt helyesen!")
       return
     }
@@ -175,15 +167,12 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       return
     }
     setError(null)
+    setShowSummary(true) // Megjeleníti a összefoglalót
     setAutoStep("creating")
-    createCampaign({
-      castUrl,
-      shareText,
-      rewardPerShare: parseChessAmount(rewardPerShare),
-      totalBudget: parseChessAmount(totalBudget),
-      divisible: true,
-    })
   }
+
+  // Maximális megosztások kiszámítása
+  const maxShares = totalBudget > 0 && rewardPerShare > 0 ? Math.floor(totalBudget / rewardPerShare) : 0
 
   return (
     <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
@@ -208,67 +197,91 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
         <div><b>error:</b> {error || "nincs"}</div>
       </div>
 
-      <input
-        className="mb-2 w-full p-2 rounded"
-        placeholder="Cast URL"
-        value={castUrl}
-        onChange={(e) => { setCastUrl(e.target.value); setAutoStep("idle"); }}
-      />
-      <input
-        className="mb-2 w-full p-2 rounded"
-        placeholder="Megosztási szöveg"
-        value={shareText}
-        onChange={(e) => { setShareText(e.target.value); setAutoStep("idle"); }}
-      />
-      <select
-        className="mb-2 w-full p-2 rounded"
-        value={rewardPerShare}
-        onChange={(e) => { setRewardPerShare(Number(e.target.value)); setAutoStep("idle"); }}
-      >
-        <option value={1000}>1K</option>
-        <option value={2000}>2K</option>
-        <option value={5000}>5K</option>
-        <option value={10000}>10K</option>
-        <option value={20000}>20K</option>
-      </select>
-      <select
-        className="mb-2 w-full p-2 rounded"
-        value={totalBudget}
-        onChange={(e) => { setTotalBudget(Number(e.target.value)); setAutoStep("idle"); }}
-      >
-        <option value={10000}>10K</option>
-        <option value={100000}>100K</option>
-        <option value={500000}>500K</option>
-        <option value={1000000}>1M</option>
-        <option value={5000000}>5M</option>
-      </select>
+      {!showSummary && (
+        <>
+          <input
+            className="mb-2 w-full p-2 rounded"
+            placeholder="Cast URL"
+            value={castUrl}
+            onChange={(e) => { setCastUrl(e.target.value); setAutoStep("idle"); setShowSummary(false); }}
+          />
+          <input
+            className="mb-2 w-full p-2 rounded"
+            placeholder="Megosztási szöveg (opcionális)"
+            value={shareText}
+            onChange={(e) => { setShareText(e.target.value); setAutoStep("idle"); setShowSummary(false); }}
+          />
+          <select
+            className="mb-2 w-full p-2 rounded"
+            value={rewardPerShare}
+            onChange={(e) => { setRewardPerShare(Number(e.target.value)); setAutoStep("idle"); setShowSummary(false); }}
+          >
+            <option value={1000}>1K</option>
+            <option value={2000}>2K</option>
+            <option value={5000}>5K</option>
+            <option value={10000}>10K</option>
+            <option value={20000}>20K</option>
+          </select>
+          <select
+            className="mb-2 w-full p-2 rounded"
+            value={totalBudget}
+            onChange={(e) => { setTotalBudget(Number(e.target.value)); setAutoStep("idle"); setShowSummary(false); }}
+          >
+            <option value={10000}>10K</option>
+            <option value={100000}>100K</option>
+            <option value={500000}>500K</option>
+            <option value={1000000}>1M</option>
+            <option value={5000000}>5M</option>
+          </select>
 
-      <div className="mb-2 text-sm text-gray-300">
-        Egyenleg: {balance ? formatChessAmount(balance) : "–"} CHESS<br />
-        Engedélyezett: {allowance ? formatChessAmount(allowance) : "–"} CHESS
-      </div>
+          <div className="mb-2 text-sm text-gray-300">
+            Egyenleg: {balance ? formatChessAmount(balance) : "–"} CHESS<br />
+            Engedélyezett: {allowance ? formatChessAmount(allowance) : "–"} CHESS
+          </div>
 
-      {error && <div className="mb-2 text-red-400">{error}</div>}
+          {error && <div className="mb-2 text-red-400">{error}</div>}
 
-      {autoStep === "approving" && <div className="text-yellow-300 mb-2">Jóváhagyás folyamatban...</div>}
-      {autoStep === "creating" && <div className="text-yellow-300 mb-2">Kampány létrehozása folyamatban...</div>}
-      {isSaving && <div className="text-yellow-300 mb-2">Mentés Neon DB-be...</div>}
-      {createCampaignHash && <div className="text-green-400 mb-2">Siker! Tranzakció hash: {createCampaignHash.toString()}</div>}
-      {autoStep === "done" && <div className="text-green-400 mb-2">Promóció sikeresen létrehozva!</div>}
+          {autoStep === "approving" && <div className="text-yellow-300 mb-2">Jóváhagyás folyamatban...</div>}
+          {autoStep === "creating" && <div className="text-yellow-300 mb-2">Kampány létrehozása folyamatban...</div>}
+          {isSaving && <div className="text-yellow-300 mb-2">Mentés Neon DB-be...</div>}
+          {createCampaignHash && <div className="text-green-400 mb-2">Siker! Tranzakció hash: {createCampaignHash.toString()}</div>}
+          {autoStep === "done" && <div className="text-green-400 mb-2">Promóció sikeresen létrehozva!</div>}
 
-      <button
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mt-2"
-        onClick={handleCreateCampaign}
-        disabled={isApproving || isCreatingCampaign || isSaving}
-      >
-        Create Campaign
-      </button>
-      <button
-        className="w-full bg-gray-600 hover:bg-gray-700 text-white p-2 rounded mt-2"
-        onClick={() => { setAutoStep("idle"); setError(null); }}
-      >
-        Cancel
-      </button>
+          <button
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mt-2"
+            onClick={handleCreateCampaign}
+            disabled={isApproving || isCreatingCampaign || isSaving}
+          >
+            Create Campaign
+          </button>
+        </>
+      )}
+
+      {showSummary && (
+        <div className="p-4 bg-gray-800 rounded-lg">
+          <h3 className="text-lg font-semibold mb-2 text-white">Campaign Summary</h3>
+          <div className="text-sm text-gray-300">
+            <div><b>Cast URL:</b> {castUrl || "Nincs megadva"}</div>
+            <div><b>Share Text:</b> {shareText || "No custom text"}</div>
+            <div><b>Reward Per Share:</b> {rewardPerShare.toLocaleString()} $CHESS</div>
+            <div><b>Total Budget:</b> {totalBudget.toLocaleString()} $CHESS</div>
+            <div><b>Max Shares:</b> {maxShares} shares</div>
+          </div>
+          <button
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mt-4"
+            onClick={() => setAutoStep("creating")}
+            disabled={isCreatingCampaign || isSaving}
+          >
+            Confirm and Create
+          </button>
+          <button
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white p-2 rounded mt-2"
+            onClick={() => { setShowSummary(false); setAutoStep("idle"); setError(null); }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   )
 }
