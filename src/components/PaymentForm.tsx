@@ -23,22 +23,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const { address, isConnected } = useAccount()
 
-  // 1. Lekérdezzük a balance-t és az allowance-t
-  const { data: balance } = useReadContract({
-    address: CHESS_TOKEN_ADDRESS,
-    abi: erc20Abi,
-    functionName: "balanceOf",
-    args: address ? [address] : undefined,
-    query: { enabled: !!address }
-  })
-
-  const { data: allowance } = useReadContract({
-    address: CHESS_TOKEN_ADDRESS,
-    abi: erc20Abi,
-    functionName: "allowance",
-    args: address ? [address, FARCASTER_PROMO_CONTRACT] : undefined,
-    query: { enabled: !!address }
-  })
+  // 1. Lekérdezzük a balance-t és az allowance-t (csak a useChessToken hookból!)
 
   // 2. Approve és token logika a useChessToken hookból
   const {
