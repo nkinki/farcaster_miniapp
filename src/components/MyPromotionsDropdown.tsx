@@ -70,6 +70,21 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                 <div className="mb-2 text-white">Cast URL: {editPromo.castUrl}</div>
                 <div className="mb-2">
                   <label className="block text-sm text-gray-300 mb-1">Reward per Share</label>
+                  <div className="grid grid-cols-5 gap-2 mb-2">
+                    {[1000, 2000, 5000, 10000, 20000].map((amount) => (
+                      <button
+                        key={amount}
+                        onClick={() => setEditPromo({ ...editPromo, rewardPerShare: amount })}
+                        className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                          editPromo.rewardPerShare === amount
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
+                      >
+                        {amount / 1000}K
+                      </button>
+                    ))}
+                  </div>
                   <input
                     className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     type="number"
@@ -79,6 +94,21 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                 </div>
                 <div className="mb-2">
                   <label className="block text-sm text-gray-300 mb-1">Total Budget</label>
+                  <div className="grid grid-cols-5 gap-2 mb-2">
+                    {[10000, 100000, 500000, 1000000, 5000000].map((amount) => (
+                      <button
+                        key={amount}
+                        onClick={() => setEditPromo({ ...editPromo, totalBudget: amount })}
+                        className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                          editPromo.totalBudget === amount
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
+                      >
+                        {amount >= 1000000 ? `${amount / 1000000}M` : `${amount / 1000}K`}
+                      </button>
+                    ))}
+                  </div>
                   <input
                     className="w-full p-2 rounded text-white bg-[#181c23] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     type="number"
