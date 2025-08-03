@@ -144,7 +144,6 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
         <div><b>needsApproval:</b> {needsApproval(parseChessAmount(totalBudget)) ? 'true' : 'false'}</div>
         <div><b>autoStep:</b> {autoStep}</div>
         <div><b>isApproving:</b> {isApproving ? 'true' : 'false'}</div>
-        <div><b>isApproveLoading:</b> {isApproveLoading ? 'true' : 'false'}</div>
         <div><b>isApproveSuccess:</b> {isApproveSuccess ? 'true' : 'false'}</div>
         <div><b>isCreating:</b> {isCreating ? 'true' : 'false'}</div>
         <div><b>isCreateLoading:</b> {isCreateLoading ? 'true' : 'false'}</div>
