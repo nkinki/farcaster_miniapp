@@ -931,11 +931,14 @@ export default function PromotePage() {
 
       {/* Payment Form Modal */}
       {showPaymentForm && (
-        <PaymentForm onSuccess={() => {
-          setShowPaymentForm(false);
-          setSelectedCampaignId("");
-          fetchPromotions();
-        }} />
+        <PaymentForm
+          user={currentUser}
+          onSuccess={() => {
+            setShowPaymentForm(false);
+            setSelectedCampaignId("");
+            fetchPromotions();
+          }}
+        />
       )}
     </div>
   )
