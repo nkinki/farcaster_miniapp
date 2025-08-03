@@ -6,6 +6,7 @@ import { parseUnits, erc20Abi } from "viem"
 import { CONTRACTS } from "@/config/contracts"
 import FARCASTER_PROMO_ABI from "@/abis/FarcasterPromo.json"
 import { useFarcasterPromo } from "../hooks/useFarcasterPromo"
+import { useChessToken } from "../hooks/useChessToken"
 
 const CHESS_TOKEN_ADDRESS = CONTRACTS.CHESS_TOKEN as `0x${string}`
 const FARCASTER_PROMO_CONTRACT = CONTRACTS.FarcasterPromo as `0x${string}`
@@ -39,9 +40,18 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     query: { enabled: !!address }
   })
 
-  // 2. Approve
-  const { writeContract: approve, data: approveHash, isPending: isApproving } = useFarcasterPromo()
-  const { isSuccess: isApproveSuccess, isLoading: isApproveLoading } = { isSuccess: false, isLoading: false } // debug placeholder
+  // 2. Approve és token logika a useChessToken hookból
+  const {
+    approveFarcasterPromo,
+    isApproving,
+    isApproveSuccess,
+    isApprovalConfirming,
+    approveHash,
+    needsApproval,
+    parseChessAmount,
+    allowance,
+    balance,
+  } = useChessToken()
 
   // 3. createCampaign (useFarcasterPromo)
   const {
@@ -53,15 +63,6 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     isCreateCampaignConfirming
   } = useFarcasterPromo()
 
-  // Helper: parse CHESS mennyiség
-  const parseChessAmount = (amount: number) => parseUnits(amount.toString(), 18)
-
-  // Helper: elég-e az allowance?
-  const needsApproval = () => {
-    if (!allowance) return true
-    return BigInt(allowance) < parseChessAmount(totalBudget)
-  }
-
   // Automatikus approve, ha kell
   useEffect(() => {
     if (
@@ -71,20 +72,14 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       rewardPerShare > 0 &&
       totalBudget > 0 &&
       !isApproving &&
-      !isApproveLoading &&
-      needsApproval() &&
+      needsApproval(parseChessAmount(totalBudget)) &&
       autoStep === "idle"
     ) {
       setError(null)
       setAutoStep("approving")
-      approve({
-        address: CHESS_TOKEN_ADDRESS,
-        abi: erc20Abi,
-        functionName: "approve",
-        args: [FARCASTER_PROMO_CONTRACT, parseChessAmount(totalBudget)]
-      })
+      approveFarcasterPromo(parseChessAmount(totalBudget))
     }
-  }, [isConnected, address, castUrl, rewardPerShare, totalBudget, isApproving, isApproveLoading, allowance, autoStep, approve])
+  }, [isConnected, address, castUrl, rewardPerShare, totalBudget, isApproving, allowance, autoStep, approveFarcasterPromo, needsApproval, parseChessAmount])
 
   // Automatikus createCampaign, ha van elég allowance
   useEffect(() => {
@@ -94,7 +89,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       castUrl &&
       rewardPerShare > 0 &&
       totalBudget > 0 &&
-      !needsApproval() &&
+      !needsApproval(parseChessAmount(totalBudget)) &&
       !isCreatingCampaign &&
       autoStep !== "creating" &&
       !isCreateCampaignSuccess
@@ -109,7 +104,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
         divisible: true
       })
     }
-  }, [isConnected, address, castUrl, rewardPerShare, totalBudget, allowance, isCreatingCampaign, autoStep, createCampaign, isCreateCampaignSuccess, shareText])
+  }, [isConnected, address, castUrl, rewardPerShare, totalBudget, allowance, isCreatingCampaign, autoStep, createCampaign, isCreateCampaignSuccess, shareText, needsApproval, parseChessAmount])
 
   // Sikeres createCampaign után mentés Neon DB-be
   useEffect(() => {
