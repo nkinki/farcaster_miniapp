@@ -10,7 +10,10 @@ import PaymentForm from "../../components/PaymentForm"
 import MyPromotionsDropdown from "../../components/MyPromotionsDropdown"
 import FundingForm from "../../components/FundingForm"
 import { useAccount } from "wagmi"
-import { ConnectWalletButton } from "@/components/ConnectWalletButton" // Helyes alias import
+import { ConnectWalletButton } from "@/components/ConnectWalletButton"
+
+// JAVÍTÁS: A típusokat a központi fájlból importáljuk
+import { PromoCast, DatabasePromotion } from "@/types/promotions"
 
 interface FarcasterUser {
   fid: number
@@ -40,44 +43,6 @@ interface FarcasterContext {
       embeds?: string[]
     }
   }
-}
-
-// Types
-interface PromoCast {
-  id: string
-  castUrl: string
-  author: {
-    fid: number
-    username: string
-    displayName: string
-    pfpUrl?: string
-  }
-  rewardPerShare: number
-  totalBudget: number
-  sharesCount: number
-  remainingBudget: number
-  shareText?: string
-  createdAt: string
-  status: "active" | "paused" | "completed" | "inactive" // Hozzáadtuk az 'inactive' státuszt is
-  blockchainHash?: string
-}
-
-// Database types
-interface DatabasePromotion {
-  id: number
-  fid: number
-  username: string
-  display_name: string | null
-  cast_url: string
-  share_text: string | null
-  reward_per_share: number
-  total_budget: number
-  shares_count: number
-  remaining_budget: number
-  status: "active" | "paused" | "completed" | "inactive" // Hozzáadtuk az 'inactive' státuszt is
-  blockchain_hash: string | null
-  created_at: string
-  updated_at: string
 }
 
 // Helper function to convert database promotion to PromoCast
@@ -258,8 +223,6 @@ export default function PromotePage() {
   // Fetch promotions from database
   const fetchPromotions = async () => {
     try {
-      // JAVÍTÁS: A `status=all` paraméterrel lekérjük az összes promóciót,
-      // nem csak az aktívakat. Így a felhasználó a saját inaktív promócióit is látni fogja.
       const response = await fetch("/api/promotions?status=all")
       if (response.ok) {
         const data = await response.json()
@@ -625,8 +588,6 @@ export default function PromotePage() {
   const isMobile = context?.client?.platformType === "mobile"
   const safeArea = context?.client?.safeAreaInsets
 
-  // JAVÍTÁS: Ezt a változót a `return` előtt definiáljuk a tisztább kódért.
-  // Csak azokat a promóciókat jelenítjük meg, amik aktívak, VAGY a bejelentkezett felhasználóhoz tartoznak.
   const visiblePromos = promoCasts.filter(
     (promo) => promo.status === "active" || promo.author.fid === currentUser.fid
   )
@@ -788,7 +749,6 @@ export default function PromotePage() {
               ⏰ Share limit: 48h per campaign
             </div>
           </div>
-          {/* JAVÍTÁS: A `promoCasts` helyett a `visiblePromos` változót használjuk a szűrt lista megjelenítéséhez */}
           {visiblePromos.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 text-lg mb-2">No active campaigns yet</div>
@@ -816,7 +776,6 @@ export default function PromotePage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* A státusz gomb most már az 'inactive' színt is kezeli */}
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         promo.status === "active"
@@ -824,11 +783,10 @@ export default function PromotePage() {
                           : promo.status === "paused"
                             ? "bg-yellow-600 text-white"
                             : promo.status === "inactive"
-                              ? "bg-blue-600 text-white" // Szín az inaktív státuszhoz
+                              ? "bg-blue-600 text-white"
                               : "bg-gray-600 text-white"
                       }`}
                     >
-                      {/* Felhasználóbarátabb szöveg az inaktív státuszra */}
                       {promo.status === "inactive" ? "Funding needed" : promo.status}
                     </span>
                   </div>
@@ -905,9 +863,9 @@ export default function PromotePage() {
                     disabled={
                       sharingPromoId === promo.id ||
                       promo.author.fid === currentUser.fid ||
-                      promo.status !== 'active' || // Megosztás csak aktív kampány esetén
+                      promo.status !== 'active' ||
                       (shareTimers[promo.id] && !shareTimers[promo.id].canShare) ||
-                      sdkType !== "miniapp" // Only allow sharing with Mini App SDK for now
+                      sdkType !== "miniapp"
                     }
                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 ${
                       promo.author.fid === currentUser.fid || promo.status !== 'active'

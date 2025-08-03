@@ -5,39 +5,16 @@ import { sdk } from '@farcaster/miniapp-sdk'
 import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp, FiCreditCard } from 'react-icons/fi'
 import { useAccount } from 'wagmi'
 
-interface UserProfileProps {
-  onLogout?: () => void;
-  userPromos?: PromoCast[];
-  onEditPromo?: (promo: PromoCast) => void;
-  userStats?: {
-    totalEarnings: number;
-    totalShares: number;
-    pendingClaims: number;
-  };
-}
+// JAVÍTÁS: A típusokat a központi types fájlból importáljuk
+import { PromoCast } from '@/types/promotions'
 
+// A Farcaster-specifikus típusokat is érdemes egy központi helyre tenni, de az egyszerűség kedvéért itt hagyjuk,
+// amíg nincs rájuk máshol is szükség. Ha a hiba továbbra is fennáll, ezeket is helyezd át a központi types fájlba.
 interface FarcasterUser {
   fid: number;
   username?: string;
   displayName?: string;
   pfpUrl?: string;
-}
-
-interface PromoCast {
-  id: string;
-  castUrl: string;
-  author: {
-    fid: number;
-    username: string;
-    displayName: string;
-  };
-  rewardPerShare: number;
-  totalBudget: number;
-  sharesCount: number;
-  remainingBudget: number;
-  shareText?: string;
-  createdAt: string;
-  status: 'active' | 'paused' | 'completed';
 }
 
 interface FarcasterContext {
@@ -61,6 +38,19 @@ interface FarcasterContext {
   };
 }
 
+// Ez a props interfész a komponens sajátja, de a központilag definiált PromoCast típust használja.
+interface UserProfileProps {
+  onLogout?: () => void;
+  userPromos?: PromoCast[];
+  onEditPromo?: (promo: PromoCast) => void;
+  userStats?: {
+    totalEarnings: number;
+    totalShares: number;
+    pendingClaims: number;
+  };
+}
+
+
 export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEditPromo, userStats }: UserProfileProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -75,13 +65,10 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
     // Check haptics support - try to use haptics directly
     const checkHaptics = async () => {
       try {
-        // Try to call a haptic function to see if it's available
         await sdk.haptics.impactOccurred('light');
         setHapticsSupported(true);
-        console.log('Haptics supported: true');
       } catch (error) {
-        setHapticsSupported(false);
-        console.log('Haptics not supported:', error);
+        // Haptics not supported or SDK not in a haptics-enabled environment
       }
     };
     
@@ -89,11 +76,7 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
 
     // Get Farcaster user context
     sdk.context.then((ctx: FarcasterContext) => {
-      const farcasterUser = ctx.user
-      console.log('Farcaster user context in UserProfile:', farcasterUser)
-      console.log('Platform type:', ctx.client?.platformType)
-      console.log('Location type:', ctx.location?.type)
-      
+      const farcasterUser = ctx.user      
       setContext(ctx)
       
       if (farcasterUser?.fid) {
@@ -104,7 +87,6 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
           displayName: farcasterUser.displayName || "Current User",
           pfpUrl: farcasterUser.pfpUrl
         })
-        console.log('User authenticated in UserProfile:', farcasterUser)
       } else {
         setIsAuthenticated(false)
         setProfile(null)
@@ -152,7 +134,7 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
             try {
               await sdk.haptics.selectionChanged();
             } catch (error) {
-              console.log('Haptics error:', error);
+              // Fail silently if haptics not supported
             }
           }
         }}
@@ -185,32 +167,21 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
           </div>
         </div>
         
-                         <div className="flex items-center gap-2">
-                   <span className="text-sm text-gray-400">FID: {profile.fid}</span>
-                   {isExpanded ? (
-                     <FiChevronUp size={20} className="text-purple-400" />
-                   ) : (
-                     <FiChevronDown size={20} className="text-purple-400" />
-                   )}
-                 </div>
+         <div className="flex items-center gap-2">
+           <span className="text-sm text-gray-400">FID: {profile.fid}</span>
+           {isExpanded ? (
+             <FiChevronUp size={20} className="text-purple-400" />
+           ) : (
+             <FiChevronDown size={20} className="text-purple-400" />
+           )}
+         </div>
       </div>
 
       {/* Expandable Content */}
       <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-        isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0' // Megnövelt max-h
       }`}>
-        <div className="px-6 pb-6">
-          {/* Wallet Info */}
-          {isConnected && (
-            <div className="mb-4 p-3 bg-[#181c23] rounded-lg border border-gray-700">
-              <div className="flex items-center gap-2 mb-2">
-                <FiCreditCard className="text-purple-400" />
-                <span className="text-white font-semibold text-sm">Connected Wallet</span>
-              </div>
-              <p className="text-gray-300 text-sm font-mono">{address}</p>
-            </div>
-          )}
-
+        <div className="px-6 pb-6 pt-4">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
@@ -249,11 +220,11 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
           {userPromos.length > 0 && (
             <div className="mt-6">
               <h4 className="text-lg font-semibold text-white mb-4">My Promotions</h4>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
                 {userPromos.map((promo) => (
                   <div key={promo.id} className="bg-[#181c23] rounded-lg p-4 border border-gray-700">
                     <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
+                      <div className="flex-1 overflow-hidden pr-2">
                         <p className="text-white font-medium truncate">{promo.castUrl}</p>
                         <p className="text-sm text-gray-400">Reward: {promo.rewardPerShare} $CHESS</p>
                       </div>
@@ -263,22 +234,26 @@ export default function UserProfile({ onLogout: _onLogout, userPromos = [], onEd
                             try {
                               await sdk.haptics.impactOccurred('light');
                             } catch (error) {
-                              console.log('Haptics error:', error);
+                              // Hiba csendes kezelése
                             }
                           }
-                          onEditPromo?.(promo);
+                          // A Fund gombot kell itt használni, nem az editet.
+                          // A page.tsx kezeli a form megjelenítését.
+                          alert("Use the 'Fund' button on the campaign card to manage it.");
                         }}
                         className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors"
                       >
-                        Edit
+                        Manage
                       </button>
                     </div>
-                    <div className="flex justify-between text-xs text-gray-400">
+                    <div className="flex justify-between items-center text-xs text-gray-400">
                       <span>Shares: {promo.sharesCount}</span>
                       <span>Budget: {promo.remainingBudget}/{promo.totalBudget}</span>
-                      <span className={`px-2 py-1 rounded ${
+                      {/* JAVÍTÁS: A státusz kijelző most már az 'inactive' színt is kezeli */}
+                      <span className={`px-2 py-0.5 rounded text-xs ${
                         promo.status === 'active' ? 'bg-green-600 text-white' :
                         promo.status === 'paused' ? 'bg-yellow-600 text-white' :
+                        promo.status === 'inactive' ? 'bg-blue-600 text-white' :
                         'bg-gray-600 text-white'
                       }`}>
                         {promo.status}
