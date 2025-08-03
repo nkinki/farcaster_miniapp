@@ -9,6 +9,7 @@ if (!process.env.NEON_DB_URL) {
 
 const sql = neon(process.env.NEON_DB_URL);
 
+// A GET függvény változatlan maradhat, az helyesen működik.
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -61,58 +62,49 @@ export async function GET(request: NextRequest) {
   }
 }
 
+
+// A POST függvényt javítjuk.
 export async function POST(request: NextRequest) {
   try {
-    console.log('POST /api/promotions called');
-    
     const body = await request.json();
-    console.log('Request body:', body);
-    
     const { fid, username, displayName, castUrl, shareText, rewardPerShare, totalBudget, blockchainHash, status } = body;
 
-    // Validate required fields
-    if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget) {
-      console.error('Missing required fields:', { fid, username, castUrl, rewardPerShare, totalBudget });
+    // JAVÍTÁS: A validációt kiterjesztjük a `status` mezőre is.
+    // Most már kötelező megadni, hogy egy promóció milyen státusszal jön létre.
+    if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget || !status) {
       return NextResponse.json(
-        { error: `Missing required fields: ${!fid ? 'fid ' : ''}${!username ? 'username ' : ''}${!castUrl ? 'castUrl ' : ''}${!rewardPerShare ? 'rewardPerShare ' : ''}${!totalBudget ? 'totalBudget' : ''}` },
+        { error: 'Missing required fields. All fields including status are required.' },
         { status: 400 }
       );
     }
+    
+    // JAVÍTÁS: Opcionális, de ajánlott: ellenőrizzük, hogy a status érvényes-e.
+    const validStatuses = ['active', 'inactive', 'paused', 'completed'];
+    if (!validStatuses.includes(status)) {
+        return NextResponse.json(
+            { error: `Invalid status value. Must be one of: ${validStatuses.join(', ')}` },
+            { status: 400 }
+        );
+    }
 
-    console.log('Creating promotion with data:', {
-      fid,
-      username,
-      displayName,
-      castUrl,
-      shareText,
-      rewardPerShare,
-      totalBudget,
-      blockchainHash,
-      status
-    });
-
-    // Create promotion directly in Neon DB
+    // JAVÍTÁS: Az SQL parancsból eltávolítjuk a `|| "inactive"` részt.
+    // A kód most már egyértelműen a frontend által küldött `status` értéket használja.
     const [promotion] = await sql`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
         reward_per_share, total_budget, remaining_budget, blockchain_hash, status
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null},
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, ${blockchainHash || null}, ${status || "inactive"}
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, ${blockchainHash || null}, ${status}
       )
       RETURNING *;
     `;
 
-    console.log('Promotion created successfully:', promotion);
+    console.log('Promotion created successfully with status:', status);
     return NextResponse.json({ promotion }, { status: 201 });
+
   } catch (error) {
     console.error('Error creating promotion:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : 'Unknown'
-    });
-    
     return NextResponse.json(
       { 
         error: 'Failed to create promotion',
@@ -121,4 +113,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
