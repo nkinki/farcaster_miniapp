@@ -145,9 +145,9 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
         <div><b>autoStep:</b> {autoStep}</div>
         <div><b>isApproving:</b> {isApproving ? 'true' : 'false'}</div>
         <div><b>isApproveSuccess:</b> {isApproveSuccess ? 'true' : 'false'}</div>
-        <div><b>isCreating:</b> {isCreating ? 'true' : 'false'}</div>
-        <div><b>isCreateLoading:</b> {isCreateLoading ? 'true' : 'false'}</div>
-        <div><b>isCreateSuccess:</b> {isCreateSuccess ? 'true' : 'false'}</div>
+        <div><b>isCreating:</b> {isCreatingCampaign ? 'true' : 'false'}</div>
+        <div><b>isCreateLoading:</b> {isCreateCampaignConfirming ? 'true' : 'false'}</div>
+        <div><b>isCreateSuccess:</b> {isCreateCampaignSuccess ? 'true' : 'false'}</div>
         <div><b>isSaving:</b> {isSaving ? 'true' : 'false'}</div>
         <div><b>error:</b> {error || 'nincs'}</div>
       </div>
