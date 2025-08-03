@@ -1,155 +1,141 @@
 "use client"
 
-import { useState } from "react"
-import { useAccount } from "wagmi"
-import { useChessToken } from "../hooks/useChessToken"
-import { useFarcasterPromo } from "../hooks/useFarcasterPromo"
+import { useState } from 'react';
+import { useAccount } from 'wagmi';
+import { useWriteContract } from 'wagmi';
+import { parseUnits } from 'viem';
+import { PROMO_CONTRACT_ADDRESS, PROMO_CONTRACT_ABI, CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/lib/contracts';
+import { FiX } from 'react-icons/fi';
+import { PromoCast } from '@/types/promotions';
 
-interface FundingFormProps {
-  promotionId: number
-  totalBudget: number
-  rewardPerShare: number
-  castUrl: string
-  shareText: string
-  status: string // "inactive" | "active"
-  onchainCampaignId?: number
-  onSuccess?: () => void
+// Itt definiáljuk a props-okat, amiket a komponens fogad
+export interface FundingFormProps {
+  promotionId: number;
+  totalBudget: number;
+  rewardPerShare: number;
+  castUrl: string;
+  shareText: string;
+  status: "active" | "inactive" | "paused" | "completed";
+  onSuccess: () => void;
+  onCancel: () => void; // JAVÍTÁS: Hozzáadjuk a hiányzó onCancel propot
 }
 
-export default function FundingForm({ promotionId, totalBudget, rewardPerShare, castUrl, shareText, status, onchainCampaignId, onSuccess }: FundingFormProps) {
-  const { address, isConnected } = useAccount()
-  const {
-    approveFarcasterPromo,
-    isApproving,
-    isApproveSuccess,
-    needsApproval,
-    parseChessAmount,
-    balance,
-    allowance,
-  } = useChessToken()
-  const {
-    fundCampaign,
-    isFundingCampaign,
-    isFundCampaignSuccess,
-    fundCampaignHash,
-    fundCampaignError,
-    isFundCampaignConfirming,
-    createCampaign,
-    isCreatingCampaign,
-    isCreateCampaignSuccess,
-    createCampaignHash,
-    createCampaignError,
-    isCreateCampaignConfirming
-  } = useFarcasterPromo()
+export default function FundingForm({
+  promotionId,
+  castUrl,
+  status,
+  onSuccess,
+  onCancel, // JAVÍTÁS: Beolvassuk a propot
+}: FundingFormProps) {
+  const { address } = useAccount();
+  const { writeContractAsync } = useWriteContract();
 
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [autoStep, setAutoStep] = useState<"idle"|"approving"|"funding"|"creating"|"done">("idle")
+  const [amount, setAmount] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  // Funding amount
-  const amount = parseChessAmount(totalBudget)
+  const handleFundCampaign = async () => {
+    setError(null);
+    if (!amount || Number(amount) <= 0) {
+      setError("Please enter a valid amount to fund.");
+      return;
+    }
 
-  // Approve
-  const handleApprove = async () => {
-    setError(null)
-    setAutoStep("approving")
+    setIsProcessing(true);
+
     try {
-      await approveFarcasterPromo(amount)
-    } catch (e: any) {
-      setError(e.message || "Approve failed")
-      setAutoStep("idle")
-    }
-  }
+      const decimals = 18; // CHESS token decimálisai
+      const amountInWei = parseUnits(amount, decimals);
 
-  // Funding (createCampaign or fundCampaign)
-  const handleFund = async () => {
-    setError(null)
-    if (status === "inactive") {
-      setAutoStep("creating")
-      try {
-        // Onchain createCampaign
-        const tx = await createCampaign({
-          castUrl,
-          shareText,
-          rewardPerShare: parseChessAmount(rewardPerShare),
-          totalBudget: amount,
-          divisible: true
-        })
-        // TODO: campaignId-t backend event listenerből kell elmenteni!
-        await fetch(`/api/promotions/${promotionId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "active" })
-        })
-        setSuccess(true)
-        setAutoStep("done")
-        if (onSuccess) onSuccess()
-      } catch (e: any) {
-        setError(e.message || "Funding failed (createCampaign)")
-        setAutoStep("idle")
-      }
-    } else if (status === "active" && onchainCampaignId && !isNaN(Number(onchainCampaignId))) {
-      setAutoStep("funding")
-      try {
-        await fundCampaign(BigInt(onchainCampaignId), amount)
-        setSuccess(true)
-        setAutoStep("done")
-        if (onSuccess) onSuccess()
-      } catch (e: any) {
-        setError(e.message || "Funding failed (fundCampaign)")
-        setAutoStep("idle")
-      }
-    } else if (status === "active" && !onchainCampaignId) {
-      setError("This promotion is active but has no onchain campaignId. Please contact support.")
-    } else {
-      setError(`This promotion cannot be funded. (Status: ${status})`)
-    }
-  }
+      // --- 1. LÉPÉS: APPROVE ---
+      setProcessingStep("Approving token...");
+      await writeContractAsync({
+        address: CHESS_TOKEN_ADDRESS,
+        abi: CHESS_TOKEN_ABI,
+        functionName: 'approve',
+        args: [PROMO_CONTRACT_ADDRESS, amountInWei],
+      });
+      
+      // --- 2. LÉPÉS: FUND CAMPAIGN ---
+      setProcessingStep("Funding campaign...");
+      const fundHash = await writeContractAsync({
+        address: PROMO_CONTRACT_ADDRESS,
+        abi: PROMO_CONTRACT_ABI,
+        functionName: 'fundCampaign',
+        args: [promotionId, amountInWei],
+      });
 
-  const hasSufficientBalance = balance && Number(balance) / 1e18 >= totalBudget
+      console.log('Campaign funded successfully, tx hash:', fundHash);
+
+      // Nem kell az adatbázist frissíteni itt, mert a contract események alapján
+      // egy indexernek kellene ezt megtennie. A frontend egyszerűen frissíti a listát.
+      
+      onSuccess();
+
+    } catch (err: any) {
+      console.error("Campaign funding failed:", err);
+      setError(err.shortMessage || err.message || "An unknown error occurred.");
+    } finally {
+      setIsProcessing(false);
+      setProcessingStep('');
+    }
+  };
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl">
-      <h2 className="text-xl font-bold mb-4 text-white">Activate Promotion (Step 2)</h2>
-      <div className="mb-2 text-sm text-gray-300">
-        Required funding: <b>{totalBudget.toLocaleString()} CHESS</b><br />
-        Balance: {balance ? (Number(balance) / 1e18).toLocaleString() : "–"} CHESS<br />
-        Allowance: {allowance ? (Number(allowance) / 1e18).toLocaleString() : "–"} CHESS<br />
-        {hasSufficientBalance ? (
-          <span className="text-green-400">Sufficient balance</span>
-        ) : (
-          <span className="text-red-400">Insufficient balance</span>
-        )}
-      </div>
-      {error && <div className="mb-2 text-red-400">{error}</div>}
-      {success && <div className="mb-2 text-green-400">Promotion successfully activated and now public!</div>}
-      {needsApproval(amount) ? (
-        <button
-          className="w-full bg-green-600 text-white py-2 rounded mb-2 disabled:opacity-50"
-          onClick={handleApprove}
-          disabled={isApproving || autoStep === "approving"}
-        >
-          {isApproving || autoStep === "approving" ? "Approving..." : "Approve CHESS"}
+    // Modal-szerű felület
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] w-full max-w-md relative">
+        <button onClick={onCancel} className="absolute top-3 right-3 text-gray-400 hover:text-white">
+          <FiX size={24} />
         </button>
-      ) : (
-        <button
-          className="w-full bg-blue-600 text-white py-2 rounded mb-2 disabled:opacity-50"
-          onClick={handleFund}
-          disabled={
-            (status === "inactive" && (isCreatingCampaign || autoStep === "creating")) ||
-            (status === "active" && (isFundingCampaign || autoStep === "funding")) ||
-            !hasSufficientBalance
-          }
-        >
-          {(status === "inactive" && (isCreatingCampaign || autoStep === "creating")) ? "Creating..."
-            : (status === "active" && (isFundingCampaign || autoStep === "funding")) ? "Funding..."
-            : status === "inactive" ? "Activate (onchain create)"
-            : "Fund Campaign (onchain)"}
-        </button>
-      )}
-      <div className="mt-4 text-xs text-gray-400">
-        <b>Note:</b> Activation is an onchain transaction. The promotion will be public only after successful funding!
+        
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-white text-center">Fund Campaign</h2>
+          
+          <div className="bg-[#181c23] p-3 rounded-lg text-sm">
+            <p className="text-white truncate">
+              <strong>Cast:</strong> {castUrl}
+            </p>
+            <p className="text-gray-400">
+              <strong>Status:</strong> <span className="font-semibold">{status}</span>
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="fundAmount" className="block text-sm font-medium text-purple-300">
+              Amount to Add ($CHESS)
+            </label>
+            <input
+              type="number"
+              id="fundAmount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="mt-1 block w-full bg-[#181c23] border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              placeholder="e.g., 5000"
+            />
+          </div>
+
+          {error && <p className="text-red-400 text-sm text-center bg-red-900/50 p-3 rounded-md">{error}</p>}
+
+          <div className="flex items-center gap-4 pt-4">
+            <button
+              onClick={onCancel}
+              disabled={isProcessing}
+              className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleFundCampaign}
+              disabled={isProcessing || !address}
+              className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? `Processing: ${processingStep}` : "Fund Campaign"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }
