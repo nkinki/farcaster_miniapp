@@ -150,15 +150,19 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                     ))}
                   </div>
                 </div>
-                <div className="mb-2 text-xs text-gray-300">
-                  Balance: {balance ? (Number(balance) / 1e18).toLocaleString() : "–"} CHESS<br />
-                  Needed: {editPromo.totalBudget.toLocaleString()} CHESS<br />
-                  {balance && Number(balance) / 1e18 >= editPromo.totalBudget ? (
-                    <span className="text-green-400">Sufficient balance</span>
-                  ) : (
-                    <span className="text-red-400">Insufficient balance</span>
-                  )}
-                </div>
+                {editPromo.status !== "active" ? (
+                  <div className="mb-2 text-xs text-gray-300">
+                    Balance: {balance ? (Number(balance) / 1e18).toLocaleString() : "–"} CHESS<br />
+                    Needed: {editPromo.totalBudget.toLocaleString()} CHESS<br />
+                    {balance && Number(balance) / 1e18 >= editPromo.totalBudget ? (
+                      <span className="text-green-400">Sufficient balance</span>
+                    ) : (
+                      <span className="text-red-400">Insufficient balance</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mb-2 text-xs text-green-400">Promotion is already funded and active.</div>
+                )}
                 {editError && <div className="mb-2 text-red-400">{editError}</div>}
                 {editSuccess && <div className="mb-2 text-green-400">Promotion updated!</div>}
                 <div className="flex gap-2 mt-4">
