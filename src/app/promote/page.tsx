@@ -758,7 +758,7 @@ export default function PromotePage() {
 
         {/* Campaign Creation Form (always visible) */}
         <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79]">
-          <PaymentForm onSuccess={() => {/* 2. lépésre navigálás logika ide */}} />
+          <PaymentForm user={currentUser} onSuccess={() => {/* 2. lépésre navigálás logika ide */}} />
         </div>
 
         {/* Campaigns List */}
