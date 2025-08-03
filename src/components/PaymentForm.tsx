@@ -17,7 +17,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
   const [txHash, setTxHash] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [autoStep, setAutoStep] = useState<"idle" | "approving" | "creating" | "saving" | "done">("idle")
-  const [showSummary, setShowSummary] = useState(false) // Új állapot a összefoglaló panelhez
+  const [showSummary, setShowSummary] = useState(false)
 
   const { address, isConnected } = useAccount()
 
@@ -83,7 +83,8 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       !needsApproval(parseChessAmount(totalBudget)) &&
       !isCreatingCampaign &&
       autoStep === "creating" &&
-      !isCreateCampaignSuccess
+      !isCreateCampaignSuccess &&
+      showSummary
     ) {
       setError(null)
       createCampaign({
@@ -108,6 +109,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
     shareText,
     needsApproval,
     parseChessAmount,
+    showSummary,
   ])
 
   // Sikeres createCampaign után mentés Neon DB-be
@@ -167,7 +169,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
       return
     }
     setError(null)
-    setShowSummary(true) // Megjeleníti a összefoglalót
+    setShowSummary(true)
     setAutoStep("creating")
   }
 
@@ -270,6 +272,7 @@ export default function PaymentForm({ onSuccess }: { onSuccess?: () => void }) {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mt-4"
             onClick={() => setAutoStep("creating")}
             disabled={isCreatingCampaign || isSaving}
+            onMouseOver={() => console.log("Button disabled:", isCreatingCampaign || isSaving)}
           >
             Confirm and Create
           </button>
