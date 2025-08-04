@@ -26,7 +26,7 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   rewardPerShare: dbPromo.reward_per_share,
   totalBudget: dbPromo.total_budget,
   sharesCount: dbPromo.shares_count,
-  remainingBudget: dbPromo.remaining_budget,
+  remainingBudget: dbPromo.remainingBudget,
   shareText: dbPromo.share_text || undefined,
   createdAt: dbPromo.created_at,
   status: dbPromo.status,
@@ -43,7 +43,7 @@ const formatTimeRemaining = (hours: number): string => {
 
 const calculateProgress = (promo: PromoCast): number => {
   if (promo.totalBudget === 0) return 0;
-  const spent = promo.totalBudget - promo.remaining_budget;
+  const spent = promo.totalBudget - promo.remainingBudget;
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
