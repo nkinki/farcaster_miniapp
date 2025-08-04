@@ -60,24 +60,59 @@ export default function PromotePage() {
   }, []);
 
   const fetchPromotions = useCallback(async () => {
-    setLoading(true);
+    // A setLoading(true) a hívó függvényben van, hogy elkerüljük a dupla beállítást
     try {
       const response = await fetch("/api/promotions?status=all");
       if (response.ok) {
         const data = await response.json();
         setPromoCasts(data.promotions.map(convertDbToPromoCast));
       }
-    } catch (error) { console.error("Error fetching promotions:", error); } 
-    finally { setLoading(false); }
+    } catch (error) { console.error("Error fetching promotions:", error); }
   }, []);
 
-  useEffect(() => { fetchPromotions() }, [fetchPromotions]);
+  const fetchUserStats = useCallback(async (fid: number) => {
+    if (!fid) return;
+    try {
+      const response = await fetch(`/api/users/${fid}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          setUserStats({
+            totalEarnings: data.user.total_earnings,
+            totalShares: data.user.total_shares,
+            pendingClaims: data.user.pending_claims
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch user stats:", error);
+    }
+  }, []);
+
+  // Egyetlen adatlekérő függvény, ami mindent frissít
+  const refreshAllData = useCallback(async (fid: number | null) => {
+      setLoading(true);
+      const fetchPromosPromise = fetchPromotions();
+      const fetchStatsPromise = fid ? fetchUserStats(fid) : Promise.resolve();
+      await Promise.all([fetchPromosPromise, fetchStatsPromise]);
+      setLoading(false);
+  }, [fetchPromotions, fetchUserStats]);
+
+  useEffect(() => {
+      if (profile) {
+          refreshAllData(profile.fid);
+      } else if (isAuthenticated) {
+          // Ha valamiért a profil null, de auth van, akkor is próbáljuk frissíteni
+          refreshAllData(null);
+      }
+  }, [isAuthenticated, profile, refreshAllData]);
+
 
   const currentUser = isAuthenticated && profile ? { fid: profile.fid, username: profile.username || "user", displayName: profile.displayName || "Current User" } : { fid: 0, username: "guest", displayName: "Guest" };
 
-  const handleCreateSuccess = () => { setShowForm(false); fetchPromotions(); };
+  const handleCreateSuccess = () => { setShowForm(false); refreshAllData(currentUser.fid); };
   const handleCreateCancel = () => { setShowForm(false); };
-  const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); fetchPromotions(); };
+  const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(currentUser.fid); };
   const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
 
   const handleViewCast = (castUrl: string) => {
@@ -123,7 +158,8 @@ export default function PromotePage() {
       if (!response.ok) throw new Error(data.error || "Failed to record share.");
 
       alert(`Successfully shared! You earned ${promo.rewardPerShare} $CHESS.`);
-      fetchPromotions();
+      // Sikeres megosztás után frissítünk mindent
+      refreshAllData(currentUser.fid);
 
     } catch (error) {
       console.error("Error sharing promo:", error);

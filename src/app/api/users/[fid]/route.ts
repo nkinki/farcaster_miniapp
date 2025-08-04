@@ -1,0 +1,49 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { neon } from '@neondatabase/serverless';
+
+export const dynamic = 'force-dynamic';
+
+if (!process.env.NEON_DB_URL) {
+  throw new Error('NEON_DB_URL is not set');
+}
+const sql = neon(process.env.NEON_DB_URL);
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { fid: string } }
+) {
+  try {
+    const fid = parseInt(params.fid, 10);
+    if (isNaN(fid)) {
+      return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
+    }
+
+    // Lekérdezzük az összesített statisztikákat a 'shares' táblából
+    const statsResult = await sql`
+      SELECT
+        COUNT(*) AS total_shares,
+        COALESCE(SUM(reward_amount), 0) AS total_earnings
+      FROM shares
+      WHERE sharer_fid = ${fid};
+    `;
+
+    const userStats = statsResult[0];
+
+    // A "pending claims" egyelőre megegyezik a total earnings-szel,
+    // amíg nincs a contractban egy "claimed" állapot.
+    const responseData = {
+      user: {
+        fid: fid,
+        total_shares: parseInt(userStats.total_shares as string, 10),
+        total_earnings: parseFloat(userStats.total_earnings as string),
+        pending_claims: parseFloat(userStats.total_earnings as string), // Ezt később finomítani kell
+      }
+    };
+
+    return NextResponse.json(responseData, { status: 200 });
+
+  } catch (error: any) {
+    console.error('API Error in GET /api/users/[fid]:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
