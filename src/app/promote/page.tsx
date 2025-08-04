@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiExternalLink, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
@@ -11,17 +11,14 @@ import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { PromoCast, DatabasePromotion } from "@/types/promotions";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 
-// JAVÍTÁS: Visszahelyezzük a hiányzó Farcaster típusdefiníciókat.
+// FarcasterUser és FarcasterContext típusok
 interface FarcasterUser {
   fid: number;
   username?: string;
   displayName?: string;
   pfpUrl?: string;
 }
-interface FarcasterContext { 
-  user?: FarcasterUser;
-  // ... a context többi része, ha szükséges
-}
+interface FarcasterContext { user?: FarcasterUser; }
 
 // Adatbázis -> Kliens konvertáló helper
 const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
@@ -81,6 +78,21 @@ export default function PromotePage() {
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); fetchPromotions(); };
   const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
 
+  const handleViewCast = (castUrl: string) => {
+    try {
+      const urlParts = castUrl.split('/');
+      const castHash = urlParts[urlParts.length - 1];
+      if (castHash && castHash.startsWith('0x')) {
+        miniAppSdk.actions.viewCast({ hash: castHash });
+      } else {
+        window.open(castUrl, '_blank');
+      }
+    } catch (error) {
+      console.error("Failed to open cast natively:", error);
+      window.open(castUrl, '_blank');
+    }
+  };
+
   const myPromos = promoCasts.filter(p => p.author.fid === currentUser.fid);
   const availablePromos = promoCasts.filter(p => p.status === 'active' && p.author.fid !== currentUser.fid);
 
@@ -93,7 +105,6 @@ export default function PromotePage() {
       return b.rewardPerShare - a.rewardPerShare;
     });
   }, [availablePromos, shareTimers]);
-
 
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
@@ -125,10 +136,11 @@ export default function PromotePage() {
         <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
             <button
                 onClick={() => setIsShareListOpen(!isShareListOpen)}
-                className="w-full flex justify-between items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
+                className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
             >
-                <span>Share & Earn ({availablePromos.length})</span>
-                {isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}
+                <div className="w-6"></div> {/* Üres div a szimmetriáért */}
+                <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
+                <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
             </button>
 
             {isShareListOpen && (
@@ -137,8 +149,8 @@ export default function PromotePage() {
                     <div className="text-center py-8"><div className="text-gray-400 text-lg">No other active campaigns right now.</div></div>
                   ) : (
                     sortedAvailablePromos.map((promo) => (
-                      <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700">
-                        <div className="flex items-start justify-between mb-4">
+                      <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700 flex flex-col gap-4">
+                        <div className="flex items-start justify-between">
                           <div className="flex-1 overflow-hidden pr-4">
                             <p className="text-white font-semibold truncate">{promo.castUrl}</p>
                             <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
@@ -148,13 +160,10 @@ export default function PromotePage() {
                               <FiMoreHorizontal size={20} />
                             </button>
                             {openMenuId === promo.id && (
-                              <div className="absolute right-0 mt-2 w-48 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10">
-                                <button onClick={() => alert('Sharing!')} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
-                                  <FiShare2 size={16} /> Share & Earn
+                              <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10">
+                                <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
+                                  <FiEye size={16} /> View Cast (In-App)
                                 </button>
-                                <a href={promo.castUrl} target="_blank" rel="noopener noreferrer" className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700 border-t border-gray-600">
-                                  <FiExternalLink size={16} /> View Cast
-                                </a>
                               </div>
                             )}
                           </div>
@@ -165,6 +174,16 @@ export default function PromotePage() {
                           <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
                           <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
                           <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
+                        </div>
+                        
+                        <div>
+                           <button
+                             onClick={() => alert('Sharing!')}
+                             className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300"
+                           >
+                             <FiShare2 size={18} />
+                             Share & Earn {promo.rewardPerShare} $CHESS
+                           </button>
                         </div>
                       </div>
                     ))
