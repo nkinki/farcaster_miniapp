@@ -8,12 +8,16 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
+// JAVÍTÁS: A függvény második paraméterének típusdefiníciója javítva
 export async function GET(
   request: NextRequest,
-  { params }: { params: { fid: string } }
+  context: { params: { fid: string } }
 ) {
   try {
+    // JAVÍTÁS: A `params`-ot a `context` objektumból vesszük ki
+    const { params } = context;
     const fid = parseInt(params.fid, 10);
+    
     if (isNaN(fid)) {
       return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
     }
@@ -29,14 +33,14 @@ export async function GET(
 
     const userStats = statsResult[0];
 
-    // A "pending claims" egyelőre megegyezik a total earnings-szel,
-    // amíg nincs a contractban egy "claimed" állapot.
+    // A "pending claims" egyelőre megegyezik a total earnings-szel.
+    // Ezt később finomítani kell, ha bevezetjük a jutalmak "kivett" állapotát.
     const responseData = {
       user: {
         fid: fid,
         total_shares: parseInt(userStats.total_shares as string, 10),
         total_earnings: parseFloat(userStats.total_earnings as string),
-        pending_claims: parseFloat(userStats.total_earnings as string), // Ezt később finomítani kell
+        pending_claims: parseFloat(userStats.total_earnings as string),
       }
     };
 
