@@ -1,8 +1,8 @@
-
 "use client"
 
 import { useState } from 'react';
-import { FiChevronDown, FiChevronUp, FiUsers, FiTrendingUp, FiDollarSign, FiActivity } from 'react-icons/fi';
+// JAVÍTÁS: Importáljuk az összes szükséges ikont
+import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
 
 interface MyCampaignsDropdownProps {
@@ -20,7 +20,7 @@ const calculateProgress = (promo: PromoCast): number => {
 };
 
 export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampaignsDropdownProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   if (myPromos.length === 0) {
     return null;
@@ -41,6 +41,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampa
         <div className="p-4 border-t border-gray-700">
           <div className="space-y-4 max-h-[30rem] overflow-y-auto pr-2">
             {myPromos.map((promo) => (
+              // JAVÍTÁS: Visszaállítjuk a részletes "műszerfal" kártya nézetet
               <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700">
                 
                 {/* Felső szekció: Cast URL és Státusz */}
@@ -56,7 +57,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampa
                   </span>
                 </div>
 
-                {/* Szimmetrikus statisztikai blokkok (2x2 rács) */}
+                {/* JAVÍTÁS: Szimmetrikus statisztikai blokkok (2x2 rács) */}
                 <div className="grid grid-cols-2 gap-3 mb-4 text-white">
                   <div className="p-3 bg-gray-800 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
@@ -88,13 +89,22 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampa
                   </div>
                 </div>
 
-                {/* Progress bar a folyamat vizualizálásához */}
+                {/* JAVÍTÁS: Progress bar a folyamat vizualizálásához */}
                 <div className="w-full bg-gray-700 rounded-full h-2.5 mb-4">
                   <div
                     className="bg-gradient-to-r from-purple-600 to-blue-600 h-2.5 rounded-full"
                     style={{ width: `${calculateProgress(promo)}%` }}
                   ></div>
                 </div>
+
+                {/* "Manage" gomb a finanszírozáshoz */}
+                <button
+                  onClick={() => onManageClick(promo)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  <FiSettings />
+                  Manage Campaign (Fund / Pause)
+                </button>
 
               </div>
             ))}
