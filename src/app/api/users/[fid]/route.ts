@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const statsResult = await sql`
       SELECT
         COUNT(*) AS total_shares,
-        COALECTE(SUM(reward_amount), 0) AS total_earnings
+        COALESCE(SUM(reward_amount), 0) AS total_earnings
       FROM shares
       WHERE sharer_fid = ${fid};
     `;
