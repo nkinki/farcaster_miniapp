@@ -47,13 +47,13 @@ export async function POST(request: NextRequest) {
     // --- Smart Contract Interaction ---
     console.log(`Recording share for FID ${sharerFid} on campaign ${promotionId}...`);
 
-    // JAVÍTÁS: Beillesztettük a megadott wallet címet a placeholder helyére.
-    // ÉLES RENDSZERBEN ITT EGY NEYNAR API HÍVÁSNAK KELLENE LENNIE, AMI FID ALAPJÁN ADJA VISSZA A CÍMET!
+    // Teszteléshez beégetett cím. ÉLESBEN EZT NEYNAR API-VAL KELL FELOLDANI!
     const sharerAddress = '0x7031D6Db2D5Cc22eAAc870132E6DCee80c486fff';
     
     const { request: contractRequest } = await publicClient.simulateContract({
       address: PROMO_CONTRACT_ADDRESS,
-      abi: PROO_CONTRACT_ABI,
+      // JAVÍTÁS: Az elírt 'PROO_CONTRACT_ABI' javítva 'PROMO_CONTRACT_ABI'-ra.
+      abi: PROMO_CONTRACT_ABI,
       functionName: 'recordShare',
       args: [BigInt(promotionId), sharerAddress as `0x${string}`],
       account,
