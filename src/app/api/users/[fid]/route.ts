@@ -10,21 +10,22 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
-// A Next.js a dinamikus paramétereket a második argumentumban adja át.
+// JAVÍTÁS: A GET függvény szignatúrája a helyes TypeScript típusokat használja.
+// A második argumentum egy objektum, aminek van egy `params` tulajdonsága.
 export async function GET(
-  request: NextRequest, 
-  { params }: { params: { fid: string } }
+  request: NextRequest,
+  context: { params: { fid: string } } 
 ) {
   try {
-    // A fid-et közvetlenül a `params` objektumból olvassuk ki.
-    const fidString = params.fid;
+    // A fid-et a `context.params` objektumból olvassuk ki.
+    const fidString = context.params.fid;
     const fid = parseInt(fidString, 10);
     
     if (isNaN(fid)) {
       return NextResponse.json({ error: 'Invalid Farcaster ID in URL' }, { status: 400 });
     }
 
-    // Lekérdezzük a felhasználó statisztikáit.
+    // A lekérdezés innentől változatlan.
     const statsResult = await sql`
       SELECT
         COUNT(*) AS total_shares,
@@ -47,10 +48,8 @@ export async function GET(
     return NextResponse.json(responseData, { status: 200 });
 
   } catch (error: any) {
-    console.error(`API Error in GET /api/users/${params.fid}:`, error);
+    // A hibaüzenetben is használhatjuk a context-et a pontosabb naplózáshoz.
+    console.error(`API Error in GET /api/users/${context.params.fid}:`, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-// Ha szükséged van POST, PUT, DELETE metódusokra ehhez az útvonalhoz, azokat is ide kellene tenned.
-// Pl. export async function POST(request: NextRequest, { params }: { params: { fid: string } }) { ... }
