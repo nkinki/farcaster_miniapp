@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
     if (promo.status !== 'active') return NextResponse.json({ error: 'This campaign is not active' }, { status: 400 });
     if (promo.remaining_budget < promo.reward_per_share) return NextResponse.json({ error: 'Campaign has insufficient budget' }, { status: 400 });
 
-    // Check for recent shares to prevent spam (e.g., 48-hour limit)
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const [recentShare] = await sql`
         SELECT id FROM shares 
@@ -48,19 +47,13 @@ export async function POST(request: NextRequest) {
     // --- Smart Contract Interaction ---
     console.log(`Recording share for FID ${sharerFid} on campaign ${promotionId}...`);
 
-    // IMPORTANT: To call `recordShare`, you need the user's wallet address, not their FID.
-    // You must use an API like Neynar to resolve the FID to a verified wallet address.
-    // For this example, we will simulate this by using the backend wallet's address.
-    // REPLACE THIS IN PRODUCTION.
-    const sharerAddress = '0x...'; // TODO: Replace with a call to a Farcaster API (e.g., Neynar) to get address from FID.
-    if (sharerAddress === '0x...') {
-        // This is a placeholder; in a real scenario, you'd throw an error if the address isn't found.
-        console.warn("Using placeholder address for sharer. Replace with FID-to-address resolution API.");
-    }
-
+    // JAVÍTÁS: Beillesztettük a megadott wallet címet a placeholder helyére.
+    // ÉLES RENDSZERBEN ITT EGY NEYNAR API HÍVÁSNAK KELLENE LENNIE, AMI FID ALAPJÁN ADJA VISSZA A CÍMET!
+    const sharerAddress = '0x7031D6Db2D5Cc22eAAc870132E6DCee80c486fff';
+    
     const { request: contractRequest } = await publicClient.simulateContract({
       address: PROMO_CONTRACT_ADDRESS,
-      abi: PROMO_CONTRACT_ABI,
+      abi: PROO_CONTRACT_ABI,
       functionName: 'recordShare',
       args: [BigInt(promotionId), sharerAddress as `0x${string}`],
       account,
