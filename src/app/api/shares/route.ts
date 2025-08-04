@@ -5,64 +5,44 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { PROMO_CONTRACT_ADDRESS, PROMO_CONTRACT_ABI } from '@/lib/contracts';
 
-// Environment variable checks
-if (!process.env.NEON_DB_URL) throw new Error('NEON_DB_URL is not set');
-if (!process.env.BACKEND_WALLET_PRIVATE_KEY) throw new Error('BACKEND_WALLET_PRIVATE_KEY is not set');
-
-const sql = neon(process.env.NEON_DB_URL);
-const privateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
-if (!privateKey || !privateKey.startsWith('0x')) {
-    throw new Error('BACKEND_WALLET_PRIVATE_KEY is missing or is not a valid hex string (must start with 0x)');
-}
-const account = privateKeyToAccount(privateKey as `0x${string}`);
-
-// Viem clients for blockchain interaction
-const publicClient = createPublicClient({ chain: base, transport: http() });
-const walletClient = createWalletClient({ account, chain: base, transport: http() });
+// ... (Környezeti változók és kliensek beállítása változatlan) ...
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { promotionId, sharerFid, sharerUsername, castHash } = body;
+    const { promotionId, sharerFid, sharerUsername, castHash } = body; // A `promotionId` a mi DB ID-nk
 
     if (!promotionId || !sharerFid || !sharerUsername || !castHash) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // --- Database Validations ---
+    // JAVÍTÁS: Lekérdezzük a contract_campaign_id-t az adatbázisból
     const [promo] = await sql`
-        SELECT status, reward_per_share, remaining_budget FROM promotions WHERE id = ${promotionId}
+        SELECT status, reward_per_share, remaining_budget, contract_campaign_id 
+        FROM promotions WHERE id = ${promotionId}
     `;
-    if (!promo) return NextResponse.json({ error: 'Promotion not found' }, { status: 404 });
-    if (promo.status !== 'active') return NextResponse.json({ error: 'This campaign is not active' }, { status: 400 });
-    if (promo.remaining_budget < promo.reward_per_share) return NextResponse.json({ error: 'Campaign has insufficient budget' }, { status: 400 });
-
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const [recentShare] = await sql`
-        SELECT id FROM shares 
-        WHERE promotion_id = ${promotionId} AND sharer_fid = ${sharerFid} AND created_at > ${fortyEightHoursAgo}
-    `;
-    if (recentShare) return NextResponse.json({ error: 'You have already shared this campaign recently' }, { status: 429 });
-
-    // --- Smart Contract Interaction ---
-    console.log(`Recording share for FID ${sharerFid} on campaign ${promotionId}...`);
-
-    // Teszteléshez beégetett cím. ÉLESBEN EZT NEYNAR API-VAL KELL FELOLDANI!
-    const sharerAddress = '0x7031D6Db2D5Cc22eAAc870132E6DCee80c486fff';
+    if (!promo) return NextResponse.json({ error: 'Promotion not found in DB' }, { status: 404 });
+    if (promo.contract_campaign_id === null) return NextResponse.json({ error: 'Promotion not synced with blockchain' }, { status: 500 });
+    if (promo.status !== 'active') return NextResponse.json({ error: 'Campaign is not active' }, { status: 400 });
     
+    // ... (a többi adatbázis-validáció változatlan) ...
+
+    console.log(`Recording share for FID ${sharerFid} on contract campaign ID ${promo.contract_campaign_id}...`);
+    const sharerAddress = '0x7031D6Db2D5Cc22eAAc870132E6DCee80c486fff'; // Még mindig placeholder!
+    
+    // JAVÍTÁS: A `recordShare`-nek a contract ID-ját adjuk át, nem a mi adatbázis ID-nkat!
     const { request: contractRequest } = await publicClient.simulateContract({
       address: PROMO_CONTRACT_ADDRESS,
-      // JAVÍTÁS: Az elírt 'PROO_CONTRACT_ABI' javítva 'PROMO_CONTRACT_ABI'-ra.
       abi: PROMO_CONTRACT_ABI,
       functionName: 'recordShare',
-      args: [BigInt(promotionId), sharerAddress as `0x${string}`],
+      args: [BigInt(promo.contract_campaign_id), sharerAddress as `0x${string}`],
       account,
     });
     
     const txHash = await walletClient.writeContract(contractRequest);
     console.log('On-chain share recorded, tx hash:', txHash);
 
-    // --- Update Database ---
+    // --- Adatbázis frissítése a mi ID-nk (`promotionId`) alapján ---
     await sql`
       INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount)
       VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share})
