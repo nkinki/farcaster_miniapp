@@ -55,7 +55,8 @@ export default function PromotePage() {
   const [showForm, setShowForm] = useState(false);
   const [showFundingForm, setShowFundingForm] = useState(false);
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null);
-  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0, pendingClaims: 0 });
+  // A pendingClaims kikerül innen, mert azt a UserProfile komponens kezeli a contractból
+  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 }); 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
   const [isShareListOpen, setIsShareListOpen] = useState(false);
@@ -109,10 +110,10 @@ export default function PromotePage() {
       if (response.ok) {
         const data = await response.json();
         if (data.user) {
+          // A pending claims már nem innen jön
           setUserStats({
             totalEarnings: data.user.total_earnings,
             totalShares: data.user.total_shares,
-            pendingClaims: data.user.pending_claims
           });
         }
       }
@@ -137,6 +138,11 @@ export default function PromotePage() {
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
   const handleCreateCancel = () => { setShowForm(false); };
   const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
+  
+  // Callback függvény a sikeres claim utáni frissítéshez
+  const handleClaimSuccess = () => {
+    refreshAllData();
+  };
 
   const handleViewCast = (castUrl: string) => {
     try {
@@ -201,9 +207,12 @@ export default function PromotePage() {
             <div className="flex items-center gap-4"><h1 className="text-2xl font-bold text-white">Promotions</h1><ConnectWalletButton /></div>
         </div>
 
-        {/* JAVÍTÁS: A `UserProfile` alatti távolságot `mb-8`-ról `mb-3`-ra csökkentettük */}
         <div className="mb-3">
-            <UserProfile userPromos={myPromos} userStats={userStats} />
+          <UserProfile 
+            userPromos={myPromos} 
+            userStats={userStats}
+            onClaimSuccess={handleClaimSuccess}
+          />
         </div>
         
         <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setFundingPromo(promo); setShowFundingForm(true); }} />

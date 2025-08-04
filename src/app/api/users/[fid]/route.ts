@@ -8,24 +8,20 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
-// JAVÍTÁS: A második argumentumot teljesen figyelmen kívül hagyjuk,
-// és a FID-et közvetlenül az URL-ből olvassuk ki a hiba elkerülése érdekében.
-export async function GET(request: NextRequest) {
-  try {
-    // A teljes URL kiolvasása a request objektumból
-    const url = new URL(request.url);
-    // Az URL útvonalát szétvágjuk a '/' karakterek mentén
-    const pathSegments = url.pathname.split('/');
-    // A dinamikus rész (a [fid]) mindig az útvonal utolsó eleme lesz
-    const fidString = pathSegments[pathSegments.length - 1];
+type RouteContext = {
+  params: {
+    fid: string;
+  };
+};
 
-    const fid = parseInt(fidString, 10);
+export async function GET(request: NextRequest, context: RouteContext) {
+  try {
+    const fid = parseInt(context.params.fid, 10);
     
     if (isNaN(fid)) {
-      return NextResponse.json({ error: 'Invalid Farcaster ID in URL' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
     }
 
-    // A lekérdezés innentől változatlan
     const statsResult = await sql`
       SELECT
         COUNT(*) AS total_shares,
@@ -41,7 +37,7 @@ export async function GET(request: NextRequest) {
         fid: fid,
         total_shares: parseInt(userStats.total_shares as string, 10),
         total_earnings: parseFloat(userStats.total_earnings as string),
-        pending_claims: parseFloat(userStats.total_earnings as string),
+        // A "pending_claims" mezőt eltávolítottuk, mert ezt a frontend fogja kezelni.
       }
     };
 
