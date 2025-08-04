@@ -11,7 +11,7 @@ import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { PromoCast, DatabasePromotion } from "@/types/promotions";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 
-// FarcasterUser and FarcasterContext types
+// FarcasterUser és FarcasterContext típusok
 interface FarcasterUser {
   fid: number;
   username?: string;
@@ -20,7 +20,7 @@ interface FarcasterUser {
 }
 interface FarcasterContext { user?: FarcasterUser; }
 
-// Database -> Client converter helper
+// Adatbázis -> Kliens konvertáló helper
 const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   id: dbPromo.id.toString(),
   castUrl: dbPromo.cast_url,
@@ -33,6 +33,7 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   createdAt: dbPromo.created_at,
   status: dbPromo.status,
   blockchainHash: dbPromo.blockchain_hash || undefined,
+  contractCampaignId: dbPromo.contract_campaign_id ?? undefined,
 });
 
 export default function PromotePage() {
@@ -104,10 +105,8 @@ export default function PromotePage() {
 
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
         console.log("Cast was cancelled by the user.");
-        return; // No share, no reward.
+        return;
       }
-
-      console.log("Cast published, hash:", castResult.cast.hash);
 
       const response = await fetch('/api/shares', {
         method: 'POST',
@@ -175,7 +174,10 @@ export default function PromotePage() {
         )}
 
         <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
-            <button onClick={() => setIsShareListOpen(!isShareListOpen)} className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors">
+            <button
+                onClick={() => setIsShareListOpen(!isShareListOpen)}
+                className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
+            >
                 <div className="w-6"></div>
                 <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
                 <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
@@ -211,7 +213,11 @@ export default function PromotePage() {
                         </div>
                         
                         <div>
-                           <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50">
+                           <button
+                             onClick={() => handleSharePromo(promo)}
+                             disabled={sharingPromoId === promo.id}
+                             className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50"
+                           >
                              {sharingPromoId === promo.id ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
                              {sharingPromoId === promo.id ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
                            </button>

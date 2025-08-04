@@ -9,20 +9,48 @@ if (!process.env.NEON_DB_URL) {
 
 const sql = neon(process.env.NEON_DB_URL);
 
-// A GET függvény változatlan maradhat.
 export async function GET(request: NextRequest) {
-    // ... a GET kódod itt ...
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const status = searchParams.get('status') || 'active';
+
+    // JAVÍTÁS: A SELECT parancsot egy változóba tesszük, hogy ne kelljen ismételni,
+    // és hozzáadjuk a hiányzó `contract_campaign_id` oszlopot.
+    const selectFields = sql`
+        id, fid, username, display_name, cast_url, share_text,
+        reward_per_share, total_budget, shares_count, remaining_budget,
+        status, blockchain_hash, created_at, updated_at,
+        contract_campaign_id
+    `;
+
+    let promotionsResult, totalResult;
+    if (status === 'all') {
+      promotionsResult = await sql`SELECT ${selectFields} FROM promotions ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset};`;
+      totalResult = await sql`SELECT COUNT(*) FROM promotions;`;
+    } else {
+      promotionsResult = await sql`SELECT ${selectFields} FROM promotions WHERE status = ${status} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset};`;
+      totalResult = await sql`SELECT COUNT(*) FROM promotions WHERE status = ${status};`;
+    }
+
+    const totalPromotions = parseInt(totalResult[0].count as string, 10);
+    return NextResponse.json({ promotions: promotionsResult, total: totalPromotions });
+
+  } catch (error) {
+    console.error('API Error in GET /api/promotions:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
-
-// A POST függvényt módosítjuk.
+// A POST függvényed már helyes volt, de a teljesség kedvéért itt a végleges verzió.
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { 
       fid, username, displayName, castUrl, shareText, 
       rewardPerShare, totalBudget, blockchainHash, status, 
-      contractCampaignId // Az új mező fogadása
+      contractCampaignId 
     } = body;
 
     if (
@@ -39,11 +67,11 @@ export async function POST(request: NextRequest) {
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
         reward_per_share, total_budget, remaining_budget, blockchain_hash, status,
-        contract_campaign_id -- Az új oszlop
+        contract_campaign_id
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null},
         ${rewardPerShare}, ${totalBudget}, ${totalBudget}, ${blockchainHash || null}, ${status},
-        ${contractCampaignId} -- Az új érték
+        ${contractCampaignId}
       )
       RETURNING *;
     `;

@@ -1,5 +1,3 @@
-// Itt definiáljuk a megosztott típusokat, hogy minden fájl innen tudja importálni őket.
-
 export interface PromoCast {
   id: string;
   castUrl: string;
@@ -15,8 +13,11 @@ export interface PromoCast {
   remainingBudget: number;
   shareText?: string;
   createdAt: string;
-  status: "active" | "paused" | "completed" | "inactive";
+  status: "active" | "inactive" | "paused" | "completed";
   blockchainHash?: string;
+  // JAVÍTÁS: Hozzáadjuk az új mezőt a kliensoldali típushoz.
+  // Opcionális (`?`), mert a régi, még nem szinkronizált promócióknál lehet `null`.
+  contractCampaignId?: number;
 }
 
 export interface DatabasePromotion {
@@ -30,8 +31,11 @@ export interface DatabasePromotion {
   total_budget: number;
   shares_count: number;
   remaining_budget: number;
-  status: "active" | "paused" | "completed" | "inactive";
+  status: "active" | "inactive" | "paused" | "completed";
   blockchain_hash: string | null;
   created_at: string;
   updated_at: string;
+  // JAVÍTÁS: Hozzáadjuk az új oszlopot a DB típushoz.
+  // Lehet `null`, mert a séma módosítása előtti bejegyzéseknél ez az érték hiányozni fog.
+  contract_campaign_id: number | null;
 }
