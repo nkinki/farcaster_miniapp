@@ -10,7 +10,11 @@ if (!process.env.NEON_DB_URL) throw new Error('NEON_DB_URL is not set');
 if (!process.env.BACKEND_WALLET_PRIVATE_KEY) throw new Error('BACKEND_WALLET_PRIVATE_KEY is not set');
 
 const sql = neon(process.env.NEON_DB_URL);
-const account = privateKeyToAccount(process.env.BACKEND_WALLET_PRIVATE_KEY as `0x${string}`);
+const privateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
+if (!privateKey || !privateKey.startsWith('0x')) {
+    throw new Error('BACKEND_WALLET_PRIVATE_KEY is missing or is not a valid hex string (must start with 0x)');
+}
+const account = privateKeyToAccount(privateKey as `0x${string}`);
 
 // Viem clients for blockchain interaction
 const publicClient = createPublicClient({ chain: base, transport: http() });
