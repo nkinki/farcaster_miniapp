@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye } from "react-icons/fi";
+// JAVÍTÁS: Hozzáadjuk a hiányzó FiChevronDown és FiChevronUp ikonokat az importhoz.
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
@@ -138,7 +139,7 @@ export default function PromotePage() {
                 onClick={() => setIsShareListOpen(!isShareListOpen)}
                 className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
             >
-                <div className="w-6"></div> {/* Üres div a szimmetriáért */}
+                <div className="w-6"></div>
                 <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
                 <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
             </button>
