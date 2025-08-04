@@ -209,7 +209,7 @@ export default function PromotePage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white text-center">PROMOTIONS</h1>
-          <div className="flex items-center justify-start mt-2">
+          <div className="flex items-center justify-start mt-4">
             <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors">
               <FiArrowLeft size={20} />
               <span>Back</span>
@@ -217,7 +217,7 @@ export default function PromotePage() {
           </div>
         </div>
 
-        <div className="mb-2">
+        <div className="mb-3">
           <UserProfile 
             ref={userProfileRef}
             userPromos={myPromos} 
