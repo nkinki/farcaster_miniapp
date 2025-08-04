@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     `;
     if (!promo) return NextResponse.json({ error: 'Promotion not found in DB' }, { status: 404 });
     if (promo.contract_campaign_id === null) return NextResponse.json({ error: 'Promotion not synced with blockchain' }, { status: 500 });
-    if (promo.status !== 'active') return NextResponse.json({ error: 'Campaign is not active' }, { status: 400 });
+    if (promo.status !== 'active') return NextResponse.json({ error: 'This campaign is not active' }, { status: 400 });
     
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const [recentShare] = await sql`
