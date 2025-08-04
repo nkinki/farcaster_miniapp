@@ -2,15 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
-import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp, FiCreditCard, FiShare } from 'react-icons/fi';
-import { useAccount } from 'wagmi';
+import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp, FiShare } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
 
-// ... (FarcasterUser, FarcasterContext interfészek változatlanok)
+// FarcasterUser típust ideiglenesen itt hagyjuk, de érdemes lehet központosítani
+interface FarcasterUser {
+    fid: number;
+    username?: string;
+    displayName?: string;
+    pfpUrl?: string;
+}
 
 interface UserProfileProps {
-  userPromos: PromoCast[]; // Ezt a prop-ot meghagyjuk, hogy a számot ki tudjuk írni
-  userStats?: {
+  userPromos: PromoCast[]; // A prop-ot meghagyjuk, hogy a kampányok számát ki tudjuk írni
+  userStats: {
     totalEarnings: number;
     totalShares: number;
     pendingClaims: number;
@@ -20,12 +25,11 @@ interface UserProfileProps {
 export default function UserProfile({ userPromos = [], userStats }: UserProfileProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
-  const { address, isConnected } = useAccount();
 
   useEffect(() => {
     sdk.context.then(ctx => {
       if (ctx.user?.fid) {
-        setProfile(ctx.user);
+        setProfile(ctx.user as FarcasterUser);
       }
     });
   }, []);
@@ -33,7 +37,7 @@ export default function UserProfile({ userPromos = [], userStats }: UserProfileP
   if (!profile) {
     return (
       <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] animate-pulse">
-        <div className="h-6 bg-gray-700 rounded w-3/4"></div>
+        <div className="h-6 bg-gray-700 rounded w-3/4 mx-auto"></div>
       </div>
     );
   }
@@ -54,13 +58,13 @@ export default function UserProfile({ userPromos = [], userStats }: UserProfileP
           </div>
         </div>
         <div className="flex items-center gap-2 text-purple-400">
-          <span>Stats</span>
+          <span>My Stats</span>
           {isExpanded ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
         </div>
       </div>
 
       {isExpanded && (
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 border-t border-gray-700 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
               <div className="flex items-center justify-center gap-2 mb-1">
@@ -84,7 +88,6 @@ export default function UserProfile({ userPromos = [], userStats }: UserProfileP
               <p className="text-xs text-gray-400">My Campaigns</p>
             </div>
           </div>
-          {/* JAVÍTÁS: A "My Promotions" lista eltávolítva innen */}
         </div>
       )}
     </div>

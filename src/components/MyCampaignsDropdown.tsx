@@ -10,10 +10,10 @@ interface MyCampaignsDropdownProps {
 }
 
 export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampaignsDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true); // Alapból legyen nyitva a könnyebb kezelhetőségért
 
   if (myPromos.length === 0) {
-    return null; // Ha nincs saját kampány, ne jelenjen meg semmi
+    return null; // Ha a felhasználónak nincs saját kampánya, ne jelenítsük meg a komponenst
   }
 
   return (
