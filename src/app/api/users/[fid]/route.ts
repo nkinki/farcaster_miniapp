@@ -1,5 +1,3 @@
-// FÁJL: /src/app/api/users/[fid]/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
@@ -10,21 +8,24 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
-// JAVÍTÁS: A Next.js dokumentációjával megegyező, hivatalos szintaxist használjuk.
-// A második argumentumból közvetlenül destrukturáljuk a `params` objektumot.
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { fid: string } }
-) {
+// JAVÍTÁS: A második argumentumot teljesen figyelmen kívül hagyjuk,
+// és a FID-et közvetlenül az URL-ből olvassuk ki a hiba elkerülése érdekében.
+export async function GET(request: NextRequest) {
   try {
-    // A fid-et most már közvetlenül a `params` objektumból érjük el.
-    const fidString = params.fid;
+    // A teljes URL kiolvasása a request objektumból
+    const url = new URL(request.url);
+    // Az URL útvonalát szétvágjuk a '/' karakterek mentén
+    const pathSegments = url.pathname.split('/');
+    // A dinamikus rész (a [fid]) mindig az útvonal utolsó eleme lesz
+    const fidString = pathSegments[pathSegments.length - 1];
+
     const fid = parseInt(fidString, 10);
     
     if (isNaN(fid)) {
       return NextResponse.json({ error: 'Invalid Farcaster ID in URL' }, { status: 400 });
     }
 
+    // A lekérdezés innentől változatlan
     const statsResult = await sql`
       SELECT
         COUNT(*) AS total_shares,
@@ -33,7 +34,7 @@ export async function GET(
       WHERE sharer_fid = ${fid};
     `;
 
-    const userStats = statsResult[0] || { total_shares: '0', total_earnings: '0' };
+    const userStats = statsResult[0];
 
     const responseData = {
       user: {
@@ -46,7 +47,7 @@ export async function GET(
     return NextResponse.json(responseData, { status: 200 });
 
   } catch (error: any) {
-    console.error(`API Error in GET /api/users/${params.fid}:`, error);
+    console.error('API Error in GET /api/users/[fid]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
