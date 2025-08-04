@@ -33,7 +33,6 @@ export default function UserProfile({ userPromos = [], userStats, onClaimSuccess
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimTxHash, setClaimTxHash] = useState<Hash | undefined>();
 
-  // A kivehető jutalom lekérdezése közvetlenül a smart contractból
   const { data: pendingRewardsData, refetch: refetchPendingRewards } = useReadContract({
     address: PROMO_CONTRACT_ADDRESS,
     abi: PROMO_CONTRACT_ABI,
@@ -42,15 +41,21 @@ export default function UserProfile({ userPromos = [], userStats, onClaimSuccess
     query: { enabled: !!address }
   });
   
-  // Várakozás a claim tranzakcióra, hogy utána frissíthessünk
-  useWaitForTransactionReceipt({
+  // JAVÍTÁS: A `useWaitForTransactionReceipt` hook `onSuccess` callback-je helyett
+  // a `isSuccess` visszatérési értéket figyeljük egy `useEffect`-ben.
+  const { isSuccess: isClaimConfirmed } = useWaitForTransactionReceipt({
       hash: claimTxHash,
-      onSuccess: () => {
-          alert('Claim successful! Your rewards have been sent.');
-          refetchPendingRewards();
-          onClaimSuccess();
-      }
   });
+
+  useEffect(() => {
+    // Ez az effekt csak akkor fut le, ha a claim tranzakció sikeresen megerősítést nyert.
+    if (isClaimConfirmed) {
+      alert('Claim successful! Your rewards have been sent.');
+      refetchPendingRewards(); // Frissítjük a kivehető jutalmakat
+      onClaimSuccess(); // Jelezzük a szülő komponensnek, hogy frissítse az adatokat
+    }
+  }, [isClaimConfirmed, refetchPendingRewards, onClaimSuccess]);
+
 
   const pendingClaims = pendingRewardsData && pendingRewardsData[0] ? Number(pendingRewardsData[0]) / 1e18 : 0;
 
@@ -67,13 +72,17 @@ export default function UserProfile({ userPromos = [], userStats, onClaimSuccess
         args: [],
       });
       setClaimTxHash(hash);
-      // A sikeres visszajelzést a useWaitForTransactionReceipt kezeli
     } catch (error: any) {
       alert(`Claim failed: ${error.shortMessage || error.message}`);
-    } finally {
-      setIsClaiming(false);
+      setIsClaiming(false); // Hiba esetén a gombot újra aktívvá tesszük
     }
   };
+
+  // Amikor a tranzakció befejeződött (akár sikerrel, akár sikertelenül a blokkláncon),
+  // a `isClaiming` állapotot visszaállítjuk. A `useWaitForTransactionReceipt` `isLoading`
+  // állapota erre nem tökéletes, mert a `setIsClaiming` a tranzakció elküldésekor történik.
+  // A `finally` blokk a `handleClaim`-ben jobb lenne, de a sikeres alert miatt a `useEffect` a tisztább.
+  // A jelenlegi `setIsClaiming(false)` a hibaágban már sokat segít.
 
   if (!profile) {
     return ( <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] animate-pulse"><div className="h-6 bg-gray-700 rounded w-3/4 mx-auto"></div></div> );
@@ -114,10 +123,10 @@ export default function UserProfile({ userPromos = [], userStats, onClaimSuccess
             <button
               onClick={handleClaim}
               disabled={isClaiming || !pendingClaims || pendingClaims === 0}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
             >
               <FiAward size={20} />
-              {isClaiming ? 'Processing...' : `Claim ${pendingClaims.toFixed(2)} $CHESS`}
+              {isClaiming ? 'Processing Transaction...' : `Claim ${pendingClaims.toFixed(2)} $CHESS`}
             </button>
           </div>
         </div>
