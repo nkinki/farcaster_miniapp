@@ -217,7 +217,7 @@ export default function PromotePage() {
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-1">
           <UserProfile 
             ref={userProfileRef}
             userPromos={myPromos} 
