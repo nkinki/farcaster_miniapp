@@ -10,22 +10,21 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
-// JAVÍTÁS: A GET függvény szignatúrája a helyes TypeScript típusokat használja.
-// A második argumentum egy objektum, aminek van egy `params` tulajdonsága.
+// JAVÍTÁS: A Next.js dokumentációjával megegyező, hivatalos szintaxist használjuk.
+// A második argumentumból közvetlenül destrukturáljuk a `params` objektumot.
 export async function GET(
   request: NextRequest,
-  context: { params: { fid: string } } 
+  { params }: { params: { fid: string } }
 ) {
   try {
-    // A fid-et a `context.params` objektumból olvassuk ki.
-    const fidString = context.params.fid;
+    // A fid-et most már közvetlenül a `params` objektumból érjük el.
+    const fidString = params.fid;
     const fid = parseInt(fidString, 10);
     
     if (isNaN(fid)) {
       return NextResponse.json({ error: 'Invalid Farcaster ID in URL' }, { status: 400 });
     }
 
-    // A lekérdezés innentől változatlan.
     const statsResult = await sql`
       SELECT
         COUNT(*) AS total_shares,
@@ -34,7 +33,6 @@ export async function GET(
       WHERE sharer_fid = ${fid};
     `;
 
-    // Biztosítjuk, hogy mindig legyen eredmény, még ha 0 is az érték.
     const userStats = statsResult[0] || { total_shares: '0', total_earnings: '0' };
 
     const responseData = {
@@ -48,8 +46,7 @@ export async function GET(
     return NextResponse.json(responseData, { status: 200 });
 
   } catch (error: any) {
-    // A hibaüzenetben is használhatjuk a context-et a pontosabb naplózáshoz.
-    console.error(`API Error in GET /api/users/${context.params.fid}:`, error);
+    console.error(`API Error in GET /api/users/${params.fid}:`, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
