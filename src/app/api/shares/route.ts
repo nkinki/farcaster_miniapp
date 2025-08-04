@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
+// JAVÍTÁS: Importáljuk a 'transaction' segédfüggvényt is
+import { neon, transaction } from '@neondatabase/serverless';
 import { createWalletClient, http, createPublicClient, isAddress, TransactionReceipt } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
@@ -84,7 +85,6 @@ export async function POST(request: NextRequest) {
     // --- Smart Contract Interakció ---
     console.log(`Recording share for address ${sharerAddress} on contract campaign ID ${promo.contract_campaign_id}...`);
     
-    // 1. Szimuláció
     const { request: contractRequest } = await publicClient.simulateContract({
       address: PROMO_CONTRACT_ADDRESS,
       abi: PROMO_CONTRACT_ABI,
@@ -93,30 +93,27 @@ export async function POST(request: NextRequest) {
       account,
     });
     
-    // 2. Tranzakció elküldése
     const txHash = await walletClient.writeContract(contractRequest);
     console.log('Transaction sent, awaiting confirmation. Hash:', txHash);
 
-    // 3. VÁRAKOZÁS A TRANZAKCIÓ MEGERŐSÍTÉSÉRE (EZ A KULCSLÉPÉS)
     const receipt: TransactionReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
 
-    // 4. SIKERESSÉG ELLENŐRZÉSE A VISSZAIGAZOLÁS (RECEIPT) ALAPJÁN
     if (receipt.status === 'reverted') {
       console.error(`Transaction was reverted on-chain. Hash: ${txHash}`);
-      // A frontend felé egyértelmű hibaüzenetet küldünk.
-      throw new Error('On-chain transaction failed. The campaign might be out of budget or you have already participated.');
+      throw new Error('On-chain transaction failed. The campaign may be out of budget or you have already participated.');
     }
     
     console.log('Transaction confirmed successfully. Updating database...');
 
-    // 5. CSAK ÉS KIZÁRÓLAG SIKERES ON-CHAIN TRANZAKCIÓ UTÁN FRISSÍTJÜK AZ ADATBÁZIST
-    await sql.begin(async (tx) => {
-      await tx`
+    // JAVÍTÁS: Az sql.begin() helyett a `transaction()` segédfüggvényt használjuk.
+    // Ez a helyes, idiomatikus módja a tranzakciókezelésnek a neon/serverless driverrel.
+    await transaction(sql, async (sql) => {
+      await sql`
         INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, tx_hash)
         VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share}, ${txHash})
       `;
       
-      await tx`
+      await sql`
         UPDATE promotions
         SET shares_count = shares_count + 1, remaining_budget = remaining_budget - ${promo.reward_per_share}
         WHERE id = ${promotionId}
@@ -127,7 +124,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('API Error:', error);
-    // A viem hibáknak gyakran van egy `shortMessage` tulajdonsága, ami érthetőbb a felhasználónak.
     const errorMessage = error.shortMessage || error.message || 'An internal server error occurred.';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
