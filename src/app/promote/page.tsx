@@ -26,7 +26,7 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   rewardPerShare: dbPromo.reward_per_share,
   totalBudget: dbPromo.total_budget,
   sharesCount: dbPromo.shares_count,
-  remainingBudget: dbPromo.remainingBudget,
+  remaining_budget: dbPromo.remaining_budget,
   shareText: dbPromo.share_text || undefined,
   createdAt: dbPromo.created_at,
   status: dbPromo.status,
@@ -43,7 +43,7 @@ const formatTimeRemaining = (hours: number): string => {
 
 const calculateProgress = (promo: PromoCast): number => {
   if (promo.totalBudget === 0) return 0;
-  const spent = promo.totalBudget - promo.remainingBudget;
+  const spent = promo.totalBudget - promo.remaining_budget;
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
@@ -258,7 +258,7 @@ export default function PromotePage() {
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
-                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remaining_budget}</div><p className="text-xs text-gray-400">Remaining</p></div>
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
                           </div>
                           <div className="w-full bg-gray-700 rounded-full h-2.5">
