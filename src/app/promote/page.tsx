@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-// JAVÍTÁS: Hozzáadjuk a hiányzó FiChevronDown és FiChevronUp ikonokat az importhoz.
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
@@ -12,7 +11,7 @@ import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { PromoCast, DatabasePromotion } from "@/types/promotions";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 
-// FarcasterUser és FarcasterContext típusok
+// FarcasterUser and FarcasterContext types
 interface FarcasterUser {
   fid: number;
   username?: string;
@@ -21,7 +20,7 @@ interface FarcasterUser {
 }
 interface FarcasterContext { user?: FarcasterUser; }
 
-// Adatbázis -> Kliens konvertáló helper
+// Database -> Client converter helper
 const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   id: dbPromo.id.toString(),
   castUrl: dbPromo.cast_url,
@@ -48,6 +47,7 @@ export default function PromotePage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
   const [isShareListOpen, setIsShareListOpen] = useState(false);
+  const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
@@ -85,12 +85,52 @@ export default function PromotePage() {
       const castHash = urlParts[urlParts.length - 1];
       if (castHash && castHash.startsWith('0x')) {
         miniAppSdk.actions.viewCast({ hash: castHash });
-      } else {
-        window.open(castUrl, '_blank');
+      } else { window.open(castUrl, '_blank'); }
+    } catch (error) { window.open(castUrl, '_blank'); }
+  };
+
+  const handleSharePromo = async (promo: PromoCast) => {
+    if (!isAuthenticated || !currentUser.fid) return alert("Please connect your Farcaster account first.");
+    if (promo.status !== 'active') return alert("This campaign is not active.");
+    if (promo.author.fid === currentUser.fid) return alert("You cannot share your own campaign.");
+
+    setSharingPromoId(promo.id);
+    
+    try {
+      const castResult = await miniAppSdk.actions.composeCast({
+        text: promo.shareText || `Check out this amazing post!`,
+        embeds: [promo.castUrl],
+      });
+
+      if (!castResult || !castResult.cast || !castResult.cast.hash) {
+        console.log("Cast was cancelled by the user.");
+        return; // No share, no reward.
       }
+
+      console.log("Cast published, hash:", castResult.cast.hash);
+
+      const response = await fetch('/api/shares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promotionId: Number(promo.id),
+          sharerFid: currentUser.fid,
+          sharerUsername: currentUser.username,
+          castHash: castResult.cast.hash,
+        }),
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to record share.");
+
+      alert(`Successfully shared! You earned ${promo.rewardPerShare} $CHESS.`);
+      fetchPromotions();
+
     } catch (error) {
-      console.error("Failed to open cast natively:", error);
-      window.open(castUrl, '_blank');
+      console.error("Error sharing promo:", error);
+      alert(`Share failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setSharingPromoId(null);
     }
   };
 
@@ -135,10 +175,7 @@ export default function PromotePage() {
         )}
 
         <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
-            <button
-                onClick={() => setIsShareListOpen(!isShareListOpen)}
-                className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
-            >
+            <button onClick={() => setIsShareListOpen(!isShareListOpen)} className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors">
                 <div className="w-6"></div>
                 <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
                 <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
@@ -157,14 +194,10 @@ export default function PromotePage() {
                             <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
                           </div>
                           <div className="relative">
-                            <button onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700">
-                              <FiMoreHorizontal size={20} />
-                            </button>
+                            <button onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={20} /></button>
                             {openMenuId === promo.id && (
                               <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10">
-                                <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
-                                  <FiEye size={16} /> View Cast (In-App)
-                                </button>
+                                <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700"><FiEye size={16} /> View Cast (In-App)</button>
                               </div>
                             )}
                           </div>
@@ -178,12 +211,9 @@ export default function PromotePage() {
                         </div>
                         
                         <div>
-                           <button
-                             onClick={() => alert('Sharing!')}
-                             className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300"
-                           >
-                             <FiShare2 size={18} />
-                             Share & Earn {promo.rewardPerShare} $CHESS
+                           <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50">
+                             {sharingPromoId === promo.id ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                             {sharingPromoId === promo.id ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
                            </button>
                         </div>
                       </div>

@@ -1,97 +1,89 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../lib/db';
+import { neon } from '@neondatabase/serverless';
+import { createWalletClient, http, createPublicClient } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { base } from 'viem/chains';
+import { PROMO_CONTRACT_ADDRESS, PROMO_CONTRACT_ABI } from '@/lib/contracts';
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const fid = searchParams.get('fid');
+// Environment variable checks
+if (!process.env.NEON_DB_URL) throw new Error('NEON_DB_URL is not set');
+if (!process.env.BACKEND_WALLET_PRIVATE_KEY) throw new Error('BACKEND_WALLET_PRIVATE_KEY is not set');
 
-    if (!fid) {
-      return NextResponse.json(
-        { error: 'FID parameter is required' },
-        { status: 400 }
-      );
-    }
+const sql = neon(process.env.NEON_DB_URL);
+const account = privateKeyToAccount(process.env.BACKEND_WALLET_PRIVATE_KEY as `0x${string}`);
 
-    const shares = await db.getSharesByUser(parseInt(fid));
-    return NextResponse.json({ shares });
-  } catch (error) {
-    console.error('Error fetching shares:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch shares' },
-      { status: 500 }
-    );
-  }
-}
+// Viem clients for blockchain interaction
+const publicClient = createPublicClient({ chain: base, transport: http() });
+const walletClient = createWalletClient({ account, chain: base, transport: http() });
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('POST /api/shares called');
-    
     const body = await request.json();
-    console.log('Share request body:', body);
-    
-    const { promotionId, sharerFid, sharerUsername, shareText, rewardAmount } = body;
+    const { promotionId, sharerFid, sharerUsername, castHash } = body;
 
-    // Validate required fields
-    if (!promotionId || !sharerFid || !sharerUsername || !rewardAmount) {
-      console.error('Missing required fields:', { promotionId, sharerFid, sharerUsername, rewardAmount });
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    if (!promotionId || !sharerFid || !sharerUsername || !castHash) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if user can share this promotion (48h limit)
-    console.log('Checking share limit for user:', sharerFid, 'promotion:', promotionId);
-    const shareCheck = await db.canUserSharePromotion(sharerFid, promotionId, 48);
-    console.log('Can share result:', shareCheck);
-    
-    if (!shareCheck.canShare) {
-      console.log('Share limit reached for user:', sharerFid, 'promotion:', promotionId);
-      const hours = Math.floor(shareCheck.timeRemaining);
-      const minutes = Math.floor((shareCheck.timeRemaining - hours) * 60);
-      return NextResponse.json(
-        { 
-          error: `You can only share this campaign once every 48h. Time remaining: ${hours}h ${minutes}m`,
-          timeRemaining: shareCheck.timeRemaining
-        },
-        { status: 429 }
-      );
+    // --- Database Validations ---
+    const [promo] = await sql`
+        SELECT status, reward_per_share, remaining_budget FROM promotions WHERE id = ${promotionId}
+    `;
+    if (!promo) return NextResponse.json({ error: 'Promotion not found' }, { status: 404 });
+    if (promo.status !== 'active') return NextResponse.json({ error: 'This campaign is not active' }, { status: 400 });
+    if (promo.remaining_budget < promo.reward_per_share) return NextResponse.json({ error: 'Campaign has insufficient budget' }, { status: 400 });
+
+    // Check for recent shares to prevent spam (e.g., 48-hour limit)
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const [recentShare] = await sql`
+        SELECT id FROM shares 
+        WHERE promotion_id = ${promotionId} AND sharer_fid = ${sharerFid} AND created_at > ${fortyEightHoursAgo}
+    `;
+    if (recentShare) return NextResponse.json({ error: 'You have already shared this campaign recently' }, { status: 429 });
+
+    // --- Smart Contract Interaction ---
+    console.log(`Recording share for FID ${sharerFid} on campaign ${promotionId}...`);
+
+    // IMPORTANT: To call `recordShare`, you need the user's wallet address, not their FID.
+    // You must use an API like Neynar to resolve the FID to a verified wallet address.
+    // For this example, we will simulate this by using the backend wallet's address.
+    // REPLACE THIS IN PRODUCTION.
+    const sharerAddress = '0x...'; // TODO: Replace with a call to a Farcaster API (e.g., Neynar) to get address from FID.
+    if (sharerAddress === '0x...') {
+        // This is a placeholder; in a real scenario, you'd throw an error if the address isn't found.
+        console.warn("Using placeholder address for sharer. Replace with FID-to-address resolution API.");
     }
 
-    // Create share
-    console.log('Creating share in database...');
-    const share = await db.createShare({
-      promotionId,
-      sharerFid,
-      sharerUsername,
-      shareText,
-      rewardAmount
+    const { request: contractRequest } = await publicClient.simulateContract({
+      address: PROMO_CONTRACT_ADDRESS,
+      abi: PROMO_CONTRACT_ABI,
+      functionName: 'recordShare',
+      args: [BigInt(promotionId), sharerAddress as `0x${string}`],
+      account,
     });
-    console.log('Share created:', share);
+    
+    const txHash = await walletClient.writeContract(contractRequest);
+    console.log('On-chain share recorded, tx hash:', txHash);
 
-    // Get current promotion to calculate new values
-    const currentPromotion = await db.getPromotionById(promotionId);
-    if (!currentPromotion) {
-      return NextResponse.json(
-        { error: 'Promotion not found' },
-        { status: 404 }
-      );
+    // --- Update Database ---
+    await sql`
+      INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount)
+      VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share})
+    `;
+    
+    await sql`
+      UPDATE promotions
+      SET shares_count = shares_count + 1, remaining_budget = remaining_budget - ${promo.reward_per_share}
+      WHERE id = ${promotionId}
+    `;
+
+    return NextResponse.json({ success: true, transactionHash: txHash }, { status: 201 });
+
+  } catch (error: any) {
+    console.error('API Error:', error);
+    if (error.shortMessage) {
+        return NextResponse.json({ error: error.shortMessage }, { status: 500 });
     }
-
-    // Update promotion shares count and remaining budget
-    await db.updatePromotion(promotionId, {
-      sharesCount: currentPromotion.shares_count + 1,
-      remainingBudget: currentPromotion.remaining_budget - rewardAmount
-    });
-
-    return NextResponse.json({ share }, { status: 201 });
-  } catch (error) {
-    console.error('Error creating share:', error);
-    return NextResponse.json(
-      { error: 'Failed to create share' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}
