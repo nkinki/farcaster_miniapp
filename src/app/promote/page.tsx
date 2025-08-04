@@ -288,4 +288,4 @@ export default function PromotePage() {
       )}
     </div>
   );
-}```
+}
