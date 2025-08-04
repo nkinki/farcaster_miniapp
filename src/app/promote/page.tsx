@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock } from "react-icons/fi";
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiFolder } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile, { UserProfileRef } from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
@@ -208,7 +208,10 @@ export default function PromotePage() {
     <div className={`min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6`}>
       <div className="max-w-4xl mx-auto">
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-white text-center">PROMOTIONS</h1>
+          <div className="flex items-center justify-center gap-2">
+            <FiStar className="text-purple-300" size={24} />
+            <h1 className="text-2xl font-bold text-white text-center">PROMOTIONS</h1>
+          </div>
           <div className="flex items-center justify-start mt-1">
             <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors">
               <FiArrowLeft size={20} />
@@ -217,7 +220,7 @@ export default function PromotePage() {
           </div>
         </div>
 
-        <div className="mb-1">
+        <div className="mb-4">
           <UserProfile 
             ref={userProfileRef}
             userPromos={myPromos} 
@@ -243,7 +246,9 @@ export default function PromotePage() {
 
         <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
             <button onClick={() => setIsShareListOpen(!isShareListOpen)} className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors">
-                <div className="w-6"></div><span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span><div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
+                <FiShare2 className="text-purple-300 w-6" />
+                <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
+                <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
             </button>
             {isShareListOpen && (
                 <div className="p-4 border-t border-gray-700 space-y-4">
