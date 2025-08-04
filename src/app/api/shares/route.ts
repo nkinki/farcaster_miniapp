@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// JAVÍTÁS: Importáljuk a 'transaction' segédfüggvényt is
-import { neon, transaction } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless'; // Nincs szükség a 'transaction' importra
 import { createWalletClient, http, createPublicClient, isAddress, TransactionReceipt } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
@@ -105,20 +104,16 @@ export async function POST(request: NextRequest) {
     
     console.log('Transaction confirmed successfully. Updating database...');
 
-    // JAVÍTÁS: Az sql.begin() helyett a `transaction()` segédfüggvényt használjuk.
-    // Ez a helyes, idiomatikus módja a tranzakciókezelésnek a neon/serverless driverrel.
-    await transaction(sql, async (sql) => {
-      await sql`
-        INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, tx_hash)
-        VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share}, ${txHash})
-      `;
-      
-      await sql`
-        UPDATE promotions
-        SET shares_count = shares_count + 1, remaining_budget = remaining_budget - ${promo.reward_per_share}
-        WHERE id = ${promotionId}
-      `;
-    });
+    // JAVÍTÁS: A két SQL parancsot egyetlen `sql` template literálba helyezzük,
+    // pontosvesszővel elválasztva. A neon driver ezt egyetlen tranzakcióként kezeli.
+    await sql`
+      INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, tx_hash)
+      VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share}, ${txHash});
+
+      UPDATE promotions
+      SET shares_count = shares_count + 1, remaining_budget = remaining_budget - ${promo.reward_per_share}
+      WHERE id = ${promotionId};
+    `;
 
     return NextResponse.json({ success: true, transactionHash: txHash }, { status: 201 });
 
