@@ -19,6 +19,7 @@ interface FarcasterUser {
   pfpUrl?: string;
 }
 
+// JAVÍTÁS: A konvertáló függvényben a `remaining_budget`-et a helyes `remainingBudget`-re cseréljük.
 const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   id: dbPromo.id.toString(),
   castUrl: dbPromo.cast_url,
@@ -26,7 +27,7 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   rewardPerShare: dbPromo.reward_per_share,
   totalBudget: dbPromo.total_budget,
   sharesCount: dbPromo.shares_count,
-  remaining_budget: dbPromo.remaining_budget,
+  remainingBudget: dbPromo.remaining_budget, // Helyes `camelCase` név
   shareText: dbPromo.share_text || undefined,
   createdAt: dbPromo.created_at,
   status: dbPromo.status,
@@ -41,9 +42,10 @@ const formatTimeRemaining = (hours: number): string => {
     return `${h}h ${m}m remaining`;
 };
 
+// JAVÍTÁS: A progress bar számításánál is a helyes `remainingBudget`-et használjuk.
 const calculateProgress = (promo: PromoCast): number => {
   if (promo.totalBudget === 0) return 0;
-  const spent = promo.totalBudget - promo.remaining_budget;
+  const spent = promo.totalBudget - promo.remainingBudget; // Helyes `camelCase` név
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
@@ -60,8 +62,6 @@ export default function PromotePage() {
   const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
-
-  // JAVÍTÁS: Létrehozunk egy ref-et a UserProfile komponenshez, hogy elérjük a belső funkcióit.
   const userProfileRef = useRef<UserProfileRef>(null);
 
   useEffect(() => {
@@ -175,10 +175,7 @@ export default function PromotePage() {
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      // JAVÍTÁS: Sikeres megosztás után expliciten frissítjük a kivehető jutalmakat a ref-en keresztül.
       userProfileRef.current?.refreshPendingRewards();
-      
-      // A többi adatot is frissítjük.
       refreshAllData();
 
     } catch (error) {
@@ -215,7 +212,6 @@ export default function PromotePage() {
         </div>
 
         <div className="mb-3">
-          {/* JAVÍTÁS: Átadjuk a `ref`-et a UserProfile komponensnek. */}
           <UserProfile 
             ref={userProfileRef}
             userPromos={myPromos} 
@@ -258,7 +254,8 @@ export default function PromotePage() {
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
-                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remaining_budget}</div><p className="text-xs text-gray-400">Remaining</p></div>
+                            {/* JAVÍTÁS: A JSX-ben is a helyes `remainingBudget`-et használjuk */}
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
                           </div>
                           <div className="w-full bg-gray-700 rounded-full h-2.5">
