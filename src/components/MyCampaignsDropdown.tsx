@@ -20,7 +20,7 @@ const calculateProgress = (promo: PromoCast): number => {
 };
 
 export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampaignsDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   if (myPromos.length === 0) {
     return null;
