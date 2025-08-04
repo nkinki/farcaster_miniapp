@@ -8,24 +8,24 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
-// JAVÍTÁS: Létrehozunk egy dedikált, elnevezett típust a kontextus objektum számára.
-// Ez a legrobusztusabb módja a típusdefiníciónak, ami megoldja a build hibát.
-type RouteContext = {
-  params: {
-    fid: string;
-  };
-};
-
-export async function GET(request: NextRequest, context: RouteContext) {
+// JAVÍTÁS: A második argumentumot teljesen figyelmen kívül hagyjuk,
+// és a FID-et közvetlenül az URL-ből olvassuk ki a hiba elkerülése érdekében.
+export async function GET(request: NextRequest) {
   try {
-    // A `fid`-et a `context.params`-ból olvassuk ki.
-    const fid = parseInt(context.params.fid, 10);
+    // A teljes URL kiolvasása a request objektumból
+    const url = new URL(request.url);
+    // Az URL útvonalát szétvágjuk a '/' karakterek mentén
+    const pathSegments = url.pathname.split('/');
+    // A dinamikus rész (a [fid]) mindig az útvonal utolsó eleme lesz
+    const fidString = pathSegments[pathSegments.length - 1];
+
+    const fid = parseInt(fidString, 10);
     
     if (isNaN(fid)) {
-      return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid Farcaster ID in URL' }, { status: 400 });
     }
 
-    // Lekérdezzük az összesített statisztikákat a 'shares' táblából
+    // A lekérdezés innentől változatlan
     const statsResult = await sql`
       SELECT
         COUNT(*) AS total_shares,
