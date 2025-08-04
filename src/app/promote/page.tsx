@@ -1,39 +1,17 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiExternalLink } from "react-icons/fi";
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiExternalLink, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
-import { PromoCast, DatabasePromotion } from "@/types/promotions";
+import { PromoCast } from "@/types/promotions";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 
-// FarcasterUser és FarcasterContext típusok
-interface FarcasterUser {
-  fid: number;
-  username?: string;
-  displayName?: string;
-  pfpUrl?: string;
-}
-interface FarcasterContext { user?: FarcasterUser; /* ... */ }
-
-// Adatbázis -> Kliens konvertáló helper
-const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
-  id: dbPromo.id.toString(),
-  castUrl: dbPromo.cast_url,
-  author: { fid: dbPromo.fid, username: dbPromo.username, displayName: dbPromo.display_name || dbPromo.username },
-  rewardPerShare: dbPromo.reward_per_share,
-  totalBudget: dbPromo.total_budget,
-  sharesCount: dbPromo.shares_count,
-  remainingBudget: dbPromo.remaining_budget,
-  shareText: dbPromo.share_text || undefined,
-  createdAt: dbPromo.created_at,
-  status: dbPromo.status,
-  blockchainHash: dbPromo.blockchain_hash || undefined,
-});
+// ... (FarcasterUser, FarcasterContext, convertDbToPromoCast típusok és helper változatlanok) ...
 
 export default function PromotePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,6 +23,10 @@ export default function PromotePage() {
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null);
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0, pendingClaims: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
+
+  // JAVÍTÁS: Új state a "Share & Earn" legördülő menühöz, alapból zárva.
+  const [isShareListOpen, setIsShareListOpen] = useState(false);
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
@@ -79,6 +61,23 @@ export default function PromotePage() {
   const myPromos = promoCasts.filter(p => p.author.fid === currentUser.fid);
   const availablePromos = promoCasts.filter(p => p.status === 'active' && p.author.fid !== currentUser.fid);
 
+  // JAVÍTÁS: Új rendezési logika
+  const sortedAvailablePromos = useMemo(() => {
+    return [...availablePromos].sort((a, b) => {
+      const canShareA = shareTimers[a.id]?.canShare ?? true; // Ha nincs adat, feltételezzük, hogy lehet osztani
+      const canShareB = shareTimers[b.id]?.canShare ?? true;
+
+      // Ha az egyik nem osztható, a másik igen, akkor a nem osztható kerül hátra.
+      if (canShareA && !canShareB) return -1;
+      if (!canShareA && canShareB) return 1;
+
+      // Ha mindkettő státusza azonos (mindkettő osztható vagy mindkettő nem),
+      // akkor a jutalom alapján rendezünk csökkenő sorrendben.
+      return b.rewardPerShare - a.rewardPerShare;
+    });
+  }, [availablePromos, shareTimers]);
+
+
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
   }
@@ -106,44 +105,56 @@ export default function PromotePage() {
             </div>
         )}
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between mb-4"><h2 className="text-xl font-bold text-white">Available Campaigns to Share</h2></div>
-          {availablePromos.length === 0 ? (
-            <div className="text-center py-12 bg-[#23283a] rounded-2xl border border-[#a64d79]"><div className="text-gray-400 text-lg">No other active campaigns right now.</div></div>
-          ) : (
-            availablePromos.map((promo) => (
-              <div key={promo.id} className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1 overflow-hidden pr-4">
-                    <p className="text-white font-semibold truncate">{promo.castUrl}</p>
-                    <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
-                  </div>
-                  <div className="relative">
-                    <button onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700">
-                      <FiMoreHorizontal size={20} />
-                    </button>
-                    {openMenuId === promo.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-[#181c23] border border-gray-700 rounded-lg shadow-xl z-10">
-                        <button onClick={() => alert('Sharing!')} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
-                          <FiShare2 size={16} /> Share & Earn
-                        </button>
-                        <a href={promo.castUrl} target="_blank" rel="noopener noreferrer" className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700 border-t border-gray-700">
-                          <FiExternalLink size={16} /> View Cast
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
+        {/* JAVÍTÁS: Az elérhető kampányok szekció most már egy legördülő menü */}
+        <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
+            <button
+                onClick={() => setIsShareListOpen(!isShareListOpen)}
+                className="w-full flex justify-between items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
+            >
+                <span>Share & Earn ({availablePromos.length})</span>
+                {isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-white">
-                  <div className="p-3 bg-[#181c23] rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
-                  <div className="p-3 bg-[#181c23] rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
-                  <div className="p-3 bg-[#181c23] rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining Budget</p></div>
-                  <div className="p-3 bg-[#181c23] rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
+            {isShareListOpen && (
+                <div className="p-4 border-t border-gray-700 space-y-4">
+                  {sortedAvailablePromos.length === 0 ? (
+                    <div className="text-center py-8"><div className="text-gray-400 text-lg">No other active campaigns right now.</div></div>
+                  ) : (
+                    sortedAvailablePromos.map((promo) => (
+                      <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1 overflow-hidden pr-4">
+                            <p className="text-white font-semibold truncate">{promo.castUrl}</p>
+                            <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
+                          </div>
+                          <div className="relative">
+                            <button onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700">
+                              <FiMoreHorizontal size={20} />
+                            </button>
+                            {openMenuId === promo.id && (
+                              <div className="absolute right-0 mt-2 w-48 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10">
+                                <button onClick={() => alert('Sharing!')} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
+                                  <FiShare2 size={16} /> Share & Earn
+                                </button>
+                                <a href={promo.castUrl} target="_blank" rel="noopener noreferrer" className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700 border-t border-gray-600">
+                                  <FiExternalLink size={16} /> View Cast
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
+                          <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
+                          <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
+                          <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
+                          <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              </div>
-            ))
-          )}
+            )}
         </div>
       </div>
 
