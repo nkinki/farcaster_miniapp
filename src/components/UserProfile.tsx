@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
-import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp, FiShare } from 'react-icons/fi';
+import { FiDollarSign, FiTrendingUp, FiChevronDown, FiChevronUp, FiShare, FiAward } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
 
-// FarcasterUser típust ideiglenesen itt hagyjuk, de érdemes lehet központosítani
+// FarcasterUser típust ideiglenesen itt hagyjuk
 interface FarcasterUser {
     fid: number;
     username?: string;
@@ -14,7 +14,7 @@ interface FarcasterUser {
 }
 
 interface UserProfileProps {
-  userPromos: PromoCast[]; // A prop-ot meghagyjuk, hogy a kampányok számát ki tudjuk írni
+  userPromos: PromoCast[];
   userStats: {
     totalEarnings: number;
     totalShares: number;
@@ -23,7 +23,7 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ userPromos = [], userStats }: UserProfileProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Alapból legyen nyitva, hogy a felhasználó lássa a statisztikáit
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
 
   useEffect(() => {
@@ -33,6 +33,15 @@ export default function UserProfile({ userPromos = [], userStats }: UserProfileP
       }
     });
   }, []);
+
+  const handleClaim = () => {
+    // TODO: A `claimReward` smart contract függvény meghívása.
+    // Mivel a jelenlegi contract kampányonkénti kifizetést támogat (`claimReward(campaignId)`),
+    // egy "Claim All" funkcióhoz vagy egy új contract függvényre, vagy egy frontend oldali
+    // iterációra lenne szükség, ami több tranzakciót indít.
+    // Egyelőre egy üzenetet jelenítünk meg.
+    alert(`Claiming ${userStats.pendingClaims} $CHESS... (Functionality coming soon!)`);
+  };
 
   if (!profile) {
     return (
@@ -65,7 +74,8 @@ export default function UserProfile({ userPromos = [], userStats }: UserProfileP
 
       {isExpanded && (
         <div className="px-6 pb-6 border-t border-gray-700 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* JAVÍTÁS: A grid most már mindig 3 oszlopos a szimmetria érdekében. */}
+          <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-[#181c23] rounded-lg">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <FiDollarSign className="text-green-400" />
@@ -87,6 +97,18 @@ export default function UserProfile({ userPromos = [], userStats }: UserProfileP
               </div>
               <p className="text-xs text-gray-400">My Campaigns</p>
             </div>
+          </div>
+          
+          {/* JAVÍTÁS: Új "Claim" gomb a statisztikák alatt */}
+          <div className="mt-4">
+            <button
+              onClick={handleClaim}
+              disabled={!userStats.pendingClaims || userStats.pendingClaims === 0}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-600 disabled:to-gray-700"
+            >
+              <FiAward size={20} />
+              Claim {userStats.pendingClaims || 0} $CHESS
+            </button>
           </div>
         </div>
       )}
