@@ -41,23 +41,23 @@ export default function UserProfile({ userPromos = [], userStats, onClaimSuccess
     query: { enabled: !!address }
   });
   
-  // JAVÍTÁS: A `useWaitForTransactionReceipt` hook `onSuccess` callback-je helyett
-  // a `isSuccess` visszatérési értéket figyeljük egy `useEffect`-ben.
   const { isSuccess: isClaimConfirmed } = useWaitForTransactionReceipt({
       hash: claimTxHash,
   });
 
   useEffect(() => {
-    // Ez az effekt csak akkor fut le, ha a claim tranzakció sikeresen megerősítést nyert.
     if (isClaimConfirmed) {
       alert('Claim successful! Your rewards have been sent.');
-      refetchPendingRewards(); // Frissítjük a kivehető jutalmakat
-      onClaimSuccess(); // Jelezzük a szülő komponensnek, hogy frissítse az adatokat
+      refetchPendingRewards();
+      onClaimSuccess();
     }
   }, [isClaimConfirmed, refetchPendingRewards, onClaimSuccess]);
 
-
-  const pendingClaims = pendingRewardsData && pendingRewardsData[0] ? Number(pendingRewardsData[0]) / 1e18 : 0;
+  // JAVÍTÁS: Szigorúbb, típusbiztos ellenőrzés, ami elkerüli a build hibát.
+  const pendingClaims = 
+    Array.isArray(pendingRewardsData) && pendingRewardsData.length > 0 && typeof pendingRewardsData[0] === 'bigint'
+    ? Number(pendingRewardsData[0]) / 1e18 
+    : 0;
 
   useEffect(() => { sdk.context.then(ctx => { if (ctx.user?.fid) setProfile(ctx.user as FarcasterUser); }); }, []);
 
@@ -74,15 +74,9 @@ export default function UserProfile({ userPromos = [], userStats, onClaimSuccess
       setClaimTxHash(hash);
     } catch (error: any) {
       alert(`Claim failed: ${error.shortMessage || error.message}`);
-      setIsClaiming(false); // Hiba esetén a gombot újra aktívvá tesszük
+      setIsClaiming(false);
     }
   };
-
-  // Amikor a tranzakció befejeződött (akár sikerrel, akár sikertelenül a blokkláncon),
-  // a `isClaiming` állapotot visszaállítjuk. A `useWaitForTransactionReceipt` `isLoading`
-  // állapota erre nem tökéletes, mert a `setIsClaiming` a tranzakció elküldésekor történik.
-  // A `finally` blokk a `handleClaim`-ben jobb lenne, de a sikeres alert miatt a `useEffect` a tisztább.
-  // A jelenlegi `setIsClaiming(false)` a hibaágban már sokat segít.
 
   if (!profile) {
     return ( <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] animate-pulse"><div className="h-6 bg-gray-700 rounded w-3/4 mx-auto"></div></div> );
