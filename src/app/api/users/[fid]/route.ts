@@ -8,14 +8,18 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
-// JAVÍTÁS: A függvény-definíció a Next.js App Router pontos specifikációja szerint.
-// A második argumentumból közvetlenül destrukturáljuk a `params`-ot, és úgy adjuk meg a típusát.
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { fid: string } }
-) {
+// JAVÍTÁS: Létrehozunk egy dedikált, elnevezett típust a kontextus objektum számára.
+// Ez a legrobusztusabb módja a típusdefiníciónak, ami megoldja a build hibát.
+type RouteContext = {
+  params: {
+    fid: string;
+  };
+};
+
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const fid = parseInt(params.fid, 10);
+    // A `fid`-et a `context.params`-ból olvassuk ki.
+    const fid = parseInt(context.params.fid, 10);
     
     if (isNaN(fid)) {
       return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
