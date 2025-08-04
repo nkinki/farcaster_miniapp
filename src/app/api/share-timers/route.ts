@@ -24,33 +24,59 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
     }
 
-    // Lekérdezzük a legutóbbi megosztás időpontját minden promócióhoz, amit az adott felhasználó már megosztott.
-    // A `MAX(created_at)` biztosítja, hogy ha valamiért többször is megosztotta, csak a legutolsót vesszük figyelembe.
+    // 1. LÉPÉS: Lekérdezzük az ÖSSZES aktív promóció ID-ját.
+    // Ez a lista a "forrása az igazságnak", hogy miről kell állapotot adnunk.
+    const activePromos = await sql`
+      SELECT id FROM promotions WHERE status = 'active';
+    `;
+    const activePromoIds = activePromos.map(p => p.id);
+
+    if (activePromoIds.length === 0) {
+      // Ha nincs egyetlen aktív promóció sem, üres listát küldünk vissza.
+      return NextResponse.json({ timers: [] }, { status: 200 });
+    }
+
+    // 2. LÉPÉS: Lekérdezzük a felhasználó legutóbbi megosztásait CSAK az aktív promóciókhoz.
     const recentShares = await sql`
       SELECT 
         promotion_id, 
         MAX(created_at) as last_shared_at
       FROM shares
-      WHERE sharer_fid = ${fid}
+      WHERE 
+        sharer_fid = ${fid} AND 
+        promotion_id IN (${activePromoIds})
       GROUP BY promotion_id;
     `;
 
+    // 3. LÉPÉS: A könnyebb és gyorsabb feldolgozásért a megosztásokat egy Map-be tesszük.
+    const sharesMap = new Map(recentShares.map(share => [
+      share.promotion_id, 
+      new Date(share.last_shared_at as string)
+    ]));
+
     const now = new Date();
     
-    // Feldolgozzuk a lekérdezés eredményét, és kiszámoljuk az időzítőket
-    const timers = recentShares.map(share => {
-      const lastSharedDate = new Date(share.last_shared_at as string);
-      
-      // Kiszámoljuk, hány óra telt el a megosztás óta
+    // 4. LÉPÉS: Végigmegyünk az összes aktív promóción (nem csak a megosztottakon!),
+    // és mindegyikhez generálunk egy timer állapotot.
+    const timers = activePromoIds.map(promoId => {
+      const lastSharedDate = sharesMap.get(promoId);
+
+      // Ha a felhasználó még soha nem osztotta meg ezt az aktív promóciót...
+      if (!lastSharedDate) {
+        return {
+          promotionId: promoId,
+          canShare: true,      // ...akkor természetesen megoszthatja.
+          timeRemaining: 0,
+        };
+      }
+
+      // Ha már megosztotta, akkor a számítás a régi.
       const hoursElapsed = (now.getTime() - lastSharedDate.getTime()) / (1000 * 60 * 60);
-      
-      // Kiszámoljuk, hány óra van még hátra a 48 órás limitből
       const hoursRemaining = COOLDOWN_HOURS - hoursElapsed;
 
       return {
-        promotionId: share.promotion_id,
+        promotionId: promoId,
         canShare: hoursRemaining <= 0,
-        // Biztosítjuk, hogy a hátralévő idő soha ne legyen negatív
         timeRemaining: hoursRemaining > 0 ? hoursRemaining : 0,
       };
     });
