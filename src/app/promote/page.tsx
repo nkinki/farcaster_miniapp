@@ -8,10 +8,35 @@ import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
-import { PromoCast } from "@/types/promotions";
+import { PromoCast, DatabasePromotion } from "@/types/promotions";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 
-// ... (FarcasterUser, FarcasterContext, convertDbToPromoCast típusok és helper változatlanok) ...
+// JAVÍTÁS: Visszahelyezzük a hiányzó Farcaster típusdefiníciókat.
+interface FarcasterUser {
+  fid: number;
+  username?: string;
+  displayName?: string;
+  pfpUrl?: string;
+}
+interface FarcasterContext { 
+  user?: FarcasterUser;
+  // ... a context többi része, ha szükséges
+}
+
+// Adatbázis -> Kliens konvertáló helper
+const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
+  id: dbPromo.id.toString(),
+  castUrl: dbPromo.cast_url,
+  author: { fid: dbPromo.fid, username: dbPromo.username, displayName: dbPromo.display_name || dbPromo.username },
+  rewardPerShare: dbPromo.reward_per_share,
+  totalBudget: dbPromo.total_budget,
+  sharesCount: dbPromo.shares_count,
+  remainingBudget: dbPromo.remaining_budget,
+  shareText: dbPromo.share_text || undefined,
+  createdAt: dbPromo.created_at,
+  status: dbPromo.status,
+  blockchainHash: dbPromo.blockchain_hash || undefined,
+});
 
 export default function PromotePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -24,8 +49,6 @@ export default function PromotePage() {
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0, pendingClaims: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
-
-  // JAVÍTÁS: Új state a "Share & Earn" legördülő menühöz, alapból zárva.
   const [isShareListOpen, setIsShareListOpen] = useState(false);
 
   useEffect(() => {
@@ -61,18 +84,12 @@ export default function PromotePage() {
   const myPromos = promoCasts.filter(p => p.author.fid === currentUser.fid);
   const availablePromos = promoCasts.filter(p => p.status === 'active' && p.author.fid !== currentUser.fid);
 
-  // JAVÍTÁS: Új rendezési logika
   const sortedAvailablePromos = useMemo(() => {
     return [...availablePromos].sort((a, b) => {
-      const canShareA = shareTimers[a.id]?.canShare ?? true; // Ha nincs adat, feltételezzük, hogy lehet osztani
+      const canShareA = shareTimers[a.id]?.canShare ?? true;
       const canShareB = shareTimers[b.id]?.canShare ?? true;
-
-      // Ha az egyik nem osztható, a másik igen, akkor a nem osztható kerül hátra.
       if (canShareA && !canShareB) return -1;
       if (!canShareA && canShareB) return 1;
-
-      // Ha mindkettő státusza azonos (mindkettő osztható vagy mindkettő nem),
-      // akkor a jutalom alapján rendezünk csökkenő sorrendben.
       return b.rewardPerShare - a.rewardPerShare;
     });
   }, [availablePromos, shareTimers]);
@@ -105,7 +122,6 @@ export default function PromotePage() {
             </div>
         )}
 
-        {/* JAVÍTÁS: Az elérhető kampányok szekció most már egy legördülő menü */}
         <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
             <button
                 onClick={() => setIsShareListOpen(!isShareListOpen)}
