@@ -209,12 +209,11 @@ export default function PromotePage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white text-center">PROMOTIONS</h1>
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-start mt-4">
             <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors">
               <FiArrowLeft size={20} />
               <span>Back</span>
             </Link>
-            <ConnectWalletButton />
           </div>
         </div>
 
@@ -233,7 +232,14 @@ export default function PromotePage() {
             <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"><FiPlus size={20} />Create Promotion</button>
         </div>
         
-        {showForm && ( <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative"> <button className="absolute top-3 right-3 text-gray-400 hover:text-white" onClick={handleCreateCancel}><FiX size={24} /></button> <PaymentForm user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} /> </div> )}
+        {showForm && ( 
+          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative"> 
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-white" onClick={handleCreateCancel}>
+              <FiX size={24} />
+            </button> 
+            <PaymentForm user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} /> 
+          </div>
+        )}
 
         <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
             <button onClick={() => setIsShareListOpen(!isShareListOpen)} className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors">
@@ -255,13 +261,18 @@ export default function PromotePage() {
                             </div>
                             <div className="relative">
                               <button onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={20} /></button>
-                              {openMenuId === promo.id && ( <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700"><FiEye size={16} /> View Cast (In-App)</button> </div> )}
+                              {openMenuId === promo.id && ( 
+                                <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> 
+                                  <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
+                                    <FiEye size={16} /> View Cast (In-App)
+                                  </button> 
+                                </div> 
+                              )}
                             </div>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
-                            {/* JAVÍTÁS: A JSX-ben is a helyes `remainingBudget`-et használjuk */}
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
                           </div>
@@ -286,10 +297,24 @@ export default function PromotePage() {
                 </div>
             )}
         </div>
+        
+        {showFundingForm && fundingPromo && (
+          <FundingForm 
+            promotionId={Number(fundingPromo.id)} 
+            totalBudget={fundingPromo.totalBudget} 
+            rewardPerShare={fundingPromo.rewardPerShare} 
+            castUrl={fundingPromo.castUrl} 
+            shareText={fundingPromo.shareText || ""} 
+            status={fundingPromo.status} 
+            onSuccess={handleFundSuccess} 
+            onCancel={handleFundCancel} 
+          />
+        )}
+        
+        <div className="mt-8 flex justify-center">
+          <ConnectWalletButton />
+        </div>
       </div>
-      {showFundingForm && fundingPromo && (
-        <FundingForm promotionId={Number(fundingPromo.id)} totalBudget={fundingPromo.totalBudget} rewardPerShare={fundingPromo.rewardPerShare} castUrl={fundingPromo.castUrl} shareText={fundingPromo.shareText || ""} status={fundingPromo.status} onSuccess={handleFundSuccess} onCancel={handleFundCancel} />
-      )}
     </div>
   );
 }
