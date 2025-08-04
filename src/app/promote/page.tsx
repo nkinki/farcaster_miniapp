@@ -207,7 +207,7 @@ export default function PromotePage() {
     <div className={`min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6`}>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-            <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors"><FiArrowLeft size={20} /><span>Back to AppRank</span></Link>
+            <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors"><FiArrowLeft size={20} /><span>Back</span></Link>
             <div className="flex items-center gap-4"><h1 className="text-2xl font-bold text-white">Promotions</h1><ConnectWalletButton /></div>
         </div>
 
