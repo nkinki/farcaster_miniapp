@@ -8,6 +8,8 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
+// JAVÍTÁS: Létrehozunk egy dedikált, elnevezett típust a kontextus objektum számára.
+// Ez a legrobusztusabb módja a típusdefiníciónak, ami megoldja a build hibát.
 type RouteContext = {
   params: {
     fid: string;
@@ -16,16 +18,18 @@ type RouteContext = {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
+    // A `fid`-et a `context.params`-ból olvassuk ki.
     const fid = parseInt(context.params.fid, 10);
     
     if (isNaN(fid)) {
       return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
     }
 
+    // Lekérdezzük az összesített statisztikákat a 'shares' táblából
     const statsResult = await sql`
       SELECT
         COUNT(*) AS total_shares,
-        COALESCE(SUM(reward_amount), 0) AS total_earnings
+        COALECTE(SUM(reward_amount), 0) AS total_earnings
       FROM shares
       WHERE sharer_fid = ${fid};
     `;
@@ -36,8 +40,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       user: {
         fid: fid,
         total_shares: parseInt(userStats.total_shares as string, 10),
-        total_earnings: parseFloat(userStats.total_earnings as string),
-        // A "pending_claims" mezőt eltávolítottuk, mert ezt a frontend fogja kezelni.
+        total_earnings: parseFloat(userStats.total_earnings as string)
       }
     };
 
