@@ -8,14 +8,13 @@ if (!process.env.NEON_DB_URL) {
 }
 const sql = neon(process.env.NEON_DB_URL);
 
-// JAVÍTÁS: A függvény második paraméterének típusdefiníciója javítva
+// JAVÍTÁS: A függvény-definíció a Next.js App Router pontos specifikációja szerint.
+// A második argumentumból közvetlenül destrukturáljuk a `params`-ot, és úgy adjuk meg a típusát.
 export async function GET(
   request: NextRequest,
-  context: { params: { fid: string } }
+  { params }: { params: { fid: string } }
 ) {
   try {
-    // JAVÍTÁS: A `params`-ot a `context` objektumból vesszük ki
-    const { params } = context;
     const fid = parseInt(params.fid, 10);
     
     if (isNaN(fid)) {
@@ -33,8 +32,6 @@ export async function GET(
 
     const userStats = statsResult[0];
 
-    // A "pending claims" egyelőre megegyezik a total earnings-szel.
-    // Ezt később finomítani kell, ha bevezetjük a jutalmak "kivett" állapotát.
     const responseData = {
       user: {
         fid: fid,
