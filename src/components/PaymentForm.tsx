@@ -22,7 +22,6 @@ enum CreationStep {
   Idle, Approving, Creating, Saving, Done,
 }
 
-// JAVÍTÁS: Konstansok a gombokhoz és egy helper a formázáshoz
 const budgetOptions = [10000, 100000, 500000, 1000000, 5000000];
 const rewardOptions = [1000, 2000, 5000, 10000, 20000];
 
@@ -38,8 +37,6 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
 
   const [castUrl, setCastUrl] = useState("https://warpcast.com/dwr/0x5c7987b7");
   const [shareText, setShareText] = useState("");
-  
-  // JAVÍTÁS: Az alapértelmezett értékek most a listák első elemei
   const [rewardPerShare, setRewardPerShare] = useState(rewardOptions[0].toString());
   const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
   
@@ -127,12 +124,20 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
     saveToDb();
   }, [isCreated, step, castUrl, createTxHash, onSuccess, rewardPerShare, shareText, totalBudget, user]);
 
-  const getButtonText = () => { /* ... (változatlan) ... */ };
+  // JAVÍTÁS: A hiányzó `return` utasítás visszahelyezve.
+  const getButtonText = () => {
+    switch (step) {
+      case CreationStep.Approving: return "1/2: Approving...";
+      case CreationStep.Creating: return "2/2: Creating...";
+      case CreationStep.Saving: return "Saving...";
+      case CreationStep.Done: return "Success!";
+      default: return "Create & Fund Campaign";
+    }
+  };
   
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-white text-center">Create a New Promotion</h2>
-      {/* Cast URL és Share Text inputok változatlanok */}
       <div>
         <label htmlFor="castUrl" className="block text-sm font-medium text-purple-300 mb-1">Cast URL*</label>
         <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white" />
@@ -142,7 +147,6 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <input type="text" id="shareText" value={shareText} onChange={(e) => setShareText(e.target.value)} className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white" />
       </div>
 
-      {/* JAVÍTÁS: Reward per Share gombok */}
       <div>
         <label className="block text-sm font-medium text-purple-300 mb-1">Reward / Share ($CHESS)*</label>
         <div className="grid grid-cols-5 gap-2">
@@ -162,7 +166,6 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         </div>
       </div>
 
-      {/* JAVÍTÁS: Total Budget gombok */}
       <div>
         <label className="block text-sm font-medium text-purple-300 mb-1">Total Budget ($CHESS)*</label>
         <div className="grid grid-cols-5 gap-2">
@@ -184,7 +187,6 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       
       {error && <p className="text-red-400 text-sm text-center bg-red-900/50 p-3 rounded-md">{error}</p>}
       
-      {/* A Cancel és Create gombok változatlanok */}
       <div className="flex items-center gap-4 pt-4">
         <button onClick={onCancel} disabled={step !== CreationStep.Idle} className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50">
           Cancel
