@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock } from "react-icons/fi";
 import Link from "next/link";
-import UserProfile from "@/components/UserProfile";
+import UserProfile, { UserProfileRef } from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
@@ -43,7 +43,7 @@ const formatTimeRemaining = (hours: number): string => {
 
 const calculateProgress = (promo: PromoCast): number => {
   if (promo.totalBudget === 0) return 0;
-  const spent = promo.totalBudget - promo.remainingBudget;
+  const spent = promo.totalBudget - promo.remaining_budget;
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
@@ -55,12 +55,14 @@ export default function PromotePage() {
   const [showForm, setShowForm] = useState(false);
   const [showFundingForm, setShowFundingForm] = useState(false);
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null);
-  // A pendingClaims kikerül innen, mert azt a UserProfile komponens kezeli a contractból
-  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 }); 
+  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
+
+  // JAVÍTÁS: Létrehozunk egy ref-et a UserProfile komponenshez, hogy elérjük a belső funkcióit.
+  const userProfileRef = useRef<UserProfileRef>(null);
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
@@ -110,7 +112,6 @@ export default function PromotePage() {
       if (response.ok) {
         const data = await response.json();
         if (data.user) {
-          // A pending claims már nem innen jön
           setUserStats({
             totalEarnings: data.user.total_earnings,
             totalShares: data.user.total_shares,
@@ -139,7 +140,6 @@ export default function PromotePage() {
   const handleCreateCancel = () => { setShowForm(false); };
   const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
   
-  // Callback függvény a sikeres claim utáni frissítéshez
   const handleClaimSuccess = () => {
     refreshAllData();
   };
@@ -172,8 +172,15 @@ export default function PromotePage() {
       });
       const data = await response.json();
       if (!response.ok) { throw new Error(data.error || "Failed to record share on the backend."); }
+      
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
+      
+      // JAVÍTÁS: Sikeres megosztás után expliciten frissítjük a kivehető jutalmakat a ref-en keresztül.
+      userProfileRef.current?.refreshPendingRewards();
+      
+      // A többi adatot is frissítjük.
       refreshAllData();
+
     } catch (error) {
       console.error("Error during share process:", error);
       alert(`Share failed: ${error instanceof Error ? error.message : "An unknown error occurred."}`);
@@ -208,7 +215,9 @@ export default function PromotePage() {
         </div>
 
         <div className="mb-3">
+          {/* JAVÍTÁS: Átadjuk a `ref`-et a UserProfile komponensnek. */}
           <UserProfile 
+            ref={userProfileRef}
             userPromos={myPromos} 
             userStats={userStats}
             onClaimSuccess={handleClaimSuccess}
@@ -279,4 +288,4 @@ export default function PromotePage() {
       )}
     </div>
   );
-}
+}```
