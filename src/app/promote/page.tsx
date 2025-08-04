@@ -201,8 +201,13 @@ export default function PromotePage() {
             <div className="flex items-center gap-4"><h1 className="text-2xl font-bold text-white">Promotions</h1><ConnectWalletButton /></div>
         </div>
 
-        <UserProfile userPromos={myPromos} userStats={userStats} />
+        {/* JAVÍTÁS: A `UserProfile` alatti távolságot `mb-8`-ról `mb-3`-ra csökkentettük */}
+        <div className="mb-3">
+            <UserProfile userPromos={myPromos} userStats={userStats} />
+        </div>
+        
         <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setFundingPromo(promo); setShowFundingForm(true); }} />
+        
         <div className="flex justify-center my-8">
             <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"><FiPlus size={20} />Create Promotion</button>
         </div>
@@ -238,14 +243,9 @@ export default function PromotePage() {
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
                             <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
                           </div>
-                          
                           <div className="w-full bg-gray-700 rounded-full h-2.5">
-                            <div
-                              className="bg-gradient-to-r from-green-500 to-blue-500 h-2.5 rounded-full transition-all duration-500"
-                              style={{ width: `${calculateProgress(promo)}%` }}
-                            ></div>
+                            <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
                           </div>
-                          
                           <div>
                             {!canShare && timerInfo && (
                                <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg mb-2">
