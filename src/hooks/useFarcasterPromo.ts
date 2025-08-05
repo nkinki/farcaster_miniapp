@@ -4,50 +4,24 @@ import { useReadContract, useWriteContract, useAccount, useWaitForTransactionRec
 import { CONTRACTS } from "../config/contracts"
 import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json"
 
-// ÚJ: Kampány adatstruktúra interfész
-interface CampaignData {
-  castUrl: string
-  shareText: string
-  rewardPerShare: bigint
-  totalBudget: bigint
-  divisible: boolean
-  active: boolean // Ez a hiányzó 'active' tulajdonság
-  // Add hozzá ide bármilyen más tulajdonságot, amit a getCampaign visszaad
-  // Például: sharesCount: bigint; creator: `0x${string}`;
-}
-
 export function useFarcasterPromo() {
   const { address, isConnected } = useAccount()
 
-  // Read functions with connector error handling
-  const { data: totalCampaigns, refetch: refetchTotalCampaigns } = useReadContract({
+  // Read pending rewards with campaign details
+  const {
+    data: pendingRewardsData,
+    refetch: refetchPendingRewards,
+    isLoading: isPendingRewardsLoading,
+  } = useReadContract({
     address: CONTRACTS.FarcasterPromo as `0x${string}`,
     abi: FARCASTER_PROMO_ABI,
-    functionName: "getTotalCampaigns",
-    query: {
-      enabled: !!CONTRACTS.FarcasterPromo,
-      retry: (failureCount, error) => {
-        if (error?.message?.includes('getChainId') ||
-            error?.message?.includes('connector')) {
-          console.warn('Skipping retry for connector error in totalCampaigns:', error.message)
-          return false
-        }
-        return failureCount < 3
-      },
-    },
-  })
-
-  const { data: claimableAmount, refetch: refetchClaimableAmount } = useReadContract({
-    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-    abi: FARCASTER_PROMO_ABI,
-    functionName: "getClaimableAmount",
+    functionName: "getPendingRewards",
     args: address ? [address] : undefined,
     query: {
       enabled: !!address && isConnected && !!CONTRACTS.FarcasterPromo,
       retry: (failureCount, error) => {
-        if (error?.message?.includes('getChainId') ||
-            error?.message?.includes('connector')) {
-          console.warn('Skipping retry for connector error in claimableAmount:', error.message)
+        if (error?.message?.includes("getChainId") || error?.message?.includes("connector")) {
+          console.warn("Skipping retry for connector error in pendingRewards:", error.message)
           return false
         }
         return failureCount < 3
@@ -55,285 +29,153 @@ export function useFarcasterPromo() {
     },
   })
 
-  // Debug logging
+  // Parse pending rewards data
+  const totalPendingRewards = pendingRewardsData ? (pendingRewardsData as [bigint, bigint[]])[0] : BigInt(0)
+  const claimableCampaignIds = pendingRewardsData ? (pendingRewardsData as [bigint, bigint[]])[1] : []
+
+  // Write functions for different claim methods
+  const {
+    data: claimAllHash,
+    writeContract: writeClaimAll,
+    isPending: isClaimingAll,
+    error: claimAllError,
+    reset: resetClaimAll,
+  } = useWriteContract()
+
+  const {
+    data: claimBatchHash,
+    writeContract: writeClaimBatch,
+    isPending: isClaimingBatch,
+    error: claimBatchError,
+    reset: resetClaimBatch,
+  } = useWriteContract()
+
+  const {
+    data: claimSingleHash,
+    writeContract: writeClaimSingle,
+    isPending: isClaimingSingle,
+    error: claimSingleError,
+    reset: resetClaimSingle,
+  } = useWriteContract()
+
+  // Wait for transactions
+  const { isSuccess: isClaimAllSuccess } = useWaitForTransactionReceipt({ hash: claimAllHash })
+  const { isSuccess: isClaimBatchSuccess } = useWaitForTransactionReceipt({ hash: claimBatchHash })
+  const { isSuccess: isClaimSingleSuccess } = useWaitForTransactionReceipt({ hash: claimSingleHash })
+
+  // Claim all rewards (limited to 15 campaigns)
+  const claimAllRewards = () => {
+    console.log("🎯 Claiming all rewards for", claimableCampaignIds.length, "campaigns")
+
+    if (!address || !isConnected) {
+      throw new Error("Wallet not connected")
+    }
+
+    if (claimableCampaignIds.length > 15) {
+      throw new Error("Too many campaigns (>15). Please use batch claim instead.")
+    }
+
+    resetClaimAll()
+
+    return writeClaimAll({
+      address: CONTRACTS.FarcasterPromo as `0x${string}`,
+      abi: FARCASTER_PROMO_ABI,
+      functionName: "claimAllRewards",
+    })
+  }
+
+  // Claim rewards in batches
+  const claimRewardsBatch = (campaignIds: bigint[]) => {
+    console.log(
+      "🎯 Claiming batch rewards for campaigns:",
+      campaignIds.map((id) => id.toString()),
+    )
+
+    if (!address || !isConnected) {
+      throw new Error("Wallet not connected")
+    }
+
+    if (campaignIds.length === 0) {
+      throw new Error("No campaigns selected")
+    }
+
+    if (campaignIds.length > 10) {
+      throw new Error("Too many campaigns in batch (max 10)")
+    }
+
+    resetClaimBatch()
+
+    return writeClaimBatch({
+      address: CONTRACTS.FarcasterPromo as `0x${string}`,
+      abi: FARCASTER_PROMO_ABI,
+      functionName: "claimRewardsBatch",
+      args: [campaignIds],
+    })
+  }
+
+  // Claim single campaign reward
+  const claimSingleReward = (campaignId: bigint) => {
+    console.log("🎯 Claiming single reward for campaign:", campaignId.toString())
+
+    if (!address || !isConnected) {
+      throw new Error("Wallet not connected")
+    }
+
+    resetClaimSingle()
+
+    return writeClaimSingle({
+      address: CONTRACTS.FarcasterPromo as `0x${string}`,
+      abi: FARCASTER_PROMO_ABI,
+      functionName: "claimReward",
+      args: [campaignId],
+    })
+  }
+
   console.log("🎯 useFarcasterPromo debug:", {
-    totalCampaigns: totalCampaigns?.toString(),
-    claimableAmount: claimableAmount?.toString(),
+    totalPendingRewards: totalPendingRewards.toString(),
+    campaignCount: claimableCampaignIds.length,
+    claimableCampaignIds: claimableCampaignIds.map((id) => id.toString()),
     address,
     isConnected,
-    contractAddress: CONTRACTS.FarcasterPromo,
   })
-
-  // Write functions for campaign creation
-  const {
-    data: createCampaignHash,
-    writeContract: writeCreateCampaign,
-    isPending: isCreatingCampaign,
-    error: createCampaignError,
-    reset: resetCreateCampaign,
-  } = useWriteContract()
-
-  // Wait for campaign creation transaction
-  const {
-    isLoading: isCreateCampaignConfirming,
-    isSuccess: isCreateCampaignSuccess,
-    error: createCampaignReceiptError,
-  } = useWaitForTransactionReceipt({
-    hash: createCampaignHash,
-  })
-
-  // Write functions for campaign funding
-  const {
-    data: fundCampaignHash,
-    writeContract: writeFundCampaign,
-    isPending: isFundingCampaign,
-    error: fundCampaignError,
-    reset: resetFundCampaign,
-  } = useWriteContract()
-
-  // Wait for funding transaction
-  const {
-    isLoading: isFundCampaignConfirming,
-    isSuccess: isFundCampaignSuccess,
-    error: fundCampaignReceiptError,
-  } = useWaitForTransactionReceipt({
-    hash: fundCampaignHash,
-  })
-
-  // Write functions for treasury claim
-  const {
-    data: claimTreasuryHash,
-    writeContract: writeClaimTreasury,
-    isPending: isClaimingTreasury,
-    error: claimTreasuryError,
-    reset: resetClaimTreasury,
-  } = useWriteContract()
-
-  // Wait for treasury claim transaction
-  const {
-    isLoading: isClaimTreasuryConfirming,
-    isSuccess: isClaimTreasurySuccess,
-    error: claimTreasuryReceiptError,
-  } = useWaitForTransactionReceipt({
-    hash: claimTreasuryHash,
-  })
-
-  // Enhanced create campaign function with connector error handling
-  const createCampaign = async (params: {
-    castUrl: string
-    shareText: string
-    rewardPerShare: bigint
-    totalBudget: bigint
-    divisible: boolean
-  }) => {
-    console.log("🚀 Creating campaign with params:", {
-      ...params,
-      rewardPerShare: params.rewardPerShare.toString(),
-      totalBudget: params.totalBudget.toString(),
-    })
-
-    if (!address || !isConnected) {
-      throw new Error("Wallet not connected")
-    }
-
-    if (!CONTRACTS.FarcasterPromo) {
-      throw new Error("FarcasterPromo contract address not configured")
-    }
-
-    try {
-      resetCreateCampaign()
-
-      // Add small delay to ensure connector is ready
-      await new Promise(resolve => setTimeout(resolve, 300))
-
-      return writeCreateCampaign({
-        address: CONTRACTS.FarcasterPromo as `0x${string}`,
-        abi: FARCASTER_PROMO_ABI,
-        functionName: "createCampaign",
-        args: [params.castUrl, params.shareText, params.rewardPerShare, params.totalBudget, params.divisible],
-      })
-    } catch (error) {
-      console.error("Campaign creation error:", error)
-      if (error instanceof Error && error.message.includes('getChainId')) {
-        throw new Error("Wallet connection issue. Please reconnect your wallet.")
-      }
-      throw error
-    }
-  }
-
-  // Enhanced fund campaign function
-  const fundCampaign = (campaignId: bigint, amount: bigint) => {
-    console.log("💰 Funding campaign:", {
-      campaignId: campaignId.toString(),
-      amount: amount.toString(),
-      amountInCHESS: Number(amount) / 1e18,
-    })
-
-    if (!address || !isConnected) {
-      throw new Error("Wallet not connected")
-    }
-
-    if (!CONTRACTS.FarcasterPromo) {
-      throw new Error("FarcasterPromo contract address not configured")
-    }
-
-    resetFundCampaign()
-
-    return writeFundCampaign({
-      address: CONTRACTS.FarcasterPromo as `0x${string}`,
-      abi: FARCASTER_PROMO_ABI,
-      functionName: "fundCampaign",
-      args: [campaignId, amount],
-    })
-  }
-
-  // Enhanced claim treasury function
-  const claimFromTreasury = () => {
-    console.log("🏦 Claiming from treasury")
-
-    if (!address || !isConnected) {
-      throw new Error("Wallet not connected")
-    }
-
-    if (!CONTRACTS.FarcasterPromo) {
-      throw new Error("FarcasterPromo contract address not configured")
-    }
-
-    resetClaimTreasury()
-
-    return writeClaimTreasury({
-      address: CONTRACTS.FarcasterPromo as `0x${string}`,
-      abi: FARCASTER_PROMO_ABI,
-      functionName: "claimFromTreasury",
-    })
-  }
 
   return {
     // Read data
-    totalCampaigns: totalCampaigns || BigInt(0),
-    claimableAmount: claimableAmount || BigInt(0),
+    totalPendingRewards,
+    claimableCampaignIds,
+    isPendingRewardsLoading,
 
     // Write functions
-    createCampaign,
-    fundCampaign,
-    claimFromTreasury,
+    claimAllRewards,
+    claimRewardsBatch,
+    claimSingleReward,
 
     // Loading states
-    isCreatingCampaign,
-    isCreateCampaignConfirming,
-    isCreateCampaignSuccess,
-    isFundingCampaign,
-    isFundCampaignConfirming,
-    isFundCampaignSuccess,
-    isClaimingTreasury,
-    isClaimTreasuryConfirming,
-    isClaimTreasurySuccess,
+    isClaimingAll,
+    isClaimingBatch,
+    isClaimingSingle,
 
-    // Transaction hashes
-    createCampaignHash,
-    fundCampaignHash,
-    claimTreasuryHash,
+    // Success states
+    isClaimAllSuccess,
+    isClaimBatchSuccess,
+    isClaimSingleSuccess,
 
     // Errors
-    createCampaignError,
-    createCampaignReceiptError,
-    fundCampaignError,
-    fundCampaignReceiptError,
-    claimTreasuryError,
-    claimTreasuryReceiptError,
+    claimAllError,
+    claimBatchError,
+    claimSingleError,
+
+    // Transaction hashes
+    claimAllHash,
+    claimBatchHash,
+    claimSingleHash,
 
     // Reset functions
-    resetCreateCampaign,
-    resetFundCampaign,
-    resetClaimTreasury,
+    resetClaimAll,
+    resetClaimBatch,
+    resetClaimSingle,
 
-    // Refetch functions
-    refetchTotalCampaigns,
-    refetchClaimableAmount,
-  }
-}
-
-// Hook for getting campaign details
-export function useCampaign(campaignId: bigint | undefined) {
-  const {
-    data: campaign, // campaign mostantól CampaignData | undefined típusú
-    error,
-    isLoading,
-    refetch,
-  } = useReadContract({
-    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-    abi: FARCASTER_PROMO_ABI,
-    functionName: "getCampaign",
-    args: campaignId ? [campaignId] : undefined,
-    query: {
-      enabled: !!campaignId && !!CONTRACTS.FarcasterPromo,
-      retry: (failureCount, error) => {
-        if (error?.message?.includes('getChainId') ||
-            error?.message?.includes('connector')) {
-          console.warn('Skipping retry for connector error in getCampaign:', error.message)
-          return false
-        }
-        return failureCount < 3
-      },
-    },
-  })
-
-  console.log("📋 Campaign details:", {
-    campaignId: campaignId?.toString(),
-    campaign,
-    error: error?.message,
-    isLoading,
-  })
-
-  return {
-    campaign: campaign as CampaignData | undefined, // Biztosítjuk a visszatérési típus konzisztenciáját
-    error,
-    isLoading,
-    refetch,
-  }
-}
-
-// Hook for checking campaign existence
-export function useCampaignExists(campaignId: bigint | undefined) {
-  const {
-    data: campaign, // campaign mostantól CampaignData | undefined típusú
-    error,
-    isLoading,
-    refetch,
-  } = useReadContract({
-    address: CONTRACTS.FarcasterPromo as `0x${string}`,
-    abi: FARCASTER_PROMO_ABI,
-    functionName: "getCampaign",
-    args: campaignId ? [campaignId] : undefined,
-    query: {
-      enabled: !!campaignId && !!CONTRACTS.FarcasterPromo,
-      retry: (failureCount, error) => {
-        if (error?.message?.includes('getChainId') ||
-            error?.message?.includes('connector')) {
-          console.warn('Skipping retry for connector error in useCampaignExists:', error.message)
-          return false
-        }
-        return failureCount < 3
-      },
-    },
-  })
-
-  // A 'campaign' most már CampaignData típusú lehet, így az 'active' tulajdonság elérhető
-  const exists = !!campaign && (campaign as CampaignData).active
-
-  console.log("🔍 Campaign existence check:", {
-    campaignId: campaignId?.toString(),
-    exists,
-    campaign,
-    error: error?.message,
-    isLoading,
-  })
-
-  return {
-    exists,
-    campaign: campaign as CampaignData | undefined, // Biztosítjuk a visszatérési típus konzisztenciáját
-    error,
-    isLoading,
-    refetch,
+    // Refetch function
+    refetchPendingRewards,
   }
 }
