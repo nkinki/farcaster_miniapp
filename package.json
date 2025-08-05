@@ -35,6 +35,7 @@
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@nomicfoundation/hardhat-verify": "^2.1.0",
     "@tailwindcss/postcss": "^4",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^20.19.9",
     "@types/node-fetch": "^2.6.12",
     "@types/pg": "^8.15.4",
