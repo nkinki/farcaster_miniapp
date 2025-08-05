@@ -3,14 +3,12 @@ import { base } from "wagmi/chains"
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector"
 import { injected, walletConnect } from "wagmi/connectors"
 
-// Helper function to create connectors with error handling
+// A createConnectors segédfüggvény változatlan, mert az már helyesen működik.
 const createConnectors = () => {
   const connectors = []
   
-  // Try to add Farcaster MiniApp connector with error handling
   try {
     const farcasterConnector = miniAppConnector()
-    // Add additional properties to ensure compatibility
     if (farcasterConnector && typeof farcasterConnector === 'object') {
       connectors.push(farcasterConnector)
       console.log('✅ Farcaster MiniApp connector loaded successfully')
@@ -19,7 +17,6 @@ const createConnectors = () => {
     console.warn('⚠️ Farcaster MiniApp connector failed to load:', error)
   }
   
-  // Always add injected connector as fallback
   try {
     connectors.push(injected({
       shimDisconnect: true,
@@ -29,7 +26,6 @@ const createConnectors = () => {
     console.warn('⚠️ Injected connector failed to load:', error)
   }
   
-  // Add WalletConnect if project ID is available
   const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
   if (projectId && projectId.trim() !== "") {
     try {
@@ -51,22 +47,21 @@ const createConnectors = () => {
   return connectors
 }
 
-// Centralizált Wagmi konfiguráció - CSAK Base mainnet az okosszerződésekhez
+// JAVÍTÁS: Itt olvassuk be a saját Alchemy URL-ünket a környezeti változóból.
+const alchemyRpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_URL;
+
+// JAVÍTÁS: Hozzáadunk egy biztonsági ellenőrzést, hogy a program azonnal jelezzen, ha a változó hiányzik.
+if (!alchemyRpcUrl) {
+  throw new Error("Kritikus hiba: Az NEXT_PUBLIC_ALCHEMY_URL környezeti változó nincs beállítva!");
+}
+
 export const config = createConfig({
-  chains: [base], // CSAK Base mainnet
+  chains: [base],
   transports: {
-    [base.id]: http("https://mainnet.base.org", {
-      // Elsődleges Base RPC végpont
-      batch: {
-        batchSize: 512,
-        wait: 32,
-      },
-      retryCount: 3,
-      retryDelay: 1000,
-    }),
+    // JAVÍTÁS: A publikus RPC végpontot lecseréljük a saját, megbízható Alchemy URL-ünkre.
+    [base.id]: http(alchemyRpcUrl),
   },
   connectors: createConnectors(),
-  // Add additional configuration for better compatibility
   ssr: false,
   syncConnectedChain: true,
 })
