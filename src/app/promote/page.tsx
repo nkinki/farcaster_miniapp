@@ -23,28 +23,13 @@ import FundingForm from "../../components/FundingForm"
 import { ConnectWalletButton } from "@/components/ConnectWalletButton"
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown"
 import { usePromotions } from "@/hooks/usePromotions"
+import type { PromoCast } from "@/types/promotions"
 
 interface FarcasterUser {
   fid: number
   username?: string
   displayName?: string
   pfpUrl?: string
-}
-
-interface PromoCast {
-  id: string
-  castUrl: string
-  author: { fid: number; username: string; displayName: string }
-  rewardPerShare: number
-  totalBudget: number
-  sharesCount: number
-  remainingBudget: number
-  shareText?: string
-  createdAt: string
-  updatedAt: string
-  status: string
-  blockchainHash?: string
-  contractCampaignId?: number
 }
 
 const formatTimeRemaining = (hours: number): string => {
@@ -177,24 +162,25 @@ export default function PromotePage() {
   // Convert raw promotions to PromoCast format
   useEffect(() => {
     if (rawPromotions) {
-      const convertedPromos = rawPromotions.map((promo) => ({
-        id: promo.id.toString(),
+      const convertedPromos: PromoCast[] = rawPromotions.map((promo) => ({
+        id: promo.id,
+        fid: promo.fid,
+        username: promo.username,
+        displayName: promo.display_name || promo.username,
         castUrl: promo.cast_url,
+        shareText: promo.share_text,
+        rewardPerShare: promo.reward_per_share,
+        totalBudget: promo.total_budget,
+        sharesCount: promo.shares_count,
+        remainingBudget: promo.remaining_budget,
+        status: promo.status as "active" | "inactive" | "paused" | "completed",
+        createdAt: promo.created_at,
+        updatedAt: promo.updated_at,
         author: {
           fid: promo.fid,
           username: promo.username,
           displayName: promo.display_name || promo.username,
         },
-        rewardPerShare: promo.reward_per_share,
-        totalBudget: promo.total_budget,
-        sharesCount: promo.shares_count,
-        remainingBudget: promo.remaining_budget,
-        shareText: promo.share_text || undefined,
-        createdAt: promo.created_at,
-        updatedAt: promo.updated_at,
-        status: promo.status,
-        blockchainHash: undefined,
-        contractCampaignId: undefined,
       }))
       setPromoCasts(convertedPromos)
     }
@@ -293,7 +279,7 @@ export default function PromotePage() {
       return
     }
 
-    setSharingPromoId(promo.id)
+    setSharingPromoId(promo.id.toString())
     try {
       const castResult = await (miniAppSdk as any).actions?.composeCast({
         text: promo.shareText || `Check this out!`,
@@ -310,7 +296,7 @@ export default function PromotePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          promotionId: Number(promo.id),
+          promotionId: promo.id,
           sharerFid: currentUser.fid,
           sharerUsername: currentUser.username,
           castHash: castResult.cast.hash,
@@ -345,8 +331,8 @@ export default function PromotePage() {
 
   const sortedAvailablePromos = useMemo(() => {
     return [...availablePromos].sort((a, b) => {
-      const canShareA = shareTimers[a.id]?.canShare ?? true
-      const canShareB = shareTimers[b.id]?.canShare ?? true
+      const canShareA = shareTimers[a.id.toString()]?.canShare ?? true
+      const canShareB = shareTimers[b.id.toString()]?.canShare ?? true
       if (canShareA && !canShareB) return -1
       if (!canShareA && canShareB) return 1
       return b.rewardPerShare - a.rewardPerShare
@@ -420,7 +406,7 @@ export default function PromotePage() {
                 </div>
               ) : (
                 sortedAvailablePromos.map((promo) => {
-                  const timerInfo = shareTimers[promo.id]
+                  const timerInfo = shareTimers[promo.id.toString()]
                   const canShare = timerInfo?.canShare ?? true
                   return (
                     <div
@@ -434,12 +420,14 @@ export default function PromotePage() {
                         </div>
                         <div className="relative">
                           <button
-                            onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)}
+                            onClick={() =>
+                              setOpenMenuId(openMenuId === promo.id.toString() ? null : promo.id.toString())
+                            }
                             className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"
                           >
                             <FiMoreHorizontal size={20} />
                           </button>
-                          {openMenuId === promo.id && (
+                          {openMenuId === promo.id.toString() && (
                             <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10">
                               <button
                                 onClick={() => handleViewCast(promo.castUrl)}
@@ -493,15 +481,15 @@ export default function PromotePage() {
                         )}
                         <button
                           onClick={() => handleSharePromo(promo)}
-                          disabled={sharingPromoId === promo.id || !canShare}
+                          disabled={sharingPromoId === promo.id.toString() || !canShare}
                           className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
                         >
-                          {sharingPromoId === promo.id ? (
+                          {sharingPromoId === promo.id.toString() ? (
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                           ) : (
                             <FiShare2 size={18} />
                           )}
-                          {sharingPromoId === promo.id
+                          {sharingPromoId === promo.id.toString()
                             ? "Processing..."
                             : `Share & Earn ${promo.rewardPerShare} $CHESS`}
                         </button>
@@ -516,7 +504,7 @@ export default function PromotePage() {
 
         {showFundingForm && fundingPromo && (
           <FundingForm
-            promotionId={Number(fundingPromo.id)}
+            promotionId={fundingPromo.id}
             totalBudget={fundingPromo.totalBudget}
             rewardPerShare={fundingPromo.rewardPerShare}
             castUrl={fundingPromo.castUrl}
