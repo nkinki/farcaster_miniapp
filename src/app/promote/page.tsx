@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -12,7 +11,6 @@ import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { PromoCast, DatabasePromotion } from "@/types/promotions";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 
-// Típusok és helper függvények
 interface FarcasterUser {
   fid: number;
   username?: string;
@@ -20,7 +18,6 @@ interface FarcasterUser {
   pfpUrl?: string;
 }
 
-// JAVÍTÁS: A konvertáló függvényben a `remaining_budget`-et a helyes `remainingBudget`-re cseréljük.
 const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   id: dbPromo.id.toString(),
   castUrl: dbPromo.cast_url,
@@ -28,7 +25,7 @@ const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
   rewardPerShare: dbPromo.reward_per_share,
   totalBudget: dbPromo.total_budget,
   sharesCount: dbPromo.shares_count,
-  remainingBudget: dbPromo.remaining_budget, // Helyes `camelCase` név
+  remainingBudget: dbPromo.remaining_budget,
   shareText: dbPromo.share_text || undefined,
   createdAt: dbPromo.created_at,
   status: dbPromo.status,
@@ -43,10 +40,9 @@ const formatTimeRemaining = (hours: number): string => {
     return `${h}h ${m}m remaining`;
 };
 
-// JAVÍTÁS: A progress bar számításánál is a helyes `remainingBudget`-et használjuk.
 const calculateProgress = (promo: PromoCast): number => {
   if (promo.totalBudget === 0) return 0;
-  const spent = promo.totalBudget - promo.remainingBudget; // Helyes `camelCase` név
+  const spent = promo.totalBudget - promo.remainingBudget;
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
@@ -155,7 +151,10 @@ export default function PromotePage() {
   };
 
   const handleSharePromo = async (promo: PromoCast) => {
-    if (!isAuthenticated || !currentUser.fid) return alert("Please connect your Farcaster account first.");
+    if (!isAuthenticated || !currentUser.fid) {
+        alert("Please connect your Farcaster account first.");
+        return;
+    }
     setSharingPromoId(promo.id);
     try {
       const castResult = await miniAppSdk.actions.composeCast({ text: promo.shareText || `Check this out!`, embeds: [promo.castUrl] });
@@ -176,8 +175,17 @@ export default function PromotePage() {
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      userProfileRef.current?.refreshPendingRewards();
-      refreshAllData();
+      // JAVÍTÁS: A frissítési logikát szinkronizáljuk a versenyhelyzet elkerülése érdekében.
+      console.log("Share success. Forcing wagmi state refetch first...");
+      // 1. Először a wagmi on-chain adatot frissítjük és megvárjuk.
+      if (userProfileRef.current) {
+        await userProfileRef.current.refreshPendingRewards();
+      }
+      
+      console.log("Wagmi refetch complete. Now fetching other app data...");
+      // 2. Csak ezután frissítjük az alkalmazás többi adatát.
+      await refreshAllData();
+      console.log("All data refreshed.");
 
     } catch (error) {
       console.error("Error during share process:", error);
@@ -211,7 +219,6 @@ export default function PromotePage() {
           <div className="flex items-center justify-center gap-2">
             <FiStar className="text-purple-300" size={24} />
             <h1 className="text-2xl font-bold text-white text-center">PROMOTIONS</h1>
-            <FiStar className="text-purple-300" size={24} />
           </div>
           <div className="flex items-center justify-start mt-1">
             <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors">

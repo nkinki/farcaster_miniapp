@@ -24,8 +24,9 @@ interface UserProfileProps {
   onClaimSuccess: () => void;
 }
 
+// JAVÍTÁS: A függvény most már egy Promise-t ad vissza.
 export interface UserProfileRef {
-  refreshPendingRewards: () => void;
+  refreshPendingRewards: () => Promise<void>;
 }
 
 const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
@@ -46,9 +47,13 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
       query: { enabled: !!address }
     });
     
+    // JAVÍTÁS: A függvény `async` és `await`-et használ a szinkronizációhoz.
     useImperativeHandle(ref, () => ({
-      refreshPendingRewards() {
-        refetchPendingRewards();
+      async refreshPendingRewards() {
+        console.log("UserProfile: Forcing a refetch of pending rewards...");
+        // Az await itt biztosítja, hogy megvárjuk a refetch végét.
+        await refetchPendingRewards();
+        console.log("UserProfile: Refetch of pending rewards finished.");
       }
     }), [refetchPendingRewards]);
 
@@ -61,7 +66,7 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
         alert('Claim successful! Your rewards have been sent.');
         refetchPendingRewards();
         onClaimSuccess();
-        setIsClaiming(false); // Állapot visszaállítása
+        setIsClaiming(false);
       }
     }, [isClaimConfirmed, refetchPendingRewards, onClaimSuccess]);
 
@@ -84,7 +89,13 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
         });
         setClaimTxHash(hash);
       } catch (error: any) {
-        alert(`Claim failed: ${error.shortMessage || error.message}`);
+        // A 4001 a standard "user rejected" kód.
+        if (error.code === 4001 || error.code === 4100) {
+            console.log("Claim transaction was rejected by the user.");
+        } else {
+            console.error(`Claim failed: ${error.shortMessage || error.message}`);
+            alert(`Claim failed: ${error.shortMessage || error.message}`);
+        }
         setIsClaiming(false);
       }
     };
