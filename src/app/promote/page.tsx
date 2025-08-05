@@ -69,49 +69,65 @@ export default function PromotePage() {
         setIsAuthenticating(true)
         setAuthError(null)
 
-        console.log("🔍 Available miniAppSdk methods:", Object.keys(miniAppSdk))
+        console.log("🔍 Available miniAppSdk properties:", Object.keys(miniAppSdk))
+        console.log("🔍 miniAppSdk.context type:", typeof miniAppSdk.context)
 
-        // Try different initialization approaches
+        // Try different approaches to get context
         let context = null
 
-        // Approach 1: Direct context call
+        // Approach 1: Direct context property access (if it's a Promise)
         try {
-          context = await miniAppSdk.context()
-          console.log("✅ Direct context call successful:", context)
+          if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
+            context = await miniAppSdk.context
+            console.log("✅ Direct context property access successful:", context)
+          }
         } catch (error) {
-          console.log("❌ Direct context call failed:", error)
+          console.log("❌ Direct context property access failed:", error)
         }
 
-        // Approach 2: Check if ready method exists
+        // Approach 2: Check if context is a function
+        if (!context && typeof miniAppSdk.context === "function") {
+          try {
+            context = await (miniAppSdk.context as any)()
+            console.log("✅ Context function call successful:", context)
+          } catch (error) {
+            console.log("❌ Context function call failed:", error)
+          }
+        }
+
+        // Approach 3: Check if getContext method exists
+        if (!context && "getContext" in miniAppSdk) {
+          try {
+            context = await (miniAppSdk as any).getContext()
+            console.log("✅ getContext call successful:", context)
+          } catch (error) {
+            console.log("❌ getContext call failed:", error)
+          }
+        }
+
+        // Approach 4: Check if user property exists directly
+        if (!context && "user" in miniAppSdk) {
+          try {
+            const user = (miniAppSdk as any).user
+            if (user) {
+              context = { user }
+              console.log("✅ Direct user property access successful:", context)
+            }
+          } catch (error) {
+            console.log("❌ Direct user property access failed:", error)
+          }
+        }
+
+        // Approach 5: Check if we need to wait for ready state
         if (!context && "ready" in miniAppSdk) {
           try {
-            await (miniAppSdk as any).ready()
-            context = await miniAppSdk.context()
-            console.log("✅ Ready + context call successful:", context)
+            await (miniAppSdk as any).ready
+            if (miniAppSdk.context) {
+              context = await miniAppSdk.context
+              console.log("✅ Ready + context successful:", context)
+            }
           } catch (error) {
-            console.log("❌ Ready + context call failed:", error)
-          }
-        }
-
-        // Approach 3: Check if setup method exists
-        if (!context && "setup" in miniAppSdk) {
-          try {
-            await (miniAppSdk as any).setup()
-            context = await miniAppSdk.context()
-            console.log("✅ Setup + context call successful:", context)
-          } catch (error) {
-            console.log("❌ Setup + context call failed:", error)
-          }
-        }
-
-        // Approach 4: Check if initialize method exists
-        if (!context && "initialize" in miniAppSdk) {
-          try {
-            await (miniAppSdk as any).initialize()
-            context = await miniAppSdk.context()
-            console.log("✅ Initialize + context call successful:", context)
-          } catch (error) {
-            console.log("❌ Initialize + context call failed:", error)
+            console.log("❌ Ready + context failed:", error)
           }
         }
 
@@ -124,7 +140,8 @@ export default function PromotePage() {
           console.log("✅ Farcaster user loaded:", context.user)
         } else {
           console.warn("⚠️ No Farcaster user context available")
-          setAuthError("No user context available")
+          console.log("🔍 Full miniAppSdk object:", miniAppSdk)
+          setAuthError("No user context available. This app needs to run in a Farcaster frame.")
         }
       } catch (error: any) {
         console.error("❌ Failed to initialize Farcaster SDK:", error)
@@ -194,7 +211,7 @@ export default function PromotePage() {
     authError,
     myPromotionsCount: myPromotions.length,
     otherPromotionsCount: otherPromotions.length,
-    miniAppSdkMethods: Object.keys(miniAppSdk),
+    miniAppSdkKeys: Object.keys(miniAppSdk),
   })
 
   // Fetch share timers
@@ -317,8 +334,12 @@ export default function PromotePage() {
     setIsAuthenticating(true)
 
     try {
-      // Try direct context call
-      const context = await miniAppSdk.context()
+      // Try direct context property access
+      let context = null
+
+      if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
+        context = await miniAppSdk.context
+      }
 
       if (context?.user) {
         setFarcasterUser({
@@ -362,8 +383,11 @@ export default function PromotePage() {
           {process.env.NODE_ENV === "development" && (
             <div className="mb-4 p-4 bg-gray-800 rounded-lg text-left text-sm max-w-md mx-auto">
               <p className="text-yellow-400 mb-2">Debug Info:</p>
-              <p className="text-gray-300">Available SDK methods:</p>
-              <pre className="text-xs text-gray-400 mt-1">{JSON.stringify(Object.keys(miniAppSdk), null, 2)}</pre>
+              <p className="text-gray-300">Available SDK properties:</p>
+              <pre className="text-xs text-gray-400 mt-1 overflow-auto max-h-32">
+                {JSON.stringify(Object.keys(miniAppSdk), null, 2)}
+              </pre>
+              <p className="text-gray-300 mt-2">Context type: {typeof miniAppSdk.context}</p>
             </div>
           )}
 
@@ -384,7 +408,7 @@ export default function PromotePage() {
       <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#2d1b69] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Welcome to Farcaster Promotions</h1>
-          <p className="text-gray-400 mb-8">Loading your Farcaster profile...</p>
+          <p className="text-gray-400 mb-8">This app needs to run inside a Farcaster frame</p>
 
           {/* Debug info in development */}
           {process.env.NODE_ENV === "development" && (
@@ -393,7 +417,8 @@ export default function PromotePage() {
               <p className="text-gray-300">farcasterUser: {farcasterUser ? "exists" : "null"}</p>
               <p className="text-gray-300">isAuthenticating: {String(isAuthenticating)}</p>
               <p className="text-gray-300">authError: {authError || "null"}</p>
-              <p className="text-gray-300">SDK methods: {Object.keys(miniAppSdk).join(", ")}</p>
+              <p className="text-gray-300">SDK properties: {Object.keys(miniAppSdk).join(", ")}</p>
+              <p className="text-gray-300">Context type: {typeof miniAppSdk.context}</p>
             </div>
           )}
 
