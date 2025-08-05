@@ -44,8 +44,15 @@ export default function PromotePage() {
   const { address, isConnected } = useAccount()
   const { isAuthenticated, profile } = useProfile()
 
-  // Fix: Revert to simple useSignIn without configuration
-  const { signIn, isSuccess, isLoading, isError, error } = useSignIn()
+  // Fix: Use correct properties from useSignIn
+  const {
+    signIn,
+    isSuccess,
+    isPolling, // This is the loading state
+    isError,
+    error,
+    isConnected: isFarcasterConnected,
+  } = useSignIn()
 
   // Refs
   const userProfileRef = useRef<UserProfileRef>(null)
@@ -71,14 +78,6 @@ export default function PromotePage() {
 
   // Convert database promotions to frontend format - with type safety
   const promotions: PromoCast[] = rawPromotions ? mapPromotionsToPromoCasts(rawPromotions) : []
-
-  // Debug log to check the structure
-  console.log("🔍 Promotions debug:", {
-    rawPromotionsLength: rawPromotions?.length || 0,
-    promotionsLength: promotions.length,
-    firstPromotion: promotions[0],
-    profileFid: profile?.fid,
-  })
 
   // Filter user's own promotions - with explicit typing and better error handling
   const myPromotions: PromoCast[] = promotions.filter((promo) => {
@@ -115,10 +114,11 @@ export default function PromotePage() {
   console.log("🔍 Farcaster Auth debug:", {
     isAuthenticated,
     profile,
-    isLoading,
+    isPolling,
     isError,
     error,
     isSuccess,
+    isFarcasterConnected,
   })
 
   // Fetch share timers
@@ -230,7 +230,7 @@ export default function PromotePage() {
   const handleSignIn = async () => {
     try {
       console.log("🔄 Attempting to sign in with Farcaster...")
-      await signIn()
+      signIn()
       console.log("✅ Sign in initiated successfully")
     } catch (error) {
       console.error("❌ Sign in failed:", error)
@@ -239,13 +239,13 @@ export default function PromotePage() {
   }
 
   // Show loading state during sign in
-  if (isLoading) {
+  if (isPolling) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#2d1b69] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-white mb-2">Signing in...</h1>
-          <p className="text-gray-400">Please wait while we connect to Farcaster</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Connecting to Farcaster...</h1>
+          <p className="text-gray-400">Please complete the authentication in your Farcaster app</p>
         </div>
       </div>
     )
@@ -280,21 +280,24 @@ export default function PromotePage() {
 
           {/* Debug info in development */}
           {process.env.NODE_ENV === "development" && (
-            <div className="mb-4 p-4 bg-gray-800 rounded-lg text-left text-sm">
+            <div className="mb-4 p-4 bg-gray-800 rounded-lg text-left text-sm max-w-md mx-auto">
               <p className="text-yellow-400 mb-2">Debug Info:</p>
               <p className="text-gray-300">isAuthenticated: {String(isAuthenticated)}</p>
               <p className="text-gray-300">profile: {profile ? "exists" : "null"}</p>
-              <p className="text-gray-300">isLoading: {String(isLoading)}</p>
+              <p className="text-gray-300">isPolling: {String(isPolling)}</p>
               <p className="text-gray-300">isError: {String(isError)}</p>
+              <p className="text-gray-300">isSuccess: {String(isSuccess)}</p>
+              <p className="text-gray-300">isFarcasterConnected: {String(isFarcasterConnected)}</p>
+              {error && <p className="text-red-300">error: {error.message}</p>}
             </div>
           )}
 
           <button
             onClick={handleSignIn}
-            disabled={isLoading}
+            disabled={isPolling}
             className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Signing In..." : "Sign In with Farcaster"}
+            {isPolling ? "Connecting..." : "Sign In with Farcaster"}
           </button>
         </div>
       </div>
