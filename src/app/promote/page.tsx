@@ -44,20 +44,15 @@ export default function PromotePage() {
   const { address, isConnected } = useAccount()
   const { isAuthenticated, profile } = useProfile()
 
-  // Fix: Provide required configuration to useSignIn
-  const {
-    signIn,
-    isSuccess,
-    isPolling,
-    isError,
-    error,
-    isConnected: isFarcasterConnected,
-  } = useSignIn({
-    // Required domain - use current domain or localhost for development
-    domain: typeof window !== "undefined" ? window.location.host : "localhost:3000",
-    // Optional: Add SIWE URI
-    siweUri: typeof window !== "undefined" ? `${window.location.origin}/api/auth/siwe` : undefined,
-  })
+  // Fix: Try different approaches for useSignIn
+  const signInResult = useSignIn()
+
+  // Extract properties safely
+  const { signIn, isSuccess, isError, error } = signInResult
+
+  // Check if isPolling exists, otherwise use a fallback
+  const isPolling = "isPolling" in signInResult ? signInResult.isPolling : false
+  const isFarcasterConnected = "isConnected" in signInResult ? signInResult.isConnected : false
 
   // Refs
   const userProfileRef = useRef<UserProfileRef>(null)
@@ -124,7 +119,7 @@ export default function PromotePage() {
     error,
     isSuccess,
     isFarcasterConnected,
-    domain: typeof window !== "undefined" ? window.location.host : "localhost:3000",
+    signInResult, // Log the entire result to see what's available
   })
 
   // Fetch share timers
@@ -295,6 +290,10 @@ export default function PromotePage() {
               <p className="text-gray-300">isSuccess: {String(isSuccess)}</p>
               <p className="text-gray-300">isFarcasterConnected: {String(isFarcasterConnected)}</p>
               {error && <p className="text-red-300">error: {error.message}</p>}
+              <details className="mt-2">
+                <summary className="text-blue-400 cursor-pointer">Raw signInResult</summary>
+                <pre className="text-xs mt-1 overflow-auto">{JSON.stringify(signInResult, null, 2)}</pre>
+              </details>
             </div>
           )}
 
