@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
@@ -38,7 +38,7 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
     const [isClaiming, setIsClaiming] = useState(false);
     const [claimTxHash, setClaimTxHash] = useState<Hash | undefined>();
 
-    const { data: pendingRewardsData, refetch: refetchPendingRewards, error: pendingRewardsError } = useReadContract({
+    const { data: pendingRewardsData, refetch: refetchPendingRewards } = useReadContract({
       address: PROMO_CONTRACT_ADDRESS,
       abi: PROMO_CONTRACT_ABI,
       functionName: 'getPendingRewards',
@@ -52,13 +52,8 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
       }
     }), [refetchPendingRewards]);
 
-    const { isSuccess: isClaimConfirmed, error: receiptError } = useWaitForTransactionReceipt({
-      hash: claimTxHash,
-      query: { 
-        enabled: !!claimTxHash,
-        retry: (failureCount, error) => failureCount < 5,
-        retryDelay: 2000,
-      },
+    const { isSuccess: isClaimConfirmed } = useWaitForTransactionReceipt({
+        hash: claimTxHash,
     });
     
     useEffect(() => {
@@ -66,36 +61,21 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
         alert('Claim successful! Your rewards have been sent.');
         refetchPendingRewards();
         onClaimSuccess();
-        setIsClaiming(false);
-      } else if (receiptError) {
-        console.error('Receipt error:', receiptError.message);
-        alert('Transaction failed or timed out. Check the transaction hash in a block explorer.');
-        setIsClaiming(false);
+        setIsClaiming(false); // Állapot visszaállítása
       }
-    }, [isClaimConfirmed, receiptError, refetchPendingRewards, onClaimSuccess]);
+    }, [isClaimConfirmed, refetchPendingRewards, onClaimSuccess]);
 
-    const pendingClaims = Array.isArray(pendingRewardsData) && pendingRewardsData.length > 0 && typeof pendingRewardsData[0] === 'bigint'
+    const pendingClaims = 
+      Array.isArray(pendingRewardsData) && pendingRewardsData.length > 0 && typeof pendingRewardsData[0] === 'bigint'
       ? Number(pendingRewardsData[0]) / 1e18 
       : 0;
 
-    useEffect(() => {
-      console.log('Pending Rewards Data:', { pendingRewardsData, pendingClaims, error: pendingRewardsError?.message });
-      sdk.context.then(ctx => { if (ctx.user?.fid) setProfile(ctx.user as FarcasterUser); });
-    }, [pendingRewardsData, pendingRewardsError]);
+    useEffect(() => { sdk.context.then(ctx => { if (ctx.user?.fid) setProfile(ctx.user as FarcasterUser); }); }, []);
 
     const handleClaim = async () => {
-      if (!address) {
-        alert('Please connect your wallet to claim rewards.');
-        return;
-      }
-      if (!PROMO_CONTRACT_ADDRESS) {
-        alert('Contract address is not configured. Check your environment variables.');
-        return;
-      }
       setIsClaiming(true);
       setClaimTxHash(undefined);
       try {
-        console.log('Initiating claim with address:', PROMO_CONTRACT_ADDRESS);
         const hash = await writeContractAsync({
           address: PROMO_CONTRACT_ADDRESS,
           abi: PROMO_CONTRACT_ABI,
@@ -103,10 +83,8 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
           args: [],
         });
         setClaimTxHash(hash);
-        console.log('Claim transaction sent, hash:', hash);
       } catch (error: any) {
-        console.error('Claim error details:', error);
-        alert(`Claim failed: ${error.shortMessage || error.message || 'Unknown error. Check console for details.'}`);
+        alert(`Claim failed: ${error.shortMessage || error.message}`);
         setIsClaiming(false);
       }
     };
@@ -149,9 +127,8 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
             <div className="mt-4">
               <button
                 onClick={handleClaim}
-                disabled={isClaiming || !pendingClaims || pendingClaims === 0 || !address}
+                disabled={isClaiming || !pendingClaims || pendingClaims === 0}
                 className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
-                title={address ? '' : 'Connect wallet to claim'}
               >
                 <FiAward size={20} />
                 {isClaiming ? 'Processing Transaction...' : `Claim ${pendingClaims.toFixed(2)} $CHESS`}
