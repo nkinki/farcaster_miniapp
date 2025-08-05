@@ -10,6 +10,7 @@ import PaymentForm from "../../components/PaymentForm"
 import FundingForm from "../../components/FundingForm"
 import MyCampaignsDropdown from "../../components/MyCampaignsDropdown"
 import { usePromotions } from "../../hooks/usePromotions"
+import { mapPromotionsToPromoCasts } from "../../utils/promotionMapper"
 import type { PromoCast } from "@/types/promotions"
 
 interface ShareTimer {
@@ -44,7 +45,7 @@ export default function PromotePage() {
 
   // Fetch promotions
   const {
-    promotions,
+    promotions: rawPromotions,
     loading: promotionsLoading,
     error: promotionsError,
     refetch: refetchPromotions,
@@ -54,11 +55,14 @@ export default function PromotePage() {
     status: "active",
   })
 
-  // Filter user's own promotions
-  const myPromotions = promotions.filter((promo) => profile?.fid && promo.fid === profile.fid)
+  // Convert database promotions to frontend format - with type safety
+  const promotions: PromoCast[] = rawPromotions ? mapPromotionsToPromoCasts(rawPromotions) : []
 
-  // Other promotions (not user's own)
-  const otherPromotions = promotions.filter((promo) => !profile?.fid || promo.fid !== profile.fid)
+  // Filter user's own promotions - with explicit typing
+  const myPromotions: PromoCast[] = promotions.filter((promo) => profile?.fid && promo.fid === profile.fid)
+
+  // Other promotions (not user's own) - with explicit typing
+  const otherPromotions: PromoCast[] = promotions.filter((promo) => !profile?.fid || promo.fid !== profile.fid)
 
   // Fetch share timers
   useEffect(() => {
@@ -230,7 +234,7 @@ export default function PromotePage() {
 
           {/* Right Column - Campaigns */}
           <div className="lg:col-span-2 space-y-6">
-            {/* My Campaigns */}
+            {/* My Campaigns - Now using properly typed PromoCast[] */}
             {myPromotions.length > 0 && (
               <MyCampaignsDropdown myPromos={myPromotions} onManageClick={handleManageCampaign} />
             )}
