@@ -220,7 +220,8 @@ export default function PromotePage() {
             <UserProfile
               ref={userProfileRef}
               user={{
-                fid: profile.fid,
+                // Fix: Ensure fid is always a number with fallback to 0
+                fid: profile.fid ?? 0,
                 username: profile.username || "",
                 displayName: profile.displayName || profile.username || "",
               }}
@@ -336,7 +337,8 @@ export default function PromotePage() {
 
               <PaymentForm
                 user={{
-                  fid: profile.fid,
+                  // Fix: Ensure fid is always a number with fallback to 0
+                  fid: profile.fid ?? 0,
                   username: profile.username || "",
                   displayName: profile.displayName || profile.username || "",
                 }}
