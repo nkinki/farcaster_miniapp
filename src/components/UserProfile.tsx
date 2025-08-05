@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useImperativeHandle, forwardRef } from "react"
 import { useAccount } from "wagmi"
 import { useFarcasterPromo } from "@/hooks/useFarcasterPromo"
 import { useChessToken } from "@/hooks/useChessToken"
@@ -16,9 +16,16 @@ interface UserProfileProps {
   user: FarcasterUser
 }
 
+export interface UserProfileRef {
+  refetchRewards: () => void
+  claimAllRewards: () => Promise<void>
+  getTotalPendingRewards: () => bigint
+  getCampaignCount: () => number
+}
+
 type ClaimMode = "auto" | "batch" | "single"
 
-export default function UserProfile({ user }: UserProfileProps) {
+const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref) => {
   const { address } = useAccount()
   const { balance, formatChessAmount } = useChessToken()
 
@@ -141,6 +148,25 @@ export default function UserProfile({ user }: UserProfileProps) {
   }
 
   const isProcessing = isClaimingAll || isClaimingBatch || isClaimingSingle
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      refetchRewards: () => {
+        refetchPendingRewards()
+      },
+      claimAllRewards: async () => {
+        await claimAllRewards()
+      },
+      getTotalPendingRewards: () => {
+        return totalPendingRewards
+      },
+      getCampaignCount: () => {
+        return campaignCount
+      },
+    }),
+    [totalPendingRewards, campaignCount, refetchPendingRewards],
+  )
 
   return (
     <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
@@ -335,4 +361,8 @@ export default function UserProfile({ user }: UserProfileProps) {
       )}
     </div>
   )
-}
+})
+
+UserProfile.displayName = "UserProfile"
+
+export default UserProfile
