@@ -1,3 +1,4 @@
+// Ez a központi típusdefiníciós fájl
 export interface PromoCast {
   id: number
   fid: number
@@ -19,7 +20,7 @@ export interface PromoCast {
   }
 }
 
-// Database Promotion interface (for reference)
+// Database Promotion interface (az adatbázisból érkező adatokhoz)
 export interface Promotion {
   id: number
   fid: number

@@ -1,21 +1,5 @@
-import type { PromoCast } from "@/types/promotions"
-
-// Database Promotion interface (from usePromotions hook)
-export interface Promotion {
-  id: number
-  fid: number
-  username: string
-  display_name: string | null
-  cast_url: string
-  share_text: string | null
-  reward_per_share: number
-  total_budget: number
-  shares_count: number
-  remaining_budget: number
-  status: string
-  created_at: string
-  updated_at: string
-}
+// MOSTANTÓL CSAK INNEN IMPORTÁLJUK A TÍPUSOKAT
+import type { PromoCast, Promotion } from "@/types/promotions"
 
 /**
  * Converts database Promotion to frontend PromoCast format with validation
@@ -26,9 +10,13 @@ export function mapPromotionToPromoCast(promotion: Promotion): PromoCast {
     throw new Error("Invalid promotion data: missing or invalid id")
   }
 
+  if (typeof promotion.fid !== "number") {
+    throw new Error("Invalid promotion data: missing or invalid fid")
+  }
+
   return {
     id: promotion.id,
-    fid: promotion.fid,
+    fid: promotion.fid, // Explicitly ensure this exists
     username: promotion.username,
     displayName: promotion.display_name || promotion.username,
     castUrl: promotion.cast_url,
@@ -39,7 +27,7 @@ export function mapPromotionToPromoCast(promotion: Promotion): PromoCast {
     remainingBudget: promotion.remaining_budget,
     status: promotion.status as "active" | "inactive" | "paused" | "completed",
     createdAt: promotion.created_at,
-    updatedAt: promotion.updated_at,
+    updatedAt: promotion.updatedAt,
     // Add missing fields that PromoCast expects
     author: {
       fid: promotion.fid,
