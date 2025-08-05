@@ -21,7 +21,16 @@ interface ShareTimer {
 export default function PromotePage() {
   const { address, isConnected } = useAccount()
   const { isAuthenticated, profile } = useProfile()
-  const { signIn } = useSignIn()
+
+  // Fix: useSignIn now requires a configuration object
+  const { signIn } = useSignIn({
+    onSuccess: () => {
+      console.log("Successfully signed in with Farcaster")
+    },
+    onError: (error) => {
+      console.error("Farcaster sign in error:", error)
+    },
+  })
 
   // Refs
   const userProfileRef = useRef<UserProfileRef>(null)
@@ -156,6 +165,16 @@ export default function PromotePage() {
     return `${hours}h ${minutes}m`
   }
 
+  // Handle sign in with better error handling
+  const handleSignIn = async () => {
+    try {
+      await signIn()
+    } catch (error) {
+      console.error("Sign in failed:", error)
+      alert("Failed to sign in with Farcaster. Please try again.")
+    }
+  }
+
   // Authentication check
   if (!isAuthenticated || !profile) {
     return (
@@ -164,7 +183,7 @@ export default function PromotePage() {
           <h1 className="text-3xl font-bold text-white mb-4">Welcome to Farcaster Promotions</h1>
           <p className="text-gray-400 mb-8">Sign in with Farcaster to start promoting and earning rewards</p>
           <button
-            onClick={() => signIn()}
+            onClick={handleSignIn}
             className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
           >
             Sign In with Farcaster
