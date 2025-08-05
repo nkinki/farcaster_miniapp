@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useAccount } from "wagmi"
-import { useSignIn, useProfile } from "@farcaster/auth-kit"
+import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk"
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiClock } from "react-icons/fi"
 import Link from "next/link"
 import UserProfile, { type UserProfileRef } from "@/components/UserProfile"
@@ -42,15 +42,15 @@ interface ShareTimer {
 
 export default function PromotePage() {
   const { address, isConnected } = useAccount()
-  const { isAuthenticated, profile } = useProfile()
-  const signInResult = useSignIn({ nonce: "farcaster-promo-app" })
 
-  // Extract properties safely
-  const { signIn, isSuccess, isError, error } = signInResult
-
-  // Check if isPolling exists, otherwise use a fallback
-  const isPolling = "isPolling" in signInResult ? signInResult.isPolling : false
-  const isFarcasterConnected = "isConnected" in signInResult ? signInResult.isConnected : false
+  // State management for Farcaster user
+  const [farcasterUser, setFarcasterUser] = useState<{
+    fid: number
+    username: string
+    displayName: string
+  } | null>(null)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
 
   // Refs
   const userProfileRef = useRef<UserProfileRef>(null)
@@ -61,6 +61,41 @@ export default function PromotePage() {
   const [selectedPromoForFunding, setSelectedPromoForFunding] = useState<PromoCast | null>(null)
   const [shareTimers, setShareTimers] = useState<ShareTimer[]>([])
   const [isLoadingTimers, setIsLoadingTimers] = useState(false)
+
+  // Initialize Farcaster SDK and get user info
+  useEffect(() => {
+    const initializeFarcaster = async () => {
+      try {
+        setIsAuthenticating(true)
+        setAuthError(null)
+
+        // Initialize the SDK
+        await miniAppSdk.init()
+
+        // Get user context
+        const context = await miniAppSdk.context()
+
+        if (context?.user) {
+          setFarcasterUser({
+            fid: context.user.fid,
+            username: context.user.username || `user-${context.user.fid}`,
+            displayName: context.user.displayName || context.user.username || `User ${context.user.fid}`,
+          })
+          console.log("✅ Farcaster user loaded:", context.user)
+        } else {
+          console.warn("⚠️ No Farcaster user context available")
+          setAuthError("No user context available")
+        }
+      } catch (error: any) {
+        console.error("❌ Failed to initialize Farcaster SDK:", error)
+        setAuthError(error.message || "Failed to initialize Farcaster")
+      } finally {
+        setIsAuthenticating(false)
+      }
+    }
+
+    initializeFarcaster()
+  }, [])
 
   // Fetch promotions
   const {
@@ -78,56 +113,57 @@ export default function PromotePage() {
   const promotions: PromoCast[] = rawPromotions ? mapPromotionsToPromoCasts(rawPromotions) : []
 
   // Filter user's own promotions - with explicit typing and better error handling
-  const myPromotions: PromoCast[] = promotions.filter((promo) => {
-    // Ensure both values exist and are numbers
-    const userFid = profile?.fid
-    const promoFid = promo?.fid
+  const myPromotions: PromoCast[] = useMemo(() => {
+    return promotions.filter((promo) => {
+      // Ensure both values exist and are numbers
+      const userFid = farcasterUser?.fid
+      const promoFid = promo?.fid
 
-    if (typeof userFid !== "number" || typeof promoFid !== "number") {
-      return false
-    }
+      if (typeof userFid !== "number" || typeof promoFid !== "number") {
+        return false
+      }
 
-    return promoFid === userFid
-  })
+      return promoFid === userFid
+    })
+  }, [promotions, farcasterUser?.fid])
 
   // Other promotions (not user's own) - with explicit typing and better error handling
-  const otherPromotions: PromoCast[] = promotions.filter((promo) => {
-    const userFid = profile?.fid
-    const promoFid = promo?.fid
+  const otherPromotions: PromoCast[] = useMemo(() => {
+    return promotions.filter((promo) => {
+      const userFid = farcasterUser?.fid
+      const promoFid = promo?.fid
 
-    // If no user fid, show all promotions
-    if (typeof userFid !== "number") {
-      return true
-    }
+      // If no user fid, show all promotions
+      if (typeof userFid !== "number") {
+        return true
+      }
 
-    // If promo fid is invalid, exclude it
-    if (typeof promoFid !== "number") {
-      return false
-    }
+      // If promo fid is invalid, exclude it
+      if (typeof promoFid !== "number") {
+        return false
+      }
 
-    return promoFid !== userFid
-  })
+      return promoFid !== userFid
+    })
+  }, [promotions, farcasterUser?.fid])
 
-  // Debug Farcaster Auth state
-  console.log("🔍 Farcaster Auth debug:", {
-    isAuthenticated,
-    profile,
-    isPolling,
-    isError,
-    error,
-    isSuccess,
-    isFarcasterConnected,
-    signInResult, // Log the entire result to see what's available
+  // Debug Farcaster state
+  console.log("🔍 Farcaster debug:", {
+    farcasterUser,
+    isAuthenticating,
+    authError,
+    myPromotionsCount: myPromotions.length,
+    otherPromotionsCount: otherPromotions.length,
   })
 
   // Fetch share timers
   useEffect(() => {
     const fetchShareTimers = async () => {
-      if (!profile?.fid) return
+      if (!farcasterUser?.fid) return
 
       setIsLoadingTimers(true)
       try {
-        const response = await fetch(`/api/share-timers?fid=${profile.fid}`)
+        const response = await fetch(`/api/share-timers?fid=${farcasterUser.fid}`)
         if (response.ok) {
           const data = await response.json()
           setShareTimers(data.timers || [])
@@ -143,123 +179,145 @@ export default function PromotePage() {
     // Refresh timers every 30 seconds
     const interval = setInterval(fetchShareTimers, 30000)
     return () => clearInterval(interval)
-  }, [profile?.fid])
+  }, [farcasterUser?.fid])
 
   // Handle successful payment form completion
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = useCallback(() => {
     setShowPaymentForm(false)
     refetchPromotions()
     // Refresh user profile rewards
     userProfileRef.current?.refetchRewards()
-  }
+  }, [refetchPromotions])
 
   // Handle successful funding
-  const handleFundingSuccess = () => {
+  const handleFundingSuccess = useCallback(() => {
     setShowFundingForm(false)
     setSelectedPromoForFunding(null)
     refetchPromotions()
     // Refresh user profile rewards
     userProfileRef.current?.refetchRewards()
-  }
+  }, [refetchPromotions])
 
   // Handle manage campaign click
-  const handleManageCampaign = (promo: PromoCast) => {
+  const handleManageCampaign = useCallback((promo: PromoCast) => {
     setSelectedPromoForFunding(promo)
     setShowFundingForm(true)
-  }
+  }, [])
 
   // Handle share promotion
-  const handleShare = async (promotion: PromoCast) => {
-    if (!profile?.fid) {
-      alert("Please sign in with Farcaster first")
-      return
-    }
-
-    try {
-      const response = await fetch("/api/shares", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          promotionId: promotion.id,
-          fid: profile.fid,
-          username: profile.username,
-          displayName: profile.displayName,
-        }),
-      })
-
-      if (response.ok) {
-        alert("Share recorded successfully! 🎉")
-        refetchPromotions()
-        // Refresh user profile rewards
-        userProfileRef.current?.refetchRewards()
-
-        // Refresh share timers
-        const timerResponse = await fetch(`/api/share-timers?fid=${profile.fid}`)
-        if (timerResponse.ok) {
-          const data = await timerResponse.json()
-          setShareTimers(data.timers || [])
-        }
-      } else {
-        const errorData = await response.json()
-        alert(`Error: ${errorData.error}`)
+  const handleShare = useCallback(
+    async (promotion: PromoCast) => {
+      if (!farcasterUser?.fid) {
+        alert("Please sign in with Farcaster first")
+        return
       }
-    } catch (error) {
-      console.error("Error sharing promotion:", error)
-      alert("Failed to record share. Please try again.")
-    }
-  }
+
+      try {
+        const response = await fetch("/api/shares", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            promotionId: promotion.id,
+            fid: farcasterUser.fid,
+            username: farcasterUser.username,
+            displayName: farcasterUser.displayName,
+          }),
+        })
+
+        if (response.ok) {
+          alert("Share recorded successfully! 🎉")
+          refetchPromotions()
+          // Refresh user profile rewards
+          userProfileRef.current?.refetchRewards()
+
+          // Refresh share timers
+          const timerResponse = await fetch(`/api/share-timers?fid=${farcasterUser.fid}`)
+          if (timerResponse.ok) {
+            const data = await timerResponse.json()
+            setShareTimers(data.timers || [])
+          }
+        } else {
+          const errorData = await response.json()
+          alert(`Error: ${errorData.error}`)
+        }
+      } catch (error) {
+        console.error("Error sharing promotion:", error)
+        alert("Failed to record share. Please try again.")
+      }
+    },
+    [farcasterUser, refetchPromotions],
+  )
 
   // Check if user can share a promotion (48-hour cooldown)
-  const canShare = (promotionId: number): boolean => {
-    const timer = shareTimers.find((t) => t.promotionId === promotionId)
-    return !timer || timer.timeRemaining <= 0
-  }
+  const canShare = useCallback(
+    (promotionId: number): boolean => {
+      const timer = shareTimers.find((t) => t.promotionId === promotionId)
+      return !timer || timer.timeRemaining <= 0
+    },
+    [shareTimers],
+  )
 
   // Get time remaining for a promotion
-  const getTimeRemaining = (promotionId: number): string => {
-    const timer = shareTimers.find((t) => t.promotionId === promotionId)
-    if (!timer || timer.timeRemaining <= 0) return ""
+  const getTimeRemaining = useCallback(
+    (promotionId: number): string => {
+      const timer = shareTimers.find((t) => t.promotionId === promotionId)
+      if (!timer || timer.timeRemaining <= 0) return ""
 
-    const hours = Math.floor(timer.timeRemaining / 3600)
-    const minutes = Math.floor((timer.timeRemaining % 3600) / 60)
-    return `${hours}h ${minutes}m`
-  }
+      const hours = Math.floor(timer.timeRemaining / 3600)
+      const minutes = Math.floor((timer.timeRemaining % 3600) / 60)
+      return `${hours}h ${minutes}m`
+    },
+    [shareTimers],
+  )
 
-  // Handle sign in - simplified version
-  const handleSignIn = async () => {
+  // Handle retry authentication
+  const handleRetryAuth = useCallback(async () => {
+    setAuthError(null)
+    setIsAuthenticating(true)
+
     try {
-      console.log("🔄 Attempting to sign in with Farcaster...")
-      signIn()
-      console.log("✅ Sign in initiated successfully")
-    } catch (error) {
-      console.error("❌ Sign in failed:", error)
-      alert("Failed to sign in with Farcaster. Please try again.")
-    }
-  }
+      await miniAppSdk.init()
+      const context = await miniAppSdk.context()
 
-  // Show loading state during sign in
-  if (isPolling) {
+      if (context?.user) {
+        setFarcasterUser({
+          fid: context.user.fid,
+          username: context.user.username || `user-${context.user.fid}`,
+          displayName: context.user.displayName || context.user.username || `User ${context.user.fid}`,
+        })
+      } else {
+        setAuthError("No user context available")
+      }
+    } catch (error: any) {
+      setAuthError(error.message || "Failed to initialize Farcaster")
+    } finally {
+      setIsAuthenticating(false)
+    }
+  }, [])
+
+  // Show loading state during authentication
+  if (isAuthenticating) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#2d1b69] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-white mb-2">Connecting to Farcaster...</h1>
-          <p className="text-gray-400">Please complete the authentication in your Farcaster app</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Loading Farcaster...</h1>
+          <p className="text-gray-400">Initializing your profile</p>
         </div>
       </div>
     )
   }
 
-  // Show error state if sign in failed
-  if (isError && error) {
+  // Show error state if authentication failed
+  if (authError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#2d1b69] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-400 mb-4">Sign In Error</h1>
-          <p className="text-gray-400 mb-8">Failed to sign in with Farcaster</p>
-          <p className="text-sm text-red-300 mb-8">{error.message || "Unknown error"}</p>
+          <h1 className="text-2xl font-bold text-red-400 mb-4">Authentication Error</h1>
+          <p className="text-gray-400 mb-8">Failed to load Farcaster profile</p>
+          <p className="text-sm text-red-300 mb-8">{authError}</p>
           <button
-            onClick={handleSignIn}
+            onClick={handleRetryAuth}
             className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
           >
             Try Again
@@ -270,37 +328,28 @@ export default function PromotePage() {
   }
 
   // Authentication check
-  if (!isAuthenticated || !profile) {
+  if (!farcasterUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#2d1b69] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Welcome to Farcaster Promotions</h1>
-          <p className="text-gray-400 mb-8">Sign in with Farcaster to start promoting and earning rewards</p>
+          <p className="text-gray-400 mb-8">Loading your Farcaster profile...</p>
 
           {/* Debug info in development */}
           {process.env.NODE_ENV === "development" && (
             <div className="mb-4 p-4 bg-gray-800 rounded-lg text-left text-sm max-w-md mx-auto">
               <p className="text-yellow-400 mb-2">Debug Info:</p>
-              <p className="text-gray-300">isAuthenticated: {String(isAuthenticated)}</p>
-              <p className="text-gray-300">profile: {profile ? "exists" : "null"}</p>
-              <p className="text-gray-300">isPolling: {String(isPolling)}</p>
-              <p className="text-gray-300">isError: {String(isError)}</p>
-              <p className="text-gray-300">isSuccess: {String(isSuccess)}</p>
-              <p className="text-gray-300">isFarcasterConnected: {String(isFarcasterConnected)}</p>
-              {error && <p className="text-red-300">error: {error.message}</p>}
-              <details className="mt-2">
-                <summary className="text-blue-400 cursor-pointer">Raw signInResult</summary>
-                <pre className="text-xs mt-1 overflow-auto">{JSON.stringify(signInResult, null, 2)}</pre>
-              </details>
+              <p className="text-gray-300">farcasterUser: {farcasterUser ? "exists" : "null"}</p>
+              <p className="text-gray-300">isAuthenticating: {String(isAuthenticating)}</p>
+              <p className="text-gray-300">authError: {authError || "null"}</p>
             </div>
           )}
 
           <button
-            onClick={handleSignIn}
-            disabled={isPolling}
-            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleRetryAuth}
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
           >
-            {isPolling ? "Connecting..." : "Sign In with Farcaster"}
+            Retry Loading Profile
           </button>
         </div>
       </div>
@@ -334,17 +383,16 @@ export default function PromotePage() {
             <UserProfile
               ref={userProfileRef}
               user={{
-                // Fix: Ensure fid is always a number with fallback to 0
-                fid: profile.fid ?? 0,
-                username: profile.username || "",
-                displayName: profile.displayName || profile.username || "",
+                fid: farcasterUser.fid,
+                username: farcasterUser.username,
+                displayName: farcasterUser.displayName,
               }}
             />
           </div>
 
           {/* Right Column - Campaigns */}
           <div className="lg:col-span-2 space-y-6">
-            {/* My Campaigns - Now using properly typed PromoCast[] */}
+            {/* My Campaigns */}
             {myPromotions.length > 0 && (
               <MyCampaignsDropdown myPromos={myPromotions} onManageClick={handleManageCampaign} />
             )}
@@ -451,10 +499,9 @@ export default function PromotePage() {
 
               <PaymentForm
                 user={{
-                  // Fix: Ensure fid is always a number with fallback to 0
-                  fid: profile.fid ?? 0,
-                  username: profile.username || "",
-                  displayName: profile.displayName || profile.username || "",
+                  fid: farcasterUser.fid,
+                  username: farcasterUser.username,
+                  displayName: farcasterUser.displayName,
                 }}
                 onSuccess={handlePaymentSuccess}
                 onCancel={() => setShowPaymentForm(false)}
