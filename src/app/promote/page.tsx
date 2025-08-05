@@ -41,6 +41,7 @@ interface PromoCast {
   remainingBudget: number
   shareText?: string
   createdAt: string
+  updatedAt: string
   status: string
   blockchainHash?: string
   contractCampaignId?: number
@@ -190,6 +191,7 @@ export default function PromotePage() {
         remainingBudget: promo.remaining_budget,
         shareText: promo.share_text || undefined,
         createdAt: promo.created_at,
+        updatedAt: promo.updated_at,
         status: promo.status,
         blockchainHash: undefined,
         contractCampaignId: undefined,
@@ -379,18 +381,7 @@ export default function PromotePage() {
           <UserProfile ref={userProfileRef} user={currentUser} />
         </div>
 
-        <MyCampaignsDropdown
-          myPromos={myPromos.map((promo) => ({
-            ...promo,
-            fid: promo.author.fid,
-            username: promo.author.username,
-            displayName: promo.author.displayName,
-          }))}
-          onManageClick={(promo) => {
-            setFundingPromo(promo)
-            setShowFundingForm(true)
-          }}
-        />
+        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => setFundingPromo(promo)} />
 
         <div className="flex justify-center my-8">
           <button
