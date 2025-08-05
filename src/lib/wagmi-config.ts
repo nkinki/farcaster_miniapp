@@ -3,9 +3,10 @@ import { base } from "wagmi/chains"
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector"
 import { injected, walletConnect } from "wagmi/connectors"
 
-// A createConnectors segédfüggvény változatlan
+// A createConnectors segédfüggvény változatlan, mert az helyesen működik.
 const createConnectors = () => {
   const connectors = []
+  
   try {
     const farcasterConnector = miniAppConnector()
     if (farcasterConnector && typeof farcasterConnector === 'object') {
@@ -15,12 +16,16 @@ const createConnectors = () => {
   } catch (error) {
     console.warn('⚠️ Farcaster MiniApp connector failed to load:', error)
   }
+  
   try {
-    connectors.push(injected({ shimDisconnect: true }))
+    connectors.push(injected({
+      shimDisconnect: true,
+    }))
     console.log('✅ Injected connector loaded successfully')
   } catch (error) {
     console.warn('⚠️ Injected connector failed to load:', error)
   }
+  
   const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
   if (projectId && projectId.trim() !== "") {
     try {
@@ -38,22 +43,15 @@ const createConnectors = () => {
       console.warn('⚠️ WalletConnect connector failed to load:', error)
     }
   }
+  
   return connectors
 }
 
-// Itt olvassuk be a saját Alchemy URL-ünket a környezeti változóból.
-const alchemyRpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_URL;
-
-// Hozzáadunk egy biztonsági ellenőrzést, ami jelez, ha a változó hiányzik.
-if (!alchemyRpcUrl) {
-  throw new Error("Kritikus hiba: Az NEXT_PUBLIC_ALCHEMY_URL környezeti változó nincs beállítva!");
-}
-
+// VISSZAÁLLÍTÁS: Újra a Base hálózat publikus RPC végpontját használjuk.
 export const config = createConfig({
-  chains: [base],
+  chains: [base], 
   transports: {
-    // A régi "mainnet.base.org"-ot lecseréljük a saját Alchemy URL-ünkre.
-    [base.id]: http(alchemyRpcUrl),
+    [base.id]: http(), // Ha nem adunk meg URL-t, a wagmi az alapértelmezett publikus RPC-t használja.
   },
   connectors: createConnectors(),
   ssr: false,
