@@ -43,9 +43,7 @@ interface ShareTimer {
 export default function PromotePage() {
   const { address, isConnected } = useAccount()
   const { isAuthenticated, profile } = useProfile()
-
-  // Fix: Try different approaches for useSignIn
-  const signInResult = useSignIn()
+  const signInResult = useSignIn({ nonce: "farcaster-promo-app" })
 
   // Extract properties safely
   const { signIn, isSuccess, isError, error } = signInResult
