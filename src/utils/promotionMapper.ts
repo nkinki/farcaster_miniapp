@@ -27,7 +27,7 @@ export function mapPromotionToPromoCast(promotion: Promotion): PromoCast {
     remainingBudget: promotion.remaining_budget,
     status: promotion.status as "active" | "inactive" | "paused" | "completed",
     createdAt: promotion.created_at,
-    updatedAt: promotion.updatedAt,
+    updatedAt: promotion.updated_at, // JAVÍTVA: updated_at-ra cserélve
     // Add missing fields that PromoCast expects
     author: {
       fid: promotion.fid,
