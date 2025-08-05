@@ -105,9 +105,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. RÖGZÍTJÜK A SHARE-T ÉS FRISSÍTJÜK A KÖLTSÉGVETÉST
-    const result = await sql.transaction(async (tx) => {
+    // JAVÍTOTT: Külön lekérdezések helyett transaction használata
+    try {
       // Share rögzítése
-      const shareResult = await tx`
+      const shareResult = await sql`
         INSERT INTO shares (
           promotion_id, 
           sharer_fid, 
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       `
 
       // Promotion frissítése
-      const updatedPromotion = await tx`
+      const updatedPromotion = await sql`
         UPDATE promotions 
         SET 
           shares_count = shares_count + 1,
@@ -139,52 +140,81 @@ export async function POST(request: NextRequest) {
       `
 
       // Ha elfogyott a budget, paused státuszra állítjuk
-      if (updatedPromotion[0].remaining_budget < promotion.reward_per_share) {
-        await tx`
+      const newRemainingBudget = updatedPromotion[0].remaining_budget
+      if (newRemainingBudget < promotion.reward_per_share) {
+        await sql`
           UPDATE promotions 
           SET status = 'paused', updated_at = NOW()
           WHERE id = ${promotionId}
         `
+        console.log("⚠️ Campaign budget exhausted, status set to paused")
       }
 
-      return {
+      const result = {
         shareId: shareResult[0].id,
         shareCreatedAt: shareResult[0].created_at,
         newSharesCount: updatedPromotion[0].shares_count,
-        remainingBudget: updatedPromotion[0].remaining_budget,
+        remainingBudget: newRemainingBudget,
       }
-    })
 
-    console.log("✅ Share recorded successfully:", result)
+      console.log("✅ Share recorded successfully:", result)
 
-    return NextResponse.json({
-      success: true,
-      message: `Share recorded! You earned ${promotion.reward_per_share} CHESS.`,
-      data: {
-        shareId: result.shareId,
-        rewardAmount: promotion.reward_per_share,
-        sharesCount: result.newSharesCount,
-        remainingBudget: result.remainingBudget,
-        nextShareAvailable: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-      },
-    })
+      return NextResponse.json({
+        success: true,
+        message: `Share recorded! You earned ${promotion.reward_per_share} CHESS.`,
+        data: {
+          shareId: result.shareId,
+          rewardAmount: promotion.reward_per_share,
+          sharesCount: result.newSharesCount,
+          remainingBudget: result.remainingBudget,
+          nextShareAvailable: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        },
+      })
+    } catch (dbError: any) {
+      console.error("❌ Database error during share recording:", dbError)
+
+      // Handle specific database errors
+      if (dbError.message?.includes("duplicate key")) {
+        return NextResponse.json({ error: "This share has already been recorded" }, { status: 409 })
+      }
+
+      if (dbError.message?.includes("foreign key")) {
+        return NextResponse.json({ error: "Invalid promotion or user reference" }, { status: 400 })
+      }
+
+      throw dbError // Re-throw to be caught by outer catch
+    }
   } catch (error: any) {
     console.error("❌ Share API Error:", {
       error: error.message,
       stack: error.stack,
-      body: await request.json().catch(() => ({})),
     })
 
-    // Specific error handling
-    if (error.message?.includes("duplicate key")) {
-      return NextResponse.json({ error: "This share has already been recorded" }, { status: 409 })
+    // More specific error responses
+    if (error.message?.includes("connection")) {
+      return NextResponse.json(
+        {
+          error: "Database connection failed. Please try again later.",
+        },
+        { status: 503 },
+      )
     }
 
-    if (error.message?.includes("foreign key")) {
-      return NextResponse.json({ error: "Invalid promotion or user reference" }, { status: 400 })
+    if (error.message?.includes("timeout")) {
+      return NextResponse.json(
+        {
+          error: "Request timeout. Please try again.",
+        },
+        { status: 408 },
+      )
     }
 
-    return NextResponse.json({ error: "Failed to record share. Please try again." }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to record share. Please try again.",
+      },
+      { status: 500 },
+    )
   }
 }
 
@@ -199,30 +229,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "FID parameter is required" }, { status: 400 })
     }
 
-    let query = `
-      SELECT 
-        s.id,
-        s.promotion_id,
-        s.sharer_fid,
-        s.sharer_username,
-        s.reward_amount,
-        s.created_at,
-        s.cast_hash,
-        p.cast_url,
-        p.status as promotion_status,
-        p.reward_per_share
-      FROM shares s
-      JOIN promotions p ON s.promotion_id = p.id
-      WHERE s.sharer_fid = ${fid}
-    `
-
+    let shares
     if (promotionId) {
-      query += ` AND s.promotion_id = ${promotionId}`
+      shares = await sql`
+        SELECT 
+          s.id,
+          s.promotion_id,
+          s.sharer_fid,
+          s.sharer_username,
+          s.reward_amount,
+          s.created_at,
+          s.cast_hash,
+          p.cast_url,
+          p.status as promotion_status,
+          p.reward_per_share
+        FROM shares s
+        JOIN promotions p ON s.promotion_id = p.id
+        WHERE s.sharer_fid = ${fid} AND s.promotion_id = ${promotionId}
+        ORDER BY s.created_at DESC
+      `
+    } else {
+      shares = await sql`
+        SELECT 
+          s.id,
+          s.promotion_id,
+          s.sharer_fid,
+          s.sharer_username,
+          s.reward_amount,
+          s.created_at,
+          s.cast_hash,
+          p.cast_url,
+          p.status as promotion_status,
+          p.reward_per_share
+        FROM shares s
+        JOIN promotions p ON s.promotion_id = p.id
+        WHERE s.sharer_fid = ${fid}
+        ORDER BY s.created_at DESC
+      `
     }
-
-    query += ` ORDER BY s.created_at DESC`
-
-    const shares = await sql.unsafe(query)
 
     return NextResponse.json({
       success: true,
