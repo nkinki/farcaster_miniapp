@@ -9,9 +9,30 @@ import UserProfile, { type UserProfileRef } from "@/components/UserProfile"
 import PaymentForm from "../../components/PaymentForm"
 import FundingForm from "../../components/FundingForm"
 import MyCampaignsDropdown from "../../components/MyCampaignsDropdown"
-import { usePromotions } from "../../hooks/usePromotions"
-import { mapPromotionsToPromoCasts } from "../../utils/promotionMapper"
-import type { PromoCast } from "@/types/promotions"
+import { usePromotions } from "@/hooks/usePromotions"
+import { mapPromotionsToPromoCasts } from "@/utils/promotionMapper"
+
+// Local type definitions to ensure consistency
+interface PromoCast {
+  id: number
+  fid: number
+  username: string
+  displayName: string
+  castUrl: string
+  shareText: string | null
+  rewardPerShare: number
+  totalBudget: number
+  sharesCount: number
+  remainingBudget: number
+  status: "active" | "inactive" | "paused" | "completed"
+  createdAt: string
+  updatedAt: string
+  author: {
+    fid: number
+    username: string
+    displayName: string
+  }
+}
 
 interface ShareTimer {
   promotionId: number
@@ -23,15 +44,8 @@ export default function PromotePage() {
   const { address, isConnected } = useAccount()
   const { isAuthenticated, profile } = useProfile()
 
-  // Fix: useSignIn now requires a configuration object
-  const { signIn } = useSignIn({
-    onSuccess: () => {
-      console.log("Successfully signed in with Farcaster")
-    },
-    onError: (error) => {
-      console.error("Farcaster sign in error:", error)
-    },
-  })
+  // Fix: Revert to simple useSignIn without configuration
+  const { signIn, isSuccess, isLoading, isError, error } = useSignIn()
 
   // Refs
   const userProfileRef = useRef<UserProfileRef>(null)
@@ -58,11 +72,54 @@ export default function PromotePage() {
   // Convert database promotions to frontend format - with type safety
   const promotions: PromoCast[] = rawPromotions ? mapPromotionsToPromoCasts(rawPromotions) : []
 
-  // Filter user's own promotions - with explicit typing
-  const myPromotions: PromoCast[] = promotions.filter((promo) => profile?.fid && promo.fid === profile.fid)
+  // Debug log to check the structure
+  console.log("🔍 Promotions debug:", {
+    rawPromotionsLength: rawPromotions?.length || 0,
+    promotionsLength: promotions.length,
+    firstPromotion: promotions[0],
+    profileFid: profile?.fid,
+  })
 
-  // Other promotions (not user's own) - with explicit typing
-  const otherPromotions: PromoCast[] = promotions.filter((promo) => !profile?.fid || promo.fid !== profile.fid)
+  // Filter user's own promotions - with explicit typing and better error handling
+  const myPromotions: PromoCast[] = promotions.filter((promo) => {
+    // Ensure both values exist and are numbers
+    const userFid = profile?.fid
+    const promoFid = promo?.fid
+
+    if (typeof userFid !== "number" || typeof promoFid !== "number") {
+      return false
+    }
+
+    return promoFid === userFid
+  })
+
+  // Other promotions (not user's own) - with explicit typing and better error handling
+  const otherPromotions: PromoCast[] = promotions.filter((promo) => {
+    const userFid = profile?.fid
+    const promoFid = promo?.fid
+
+    // If no user fid, show all promotions
+    if (typeof userFid !== "number") {
+      return true
+    }
+
+    // If promo fid is invalid, exclude it
+    if (typeof promoFid !== "number") {
+      return false
+    }
+
+    return promoFid !== userFid
+  })
+
+  // Debug Farcaster Auth state
+  console.log("🔍 Farcaster Auth debug:", {
+    isAuthenticated,
+    profile,
+    isLoading,
+    isError,
+    error,
+    isSuccess,
+  })
 
   // Fetch share timers
   useEffect(() => {
@@ -169,14 +226,48 @@ export default function PromotePage() {
     return `${hours}h ${minutes}m`
   }
 
-  // Handle sign in with better error handling
+  // Handle sign in - simplified version
   const handleSignIn = async () => {
     try {
+      console.log("🔄 Attempting to sign in with Farcaster...")
       await signIn()
+      console.log("✅ Sign in initiated successfully")
     } catch (error) {
-      console.error("Sign in failed:", error)
+      console.error("❌ Sign in failed:", error)
       alert("Failed to sign in with Farcaster. Please try again.")
     }
+  }
+
+  // Show loading state during sign in
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#2d1b69] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <h1 className="text-2xl font-bold text-white mb-2">Signing in...</h1>
+          <p className="text-gray-400">Please wait while we connect to Farcaster</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if sign in failed
+  if (isError && error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#2d1b69] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-400 mb-4">Sign In Error</h1>
+          <p className="text-gray-400 mb-8">Failed to sign in with Farcaster</p>
+          <p className="text-sm text-red-300 mb-8">{error.message || "Unknown error"}</p>
+          <button
+            onClick={handleSignIn}
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
   }
 
   // Authentication check
@@ -186,11 +277,24 @@ export default function PromotePage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Welcome to Farcaster Promotions</h1>
           <p className="text-gray-400 mb-8">Sign in with Farcaster to start promoting and earning rewards</p>
+
+          {/* Debug info in development */}
+          {process.env.NODE_ENV === "development" && (
+            <div className="mb-4 p-4 bg-gray-800 rounded-lg text-left text-sm">
+              <p className="text-yellow-400 mb-2">Debug Info:</p>
+              <p className="text-gray-300">isAuthenticated: {String(isAuthenticated)}</p>
+              <p className="text-gray-300">profile: {profile ? "exists" : "null"}</p>
+              <p className="text-gray-300">isLoading: {String(isLoading)}</p>
+              <p className="text-gray-300">isError: {String(isError)}</p>
+            </div>
+          )}
+
           <button
             onClick={handleSignIn}
-            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
+            disabled={isLoading}
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In with Farcaster
+            {isLoading ? "Signing In..." : "Sign In with Farcaster"}
           </button>
         </div>
       </div>
