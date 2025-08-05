@@ -44,15 +44,20 @@ export default function PromotePage() {
   const { address, isConnected } = useAccount()
   const { isAuthenticated, profile } = useProfile()
 
-  // Fix: Use correct properties from useSignIn
+  // Fix: Provide required configuration to useSignIn
   const {
     signIn,
     isSuccess,
-    isPolling, // This is the loading state
+    isPolling,
     isError,
     error,
     isConnected: isFarcasterConnected,
-  } = useSignIn()
+  } = useSignIn({
+    // Required domain - use current domain or localhost for development
+    domain: typeof window !== "undefined" ? window.location.host : "localhost:3000",
+    // Optional: Add SIWE URI
+    siweUri: typeof window !== "undefined" ? `${window.location.origin}/api/auth/siwe` : undefined,
+  })
 
   // Refs
   const userProfileRef = useRef<UserProfileRef>(null)
@@ -119,6 +124,7 @@ export default function PromotePage() {
     error,
     isSuccess,
     isFarcasterConnected,
+    domain: typeof window !== "undefined" ? window.location.host : "localhost:3000",
   })
 
   // Fetch share timers
