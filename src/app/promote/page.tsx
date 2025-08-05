@@ -23,10 +23,9 @@ import PaymentForm from "../../components/PaymentForm"
 import FundingForm from "../../components/FundingForm"
 import { ConnectWalletButton } from "@/components/ConnectWalletButton"
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown"
-import { usePromotions } from "@/hooks/usePromotions" // Ez a hook mostantól PromoCast[]-t ad vissza
-import type { PromoCast } from "@/types/promotions" // Ezt megtartjuk a típusdefinícióhoz
+import { usePromotions } from "@/hooks/usePromotions"
+import type { PromoCast } from "@/types/promotions"
 import { useChessToken } from "@/hooks/useChessToken"
-import { debounce } from "lodash"
 
 interface FarcasterUser {
   fid: number
@@ -39,10 +38,6 @@ interface ShareTimer {
   promotionId: number
   canShare: boolean
   timeRemaining: number
-  lastShareTime: string | null
-  campaignStatus: string
-  remainingBudget: number
-  rewardPerShare: number
 }
 
 const formatTimeRemaining = (hours: number): string => {
@@ -61,8 +56,7 @@ const calculateProgress = (promo: PromoCast): number => {
 export default function PromotePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
-  // Eltávolítva: const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
-  const [loading, setLoading] = useState(true) // Ez az oldal általános töltési állapota
+  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showFundingForm, setShowFundingForm] = useState(false)
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null)
@@ -74,12 +68,9 @@ export default function PromotePage() {
   const userProfileRef = useRef<UserProfileRef>(null)
   const [shareTimers, setShareTimers] = useState<{ [key: string]: ShareTimer }>({})
 
-  // Promóciók lekérése a usePromotions hookkal
-  // MOSTANTÓL az allPromotions közvetlenül PromoCast[] lesz
   const {
-    promotions: allPromotions, // Átnevezve rawPromotions-ról a tisztább érthetőség kedvéért
-    loading: promotionsLoading, // Ez a usePromotions hook töltési állapota
-    error: promotionsError,
+    promotions: allPromotions,
+    loading: promotionsLoading,
     refetch: refetchPromotions,
   } = usePromotions({
     limit: 50,
@@ -87,74 +78,19 @@ export default function PromotePage() {
     status: "all",
   })
 
-  // CHESS Token hook
   const { decimalsError, balanceError } = useChessToken()
 
   useEffect(() => {
-    const initializeFarcaster = async () => {
-      try {
-        let context: any = null
-
-        if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
-          context = await miniAppSdk.context
-          console.log("✅ Direct context property access successful:", context)
-        }
-
-        if (!context && typeof miniAppSdk.context === "function") {
-          try {
-            context = await (miniAppSdk.context as any)()
-            console.log("✅ Context function call successful:", context)
-          } catch (error) {
-            console.log("❌ Context function call failed:", error)
-          }
-        }
-
-        if (!context && "getContext" in miniAppSdk) {
-          try {
-            context = await (miniAppSdk as any).getContext()
-            console.log("✅ getContext call successful:", context)
-          } catch (error) {
-            console.log("❌ getContext call failed:", error)
-          }
-        }
-
-        if (!context && "user" in miniAppSdk) {
-          try {
-            const user = (miniAppSdk as any).user
-            if (user) {
-              context = { user }
-              console.log("✅ Direct user property access successful:", context)
-            }
-          } catch (error) {
-            console.log("❌ Direct user property access failed:", error)
-          }
-        }
-
-        if (!context && "ready" in miniAppSdk) {
-          try {
-            await (miniAppSdk as any).ready
-            if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
-              context = await miniAppSdk.context
-              console.log("✅ Ready + context successful:", context)
-            }
-          } catch (error) {
-            console.log("❌ Ready + context failed:", error)
-          }
-        }
-
-        if (context?.user?.fid) {
-          setIsAuthenticated(true)
-          setProfile(context.user as FarcasterUser)
-        } else {
-          console.warn("⚠️ No Farcaster user context available")
-          console.log("🔍 Full miniAppSdk object:", miniAppSdk)
-        }
-      } catch (error) {
-        console.error("Failed to initialize Farcaster:", error)
+    miniAppSdk.context.then(ctx => {
+      if (ctx.user?.fid) {
+        setIsAuthenticated(true)
+        setProfile(ctx.user as FarcasterUser)
+      } else {
+        console.warn("⚠️ No Farcaster user context available")
       }
-    }
-
-    initializeFarcaster()
+    }).catch(error => {
+        console.error("Failed to initialize Farcaster:", error)
+    })
   }, [])
 
   const currentUser = useMemo(() => {
@@ -166,42 +102,7 @@ export default function PromotePage() {
       }
     }
     return { fid: 0, username: "guest", displayName: "Guest" }
-  }, [isAuthenticated, profile]) // Finomított függőségek
-
-  // Eltávolítva: useEffect a rawPromotions konvertálására promoCasts-ra
-
-  const _fetchShareTimers = useCallback(async () => {
-    if (!currentUser.fid) return
-    try {
-      console.log("🔄 Fetching share timers for FID:", currentUser.fid)
-      const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`)
-      if (response.ok) {
-        const data = await response.json()
-        console.log("✅ Share timers received:", data.timers)
-        const timersMap = data.timers.reduce((acc: any, timer: ShareTimer) => {
-          acc[timer.promotionId] = timer
-          return acc
-        }, {})
-        return timersMap
-      } else {
-        console.error("❌ Failed to fetch share timers:", response.status)
-        return null
-      }
-    } catch (error) {
-      console.error("❌ Failed to fetch share timers:", error)
-      return null
-    }
-  }, [currentUser.fid])
-
-  const fetchShareTimers = useCallback(
-    debounce(async () => {
-      const timersMap = await _fetchShareTimers()
-      if (timersMap && JSON.stringify(timersMap) !== JSON.stringify(shareTimers)) {
-        setShareTimers(timersMap)
-      }
-    }, 30000),
-    [shareTimers, _fetchShareTimers],
-  )
+  }, [isAuthenticated, profile])
 
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return
@@ -221,50 +122,54 @@ export default function PromotePage() {
     }
   }, [currentUser.fid])
 
+  // JAVÍTÁS: A timer lekérdezést egyszerűsítettük, stabil függőségekkel.
+  const fetchShareTimers = useCallback(async () => {
+    if (!currentUser.fid) return
+    try {
+      const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`)
+      if (response.ok) {
+        const data = await response.json()
+        const timersMap = data.timers.reduce((acc: any, timer: ShareTimer) => {
+          acc[timer.promotionId] = timer
+          return acc
+        }, {})
+        setShareTimers(timersMap)
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch share timers:", error)
+    }
+  }, [currentUser.fid])
+
+
   const refreshAllData = useCallback(async () => {
-    console.log("🔄 Refreshing all data...")
-    setLoading(true) // Általános oldal töltési állapot beállítása
+    setLoading(true)
     await Promise.all([refetchPromotions(), fetchUserStats(), fetchShareTimers()])
-    setLoading(false) // Általános oldal töltési állapot kikapcsolása
-    console.log("✅ All data refreshed")
+    setLoading(false)
   }, [refetchPromotions, fetchUserStats, fetchShareTimers])
 
+
+  // JAVÍTÁS: A fő useEffect-et leegyszerűsítettük, hogy megszüntessük a végtelen ciklust.
+  // Csak akkor fut le, ha a felhasználó állapota megváltozik.
   useEffect(() => {
-    console.log("Main PromotePage useEffect triggered. isAuthenticated:", isAuthenticated, "profile:", profile)
     if (isAuthenticated && profile) {
       refreshAllData() // Kezdeti adatbetöltés
-      // Időzítő beállítása csak a timerekhez, mivel a többi adat frissül share/create/fund után
-      const interval = setInterval(fetchShareTimers, 30000)
+      const interval = setInterval(fetchShareTimers, 60000) // 60 másodpercenként frissíti a timereket
       return () => clearInterval(interval)
     }
-  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]) // A függőségek most stabilak
+  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers])
 
-  const handleCreateSuccess = () => {
-    setShowForm(false)
-    refreshAllData()
-  }
 
-  const handleFundSuccess = () => {
-    setShowFundingForm(false)
-    setFundingPromo(null)
-    refreshAllData()
-  }
-
-  const handleCreateCancel = () => {
-    setShowForm(false)
-  }
-
-  const handleFundCancel = () => {
-    setShowFundingForm(false)
-    setFundingPromo(null)
-  }
-
+  const handleCreateSuccess = () => { setShowForm(false); refreshAllData() }
+  const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData() }
+  const handleCreateCancel = () => { setShowForm(false) }
+  const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null) }
+  
   const handleViewCast = (castUrl: string) => {
     try {
       const urlParts = castUrl.split("/")
       const castHash = urlParts[urlParts.length - 1]
       if (castHash && castHash.startsWith("0x")) {
-        ;(miniAppSdk as any).actions?.viewCast({ hash: castHash })
+        (miniAppSdk as any).actions?.viewCast({ hash: castHash })
       } else {
         window.open(castUrl, "_blank")
       }
@@ -278,37 +183,24 @@ export default function PromotePage() {
       alert("Please connect your Farcaster account first.")
       return
     }
-
-    // Előző hibák törlése
     setShareError(null)
-
-    // Timer ellenőrzése a megosztás előtt
     const timer = shareTimers[promo.id.toString()]
     if (timer && !timer.canShare) {
       setShareError(`You can share this campaign again in ${formatTimeRemaining(timer.timeRemaining)}`)
       return
     }
-
     setSharingPromoId(promo.id.toString())
-
     try {
-      console.log("🎯 Starting share process for promo:", promo.id)
-
-      // Először a cast létrehozása
       const castResult = await (miniAppSdk as any).actions?.composeCast({
         text: promo.shareText || `Check this out!`,
         embeds: [promo.castUrl],
       })
 
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
-        console.log("❌ Cast was cancelled by user")
         setSharingPromoId(null)
         return
       }
-
-      console.log("✅ Cast created successfully:", castResult.cast.hash)
-
-      // Ezután rögzítjük a backend-en
+      
       const response = await fetch("/api/shares", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -321,24 +213,21 @@ export default function PromotePage() {
       })
 
       const data = await response.json()
-
       if (!response.ok) {
-        console.error("❌ Backend share recording failed:", data)
-        setShareError(data.error || "Failed to record share")
-        return
+        throw new Error(data.error || "Failed to record share on the backend.")
       }
-
-      console.log("✅ Share recorded successfully:", data)
+      
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`)
 
-      // Adatok frissítése sikeres megosztás után
-      console.log("🔄 Refreshing data after successful share...")
-
-      // A refreshAllData már meghívja a refetchPromotions, fetchUserStats, fetchShareTimers függvényeket
-      // Így nincs szükség külön hívásokra, mint a userProfileRef.current?.refetchRewards?.()
+      // JAVÍTÁS: A `refreshAllData` már mindent frissít, beleértve a wagmi cache-t is (a UserProfile-on keresztül).
+      // Ez a sor biztosítja, hogy minden adat a legfrissebb legyen a megosztás után.
       await refreshAllData()
+      
+      // Külön a wagmi cache frissítésének kényszerítése a biztonság kedvéért, ha a claim gomb mégis beragadna.
+      if(userProfileRef.current) {
+        await userProfileRef.current.refreshPendingRewards();
+      }
 
-      console.log("✅ All data refreshed after share")
     } catch (error: any) {
       console.error("❌ Error during share process:", error)
       setShareError(error.message || "An unknown error occurred during sharing")
@@ -347,19 +236,10 @@ export default function PromotePage() {
     }
   }
 
-  // allPromotions közvetlen használata
   const myPromos = allPromotions.filter((p) => p.author.fid === currentUser.fid)
   const availablePromos = allPromotions.filter((p) => {
-    // Csak az aktív kampányokat mutatjuk, amelyek nem a felhasználó sajátjai
-    if (p.status !== "active" || p.author.fid === currentUser.fid) {
-      return false
-    }
-
-    // Ellenőrizzük, hogy a kampánynak van-e elegendő költségvetése
-    if (p.remainingBudget < p.rewardPerShare) {
-      return false
-    }
-
+    if (p.status !== "active" || p.author.fid === currentUser.fid) return false
+    if (p.remainingBudget < p.rewardPerShare) return false
     return true
   })
 
@@ -367,22 +247,16 @@ export default function PromotePage() {
     return [...availablePromos].sort((a, b) => {
       const timerA = shareTimers[a.id.toString()]
       const timerB = shareTimers[b.id.toString()]
-
       const canShareA = timerA?.canShare ?? true
       const canShareB = timerB?.canShare ?? true
-
-      // Előnyben részesítjük azokat a kampányokat, amelyeket meg lehet osztani
       if (canShareA && !canShareB) return -1
       if (!canShareA && canShareB) return 1
-
-      // Ezután jutalomösszeg szerint rendezzük
       return b.rewardPerShare - a.rewardPerShare
     })
   }, [availablePromos, shareTimers])
 
-  // Az általános 'loading' állapot használata a kezdeti oldalbetöltéshez
-  if (loading && !allPromotions.length) {
-    // allPromotions használata itt
+  // A kezdeti betöltés most a `loading` és `promotionsLoading` state-ektől függ.
+  if (loading || (promotionsLoading && allPromotions.length === 0)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
         <div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div>
@@ -406,7 +280,6 @@ export default function PromotePage() {
           </div>
         </div>
 
-        {/* Hibaüzenet megjelenítése */}
         {shareError && (
           <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
             <FiAlertTriangle className="text-red-400" />
@@ -417,7 +290,6 @@ export default function PromotePage() {
           </div>
         )}
 
-        {/* CHESS Token Errors */}
         {(decimalsError || balanceError) && (
           <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
             <FiAlertTriangle className="text-red-400" />
@@ -462,12 +334,11 @@ export default function PromotePage() {
 
           {isShareListOpen && (
             <div className="p-4 border-t border-gray-700 space-y-4">
-              {sortedAvailablePromos.length === 0 ? (
+              {promotionsLoading ? (
+                 <div className="text-center text-gray-400">Loading campaigns...</div>
+              ) : sortedAvailablePromos.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-gray-400 text-lg">No active campaigns available right now.</div>
-                  <div className="text-gray-500 text-sm mt-2">
-                    Campaigns may be paused due to insufficient budget or other reasons.
-                  </div>
                 </div>
               ) : (
                 sortedAvailablePromos.map((promo) => {
@@ -483,29 +354,7 @@ export default function PromotePage() {
                         <div className="flex-1 overflow-hidden pr-4">
                           <p className="text-white font-semibold truncate">{promo.castUrl}</p>
                           <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
-
-                          {/* Kampány státusz indikátorok */}
-                          <div className="flex items-center gap-2 mt-1">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                promo.status === "active"
-                                  ? "bg-green-600 text-white"
-                                  : promo.status === "paused"
-                                    ? "bg-yellow-600 text-white"
-                                    : "bg-gray-600 text-white"
-                              }`}
-                            >
-                              {promo.status}
-                            </span>
-
-                            {promo.remainingBudget < promo.rewardPerShare && (
-                              <span className="px-2 py-1 bg-red-600 text-white rounded-full text-xs font-semibold">
-                                Low Budget
-                              </span>
-                            )}
-                          </div>
                         </div>
-
                         <div className="relative">
                           <button
                             onClick={() =>
@@ -529,28 +378,10 @@ export default function PromotePage() {
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
-                        <div className="p-3 bg-gray-800 rounded-lg">
-                          <div className="flex items-center justify-center gap-1.5 mb-1 font-semibold">
-                            <FiDollarSign className="text-green-400" />
-                            {promo.rewardPerShare}
-                          </div>
-                          <p className="text-xs text-gray-400">Reward/Share</p>
-                        </div>
-                        <div className="p-3 bg-gray-800 rounded-lg">
-                          <div className="flex items-center justify-center gap-1.5 mb-1 font-semibold">
-                            <FiUsers className="text-blue-400" />
-                            {promo.sharesCount}
-                          </div>
-                          <p className="text-xs text-gray-400">Shares</p>
-                        </div>
-                        <div className="p-3 bg-gray-800 rounded-lg">
-                          <div className="mb-1 font-semibold">{promo.remainingBudget}</div>
-                          <p className="text-xs text-gray-400">Remaining</p>
-                        </div>
-                        <div className="p-3 bg-gray-800 rounded-lg">
-                          <div className="mb-1 font-semibold">{promo.totalBudget}</div>
-                          <p className="text-xs text-gray-400">Total Budget</p>
-                        </div>
+                        <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
+                        <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
+                        <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
+                        <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
                       </div>
 
                       <div className="w-full bg-gray-700 rounded-full h-2.5">
@@ -567,7 +398,6 @@ export default function PromotePage() {
                             <span>{formatTimeRemaining(timer.timeRemaining)}</span>
                           </div>
                         )}
-
                         <button
                           onClick={() => handleSharePromo(promo)}
                           disabled={
@@ -594,7 +424,7 @@ export default function PromotePage() {
             </div>
           )}
         </div>
-
+        
         {showFundingForm && fundingPromo && (
           <FundingForm
             promotionId={fundingPromo.id}
