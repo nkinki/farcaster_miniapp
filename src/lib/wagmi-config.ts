@@ -3,10 +3,9 @@ import { base } from "wagmi/chains"
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector"
 import { injected, walletConnect } from "wagmi/connectors"
 
-// A createConnectors segédfüggvény változatlan, mert az már helyesen működik.
+// A createConnectors segédfüggvény változatlan
 const createConnectors = () => {
   const connectors = []
-  
   try {
     const farcasterConnector = miniAppConnector()
     if (farcasterConnector && typeof farcasterConnector === 'object') {
@@ -16,16 +15,12 @@ const createConnectors = () => {
   } catch (error) {
     console.warn('⚠️ Farcaster MiniApp connector failed to load:', error)
   }
-  
   try {
-    connectors.push(injected({
-      shimDisconnect: true,
-    }))
+    connectors.push(injected({ shimDisconnect: true }))
     console.log('✅ Injected connector loaded successfully')
   } catch (error) {
     console.warn('⚠️ Injected connector failed to load:', error)
   }
-  
   const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
   if (projectId && projectId.trim() !== "") {
     try {
@@ -43,14 +38,13 @@ const createConnectors = () => {
       console.warn('⚠️ WalletConnect connector failed to load:', error)
     }
   }
-  
   return connectors
 }
 
-// JAVÍTÁS: Itt olvassuk be a saját Alchemy URL-ünket a környezeti változóból.
+// Itt olvassuk be a saját Alchemy URL-ünket a környezeti változóból.
 const alchemyRpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_URL;
 
-// JAVÍTÁS: Hozzáadunk egy biztonsági ellenőrzést, hogy a program azonnal jelezzen, ha a változó hiányzik.
+// Hozzáadunk egy biztonsági ellenőrzést, ami jelez, ha a változó hiányzik.
 if (!alchemyRpcUrl) {
   throw new Error("Kritikus hiba: Az NEXT_PUBLIC_ALCHEMY_URL környezeti változó nincs beállítva!");
 }
@@ -58,7 +52,7 @@ if (!alchemyRpcUrl) {
 export const config = createConfig({
   chains: [base],
   transports: {
-    // JAVÍTÁS: A publikus RPC végpontot lecseréljük a saját, megbízható Alchemy URL-ünkre.
+    // A régi "mainnet.base.org"-ot lecseréljük a saját Alchemy URL-ünkre.
     [base.id]: http(alchemyRpcUrl),
   },
   connectors: createConnectors(),
