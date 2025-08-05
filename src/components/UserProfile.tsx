@@ -24,6 +24,7 @@ interface UserProfileProps {
   onClaimSuccess: () => void;
 }
 
+// JAVÍTÁS: A függvény most már egy Promise-t ad vissza.
 export interface UserProfileRef {
   refreshPendingRewards: () => Promise<void>;
 }
@@ -38,23 +39,19 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
     const [isClaiming, setIsClaiming] = useState(false);
     const [claimTxHash, setClaimTxHash] = useState<Hash | undefined>();
 
-    // JAVÍTÁS: A query opciók finomhangolása a cache problémák elkerülése érdekében
     const { data: pendingRewardsData, refetch: refetchPendingRewards } = useReadContract({
       address: PROMO_CONTRACT_ADDRESS,
       abi: PROMO_CONTRACT_ABI,
       functionName: 'getPendingRewards',
       args: [address],
-      query: { 
-        enabled: !!address,
-        // staleTime: 0 -> Az adatot mindig elavultnak tekinti, ami gyakoribb frissítésre ösztönöz.
-        staleTime: 0,
-        // refetchInterval: 15000, // Opcionális: 15 másodpercenként automatikusan újra lekérdezi.
-      }
+      query: { enabled: !!address }
     });
     
+    // JAVÍTÁS: A függvény `async` és `await`-et használ a szinkronizációhoz.
     useImperativeHandle(ref, () => ({
       async refreshPendingRewards() {
         console.log("UserProfile: Forcing a refetch of pending rewards...");
+        // Az await itt biztosítja, hogy megvárjuk a refetch végét.
         await refetchPendingRewards();
         console.log("UserProfile: Refetch of pending rewards finished.");
       }
@@ -81,7 +78,26 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
     useEffect(() => { sdk.context.then(ctx => { if (ctx.user?.fid) setProfile(ctx.user as FarcasterUser); }); }, []);
 
     const handleClaim = async () => {
-      // ... (a claim logika változatlan)
+      setIsClaiming(true);
+      setClaimTxHash(undefined);
+      try {
+        const hash = await writeContractAsync({
+          address: PROMO_CONTRACT_ADDRESS,
+          abi: PROMO_CONTRACT_ABI,
+          functionName: 'claimAllRewards',
+          args: [],
+        });
+        setClaimTxHash(hash);
+      } catch (error: any) {
+        // A 4001 a standard "user rejected" kód.
+        if (error.code === 4001 || error.code === 4100) {
+            console.log("Claim transaction was rejected by the user.");
+        } else {
+            console.error(`Claim failed: ${error.shortMessage || error.message}`);
+            alert(`Claim failed: ${error.shortMessage || error.message}`);
+        }
+        setIsClaiming(false);
+      }
     };
 
     if (!profile) {
@@ -89,7 +105,6 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(
     }
 
     return (
-      // ... (a JSX rész változatlan)
       <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
         <div className="flex items-center justify-between cursor-pointer p-6 hover:bg-[#2a2f42] transition-colors" onClick={() => setIsExpanded(!isExpanded)}>
           <div className="flex items-center gap-4">
