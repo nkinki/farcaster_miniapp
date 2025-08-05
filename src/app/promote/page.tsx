@@ -23,8 +23,8 @@ import PaymentForm from "../../components/PaymentForm"
 import FundingForm from "../../components/FundingForm"
 import { ConnectWalletButton } from "@/components/ConnectWalletButton"
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown"
-import { usePromotions } from "@/hooks/usePromotions"
-import type { PromoCast } from "@/types/promotions"
+import { usePromotions } from "@/hooks/usePromotions" // Ez a hook mostantól PromoCast[]-t ad vissza
+import type { PromoCast } from "@/types/promotions" // Ezt megtartjuk a típusdefinícióhoz
 
 interface FarcasterUser {
   fid: number
@@ -59,8 +59,8 @@ const calculateProgress = (promo: PromoCast): number => {
 export default function PromotePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<FarcasterUser | null>(null)
-  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
-  const [loading, setLoading] = useState(true)
+  // Eltávolítva: const [promoCasts, setPromoCasts] = useState<PromoCast[]>([])
+  const [loading, setLoading] = useState(true) // Ez az oldal általános töltési állapota
   const [showForm, setShowForm] = useState(false)
   const [showFundingForm, setShowFundingForm] = useState(false)
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null)
@@ -72,10 +72,11 @@ export default function PromotePage() {
   const [shareError, setShareError] = useState<string | null>(null)
   const userProfileRef = useRef<UserProfileRef>(null)
 
-  // Fetch promotions using the existing hook
+  // Promóciók lekérése a usePromotions hookkal
+  // MOSTANTÓL az allPromotions közvetlenül PromoCast[] lesz
   const {
-    promotions: rawPromotions,
-    loading: promotionsLoading,
+    promotions: allPromotions, // Átnevezve rawPromotions-ról a tisztább érthetőség kedvéért
+    loading: promotionsLoading, // Ez a usePromotions hook töltési állapota
     error: promotionsError,
     refetch: refetchPromotions,
   } = usePromotions({
@@ -160,34 +161,9 @@ export default function PromotePage() {
       }
     }
     return { fid: 0, username: "guest", displayName: "Guest" }
-  }, [isAuthenticated, profile])
+  }, [isAuthenticated, profile]) // Finomított függőségek
 
-  // Convert raw promotions to PromoCast format
-  useEffect(() => {
-    if (rawPromotions) {
-      const convertedPromos: PromoCast[] = rawPromotions.map((promo) => ({
-        id: promo.id,
-        fid: promo.fid,
-        username: promo.username,
-        displayName: promo.display_name || promo.username,
-        castUrl: promo.cast_url,
-        shareText: promo.share_text,
-        rewardPerShare: promo.reward_per_share,
-        totalBudget: promo.total_budget,
-        sharesCount: promo.shares_count,
-        remainingBudget: promo.remaining_budget,
-        status: promo.status as "active" | "inactive" | "paused" | "completed",
-        createdAt: promo.created_at,
-        updatedAt: promo.updated_at,
-        author: {
-          fid: promo.fid,
-          username: promo.username,
-          displayName: promo.display_name || promo.username,
-        },
-      }))
-      setPromoCasts(convertedPromos)
-    }
-  }, [rawPromotions])
+  // Eltávolítva: useEffect a rawPromotions konvertálására promoCasts-ra
 
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return
@@ -201,14 +177,18 @@ export default function PromotePage() {
           acc[timer.promotionId] = timer
           return acc
         }, {})
-        setShareTimers(timersMap)
+        // Csak akkor frissítjük az állapotot, ha a tartalom ténylegesen eltér
+        // Ez egy sekély összehasonlítás, de ebben az esetben elegendő.
+        if (JSON.stringify(timersMap) !== JSON.stringify(shareTimers)) {
+          setShareTimers(timersMap)
+        }
       } else {
         console.error("❌ Failed to fetch share timers:", response.status)
       }
     } catch (error) {
       console.error("❌ Failed to fetch share timers:", error)
     }
-  }, [currentUser.fid])
+  }, [currentUser.fid, shareTimers]) // Hozzáadva shareTimers a függőségekhez a JSON.stringify összehasonlításhoz
 
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return
@@ -230,20 +210,21 @@ export default function PromotePage() {
 
   const refreshAllData = useCallback(async () => {
     console.log("🔄 Refreshing all data...")
-    setLoading(true)
+    setLoading(true) // Általános oldal töltési állapot beállítása
     await Promise.all([refetchPromotions(), fetchUserStats(), fetchShareTimers()])
-    setLoading(false)
+    setLoading(false) // Általános oldal töltési állapot kikapcsolása
     console.log("✅ All data refreshed")
   }, [refetchPromotions, fetchUserStats, fetchShareTimers])
 
   useEffect(() => {
+    console.log("Main PromotePage useEffect triggered. isAuthenticated:", isAuthenticated, "profile:", profile)
     if (isAuthenticated && profile) {
-      refreshAllData()
-      // Refresh timers every 30 seconds
+      refreshAllData() // Kezdeti adatbetöltés
+      // Időzítő beállítása csak a timerekhez, mivel a többi adat frissül share/create/fund után
       const interval = setInterval(fetchShareTimers, 30000)
       return () => clearInterval(interval)
     }
-  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers])
+  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]) // A függőségek most stabilak
 
   const handleCreateSuccess = () => {
     setShowForm(false)
@@ -285,10 +266,10 @@ export default function PromotePage() {
       return
     }
 
-    // Clear previous errors
+    // Előző hibák törlése
     setShareError(null)
 
-    // Check timer before attempting share
+    // Timer ellenőrzése a megosztás előtt
     const timer = shareTimers[promo.id.toString()]
     if (timer && !timer.canShare) {
       setShareError(`You can share this campaign again in ${formatTimeRemaining(timer.timeRemaining)}`)
@@ -300,7 +281,7 @@ export default function PromotePage() {
     try {
       console.log("🎯 Starting share process for promo:", promo.id)
 
-      // First, compose the cast
+      // Először a cast létrehozása
       const castResult = await (miniAppSdk as any).actions?.composeCast({
         text: promo.shareText || `Check this out!`,
         embeds: [promo.castUrl],
@@ -314,7 +295,7 @@ export default function PromotePage() {
 
       console.log("✅ Cast created successfully:", castResult.cast.hash)
 
-      // Then, record the share on backend
+      // Ezután rögzítjük a megosztást a backend-en
       const response = await fetch("/api/shares", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -337,15 +318,11 @@ export default function PromotePage() {
       console.log("✅ Share recorded successfully:", data)
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`)
 
-      // Refresh data after successful share
+      // Adatok frissítése sikeres megosztás után
       console.log("🔄 Refreshing data after successful share...")
 
-      // First refresh wagmi state
-      if (userProfileRef.current) {
-        await (userProfileRef.current as any).refetchRewards?.()
-      }
-
-      // Then refresh all other data
+      // A refreshAllData már meghívja a refetchPromotions, fetchUserStats, fetchShareTimers függvényeket
+      // Így nincs szükség külön hívásokra, mint a userProfileRef.current?.refetchRewards?.()
       await refreshAllData()
 
       console.log("✅ All data refreshed after share")
@@ -357,14 +334,15 @@ export default function PromotePage() {
     }
   }
 
-  const myPromos = promoCasts.filter((p) => p.author.fid === currentUser.fid)
-  const availablePromos = promoCasts.filter((p) => {
-    // Only show active campaigns that are not user's own
+  // allPromotions közvetlen használata
+  const myPromos = allPromotions.filter((p) => p.author.fid === currentUser.fid)
+  const availablePromos = allPromotions.filter((p) => {
+    // Csak az aktív kampányokat mutatjuk, amelyek nem a felhasználó sajátjai
     if (p.status !== "active" || p.author.fid === currentUser.fid) {
       return false
     }
 
-    // Check if campaign has sufficient budget
+    // Ellenőrizzük, hogy a kampánynak van-e elegendő költségvetése
     if (p.remainingBudget < p.rewardPerShare) {
       return false
     }
@@ -380,16 +358,18 @@ export default function PromotePage() {
       const canShareA = timerA?.canShare ?? true
       const canShareB = timerB?.canShare ?? true
 
-      // Prioritize campaigns that can be shared
+      // Előnyben részesítjük azokat a kampányokat, amelyeket meg lehet osztani
       if (canShareA && !canShareB) return -1
       if (!canShareA && canShareB) return 1
 
-      // Then sort by reward amount
+      // Ezután jutalomösszeg szerint rendezzük
       return b.rewardPerShare - a.rewardPerShare
     })
   }, [availablePromos, shareTimers])
 
-  if (loading && !promoCasts.length) {
+  // Az általános 'loading' állapot használata a kezdeti oldalbetöltéshez
+  if (loading && !allPromotions.length) {
+    // allPromotions használata itt
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
         <div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div>
@@ -413,7 +393,7 @@ export default function PromotePage() {
           </div>
         </div>
 
-        {/* Error Display */}
+        {/* Hibaüzenet megjelenítése */}
         {shareError && (
           <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
             <FiAlertTriangle className="text-red-400" />
@@ -483,7 +463,7 @@ export default function PromotePage() {
                           <p className="text-white font-semibold truncate">{promo.castUrl}</p>
                           <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
 
-                          {/* Campaign Status Indicators */}
+                          {/* Kampány státusz indikátorok */}
                           <div className="flex items-center gap-2 mt-1">
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-semibold ${
