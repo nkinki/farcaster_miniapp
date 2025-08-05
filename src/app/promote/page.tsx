@@ -225,7 +225,7 @@ export default function PromotePage() {
       
       // Külön a wagmi cache frissítésének kényszerítése a biztonság kedvéért, ha a claim gomb mégis beragadna.
       if(userProfileRef.current) {
-        await userProfileRef.current.refreshPendingRewards();
+        await userProfileRef.current.refetchRewards();
       }
 
     } catch (error: any) {
