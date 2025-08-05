@@ -15,6 +15,7 @@ import {
   FiChevronUp,
   FiClock,
   FiStar,
+  FiAlertTriangle,
 } from "react-icons/fi"
 import Link from "next/link"
 import UserProfile, { type UserProfileRef } from "@/components/UserProfile"
@@ -30,6 +31,16 @@ interface FarcasterUser {
   username?: string
   displayName?: string
   pfpUrl?: string
+}
+
+interface ShareTimer {
+  promotionId: number
+  canShare: boolean
+  timeRemaining: number
+  lastShareTime: string | null
+  campaignStatus: string
+  remainingBudget: number
+  rewardPerShare: number
 }
 
 const formatTimeRemaining = (hours: number): string => {
@@ -55,9 +66,10 @@ export default function PromotePage() {
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null)
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 })
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({})
+  const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({})
   const [isShareListOpen, setIsShareListOpen] = useState(false)
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null)
+  const [shareError, setShareError] = useState<string | null>(null)
   const userProfileRef = useRef<UserProfileRef>(null)
 
   // Fetch promotions using the existing hook
@@ -77,17 +89,11 @@ export default function PromotePage() {
       try {
         let context: any = null
 
-        // Approach 1: Direct context property access (if it's a Promise)
-        try {
-          if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
-            context = await miniAppSdk.context
-            console.log("✅ Direct context property access successful:", context)
-          }
-        } catch (error) {
-          console.log("❌ Direct context property access failed:", error)
+        if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
+          context = await miniAppSdk.context
+          console.log("✅ Direct context property access successful:", context)
         }
 
-        // Approach 2: Check if context is a function
         if (!context && typeof miniAppSdk.context === "function") {
           try {
             context = await (miniAppSdk.context as any)()
@@ -97,7 +103,6 @@ export default function PromotePage() {
           }
         }
 
-        // Approach 3: Check if getContext method exists
         if (!context && "getContext" in miniAppSdk) {
           try {
             context = await (miniAppSdk as any).getContext()
@@ -107,7 +112,6 @@ export default function PromotePage() {
           }
         }
 
-        // Approach 4: Check if user property exists directly
         if (!context && "user" in miniAppSdk) {
           try {
             const user = (miniAppSdk as any).user
@@ -120,7 +124,6 @@ export default function PromotePage() {
           }
         }
 
-        // Approach 5: Check if we need to wait for ready state
         if (!context && "ready" in miniAppSdk) {
           try {
             await (miniAppSdk as any).ready
@@ -189,19 +192,23 @@ export default function PromotePage() {
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return
     try {
+      console.log("🔄 Fetching share timers for FID:", currentUser.fid)
       const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`)
       if (response.ok) {
         const data = await response.json()
-        const timersMap = data.timers.reduce((acc: any, timer: any) => {
-          acc[timer.promotionId] = { canShare: timer.canShare, timeRemaining: timer.timeRemaining }
+        console.log("✅ Share timers received:", data.timers)
+        const timersMap = data.timers.reduce((acc: any, timer: ShareTimer) => {
+          acc[timer.promotionId] = timer
           return acc
         }, {})
         setShareTimers(timersMap)
+      } else {
+        console.error("❌ Failed to fetch share timers:", response.status)
       }
     } catch (error) {
-      console.error("Failed to fetch share timers:", error)
+      console.error("❌ Failed to fetch share timers:", error)
     }
-  }, [currentUser])
+  }, [currentUser.fid])
 
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return
@@ -219,18 +226,21 @@ export default function PromotePage() {
     } catch (error) {
       console.error("Failed to fetch user stats:", error)
     }
-  }, [currentUser])
+  }, [currentUser.fid])
 
   const refreshAllData = useCallback(async () => {
+    console.log("🔄 Refreshing all data...")
     setLoading(true)
     await Promise.all([refetchPromotions(), fetchUserStats(), fetchShareTimers()])
     setLoading(false)
+    console.log("✅ All data refreshed")
   }, [refetchPromotions, fetchUserStats, fetchShareTimers])
 
   useEffect(() => {
     if (isAuthenticated && profile) {
       refreshAllData()
-      const interval = setInterval(fetchShareTimers, 60000)
+      // Refresh timers every 30 seconds
+      const interval = setInterval(fetchShareTimers, 30000)
       return () => clearInterval(interval)
     }
   }, [isAuthenticated, profile, refreshAllData, fetchShareTimers])
@@ -255,10 +265,6 @@ export default function PromotePage() {
     setFundingPromo(null)
   }
 
-  const handleClaimSuccess = () => {
-    refreshAllData()
-  }
-
   const handleViewCast = (castUrl: string) => {
     try {
       const urlParts = castUrl.split("/")
@@ -279,19 +285,36 @@ export default function PromotePage() {
       return
     }
 
+    // Clear previous errors
+    setShareError(null)
+
+    // Check timer before attempting share
+    const timer = shareTimers[promo.id.toString()]
+    if (timer && !timer.canShare) {
+      setShareError(`You can share this campaign again in ${formatTimeRemaining(timer.timeRemaining)}`)
+      return
+    }
+
     setSharingPromoId(promo.id.toString())
+
     try {
+      console.log("🎯 Starting share process for promo:", promo.id)
+
+      // First, compose the cast
       const castResult = await (miniAppSdk as any).actions?.composeCast({
         text: promo.shareText || `Check this out!`,
         embeds: [promo.castUrl],
       })
 
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
-        console.log("Cast was cancelled by user.")
+        console.log("❌ Cast was cancelled by user")
         setSharingPromoId(null)
         return
       }
 
+      console.log("✅ Cast created successfully:", castResult.cast.hash)
+
+      // Then, record the share on backend
       const response = await fetch("/api/shares", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -304,37 +327,64 @@ export default function PromotePage() {
       })
 
       const data = await response.json()
+
       if (!response.ok) {
-        throw new Error(data.error || "Failed to record share on the backend.")
+        console.error("❌ Backend share recording failed:", data)
+        setShareError(data.error || "Failed to record share")
+        return
       }
 
+      console.log("✅ Share recorded successfully:", data)
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`)
 
-      console.log("Share success. Forcing wagmi state refetch first...")
+      // Refresh data after successful share
+      console.log("🔄 Refreshing data after successful share...")
+
+      // First refresh wagmi state
       if (userProfileRef.current) {
-        await (userProfileRef.current as any).refreshPendingRewards?.()
+        await (userProfileRef.current as any).refetchRewards?.()
       }
 
-      console.log("Wagmi refetch complete. Now fetching other app data...")
+      // Then refresh all other data
       await refreshAllData()
-      console.log("All data refreshed.")
-    } catch (error) {
-      console.error("Error during share process:", error)
-      alert(`Share failed: ${error instanceof Error ? error.message : "An unknown error occurred."}`)
+
+      console.log("✅ All data refreshed after share")
+    } catch (error: any) {
+      console.error("❌ Error during share process:", error)
+      setShareError(error.message || "An unknown error occurred during sharing")
     } finally {
       setSharingPromoId(null)
     }
   }
 
   const myPromos = promoCasts.filter((p) => p.author.fid === currentUser.fid)
-  const availablePromos = promoCasts.filter((p) => p.status === "active" && p.author.fid !== currentUser.fid)
+  const availablePromos = promoCasts.filter((p) => {
+    // Only show active campaigns that are not user's own
+    if (p.status !== "active" || p.author.fid === currentUser.fid) {
+      return false
+    }
+
+    // Check if campaign has sufficient budget
+    if (p.remainingBudget < p.rewardPerShare) {
+      return false
+    }
+
+    return true
+  })
 
   const sortedAvailablePromos = useMemo(() => {
     return [...availablePromos].sort((a, b) => {
-      const canShareA = shareTimers[a.id.toString()]?.canShare ?? true
-      const canShareB = shareTimers[b.id.toString()]?.canShare ?? true
+      const timerA = shareTimers[a.id.toString()]
+      const timerB = shareTimers[b.id.toString()]
+
+      const canShareA = timerA?.canShare ?? true
+      const canShareB = timerB?.canShare ?? true
+
+      // Prioritize campaigns that can be shared
       if (canShareA && !canShareB) return -1
       if (!canShareA && canShareB) return 1
+
+      // Then sort by reward amount
       return b.rewardPerShare - a.rewardPerShare
     })
   }, [availablePromos, shareTimers])
@@ -362,6 +412,17 @@ export default function PromotePage() {
             </Link>
           </div>
         </div>
+
+        {/* Error Display */}
+        {shareError && (
+          <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
+            <FiAlertTriangle className="text-red-400" />
+            <span className="text-red-200">{shareError}</span>
+            <button onClick={() => setShareError(null)} className="ml-auto text-red-400 hover:text-red-200">
+              <FiX size={16} />
+            </button>
+          </div>
+        )}
 
         <div className="mb-4">
           <UserProfile ref={userProfileRef} user={currentUser} />
@@ -402,12 +463,16 @@ export default function PromotePage() {
             <div className="p-4 border-t border-gray-700 space-y-4">
               {sortedAvailablePromos.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="text-gray-400 text-lg">No other active campaigns right now.</div>
+                  <div className="text-gray-400 text-lg">No active campaigns available right now.</div>
+                  <div className="text-gray-500 text-sm mt-2">
+                    Campaigns may be paused due to insufficient budget or other reasons.
+                  </div>
                 </div>
               ) : (
                 sortedAvailablePromos.map((promo) => {
-                  const timerInfo = shareTimers[promo.id.toString()]
-                  const canShare = timerInfo?.canShare ?? true
+                  const timer = shareTimers[promo.id.toString()]
+                  const canShare = timer?.canShare ?? true
+
                   return (
                     <div
                       key={promo.id}
@@ -417,7 +482,29 @@ export default function PromotePage() {
                         <div className="flex-1 overflow-hidden pr-4">
                           <p className="text-white font-semibold truncate">{promo.castUrl}</p>
                           <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
+
+                          {/* Campaign Status Indicators */}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                promo.status === "active"
+                                  ? "bg-green-600 text-white"
+                                  : promo.status === "paused"
+                                    ? "bg-yellow-600 text-white"
+                                    : "bg-gray-600 text-white"
+                              }`}
+                            >
+                              {promo.status}
+                            </span>
+
+                            {promo.remainingBudget < promo.rewardPerShare && (
+                              <span className="px-2 py-1 bg-red-600 text-white rounded-full text-xs font-semibold">
+                                Low Budget
+                              </span>
+                            )}
+                          </div>
                         </div>
+
                         <div className="relative">
                           <button
                             onClick={() =>
@@ -473,15 +560,20 @@ export default function PromotePage() {
                       </div>
 
                       <div>
-                        {!canShare && timerInfo && (
+                        {!canShare && timer && (
                           <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg mb-2">
                             <FiClock size={16} />
-                            <span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
+                            <span>{formatTimeRemaining(timer.timeRemaining)}</span>
                           </div>
                         )}
+
                         <button
                           onClick={() => handleSharePromo(promo)}
-                          disabled={sharingPromoId === promo.id.toString() || !canShare}
+                          disabled={
+                            sharingPromoId === promo.id.toString() ||
+                            !canShare ||
+                            promo.remainingBudget < promo.rewardPerShare
+                          }
                           className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
                         >
                           {sharingPromoId === promo.id.toString() ? (

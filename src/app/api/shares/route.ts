@@ -1,107 +1,236 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-import { createWalletClient, http, createPublicClient, isAddress } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { base } from 'viem/chains';
-import { PROMO_CONTRACT_ADDRESS, PROMO_CONTRACT_ABI } from '@/lib/contracts';
+import { type NextRequest, NextResponse } from "next/server"
+import { neon } from "@neondatabase/serverless"
 
-// Environment variable checks
-if (!process.env.NEON_DB_URL) throw new Error('NEON_DB_URL is not set');
-if (!process.env.BACKEND_WALLET_PRIVATE_KEY) throw new Error('BACKEND_WALLET_PRIVATE_KEY is not set');
-// Új ellenőrzés a Neynar API kulcsra
-if (!process.env.NEYNAR_API_KEY) throw new Error('NEYNAR_API_KEY is not set');
+export const dynamic = "force-dynamic"
 
-const sql = neon(process.env.NEON_DB_URL);
-const privateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
-if (!privateKey || !privateKey.startsWith('0x')) {
-    throw new Error('BACKEND_WALLET_PRIVATE_KEY is missing or is not a valid hex string');
+if (!process.env.NEON_DB_URL) {
+  throw new Error("NEON_DB_URL is not set")
 }
-const account = privateKeyToAccount(privateKey as `0x${string}`);
 
-const publicClient = createPublicClient({ chain: base, transport: http() });
-const walletClient = createWalletClient({ account, chain: base, transport: http() });
+const sql = neon(process.env.NEON_DB_URL)
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { promotionId, sharerFid, sharerUsername, castHash } = body;
+    const body = await request.json()
+    const { promotionId, sharerFid, sharerUsername, castHash } = body
 
-    if (!promotionId || !sharerFid || !sharerUsername || !castHash) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    console.log("🎯 Share API called:", { promotionId, sharerFid, sharerUsername, castHash })
+
+    // Validate required fields
+    if (!promotionId || !sharerFid || !sharerUsername) {
+      return NextResponse.json(
+        { error: "Missing required fields: promotionId, sharerFid, sharerUsername" },
+        { status: 400 },
+      )
     }
 
-    // --- Database Validations ---
-    const [promo] = await sql`
-        SELECT status, reward_per_share, remaining_budget, contract_campaign_id 
-        FROM promotions WHERE id = ${promotionId}
-    `;
-    if (!promo) return NextResponse.json({ error: 'Promotion not found in DB' }, { status: 404 });
-    if (promo.contract_campaign_id === null) return NextResponse.json({ error: 'Promotion not synced with blockchain' }, { status: 500 });
-    if (promo.status !== 'active') return NextResponse.json({ error: 'Campaign is not active' }, { status: 400 });
-    
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const [recentShare] = await sql`
-        SELECT id FROM shares 
-        WHERE promotion_id = ${promotionId} AND sharer_fid = ${sharerFid} AND created_at > ${fortyEightHoursAgo}
-    `;
-    if (recentShare) return NextResponse.json({ error: 'You have already shared this campaign recently' }, { status: 429 });
-
-    // --- JAVÍTÁS: FID -> Wallet Cím Feloldása Neynar API-val ---
-    console.log(`Resolving wallet address for FID ${sharerFid}...`);
-    const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${sharerFid}`, {
-        headers: { 
-            accept: 'application/json', 
-            api_key: process.env.NEYNAR_API_KEY! 
-        }
-    });
-
-    if (!neynarResponse.ok) {
-        console.error("Neynar API request failed:", await neynarResponse.text());
-        throw new Error('Failed to fetch user data from Farcaster network.');
-    }
-    const neynarData = await neynarResponse.json();
-    
-    // A Neynar a verifikált címek közül az elsődlegeset, vagy a legelsőt adja vissza.
-    const sharerAddress = neynarData.users[0]?.verified_addresses?.eth_addresses[0];
-
-    if (!sharerAddress || !isAddress(sharerAddress)) {
-        return NextResponse.json({ error: `Could not find a valid, verified wallet address for FID ${sharerFid}. The user must have a wallet connected to their Farcaster account.` }, { status: 400 });
-    }
-    console.log(`Address for FID ${sharerFid} resolved to: ${sharerAddress}`);
-
-    // --- Smart Contract Interakció a VALÓDI címmel ---
-    console.log(`Recording share for address ${sharerAddress} on contract campaign ID ${promo.contract_campaign_id}...`);
-    
-    const { request: contractRequest } = await publicClient.simulateContract({
-      address: PROMO_CONTRACT_ADDRESS,
-      abi: PROMO_CONTRACT_ABI,
-      functionName: 'recordShare',
-      args: [BigInt(promo.contract_campaign_id), sharerAddress as `0x${string}`],
-      account,
-    });
-    
-    const txHash = await walletClient.writeContract(contractRequest);
-    console.log('On-chain share recorded, tx hash:', txHash);
-
-    // --- Adatbázis frissítése ---
-    await sql`
-      INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount)
-      VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share})
-    `;
-    
-    await sql`
-      UPDATE promotions
-      SET shares_count = shares_count + 1, remaining_budget = remaining_budget - ${promo.reward_per_share}
+    // 1. ELLENŐRIZZÜK A KAMPÁNY STÁTUSZÁT ÉS KÖLTSÉGVETÉSÉT
+    const promotionResult = await sql`
+      SELECT 
+        id, 
+        status, 
+        remaining_budget, 
+        reward_per_share,
+        total_budget,
+        fid as promoter_fid
+      FROM promotions 
       WHERE id = ${promotionId}
-    `;
+    `
 
-    return NextResponse.json({ success: true, transactionHash: txHash }, { status: 201 });
-
-  } catch (error: any) {
-    console.error('API Error:', error);
-    if (error.shortMessage) {
-        return NextResponse.json({ error: error.shortMessage }, { status: 500 });
+    if (promotionResult.length === 0) {
+      return NextResponse.json({ error: "Promotion not found" }, { status: 404 })
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+
+    const promotion = promotionResult[0]
+
+    // Ellenőrizzük a státuszt
+    if (promotion.status !== "active") {
+      console.log("❌ Promotion is not active:", promotion.status)
+      return NextResponse.json(
+        { error: `Campaign is ${promotion.status}. Only active campaigns can be shared.` },
+        { status: 400 },
+      )
+    }
+
+    // Ellenőrizzük a költségvetést
+    if (promotion.remaining_budget < promotion.reward_per_share) {
+      console.log("❌ Insufficient budget:", {
+        remaining: promotion.remaining_budget,
+        reward: promotion.reward_per_share,
+      })
+
+      // Automatikusan paused státuszra állítjuk
+      await sql`
+        UPDATE promotions 
+        SET status = 'paused', updated_at = NOW()
+        WHERE id = ${promotionId}
+      `
+
+      return NextResponse.json({ error: "Campaign budget exhausted. Campaign has been paused." }, { status: 400 })
+    }
+
+    // 2. ELLENŐRIZZÜK A 48 ÓRÁS COOLDOWN-T
+    const existingShareResult = await sql`
+      SELECT created_at 
+      FROM shares 
+      WHERE promotion_id = ${promotionId} 
+        AND sharer_fid = ${sharerFid}
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `
+
+    if (existingShareResult.length > 0) {
+      const lastShareTime = new Date(existingShareResult[0].created_at)
+      const now = new Date()
+      const timeDiff = now.getTime() - lastShareTime.getTime()
+      const hoursDiff = timeDiff / (1000 * 60 * 60)
+
+      if (hoursDiff < 48) {
+        const remainingHours = 48 - hoursDiff
+        console.log("❌ Cooldown active:", { hoursDiff, remainingHours })
+
+        return NextResponse.json(
+          {
+            error: `You can share this campaign again in ${Math.ceil(remainingHours)} hours.`,
+            cooldownRemaining: remainingHours,
+          },
+          { status: 429 },
+        )
+      }
+    }
+
+    // 3. ELLENŐRIZZÜK, HOGY NEM SAJÁT KAMPÁNYA-E
+    if (promotion.promoter_fid === sharerFid) {
+      return NextResponse.json({ error: "You cannot share your own campaign" }, { status: 400 })
+    }
+
+    // 4. RÖGZÍTJÜK A SHARE-T ÉS FRISSÍTJÜK A KÖLTSÉGVETÉST
+    const result = await sql.transaction(async (tx) => {
+      // Share rögzítése
+      const shareResult = await tx`
+        INSERT INTO shares (
+          promotion_id, 
+          sharer_fid, 
+          sharer_username, 
+          cast_hash, 
+          reward_amount, 
+          created_at
+        )
+        VALUES (
+          ${promotionId}, 
+          ${sharerFid}, 
+          ${sharerUsername}, 
+          ${castHash || null}, 
+          ${promotion.reward_per_share}, 
+          NOW()
+        )
+        RETURNING id, created_at
+      `
+
+      // Promotion frissítése
+      const updatedPromotion = await tx`
+        UPDATE promotions 
+        SET 
+          shares_count = shares_count + 1,
+          remaining_budget = remaining_budget - ${promotion.reward_per_share},
+          updated_at = NOW()
+        WHERE id = ${promotionId}
+        RETURNING remaining_budget, shares_count
+      `
+
+      // Ha elfogyott a budget, paused státuszra állítjuk
+      if (updatedPromotion[0].remaining_budget < promotion.reward_per_share) {
+        await tx`
+          UPDATE promotions 
+          SET status = 'paused', updated_at = NOW()
+          WHERE id = ${promotionId}
+        `
+      }
+
+      return {
+        shareId: shareResult[0].id,
+        shareCreatedAt: shareResult[0].created_at,
+        newSharesCount: updatedPromotion[0].shares_count,
+        remainingBudget: updatedPromotion[0].remaining_budget,
+      }
+    })
+
+    console.log("✅ Share recorded successfully:", result)
+
+    return NextResponse.json({
+      success: true,
+      message: `Share recorded! You earned ${promotion.reward_per_share} CHESS.`,
+      data: {
+        shareId: result.shareId,
+        rewardAmount: promotion.reward_per_share,
+        sharesCount: result.newSharesCount,
+        remainingBudget: result.remainingBudget,
+        nextShareAvailable: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+      },
+    })
+  } catch (error: any) {
+    console.error("❌ Share API Error:", {
+      error: error.message,
+      stack: error.stack,
+      body: await request.json().catch(() => ({})),
+    })
+
+    // Specific error handling
+    if (error.message?.includes("duplicate key")) {
+      return NextResponse.json({ error: "This share has already been recorded" }, { status: 409 })
+    }
+
+    if (error.message?.includes("foreign key")) {
+      return NextResponse.json({ error: "Invalid promotion or user reference" }, { status: 400 })
+    }
+
+    return NextResponse.json({ error: "Failed to record share. Please try again." }, { status: 500 })
+  }
+}
+
+// GET method for fetching user's shares
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const fid = searchParams.get("fid")
+    const promotionId = searchParams.get("promotionId")
+
+    if (!fid) {
+      return NextResponse.json({ error: "FID parameter is required" }, { status: 400 })
+    }
+
+    let query = `
+      SELECT 
+        s.id,
+        s.promotion_id,
+        s.sharer_fid,
+        s.sharer_username,
+        s.reward_amount,
+        s.created_at,
+        s.cast_hash,
+        p.cast_url,
+        p.status as promotion_status,
+        p.reward_per_share
+      FROM shares s
+      JOIN promotions p ON s.promotion_id = p.id
+      WHERE s.sharer_fid = ${fid}
+    `
+
+    if (promotionId) {
+      query += ` AND s.promotion_id = ${promotionId}`
+    }
+
+    query += ` ORDER BY s.created_at DESC`
+
+    const shares = await sql.unsafe(query)
+
+    return NextResponse.json({
+      success: true,
+      shares: shares,
+      total: shares.length,
+    })
+  } catch (error: any) {
+    console.error("❌ GET Shares API Error:", error)
+    return NextResponse.json({ error: "Failed to fetch shares" }, { status: 500 })
   }
 }
