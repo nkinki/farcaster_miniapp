@@ -25,6 +25,8 @@ import { ConnectWalletButton } from "@/components/ConnectWalletButton"
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown"
 import { usePromotions } from "@/hooks/usePromotions" // Ez a hook mostantól PromoCast[]-t ad vissza
 import type { PromoCast } from "@/types/promotions" // Ezt megtartjuk a típusdefinícióhoz
+import { useChessToken } from "@/hooks/useChessToken"
+import { debounce } from "lodash"
 
 interface FarcasterUser {
   fid: number
@@ -66,11 +68,11 @@ export default function PromotePage() {
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null)
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 })
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({})
   const [isShareListOpen, setIsShareListOpen] = useState(false)
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null)
   const [shareError, setShareError] = useState<string | null>(null)
   const userProfileRef = useRef<UserProfileRef>(null)
+  const [shareTimers, setShareTimers] = useState<{ [key: string]: ShareTimer }>({})
 
   // Promóciók lekérése a usePromotions hookkal
   // MOSTANTÓL az allPromotions közvetlenül PromoCast[] lesz
@@ -84,6 +86,9 @@ export default function PromotePage() {
     offset: 0,
     status: "all",
   })
+
+  // CHESS Token hook
+  const { decimalsError, balanceError } = useChessToken()
 
   useEffect(() => {
     const initializeFarcaster = async () => {
@@ -165,7 +170,7 @@ export default function PromotePage() {
 
   // Eltávolítva: useEffect a rawPromotions konvertálására promoCasts-ra
 
-  const fetchShareTimers = useCallback(async () => {
+  const _fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return
     try {
       console.log("🔄 Fetching share timers for FID:", currentUser.fid)
@@ -177,18 +182,26 @@ export default function PromotePage() {
           acc[timer.promotionId] = timer
           return acc
         }, {})
-        // Csak akkor frissítjük az állapotot, ha a tartalom ténylegesen eltér
-        // Ez egy sekély összehasonlítás, de ebben az esetben elegendő.
-        if (JSON.stringify(timersMap) !== JSON.stringify(shareTimers)) {
-          setShareTimers(timersMap)
-        }
+        return timersMap
       } else {
         console.error("❌ Failed to fetch share timers:", response.status)
+        return null
       }
     } catch (error) {
       console.error("❌ Failed to fetch share timers:", error)
+      return null
     }
-  }, [currentUser.fid, shareTimers]) // Hozzáadva shareTimers a függőségekhez a JSON.stringify összehasonlításhoz
+  }, [currentUser.fid])
+
+  const fetchShareTimers = useCallback(
+    debounce(async () => {
+      const timersMap = await _fetchShareTimers()
+      if (timersMap && JSON.stringify(timersMap) !== JSON.stringify(shareTimers)) {
+        setShareTimers(timersMap)
+      }
+    }, 30000),
+    [shareTimers, _fetchShareTimers],
+  )
 
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return
@@ -295,7 +308,7 @@ export default function PromotePage() {
 
       console.log("✅ Cast created successfully:", castResult.cast.hash)
 
-      // Ezután rögzítjük a megosztást a backend-en
+      // Ezután rögzítjük a backend-en
       const response = await fetch("/api/shares", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -401,6 +414,14 @@ export default function PromotePage() {
             <button onClick={() => setShareError(null)} className="ml-auto text-red-400 hover:text-red-200">
               <FiX size={16} />
             </button>
+          </div>
+        )}
+
+        {/* CHESS Token Errors */}
+        {(decimalsError || balanceError) && (
+          <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
+            <FiAlertTriangle className="text-red-400" />
+            <span className="text-red-200">Error: Could not load CHESS token data. Please try again later.</span>
           </div>
         )}
 
