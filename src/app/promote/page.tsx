@@ -89,17 +89,70 @@ export default function PromotePage() {
   useEffect(() => {
     const initializeFarcaster = async () => {
       try {
-        let context = null
+        let context: any = null
 
-        if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
-          context = await miniAppSdk.context
-        } else if (miniAppSdk.context) {
-          context = miniAppSdk.context
+        // Approach 1: Direct context property access (if it's a Promise)
+        try {
+          if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
+            context = await miniAppSdk.context
+            console.log("✅ Direct context property access successful:", context)
+          }
+        } catch (error) {
+          console.log("❌ Direct context property access failed:", error)
+        }
+
+        // Approach 2: Check if context is a function
+        if (!context && typeof miniAppSdk.context === "function") {
+          try {
+            context = await (miniAppSdk.context as any)()
+            console.log("✅ Context function call successful:", context)
+          } catch (error) {
+            console.log("❌ Context function call failed:", error)
+          }
+        }
+
+        // Approach 3: Check if getContext method exists
+        if (!context && "getContext" in miniAppSdk) {
+          try {
+            context = await (miniAppSdk as any).getContext()
+            console.log("✅ getContext call successful:", context)
+          } catch (error) {
+            console.log("❌ getContext call failed:", error)
+          }
+        }
+
+        // Approach 4: Check if user property exists directly
+        if (!context && "user" in miniAppSdk) {
+          try {
+            const user = (miniAppSdk as any).user
+            if (user) {
+              context = { user }
+              console.log("✅ Direct user property access successful:", context)
+            }
+          } catch (error) {
+            console.log("❌ Direct user property access failed:", error)
+          }
+        }
+
+        // Approach 5: Check if we need to wait for ready state
+        if (!context && "ready" in miniAppSdk) {
+          try {
+            await (miniAppSdk as any).ready
+            if (miniAppSdk.context && typeof miniAppSdk.context.then === "function") {
+              context = await miniAppSdk.context
+              console.log("✅ Ready + context successful:", context)
+            }
+          } catch (error) {
+            console.log("❌ Ready + context failed:", error)
+          }
         }
 
         if (context?.user?.fid) {
           setIsAuthenticated(true)
           setProfile(context.user as FarcasterUser)
+        } else {
+          console.warn("⚠️ No Farcaster user context available")
+          console.log("🔍 Full miniAppSdk object:", miniAppSdk)
         }
       } catch (error) {
         console.error("Failed to initialize Farcaster:", error)
