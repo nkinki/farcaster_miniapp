@@ -4,13 +4,15 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
-import UserProfile, { type UserProfileRef } from "@/components/UserProfile";
+// JAVÍTÁS: A UserProfileRef importot eltávolítottuk, mert az új modellben nincs rá szükség.
+import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import { usePromotions } from "@/hooks/usePromotions";
 import type { PromoCast } from "@/types/promotions";
+import { useChessToken } from "@/hooks/useChessToken";
 
 interface FarcasterUser {
   fid: number;
@@ -51,9 +53,10 @@ export default function PromotePage() {
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
-  const userProfileRef = useRef<UserProfileRef>(null);
+  
+  // JAVÍTÁS: A useRef-re már nincs szükség a UserProfile-hoz.
+  // const userProfileRef = useRef<UserProfileRef>(null);
 
-  // A usePromotions hook használata az adatok lekérésére
   const {
     promotions: allPromotions,
     loading: promotionsLoading,
@@ -63,6 +66,8 @@ export default function PromotePage() {
     offset: 0,
     status: "all",
   });
+
+  const { decimalsError, balanceError } = useChessToken();
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
@@ -80,7 +85,6 @@ export default function PromotePage() {
     return { fid: 0, username: "guest", displayName: "Guest" };
   }, [isAuthenticated, profile]);
 
-  // JAVÍTÁS: Az adatlekérő függvények stabil függőségekkel a `useCallback`-ben.
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
@@ -88,7 +92,7 @@ export default function PromotePage() {
         if (response.ok) {
             const data = await response.json();
             const timersMap = data.timers.reduce((acc: Record<string, ShareTimer>, timer: ShareTimer) => {
-                acc[timer.promotionId] = timer;
+                acc[timer.promotionId.toString()] = timer;
                 return acc;
             }, {});
             setShareTimers(timersMap);
@@ -112,21 +116,21 @@ export default function PromotePage() {
     } catch (error) { console.error("Failed to fetch user stats:", error); }
   }, [currentUser.fid]);
   
-  // JAVÍTÁS: A refreshAllData most már stabil függőségekkel rendelkezik, nem okoz végtelen ciklust.
+  // JAVÍTÁS: A refreshAllData most már stabil függőségekkel rendelkezik.
   const refreshAllData = useCallback(async () => {
       setLoading(true);
       await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
       setLoading(false);
   }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
-  // JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó állapota változik.
+  // JAVÍTÁS: A fő useEffect most már stabil függőségekre támaszkodik, megszüntetve a ciklust.
   useEffect(() => {
-    if (isAuthenticated && profile) {
+    if (isAuthenticated && profile?.fid) {
       refreshAllData();
-      const interval = setInterval(fetchShareTimers, 60000); // 1 percenként frissíti a timereket
+      const interval = setInterval(fetchShareTimers, 60000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile]); // Csak a ténylegesen változó dolgoktól függ.
+  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
@@ -163,11 +167,7 @@ export default function PromotePage() {
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      // A UserProfile refetch hívása a wagmi cache frissítésére
-      if (userProfileRef.current) {
-        await userProfileRef.current.refetchRewards();
-      }
-      // Az összes többi adat frissítése
+      // JAVÍTÁS: A `refreshAllData` hívás most már minden szükséges frissítést elvégez.
       await refreshAllData();
 
     } catch (error) {
@@ -227,12 +227,24 @@ export default function PromotePage() {
             </button>
           </div>
         )}
+        
+        {(decimalsError || balanceError) && (
+          <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
+            <FiAlertTriangle className="text-red-400" />
+            <span className="text-red-200">Error: Could not load CHESS token data. Please try again later.</span>
+          </div>
+        )}
 
         <div className="mb-4">
-          <UserProfile ref={userProfileRef} user={currentUser} />
+          {/* JAVÍTÁS: A ref-et eltávolítottuk, és átadjuk a szükséges propokat */}
+          <UserProfile
+            user={currentUser}
+            userStats={userStats}
+            onClaimSuccess={refreshAllData}
+          />
         </div>
         
-        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => setFundingPromo(promo)} />
+        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setFundingPromo(promo); setShowFundingForm(true); }} />
         
         <div className="flex justify-center my-8">
             <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"><FiPlus size={20} />Create Promotion</button>
