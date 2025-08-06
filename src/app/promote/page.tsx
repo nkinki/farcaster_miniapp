@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
-// JAVÍTÁS: A `UserProfileRef` importot és a `type` kulcsszót teljesen eltávolítottuk.
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
@@ -116,13 +115,18 @@ export default function PromotePage() {
       setLoading(false);
   }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
+  // JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó (profil) állapota megváltozik.
+  // Ez megszünteti a végtelen ciklust.
   useEffect(() => {
-    if (isAuthenticated && profile?.fid) {
+    if (profile?.fid) {
       refreshAllData();
-      const interval = setInterval(fetchShareTimers, 60000);
+      const interval = setInterval(() => {
+        // Az intervalon belüli hívásoknak nem kell a függőségi listában lenniük.
+        fetchShareTimers();
+      }, 60000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]);
+  }, [profile, refreshAllData, fetchShareTimers]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
@@ -158,7 +162,6 @@ export default function PromotePage() {
       if (!response.ok) { throw new Error(data.error || "Failed to record share on the backend."); }
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
-      
       await refreshAllData();
 
     } catch (error) {
@@ -220,7 +223,6 @@ export default function PromotePage() {
         )}
 
         <div className="mb-4">
-          {/* JAVÍTÁS: A ref prop-ot eltávolítottuk, és átadjuk a szükséges propokat */}
           <UserProfile
             user={currentUser}
             userStats={userStats}
@@ -259,7 +261,41 @@ export default function PromotePage() {
                       const canShare = timerInfo?.canShare ?? true;
                       return (
                         <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700 flex flex-col gap-4">
-                          {/* ... A kártya JSX része változatlan ... */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 overflow-hidden pr-4">
+                              <p className="text-white font-semibold truncate">{promo.castUrl}</p><p className="text-purple-300 text-sm">by @{promo.author.username}</p>
+                            </div>
+                            <div className="relative">
+                              <button onClick={() => setOpenMenuId(openMenuId === promo.id.toString() ? null : promo.id.toString())} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={20} /></button>
+                              {openMenuId === promo.id.toString() && ( 
+                                <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> 
+                                  <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
+                                    <FiEye size={16} /> View Cast (In-App)
+                                  </button> 
+                                </div> 
+                              )}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
+                          </div>
+                          <div className="w-full bg-gray-700 rounded-full h-2.5">
+                            <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
+                          </div>
+                          <div>
+                            {!canShare && timerInfo && (
+                               <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg mb-2">
+                                 <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
+                               </div>
+                            )}
+                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                              {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                              {sharingPromoId === promo.id.toString() ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
+                            </button>
+                          </div>
                         </div>
                       );
                     })
