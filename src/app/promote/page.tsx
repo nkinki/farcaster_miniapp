@@ -1,267 +1,207 @@
+
 "use client"
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react"
-import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk"
-import {
-  FiArrowLeft,
-  FiShare2,
-  FiDollarSign,
-  FiUsers,
-  FiPlus,
-  FiX,
-  FiMoreHorizontal,
-  FiEye,
-  FiChevronDown,
-  FiChevronUp,
-  FiClock,
-  FiStar,
-  FiAlertTriangle,
-} from "react-icons/fi"
-import Link from "next/link"
-import UserProfile, { type UserProfileRef } from "@/components/UserProfile"
-import PaymentForm from "../../components/PaymentForm"
-import FundingForm from "../../components/FundingForm"
-import { ConnectWalletButton } from "@/components/ConnectWalletButton"
-import MyCampaignsDropdown from "@/components/MyCampaignsDropdown"
-import { usePromotions } from "@/hooks/usePromotions"
-import type { PromoCast } from "@/types/promotions"
-import { useChessToken } from "@/hooks/useChessToken"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiFolder } from "react-icons/fi";
+import Link from "next/link";
+import UserProfile, { UserProfileRef } from "@/components/UserProfile";
+import PaymentForm from "../../components/PaymentForm";
+import FundingForm from "../../components/FundingForm";
+import { ConnectWalletButton } from "@/components/ConnectWalletButton";
+import { PromoCast, DatabasePromotion } from "@/types/promotions";
+import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 
+// Típusok és helper függvények
 interface FarcasterUser {
-  fid: number
-  username?: string
-  displayName?: string
-  pfpUrl?: string
+  fid: number;
+  username?: string;
+  displayName?: string;
+  pfpUrl?: string;
 }
 
-interface ShareTimer {
-  promotionId: number
-  canShare: boolean
-  timeRemaining: number
-}
+// JAVÍTÁS: A konvertáló függvényben a `remaining_budget`-et a helyes `remainingBudget`-re cseréljük.
+const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
+  id: dbPromo.id.toString(),
+  castUrl: dbPromo.cast_url,
+  author: { fid: dbPromo.fid, username: dbPromo.username, displayName: dbPromo.display_name || dbPromo.username },
+  rewardPerShare: dbPromo.reward_per_share,
+  totalBudget: dbPromo.total_budget,
+  sharesCount: dbPromo.shares_count,
+  remainingBudget: dbPromo.remaining_budget, // Helyes `camelCase` név
+  shareText: dbPromo.share_text || undefined,
+  createdAt: dbPromo.created_at,
+  status: dbPromo.status,
+  blockchainHash: dbPromo.blockchain_hash || undefined,
+  contractCampaignId: dbPromo.contract_campaign_id ?? undefined,
+});
 
 const formatTimeRemaining = (hours: number): string => {
-  if (hours <= 0) return "Ready to share"
-  const h = Math.floor(hours)
-  const m = Math.floor((hours - h) * 60)
-  return `${h}h ${m}m remaining`
-}
+    if (hours <= 0) return "Ready to share";
+    const h = Math.floor(hours);
+    const m = Math.floor((hours - h) * 60);
+    return `${h}h ${m}m remaining`;
+};
 
+// JAVÍTÁS: A progress bar számításánál is a helyes `remainingBudget`-et használjuk.
 const calculateProgress = (promo: PromoCast): number => {
-  if (promo.totalBudget === 0) return 0
-  const spent = promo.totalBudget - promo.remainingBudget
-  return Math.round((spent / promo.totalBudget) * 100)
-}
+  if (promo.totalBudget === 0) return 0;
+  const spent = promo.totalBudget - promo.remainingBudget; // Helyes `camelCase` név
+  return Math.round((spent / promo.totalBudget) * 100);
+};
 
 export default function PromotePage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [profile, setProfile] = useState<FarcasterUser | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [showFundingForm, setShowFundingForm] = useState(false)
-  const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null)
-  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 })
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const [isShareListOpen, setIsShareListOpen] = useState(false)
-  const [sharingPromoId, setSharingPromoId] = useState<string | null>(null)
-  const [shareError, setShareError] = useState<string | null>(null)
-  const userProfileRef = useRef<UserProfileRef>(null)
-  const [shareTimers, setShareTimers] = useState<{ [key: string]: ShareTimer }>({})
-
-  const {
-    promotions: allPromotions,
-    loading: promotionsLoading,
-    refetch: refetchPromotions,
-  } = usePromotions({
-    limit: 50,
-    offset: 0,
-    status: "all",
-  })
-
-  const { decimalsError, balanceError } = useChessToken()
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profile, setProfile] = useState<FarcasterUser | null>(null);
+  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [showFundingForm, setShowFundingForm] = useState(false);
+  const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null);
+  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 });
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
+  const [isShareListOpen, setIsShareListOpen] = useState(false);
+  const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
+  const userProfileRef = useRef<UserProfileRef>(null);
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
       if (ctx.user?.fid) {
-        setIsAuthenticated(true)
-        setProfile(ctx.user as FarcasterUser)
-      } else {
-        console.warn("⚠️ No Farcaster user context available")
+        setIsAuthenticated(true);
+        setProfile(ctx.user as FarcasterUser);
       }
-    }).catch(error => {
-        console.error("Failed to initialize Farcaster:", error)
-    })
-  }, [])
+    });
+  }, []);
 
   const currentUser = useMemo(() => {
     if (isAuthenticated && profile) {
-      return {
-        fid: profile.fid,
-        username: profile.username || "user",
-        displayName: profile.displayName || "Current User",
-      }
+      return { fid: profile.fid, username: profile.username || "user", displayName: profile.displayName || "Current User" };
     }
-    return { fid: 0, username: "guest", displayName: "Guest" }
-  }, [isAuthenticated, profile])
+    return { fid: 0, username: "guest", displayName: "Guest" };
+  }, [isAuthenticated, profile]);
 
-  const fetchUserStats = useCallback(async () => {
-    if (!currentUser.fid) return
+  const fetchShareTimers = useCallback(async () => {
+    if (!currentUser.fid) return;
     try {
-      const response = await fetch(`/api/users/${currentUser.fid}`)
+        const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
+        if (response.ok) {
+            const data = await response.json();
+            const timersMap = data.timers.reduce((acc: any, timer: any) => {
+                acc[timer.promotionId] = { canShare: timer.canShare, timeRemaining: timer.timeRemaining };
+                return acc;
+            }, {});
+            setShareTimers(timersMap);
+        }
+    } catch (error) { console.error("Failed to fetch share timers:", error); }
+  }, [currentUser]);
+  
+  const fetchPromotions = useCallback(async () => {
+    try {
+      const response = await fetch("/api/promotions?status=all");
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json();
+        setPromoCasts(data.promotions.map(convertDbToPromoCast));
+      }
+    } catch (error) { console.error("Error fetching promotions:", error); }
+  }, []);
+  
+  const fetchUserStats = useCallback(async () => {
+    if (!currentUser.fid) return;
+    try {
+      const response = await fetch(`/api/users/${currentUser.fid}`);
+      if (response.ok) {
+        const data = await response.json();
         if (data.user) {
           setUserStats({
             totalEarnings: data.user.total_earnings,
             totalShares: data.user.total_shares,
-          })
+          });
         }
       }
-    } catch (error) {
-      console.error("Failed to fetch user stats:", error)
-    }
-  }, [currentUser.fid])
-
-  // JAVÍTÁS: A timer lekérdezést egyszerűsítettük, stabil függőségekkel.
-  const fetchShareTimers = useCallback(async () => {
-    if (!currentUser.fid) return
-    try {
-      const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`)
-      if (response.ok) {
-        const data = await response.json()
-        const timersMap = data.timers.reduce((acc: any, timer: ShareTimer) => {
-          acc[timer.promotionId] = timer
-          return acc
-        }, {})
-        setShareTimers(timersMap)
-      }
-    } catch (error) {
-      console.error("❌ Failed to fetch share timers:", error)
-    }
-  }, [currentUser.fid])
-
-
+    } catch (error) { console.error("Failed to fetch user stats:", error); }
+  }, [currentUser]);
+  
   const refreshAllData = useCallback(async () => {
-    setLoading(true)
-    await Promise.all([refetchPromotions(), fetchUserStats(), fetchShareTimers()])
-    setLoading(false)
-  }, [refetchPromotions, fetchUserStats, fetchShareTimers])
+      setLoading(true);
+      await Promise.all([ fetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
+      setLoading(false);
+  }, [fetchPromotions, fetchUserStats, fetchShareTimers]);
 
-
-  // JAVÍTÁS: A fő useEffect-et leegyszerűsítettük, hogy megszüntessük a végtelen ciklust.
-  // Csak akkor fut le, ha a felhasználó állapota megváltozik.
   useEffect(() => {
     if (isAuthenticated && profile) {
-      refreshAllData() // Kezdeti adatbetöltés
-      const interval = setInterval(fetchShareTimers, 60000) // 60 másodpercenként frissíti a timereket
-      return () => clearInterval(interval)
+      refreshAllData();
+      const interval = setInterval(fetchShareTimers, 60000);
+      return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers])
-
-
-  const handleCreateSuccess = () => { setShowForm(false); refreshAllData() }
-  const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData() }
-  const handleCreateCancel = () => { setShowForm(false) }
-  const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null) }
+  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]);
   
+  const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
+  const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
+  const handleCreateCancel = () => { setShowForm(false); };
+  const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
+  
+  const handleClaimSuccess = () => {
+    refreshAllData();
+  };
+
   const handleViewCast = (castUrl: string) => {
     try {
-      const urlParts = castUrl.split("/")
-      const castHash = urlParts[urlParts.length - 1]
-      if (castHash && castHash.startsWith("0x")) {
-        (miniAppSdk as any).actions?.viewCast({ hash: castHash })
-      } else {
-        window.open(castUrl, "_blank")
-      }
-    } catch (error) {
-      window.open(castUrl, "_blank")
-    }
-  }
+      const urlParts = castUrl.split('/');
+      const castHash = urlParts[urlParts.length - 1];
+      if (castHash && castHash.startsWith('0x')) { miniAppSdk.actions.viewCast({ hash: castHash }); } 
+      else { window.open(castUrl, '_blank'); }
+    } catch (error) { window.open(castUrl, '_blank'); }
+  };
 
   const handleSharePromo = async (promo: PromoCast) => {
-    if (!isAuthenticated || !currentUser.fid) {
-      alert("Please connect your Farcaster account first.")
-      return
-    }
-    setShareError(null)
-    const timer = shareTimers[promo.id.toString()]
-    if (timer && !timer.canShare) {
-      setShareError(`You can share this campaign again in ${formatTimeRemaining(timer.timeRemaining)}`)
-      return
-    }
-    setSharingPromoId(promo.id.toString())
+    if (!isAuthenticated || !currentUser.fid) return alert("Please connect your Farcaster account first.");
+    setSharingPromoId(promo.id);
     try {
-      const castResult = await (miniAppSdk as any).actions?.composeCast({
-        text: promo.shareText || `Check this out!`,
-        embeds: [promo.castUrl],
-      })
-
+      const castResult = await miniAppSdk.actions.composeCast({ text: promo.shareText || `Check this out!`, embeds: [promo.castUrl] });
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
-        setSharingPromoId(null)
-        return
+        console.log("Cast was cancelled by user.");
+        setSharingPromoId(null);
+        return;
       }
-      
-      const response = await fetch("/api/shares", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/shares', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          promotionId: promo.id,
-          sharerFid: currentUser.fid,
-          sharerUsername: currentUser.username,
-          castHash: castResult.cast.hash,
+          promotionId: Number(promo.id), sharerFid: currentUser.fid,
+          sharerUsername: currentUser.username, castHash: castResult.cast.hash,
         }),
-      })
-
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to record share on the backend.")
-      }
+      });
+      const data = await response.json();
+      if (!response.ok) { throw new Error(data.error || "Failed to record share on the backend."); }
       
-      alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`)
-
-      // JAVÍTÁS: A `refreshAllData` már mindent frissít, beleértve a wagmi cache-t is (a UserProfile-on keresztül).
-      // Ez a sor biztosítja, hogy minden adat a legfrissebb legyen a megosztás után.
-      await refreshAllData()
+      alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      // Külön a wagmi cache frissítésének kényszerítése a biztonság kedvéért, ha a claim gomb mégis beragadna.
-      if(userProfileRef.current) {
-        await userProfileRef.current.refetchRewards();
-      }
+      userProfileRef.current?.refreshPendingRewards();
+      refreshAllData();
 
-    } catch (error: any) {
-      console.error("❌ Error during share process:", error)
-      setShareError(error.message || "An unknown error occurred during sharing")
+    } catch (error) {
+      console.error("Error during share process:", error);
+      alert(`Share failed: ${error instanceof Error ? error.message : "An unknown error occurred."}`);
     } finally {
-      setSharingPromoId(null)
+      setSharingPromoId(null);
     }
-  }
+  };
 
-  const myPromos = allPromotions.filter((p) => p.author.fid === currentUser.fid)
-  const availablePromos = allPromotions.filter((p) => {
-    if (p.status !== "active" || p.author.fid === currentUser.fid) return false
-    if (p.remainingBudget < p.rewardPerShare) return false
-    return true
-  })
+  const myPromos = promoCasts.filter(p => p.author.fid === currentUser.fid);
+  const availablePromos = promoCasts.filter(p => p.status === 'active' && p.author.fid !== currentUser.fid);
 
   const sortedAvailablePromos = useMemo(() => {
     return [...availablePromos].sort((a, b) => {
-      const timerA = shareTimers[a.id.toString()]
-      const timerB = shareTimers[b.id.toString()]
-      const canShareA = timerA?.canShare ?? true
-      const canShareB = timerB?.canShare ?? true
-      if (canShareA && !canShareB) return -1
-      if (!canShareA && canShareB) return 1
-      return b.rewardPerShare - a.rewardPerShare
-    })
-  }, [availablePromos, shareTimers])
+      const canShareA = shareTimers[a.id]?.canShare ?? true;
+      const canShareB = shareTimers[b.id]?.canShare ?? true;
+      if (canShareA && !canShareB) return -1;
+      if (!canShareA && canShareB) return 1;
+      return b.rewardPerShare - a.rewardPerShare;
+    });
+  }, [availablePromos, shareTimers]);
 
-  // A kezdeti betöltés most a `loading` és `promotionsLoading` state-ektől függ.
-  if (loading || (promotionsLoading && allPromotions.length === 0)) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
-        <div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div>
-      </div>
-    )
+  if (loading && !promoCasts.length) {
+    return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
   }
 
   return (
@@ -280,168 +220,106 @@ export default function PromotePage() {
           </div>
         </div>
 
-        {shareError && (
-          <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
-            <FiAlertTriangle className="text-red-400" />
-            <span className="text-red-200">{shareError}</span>
-            <button onClick={() => setShareError(null)} className="ml-auto text-red-400 hover:text-red-200">
-              <FiX size={16} />
-            </button>
-          </div>
-        )}
-
-        {(decimalsError || balanceError) && (
-          <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
-            <FiAlertTriangle className="text-red-400" />
-            <span className="text-red-200">Error: Could not load CHESS token data. Please try again later.</span>
-          </div>
-        )}
-
         <div className="mb-4">
-          <UserProfile ref={userProfileRef} user={currentUser} />
+          <UserProfile 
+            ref={userProfileRef}
+            userPromos={myPromos} 
+            userStats={userStats}
+            onClaimSuccess={handleClaimSuccess}
+          />
         </div>
-
-        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => setFundingPromo(promo)} />
-
+        
+        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setFundingPromo(promo); setShowFundingForm(true); }} />
+        
         <div className="flex justify-center my-8">
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"
-          >
-            <FiPlus size={20} />
-            Create Promotion
-          </button>
+            <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"><FiPlus size={20} />Create Promotion</button>
         </div>
-
-        {showForm && (
-          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative">
+        
+        {showForm && ( 
+          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative"> 
             <button className="absolute top-3 right-3 text-gray-400 hover:text-white" onClick={handleCreateCancel}>
               <FiX size={24} />
-            </button>
-            <PaymentForm user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} />
+            </button> 
+            <PaymentForm user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} /> 
           </div>
         )}
 
         <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
-          <button
-            onClick={() => setIsShareListOpen(!isShareListOpen)}
-            className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
-          >
-            <FiShare2 className="text-purple-300 w-6" />
-            <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
-            <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
-          </button>
-
-          {isShareListOpen && (
-            <div className="p-4 border-t border-gray-700 space-y-4">
-              {promotionsLoading ? (
-                 <div className="text-center text-gray-400">Loading campaigns...</div>
-              ) : sortedAvailablePromos.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 text-lg">No active campaigns available right now.</div>
-                </div>
-              ) : (
-                sortedAvailablePromos.map((promo) => {
-                  const timer = shareTimers[promo.id.toString()]
-                  const canShare = timer?.canShare ?? true
-
-                  return (
-                    <div
-                      key={promo.id}
-                      className="bg-[#181c23] p-4 rounded-lg border border-gray-700 flex flex-col gap-4"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 overflow-hidden pr-4">
-                          <p className="text-white font-semibold truncate">{promo.castUrl}</p>
-                          <p className="text-purple-300 text-sm">by @{promo.author.username}</p>
-                        </div>
-                        <div className="relative">
-                          <button
-                            onClick={() =>
-                              setOpenMenuId(openMenuId === promo.id.toString() ? null : promo.id.toString())
-                            }
-                            className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"
-                          >
-                            <FiMoreHorizontal size={20} />
-                          </button>
-                          {openMenuId === promo.id.toString() && (
-                            <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10">
-                              <button
-                                onClick={() => handleViewCast(promo.castUrl)}
-                                className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700"
-                              >
-                                <FiEye size={16} /> View Cast (In-App)
-                              </button>
+            <button onClick={() => setIsShareListOpen(!isShareListOpen)} className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors">
+                <FiShare2 className="text-purple-300 w-6" />
+                <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
+                <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
+            </button>
+            {isShareListOpen && (
+                <div className="p-4 border-t border-gray-700 space-y-4">
+                  {sortedAvailablePromos.length === 0 ? (
+                    <div className="text-center py-8"><div className="text-gray-400 text-lg">No other active campaigns right now.</div></div>
+                  ) : (
+                    sortedAvailablePromos.map((promo) => {
+                      const timerInfo = shareTimers[promo.id];
+                      const canShare = timerInfo?.canShare ?? true;
+                      return (
+                        <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700 flex flex-col gap-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 overflow-hidden pr-4">
+                              <p className="text-white font-semibold truncate">{promo.castUrl}</p><p className="text-purple-300 text-sm">by @{promo.author.username}</p>
                             </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
-                        <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
-                        <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
-                        <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
-                        <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
-                      </div>
-
-                      <div className="w-full bg-gray-700 rounded-full h-2.5">
-                        <div
-                          className="bg-gradient-to-r from-green-500 to-blue-500 h-2.5 rounded-full transition-all duration-500"
-                          style={{ width: `${calculateProgress(promo)}%` }}
-                        ></div>
-                      </div>
-
-                      <div>
-                        {!canShare && timer && (
-                          <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg mb-2">
-                            <FiClock size={16} />
-                            <span>{formatTimeRemaining(timer.timeRemaining)}</span>
+                            <div className="relative">
+                              <button onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={20} /></button>
+                              {openMenuId === promo.id && ( 
+                                <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> 
+                                  <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
+                                    <FiEye size={16} /> View Cast (In-App)
+                                  </button> 
+                                </div> 
+                              )}
+                            </div>
                           </div>
-                        )}
-                        <button
-                          onClick={() => handleSharePromo(promo)}
-                          disabled={
-                            sharingPromoId === promo.id.toString() ||
-                            !canShare ||
-                            promo.remainingBudget < promo.rewardPerShare
-                          }
-                          className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
-                        >
-                          {sharingPromoId === promo.id.toString() ? (
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          ) : (
-                            <FiShare2 size={18} />
-                          )}
-                          {sharingPromoId === promo.id.toString()
-                            ? "Processing..."
-                            : `Share & Earn ${promo.rewardPerShare} $CHESS`}
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          )}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
+                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
+                          </div>
+                          <div className="w-full bg-gray-700 rounded-full h-2.5">
+                            <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
+                          </div>
+                          <div>
+                            {!canShare && timerInfo && (
+                               <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg mb-2">
+                                 <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
+                               </div>
+                            )}
+                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                              {sharingPromoId === promo.id ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                              {sharingPromoId === promo.id ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+            )}
         </div>
         
         {showFundingForm && fundingPromo && (
-          <FundingForm
-            promotionId={fundingPromo.id}
-            totalBudget={fundingPromo.totalBudget}
-            rewardPerShare={fundingPromo.rewardPerShare}
-            castUrl={fundingPromo.castUrl}
-            shareText={fundingPromo.shareText || ""}
-            status={fundingPromo.status}
-            onSuccess={handleFundSuccess}
-            onCancel={handleFundCancel}
+          <FundingForm 
+            promotionId={Number(fundingPromo.id)} 
+            totalBudget={fundingPromo.totalBudget} 
+            rewardPerShare={fundingPromo.rewardPerShare} 
+            castUrl={fundingPromo.castUrl} 
+            shareText={fundingPromo.shareText || ""} 
+            status={fundingPromo.status} 
+            onSuccess={handleFundSuccess} 
+            onCancel={handleFundCancel} 
           />
         )}
-
+        
         <div className="mt-8 flex justify-center">
           <ConnectWalletButton />
         </div>
       </div>
     </div>
-  )
+  );
 }
