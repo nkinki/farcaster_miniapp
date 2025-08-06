@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
@@ -115,13 +115,12 @@ export default function PromotePage() {
       setLoading(false);
   }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
-  // JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó (profil) állapota megváltozik.
-  // Ez megszünteti a végtelen ciklust.
+  // VÉGLEGES JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó (profil) állapota megváltozik.
+  // Ez megszünteti a végtelen ciklust. A belső függvényhívások már nem függőségek.
   useEffect(() => {
     if (profile?.fid) {
       refreshAllData();
       const interval = setInterval(() => {
-        // Az intervalon belüli hívásoknak nem kell a függőségi listában lenniük.
         fetchShareTimers();
       }, 60000);
       return () => clearInterval(interval);
