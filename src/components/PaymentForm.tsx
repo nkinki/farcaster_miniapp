@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits, type Hash } from "viem";
-// JAVÍTÁS: Az új ABI-kat importáljuk
-import { treasuryDepositAddress, treasuryDepositABI } from "@/abis/treasuryDeposit";
-import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken"; // Győződj meg róla, hogy a chessToken.ts létezik az abis mappában
 
+// JAVÍTÁS: Pontos import útvonalak a képernyőfotód alapján
+import { treasuryDepositAddress, treasuryDepositABI } from "@/abis/treasuryDeposit";
+import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken";
 interface FarcasterUser {
   fid: number;
   username: string;
