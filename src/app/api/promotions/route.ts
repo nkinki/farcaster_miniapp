@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
+// Győződj meg róla, hogy a NEON_DB_URL be van állítva a Vercelen
 const sql = neon(process.env.NEON_DB_URL!);
 
 // Promóciók listázása
@@ -37,7 +38,9 @@ export async function POST(request: NextRequest) {
     if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget || !blockchainHash) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
+    
+    // JAVÍTÁS: A `VALUES (...)` helyett a `sql()` segédfüggvényt használjuk
+    // az `INSERT` parancshoz. Ez a helyes szintaxis a neon/postgres.js driverhez.
     const [newPromotion] = await sql`
       INSERT INTO promotions ${
         sql({
@@ -53,14 +56,14 @@ export async function POST(request: NextRequest) {
           blockchain_hash: blockchainHash,
         })
       }
-      RETURNING id;
+      RETURNING id, cast_url, created_at;
     `;
 
     return NextResponse.json({ success: true, promotion: newPromotion }, { status: 201 });
 
   } catch (error: any) {
     console.error('API Error in POST /api/promotions:', error);
-    if (error.code === '23505') { // PostgreSQL unique violation
+    if (error.code === '23505') { // PostgreSQL unique violation error code
         return NextResponse.json({ error: 'This promotion might already exist.' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Internal server error while saving promotion.' }, { status: 500 });
