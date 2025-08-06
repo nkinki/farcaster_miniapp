@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useAccount } from "wagmi"
-import { useChessToken } from "@/hooks/useChessToken"
-import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader } from "react-icons/fi"
+import { useState, useCallback } from "react";
+import { useAccount } from "wagmi";
+import { useChessToken } from "@/hooks/useChessToken";
+import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader } from "react-icons/fi";
 
 interface FarcasterUser {
-  fid: number
+  fid: number;
   username?: string;
   displayName?: string;
 }
@@ -20,32 +20,28 @@ interface UserProfileProps {
   onClaimSuccess: () => void;
 }
 
-// JAVÍTÁS: A komponens most már nem használja a bonyolult useFarcasterPromo hookot.
 const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
-  const { address } = useAccount()
-  const { balance, formatChessAmount } = useChessToken()
+  const { address } = useAccount();
+  const { balance, formatChessAmount } = useChessToken();
 
-  const [isClaiming, setIsClaiming] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  // A felvehető jutalom közvetlenül a DB-ből jön a userStats prop-on keresztül.
-  const pendingRewards = userStats.totalEarnings
-  const hasPendingRewards = pendingRewards > 0
+  // A JELENLEGI JUTALOM, amit a szülőtől kapunk
+  const pendingRewards = userStats.totalEarnings;
+  const hasPendingRewards = pendingRewards > 0;
 
-  // A "Claim" gomb logikája egy egyszerű API hívás a backend felé.
   const handleClaim = useCallback(async () => {
     if (!user.fid) {
-      setError("Farcaster user not found.")
-      return
+      setError("Farcaster user not found.");
+      return;
     }
-
-    setIsClaiming(true)
-    setError(null)
-    setSuccess(null)
+    setIsClaiming(true);
+    setError(null);
+    setSuccess(null);
 
     try {
-      // Az új, backend-alapú claim végpontot hívjuk.
       const response = await fetch("/api/claim-rewards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,7 +49,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.error || "Failed to claim rewards.");
       }
@@ -61,19 +56,24 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       const txHashShort = data.transactionHash ? `${data.transactionHash.slice(0, 6)}...${data.transactionHash.slice(-4)}` : '';
       setSuccess(`Claim successful! Tx: ${txHashShort}`);
       
-      // Szólunk a szülőnek (page.tsx), hogy frissítse az adatokat (pl. a userStats-ot).
-      onClaimSuccess();
+      // JAVÍTÁS: Ahelyett, hogy azonnal teljes adatfrissítést kérnénk,
+      // ami a replikációs késés miatt hibás lehet,
+      // először "optimistán" frissítjük a szülőt, hogy a jutalom 0.
+      // A teljes, lassabb frissítés ezután jön.
+      if (onClaimSuccess) {
+        onClaimSuccess(); // Ez fogja a page.tsx-ben a refreshAllData-t hívni
+      }
 
     } catch (err: any) {
       setError(err.message || "An unknown error occurred.");
     } finally {
-      setIsClaiming(false)
+      setIsClaiming(false);
       setTimeout(() => {
         setSuccess(null);
         setError(null);
       }, 7000);
     }
-  }, [user.fid, pendingRewards, onClaimSuccess]);
+  }, [user.fid, onClaimSuccess]);
 
   return (
     <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
@@ -83,9 +83,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">{user.displayName || user.username}</h2>
-          <p className="text-gray-400">
-            @{user.username} • FID: {user.fid}
-          </p>
+          <p className="text-gray-400">@{user.username} • FID: {user.fid}</p>
         </div>
       </div>
 
@@ -94,12 +92,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           <p className="text-sm text-gray-400 mb-2">Total Shares</p>
           <p className="text-lg font-bold text-white">{userStats.totalShares}</p>
         </div>
-        
         <div className="bg-[#181c23] p-4 rounded-lg text-center">
           <p className="text-sm text-gray-400 mb-2">Pending Rewards</p>
           <p className="text-lg font-bold text-white">{pendingRewards.toFixed(2)} $CHESS</p>
         </div>
-
         <div className="bg-[#181c23] p-4 rounded-lg text-center">
           <p className="text-sm text-gray-400 mb-2">Your Balance</p>
           <p className="text-lg font-bold text-white">{formatChessAmount(balance)} $CHESS</p>
@@ -115,7 +111,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           {isClaiming ? <FiLoader className="animate-spin" /> : <FiAward />}
           {isClaiming ? "Processing Claim..." : `Claim ${pendingRewards.toFixed(2)} $CHESS`}
         </button>
-        
         {error && (
           <div className="p-2 text-sm bg-red-900/50 text-red-300 rounded-md flex items-center gap-2">
             <FiX size={16} /> {error}
