@@ -1,18 +1,17 @@
-
 "use client"
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiFolder } from "react-icons/fi";
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
-import UserProfile, { UserProfileRef } from "@/components/UserProfile";
+import UserProfile, { type UserProfileRef } from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
-import { PromoCast, DatabasePromotion } from "@/types/promotions";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
+import { usePromotions } from "@/hooks/usePromotions";
+import type { PromoCast } from "@/types/promotions";
 
-// Típusok és helper függvények
 interface FarcasterUser {
   fid: number;
   username?: string;
@@ -20,21 +19,11 @@ interface FarcasterUser {
   pfpUrl?: string;
 }
 
-// JAVÍTÁS: A konvertáló függvényben a `remaining_budget`-et a helyes `remainingBudget`-re cseréljük.
-const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
-  id: dbPromo.id.toString(),
-  castUrl: dbPromo.cast_url,
-  author: { fid: dbPromo.fid, username: dbPromo.username, displayName: dbPromo.display_name || dbPromo.username },
-  rewardPerShare: dbPromo.reward_per_share,
-  totalBudget: dbPromo.total_budget,
-  sharesCount: dbPromo.shares_count,
-  remainingBudget: dbPromo.remaining_budget, // Helyes `camelCase` név
-  shareText: dbPromo.share_text || undefined,
-  createdAt: dbPromo.created_at,
-  status: dbPromo.status,
-  blockchainHash: dbPromo.blockchain_hash || undefined,
-  contractCampaignId: dbPromo.contract_campaign_id ?? undefined,
-});
+interface ShareTimer {
+  promotionId: number;
+  canShare: boolean;
+  timeRemaining: number;
+}
 
 const formatTimeRemaining = (hours: number): string => {
     if (hours <= 0) return "Ready to share";
@@ -43,27 +32,37 @@ const formatTimeRemaining = (hours: number): string => {
     return `${h}h ${m}m remaining`;
 };
 
-// JAVÍTÁS: A progress bar számításánál is a helyes `remainingBudget`-et használjuk.
 const calculateProgress = (promo: PromoCast): number => {
   if (promo.totalBudget === 0) return 0;
-  const spent = promo.totalBudget - promo.remainingBudget; // Helyes `camelCase` név
+  const spent = promo.totalBudget - promo.remainingBudget;
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
 export default function PromotePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
-  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showFundingForm, setShowFundingForm] = useState(false);
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null);
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
+  const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({});
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
   const userProfileRef = useRef<UserProfileRef>(null);
+
+  // A usePromotions hook használata az adatok lekérésére
+  const {
+    promotions: allPromotions,
+    loading: promotionsLoading,
+    refetch: refetchPromotions,
+  } = usePromotions({
+    limit: 50,
+    offset: 0,
+    status: "all",
+  });
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
@@ -71,7 +70,7 @@ export default function PromotePage() {
         setIsAuthenticated(true);
         setProfile(ctx.user as FarcasterUser);
       }
-    });
+    }).catch(err => console.error("Farcaster context error:", err));
   }, []);
 
   const currentUser = useMemo(() => {
@@ -81,30 +80,21 @@ export default function PromotePage() {
     return { fid: 0, username: "guest", displayName: "Guest" };
   }, [isAuthenticated, profile]);
 
+  // JAVÍTÁS: Az adatlekérő függvények stabil függőségekkel a `useCallback`-ben.
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
         const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
         if (response.ok) {
             const data = await response.json();
-            const timersMap = data.timers.reduce((acc: any, timer: any) => {
-                acc[timer.promotionId] = { canShare: timer.canShare, timeRemaining: timer.timeRemaining };
+            const timersMap = data.timers.reduce((acc: Record<string, ShareTimer>, timer: ShareTimer) => {
+                acc[timer.promotionId] = timer;
                 return acc;
             }, {});
             setShareTimers(timersMap);
         }
     } catch (error) { console.error("Failed to fetch share timers:", error); }
-  }, [currentUser]);
-  
-  const fetchPromotions = useCallback(async () => {
-    try {
-      const response = await fetch("/api/promotions?status=all");
-      if (response.ok) {
-        const data = await response.json();
-        setPromoCasts(data.promotions.map(convertDbToPromoCast));
-      }
-    } catch (error) { console.error("Error fetching promotions:", error); }
-  }, []);
+  }, [currentUser.fid]);
   
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return;
@@ -120,47 +110,44 @@ export default function PromotePage() {
         }
       }
     } catch (error) { console.error("Failed to fetch user stats:", error); }
-  }, [currentUser]);
+  }, [currentUser.fid]);
   
+  // JAVÍTÁS: A refreshAllData most már stabil függőségekkel rendelkezik, nem okoz végtelen ciklust.
   const refreshAllData = useCallback(async () => {
       setLoading(true);
-      await Promise.all([ fetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
+      await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
       setLoading(false);
-  }, [fetchPromotions, fetchUserStats, fetchShareTimers]);
+  }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
+  // JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó állapota változik.
   useEffect(() => {
     if (isAuthenticated && profile) {
       refreshAllData();
-      const interval = setInterval(fetchShareTimers, 60000);
+      const interval = setInterval(fetchShareTimers, 60000); // 1 percenként frissíti a timereket
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]);
+  }, [isAuthenticated, profile]); // Csak a ténylegesen változó dolgoktól függ.
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
   const handleCreateCancel = () => { setShowForm(false); };
   const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
-  
-  const handleClaimSuccess = () => {
-    refreshAllData();
-  };
 
   const handleViewCast = (castUrl: string) => {
     try {
       const urlParts = castUrl.split('/');
       const castHash = urlParts[urlParts.length - 1];
-      if (castHash && castHash.startsWith('0x')) { miniAppSdk.actions.viewCast({ hash: castHash }); } 
+      if (castHash && castHash.startsWith('0x')) { (miniAppSdk as any).actions.viewCast({ hash: castHash }); } 
       else { window.open(castUrl, '_blank'); }
     } catch (error) { window.open(castUrl, '_blank'); }
   };
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) return alert("Please connect your Farcaster account first.");
-    setSharingPromoId(promo.id);
+    setSharingPromoId(promo.id.toString());
     try {
-      const castResult = await miniAppSdk.actions.composeCast({ text: promo.shareText || `Check this out!`, embeds: [promo.castUrl] });
+      const castResult = await (miniAppSdk as any).actions.composeCast({ text: promo.shareText || `Check this out!`, embeds: [promo.castUrl] });
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
-        console.log("Cast was cancelled by user.");
         setSharingPromoId(null);
         return;
       }
@@ -176,31 +163,42 @@ export default function PromotePage() {
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      userProfileRef.current?.refreshPendingRewards();
-      refreshAllData();
+      // A UserProfile refetch hívása a wagmi cache frissítésére
+      if (userProfileRef.current) {
+        await userProfileRef.current.refetchRewards();
+      }
+      // Az összes többi adat frissítése
+      await refreshAllData();
 
     } catch (error) {
       console.error("Error during share process:", error);
-      alert(`Share failed: ${error instanceof Error ? error.message : "An unknown error occurred."}`);
+      setShareError(error instanceof Error ? error.message : "An unknown error occurred.");
     } finally {
       setSharingPromoId(null);
     }
   };
 
-  const myPromos = promoCasts.filter(p => p.author.fid === currentUser.fid);
-  const availablePromos = promoCasts.filter(p => p.status === 'active' && p.author.fid !== currentUser.fid);
+  const myPromos = allPromotions.filter(p => p.author.fid === currentUser.fid);
+  const availablePromos = allPromotions.filter(p => {
+    if (p.status !== 'active' || p.author.fid === currentUser.fid) return false;
+    if (p.remainingBudget < p.rewardPerShare) return false;
+    return true;
+  });
 
   const sortedAvailablePromos = useMemo(() => {
     return [...availablePromos].sort((a, b) => {
-      const canShareA = shareTimers[a.id]?.canShare ?? true;
-      const canShareB = shareTimers[b.id]?.canShare ?? true;
+      const timerA = shareTimers[a.id.toString()];
+      const timerB = shareTimers[b.id.toString()];
+      const canShareA = timerA?.canShare ?? true;
+      const canShareB = timerB?.canShare ?? true;
+
       if (canShareA && !canShareB) return -1;
       if (!canShareA && canShareB) return 1;
       return b.rewardPerShare - a.rewardPerShare;
     });
   }, [availablePromos, shareTimers]);
 
-  if (loading && !promoCasts.length) {
+  if (loading || (promotionsLoading && allPromotions.length === 0)) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
   }
 
@@ -220,16 +218,21 @@ export default function PromotePage() {
           </div>
         </div>
 
+        {shareError && (
+          <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
+            <FiAlertTriangle className="text-red-400" />
+            <span className="text-red-200">{shareError}</span>
+            <button onClick={() => setShareError(null)} className="ml-auto text-red-400 hover:text-red-200">
+              <FiX size={16} />
+            </button>
+          </div>
+        )}
+
         <div className="mb-4">
-          <UserProfile 
-            ref={userProfileRef}
-            userPromos={myPromos} 
-            userStats={userStats}
-            onClaimSuccess={handleClaimSuccess}
-          />
+          <UserProfile ref={userProfileRef} user={currentUser} />
         </div>
         
-        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setFundingPromo(promo); setShowFundingForm(true); }} />
+        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => setFundingPromo(promo)} />
         
         <div className="flex justify-center my-8">
             <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"><FiPlus size={20} />Create Promotion</button>
@@ -256,7 +259,7 @@ export default function PromotePage() {
                     <div className="text-center py-8"><div className="text-gray-400 text-lg">No other active campaigns right now.</div></div>
                   ) : (
                     sortedAvailablePromos.map((promo) => {
-                      const timerInfo = shareTimers[promo.id];
+                      const timerInfo = shareTimers[promo.id.toString()];
                       const canShare = timerInfo?.canShare ?? true;
                       return (
                         <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700 flex flex-col gap-4">
@@ -265,8 +268,8 @@ export default function PromotePage() {
                               <p className="text-white font-semibold truncate">{promo.castUrl}</p><p className="text-purple-300 text-sm">by @{promo.author.username}</p>
                             </div>
                             <div className="relative">
-                              <button onClick={() => setOpenMenuId(openMenuId === promo.id ? null : promo.id)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={20} /></button>
-                              {openMenuId === promo.id && ( 
+                              <button onClick={() => setOpenMenuId(openMenuId === promo.id.toString() ? null : promo.id.toString())} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={20} /></button>
+                              {openMenuId === promo.id.toString() && ( 
                                 <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> 
                                   <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
                                     <FiEye size={16} /> View Cast (In-App)
@@ -290,9 +293,9 @@ export default function PromotePage() {
                                  <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
                                </div>
                             )}
-                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
-                              {sharingPromoId === promo.id ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
-                              {sharingPromoId === promo.id ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
+                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                              {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                              {sharingPromoId === promo.id.toString() ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
                             </button>
                           </div>
                         </div>
@@ -305,7 +308,7 @@ export default function PromotePage() {
         
         {showFundingForm && fundingPromo && (
           <FundingForm 
-            promotionId={Number(fundingPromo.id)} 
+            promotionId={fundingPromo.id} 
             totalBudget={fundingPromo.totalBudget} 
             rewardPerShare={fundingPromo.rewardPerShare} 
             castUrl={fundingPromo.castUrl} 
