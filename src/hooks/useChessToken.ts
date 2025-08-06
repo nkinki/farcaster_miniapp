@@ -1,38 +1,27 @@
 "use client"
 
 import { useReadContract, useWriteContract, useAccount, useWaitForTransactionReceipt } from "wagmi"
-import { formatUnits } from 'viem'
-import { CONTRACTS } from "@/config/contracts"
+// JAVÍTÁS: Itt importáljuk a hiányzó `parseUnits` függvényt is.
+import { formatUnits, parseUnits } from 'viem'
 
-// JAVÍTÁS: A hibás, default importot lecseréljük a helyes, "named" importra.
-// Mostantól a címet és az ABI-t is innen vesszük.
+// JAVÍTÁS: A központi CONTRACTS import helyett mindent a saját ABI fájljából veszünk.
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken"
+import { treasuryDepositAddress } from "@/abis/treasuryDeposit"
 
 export function useChessToken() {
-  console.log("🔧 useChessToken hook initialized")
-
   const { address, isConnected } = useAccount()
-  console.log("👤 User address:", address, "Connected:", isConnected)
 
   const {
     data: decimals,
     error: decimalsError,
     isLoading: decimalsLoading,
   } = useReadContract({
-    // JAVÍTÁS: A központi CONTRACTS helyett a típus-biztos ABI fájlból vesszük a címet.
     address: CHESS_TOKEN_ADDRESS,
     abi: CHESS_TOKEN_ABI,
     functionName: "decimals",
   })
 
   const tokenDecimals = decimals ? Number(decimals) : 18
-  const decimalMultiplier = BigInt(10 ** tokenDecimals)
-
-  console.log("🔢 CHESS Token Decimals:", {
-    decimals: decimals?.toString(),
-    tokenDecimals,
-    decimalMultiplier: decimalMultiplier.toString(),
-  })
 
   const {
     data: balance,
@@ -58,16 +47,16 @@ export function useChessToken() {
     address: CHESS_TOKEN_ADDRESS,
     abi: CHESS_TOKEN_ABI,
     functionName: "allowance",
-    // Itt továbbra is a `CONTRACTS` objektumból vesszük a FarcasterPromo címet, ami rendben van.
-    args: address ? [address, CONTRACTS.FarcasterPromo as `0x${string}`] : undefined,
+    // JAVÍTÁS: Az `allowance`-t már az új TreasuryDeposit szerződésre ellenőrizzük!
+    args: address ? [address, treasuryDepositAddress] : undefined,
     query: {
-      enabled: !!address && isConnected && !!CONTRACTS.FarcasterPromo,
+      enabled: !!address && isConnected,
     },
   })
 
   const {
     data: approveHash,
-    writeContract: writeApprove,
+    writeContractAsync: writeApprove,
     isPending: isApproving,
     error: approveError,
     reset: resetApprove,
@@ -83,42 +72,40 @@ export function useChessToken() {
 
   const needsApproval = (amount: bigint) => {
     if (!allowance) return true 
-    const currentAllowance = BigInt(allowance.toString())
-    return currentAllowance < amount
+    return allowance < amount
   }
 
-  const approve = (spender: `0x${string}`, amount: bigint) => {
+  const approve = async (spender: `0x${string}`, amount: bigint) => {
     if (!address || !isConnected) {
       throw new Error("Wallet not connected")
     }
     resetApprove()
-    return writeApprove({
+    return await writeApprove({
       address: CHESS_TOKEN_ADDRESS,
       abi: CHESS_TOKEN_ABI,
       functionName: "approve",
       args: [spender, amount],
     })
   }
-
-  const approveFarcasterPromo = (amount: bigint) => {
-    if (!CONTRACTS.FarcasterPromo) {
-      throw new Error("FarcasterPromo contract address not configured")
-    }
-    return approve(CONTRACTS.FarcasterPromo as `0x${string}`, amount)
+  
+  // JAVÍTÁS: Ezt a segédfüggvényt is átnevezzük, hogy az új szerződésre utaljon.
+  const approveTreasuryDeposit = (amount: bigint) => {
+    return approve(treasuryDepositAddress, amount)
   }
 
   const formatChessAmount = (amount: bigint | undefined): string => {
     if (amount === undefined) return "0.00";
     const formatted = formatUnits(amount, tokenDecimals)
     return parseFloat(formatted).toLocaleString('en-US', {
-      minimumFractionDigits: 0,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })
   }
 
   const parseChessAmount = (amount: string | number): bigint => {
     const amountAsString = typeof amount === 'number' ? amount.toString() : amount;
-    return BigInt(parseUnits(amountAsString, tokenDecimals))
+    // Most már a `parseUnits` létezik és helyesen működik.
+    return parseUnits(amountAsString, tokenDecimals)
   }
 
   function safeBigInt(val: unknown): bigint {
@@ -137,7 +124,7 @@ export function useChessToken() {
     allowance: safeBigInt(allowance),
     decimals: tokenDecimals,
     approve,
-    approveFarcasterPromo,
+    approveTreasuryDeposit, // JAVÍTÁS: Az új nevet exportáljuk.
     isApproving,
     isApprovalConfirming,
     isApproveSuccess,
