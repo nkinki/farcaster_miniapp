@@ -1,45 +1,61 @@
-// FÁJL: /src/app/api/users/[fid]/route.ts
+// FÁJL: /src/app/api/promotions/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.NEON_DB_URL!);
-
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { fid: string } }
-) {
+if (!process.env.NEON_DB_URL) {
+  throw new Error('NEON_DB_URL environment variable is not set');
+}
+
+const sql = neon(process.env.NEON_DB_URL);
+
+// JAVÍTÁS: A problémás második argumentumot (`params`) teljesen eltávolítjuk.
+// Az `id`-t manuálisan olvassuk ki az URL-ből, ami minden környezetben működik.
+export async function GET(request: NextRequest) {
   try {
-    const fid = parseInt(params.fid, 10);
+    // 1. Kiolvassuk a teljes URL-t
+    const url = new URL(request.url);
+    // 2. Szétvágjuk az útvonalat a '/' mentén
+    const pathSegments = url.pathname.split('/');
+    // 3. A dinamikus `[id]` mindig az utolsó elem lesz az útvonalban
+    const idString = pathSegments[pathSegments.length - 1];
+
+    const id = parseInt(idString, 10);
     
-    if (isNaN(fid)) {
-      return NextResponse.json({ error: 'Invalid Farcaster ID' }, { status: 400 });
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: 'Invalid promotion ID in URL' },
+        { status: 400 }
+      );
     }
 
-    // JAVÍTÁS: A lekérdezést a `shares` táblára irányítjuk,
-    // és innen összegezzük (`SUM` és `COUNT`) a felhasználó adatait.
-    const [stats] = await sql`
-      SELECT
-        COALESCE(SUM(reward_amount), 0) AS total_earnings,
-        COUNT(*) AS total_shares
-      FROM 
-        shares
-      WHERE 
-        sharer_fid = ${fid};
+    const [promotion] = await sql`
+      SELECT * FROM promotions WHERE id = ${id};
     `;
 
-    return NextResponse.json({ 
-      user: {
-        fid: fid,
-        total_earnings: Number(stats.total_earnings), // A SUM eredménye
-        total_shares: Number(stats.total_shares)      // A COUNT eredménye
-      } 
-    }, { status: 200 });
+    if (!promotion) {
+      return NextResponse.json(
+        { error: 'Promotion not found' },
+        { status: 404 }
+      );
+    }
 
-  } catch (error: any) {
-    console.error(`API Error in GET /api/users/${params.fid}:`, error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ promotion });
+
+  } catch (error) {
+    console.error('API Error in GET /api/promotions/[id]:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-}
+}```
+
+### Összefoglalás
+
+*   **Mi változott?** A `GET` függvény definícióját leegyszerűsítettük, hogy csak a `request` argumentumot fogadja. A dinamikus `id`-t most már manuálisan, az URL "feldarabolásával" nyerjük ki.
+*   **Miért fog működni?** Mert ez a módszer kikerüli a TypeScript típus-ellenőrzési problémát, ami a build hibát okozta.
+
+Miután elmented ezt a fájlt, a build hibának meg kell szűnnie, és az alkalmazásodnak képesnek kell lennie betölteni a promóciók részletező oldalait is (ha vannak ilyenek).
