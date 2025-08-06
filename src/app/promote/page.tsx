@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
+// JAVÍTÁS: A UserProfileRef-et eltávolítottuk, mert az új modellben már nincs rá szükség.
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
@@ -109,23 +110,22 @@ export default function PromotePage() {
     } catch (error) { console.error("Failed to fetch user stats:", error); }
   }, [currentUser.fid]);
   
+  // JAVÍTÁS: A refreshAllData most már stabil függőségekkel rendelkezik.
   const refreshAllData = useCallback(async () => {
       setLoading(true);
       await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
       setLoading(false);
   }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
-  // VÉGLEGES JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó (profil) állapota megváltozik.
-  // Ez megszünteti a végtelen ciklust. A belső függvényhívások már nem függőségek.
+  // JAVÍTÁS: A fő useEffect függőségeit leegyszerűsítettük, hogy megszüntessük a végtelen ciklust.
   useEffect(() => {
-    if (profile?.fid) {
+    if (isAuthenticated && profile?.fid) {
       refreshAllData();
-      const interval = setInterval(() => {
-        fetchShareTimers();
-      }, 60000);
+      const interval = setInterval(fetchShareTimers, 60000);
       return () => clearInterval(interval);
     }
-  }, [profile, refreshAllData, fetchShareTimers]);
+  // A refreshAllData és a fetchShareTimers már nem függőségek, mert a useCallback stabilizálja őket.
+  }, [isAuthenticated, profile]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
@@ -161,6 +161,7 @@ export default function PromotePage() {
       if (!response.ok) { throw new Error(data.error || "Failed to record share on the backend."); }
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
+      
       await refreshAllData();
 
     } catch (error) {
@@ -305,7 +306,7 @@ export default function PromotePage() {
         
         {showFundingForm && fundingPromo && (
           <FundingForm 
-            promotionId={Number(fundingPromo.id)} 
+            promotionId={fundingPromo.id} 
             totalBudget={fundingPromo.totalBudget} 
             rewardPerShare={fundingPromo.rewardPerShare} 
             castUrl={fundingPromo.castUrl} 
