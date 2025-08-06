@@ -1,4 +1,5 @@
 // Script a signer wallet címének ellenőrzésére
+require('dotenv').config();
 const { createPublicClient, http } = require('viem');
 const { base } = require('viem/chains');
 

@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       abi: CHESS_TOKEN_ABI,
       functionName: 'balanceOf',
       args: [rewardsClaimAddress]
-    });
+    }) as bigint;
     
     console.log('Contract CHESS balance:', contractBalance.toString());
     
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         address: rewardsClaimAddress,
         abi: rewardsClaimABI,
         functionName: 'claim',
-        args: [testRecipient as `0x${string}`, testAmount, nonce, '0x1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234'],
+        args: [testRecipient as `0x${string}`, testAmount, '0x1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234'],
         account: testRecipient as `0x${string}`
       });
       

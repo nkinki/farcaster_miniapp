@@ -68,7 +68,26 @@ export async function POST(request: NextRequest) {
       nonce: nonce.toString(),
     });
   } catch (error: any) {
-    console.error('Signature generation error:', error.message);
-    return NextResponse.json({ error: 'Failed to generate claim signature' }, { status: 500 });
+    console.error('Signature generation error:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    // Részletesebb hibakezelés
+    let errorMessage = 'Failed to generate claim signature';
+    if (error.message.includes('BACKEND_WALLET_PRIVATE_KEY')) {
+      errorMessage = 'Backend wallet private key not configured';
+    } else if (error.message.includes('NEON_DB_URL')) {
+      errorMessage = 'Database connection not configured';
+    } else if (error.message.includes('NEYNAR_API_KEY')) {
+      errorMessage = 'Neynar API key not configured';
+    } else if (error.message.includes('No rewards to claim')) {
+      errorMessage = 'No rewards to claim for this user';
+    }
+    
+    return NextResponse.json({ 
+      error: errorMessage,
+      details: error.message,
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
