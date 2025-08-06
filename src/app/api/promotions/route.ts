@@ -3,10 +3,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-// Győződj meg róla, hogy a NEON_DB_URL be van állítva a Vercelen
 const sql = neon(process.env.NEON_DB_URL!);
 
-// Promóciók listázása
+// Promóciók listázása (ez a rész változatlan)
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -26,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Új promóció létrehozása
+// Új promóció létrehozása (JAVÍTOTT VERZIÓ)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -39,23 +38,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // JAVÍTÁS: A `VALUES (...)` helyett a `sql()` segédfüggvényt használjuk
-    // az `INSERT` parancshoz. Ez a helyes szintaxis a neon/postgres.js driverhez.
+    // JAVÍTÁS: Létrehozunk egy tiszta JavaScript objektumot a beillesztendő adatokkal.
+    const promotionData = {
+      fid: fid,
+      username: username,
+      display_name: displayName || null,
+      cast_url: castUrl,
+      share_text: shareText || null,
+      reward_per_share: rewardPerShare,
+      total_budget: totalBudget,
+      remaining_budget: totalBudget, // A keret kezdetben a teljes budget
+      status: 'active',
+      blockchain_hash: blockchainHash,
+    };
+
+    // JAVÍTÁS: Ez a `neon` driver helyes és típus-biztos szintaxisa egy objektum beillesztésére.
     const [newPromotion] = await sql`
-      INSERT INTO promotions ${
-        sql({
-          fid: fid,
-          username: username,
-          display_name: displayName || null,
-          cast_url: castUrl,
-          share_text: shareText || null,
-          reward_per_share: rewardPerShare,
-          total_budget: totalBudget,
-          remaining_budget: totalBudget, // A keret kezdetben a teljes budget
-          status: 'active',
-          blockchain_hash: blockchainHash,
-        })
-      }
+      INSERT INTO promotions ${sql(promotionData)}
       RETURNING id, cast_url, created_at;
     `;
 
