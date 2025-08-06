@@ -7,7 +7,7 @@ import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader } f
 
 interface FarcasterUser {
   fid: number
-  username?: string; // Legyenek opcionálisak
+  username?: string;
   displayName?: string;
 }
 
@@ -20,9 +20,7 @@ interface UserProfileProps {
   onClaimSuccess: () => void;
 }
 
-// JAVÍTÁS: A `forwardRef`-et és a `UserProfileRef`-et teljesen eltávolítottuk,
-// mert az új, egyszerűsített logikában már nincs rájuk szükség.
-// A komponens most egy sima, standard React komponens.
+// JAVÍTÁS: A komponens most már nem használja a bonyolult useFarcasterPromo hookot.
 const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const { address } = useAccount()
   const { balance, formatChessAmount } = useChessToken()
@@ -31,9 +29,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+  // A felvehető jutalom közvetlenül a DB-ből jön a userStats prop-on keresztül.
   const pendingRewards = userStats.totalEarnings
   const hasPendingRewards = pendingRewards > 0
 
+  // A "Claim" gomb logikája egy egyszerű API hívás a backend felé.
   const handleClaim = useCallback(async () => {
     if (!user.fid) {
       setError("Farcaster user not found.")
@@ -45,6 +45,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
     setSuccess(null)
 
     try {
+      // Az új, backend-alapú claim végpontot hívjuk.
       const response = await fetch("/api/claim-rewards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,9 +59,9 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       }
 
       const txHashShort = data.transactionHash ? `${data.transactionHash.slice(0, 6)}...${data.transactionHash.slice(-4)}` : '';
-      setSuccess(`Successfully claimed ${pendingRewards.toFixed(2)} $CHESS! Tx: ${txHashShort}`);
+      setSuccess(`Claim successful! Tx: ${txHashShort}`);
       
-      // Meghívjuk a szülőtől kapott függvényt, hogy frissítse az összes adatot az oldalon
+      // Szólunk a szülőnek (page.tsx), hogy frissítse az adatokat (pl. a userStats-ot).
       onClaimSuccess();
 
     } catch (err: any) {
@@ -70,7 +71,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setTimeout(() => {
         setSuccess(null);
         setError(null);
-      }, 7000); // Hagyjunk több időt az üzenet olvasására
+      }, 7000);
     }
   }, [user.fid, pendingRewards, onClaimSuccess]);
 
@@ -90,27 +91,18 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-[#181c23] p-4 rounded-lg text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <FiDollarSign className="text-green-400" />
-            <span className="text-sm text-gray-400">Total Shares</span>
-          </div>
+          <p className="text-sm text-gray-400 mb-2">Total Shares</p>
           <p className="text-lg font-bold text-white">{userStats.totalShares}</p>
         </div>
         
         <div className="bg-[#181c23] p-4 rounded-lg text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <FiTrendingUp className="text-purple-400" />
-            <span className="text-sm text-gray-400">Pending Rewards</span>
-          </div>
-          <p className="text-lg font-bold text-white">{pendingRewards.toFixed(2)}</p>
+          <p className="text-sm text-gray-400 mb-2">Pending Rewards</p>
+          <p className="text-lg font-bold text-white">{pendingRewards.toFixed(2)} $CHESS</p>
         </div>
 
         <div className="bg-[#181c23] p-4 rounded-lg text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <FiDollarSign className="text-green-400" />
-            <span className="text-sm text-gray-400">CHESS Balance</span>
-          </div>
-          <p className="text-lg font-bold text-white">{formatChessAmount(balance)}</p>
+          <p className="text-sm text-gray-400 mb-2">Your Balance</p>
+          <p className="text-lg font-bold text-white">{formatChessAmount(balance)} $CHESS</p>
         </div>
       </div>
 
@@ -137,7 +129,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       </div>
     </div>
   );
-}; // JAVÍTÁS: Itt záródik a komponens egy pontosvesszővel.
+};
 
 UserProfile.displayName = "UserProfile";
 
