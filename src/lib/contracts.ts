@@ -4,7 +4,7 @@ export const CHESS_TOKEN_ADDRESS = '0x47AF6bd390D03E266EB87cAb81Aa6988B65d5B07';
 
 // Importáld az ABI-kat a JSON fájlokból
 import FarcasterPromoAbi from '@/abis/FarcasterPromo.json';
-import ChessTokenAbi from '@/abis/ChessToken.json';
+import ChessTokenAbi from '@/abis/chessToken';
 
 export const PROMO_CONTRACT_ABI = FarcasterPromoAbi;
 export const CHESS_TOKEN_ABI = ChessTokenAbi;
