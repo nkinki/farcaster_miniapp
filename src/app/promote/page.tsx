@@ -51,7 +51,7 @@ export default function PromotePage() {
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
-  
+
   const {
     promotions: allPromotions,
     loading: promotionsLoading,
@@ -307,7 +307,6 @@ export default function PromotePage() {
             rewardPerShare={fundingPromo.rewardPerShare} 
             castUrl={fundingPromo.castUrl} 
             shareText={fundingPromo.shareText || ""} 
-            // JAVÍTÁS: Itt a helyes `fundingPromo` változót használjuk.
             status={fundingPromo.status} 
             onSuccess={handleFundSuccess} 
             onCancel={handleFundCancel} 
