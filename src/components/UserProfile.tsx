@@ -7,23 +7,22 @@ import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader } f
 
 interface FarcasterUser {
   fid: number
-  username: string
-  displayName: string
+  username?: string; // Legyenek opcionálisak
+  displayName?: string;
 }
 
 interface UserProfileProps {
   user: FarcasterUser;
-  // JAVÍTÁS: Prop-ként kapja meg a szülőtől a DB-ből származó statisztikákat
   userStats: {
     totalEarnings: number;
     totalShares: number;
   };
-  // JAVÍTÁS: Prop-ként kap egy függvényt a szülőtől az adatok újratöltéséhez
   onClaimSuccess: () => void;
 }
 
-// JAVÍTÁS: Az `UserProfileRef`-re már nincs szükség ebben az egyszerűsített modellben.
-
+// JAVÍTÁS: A `forwardRef`-et és a `UserProfileRef`-et teljesen eltávolítottuk,
+// mert az új, egyszerűsített logikában már nincs rájuk szükség.
+// A komponens most egy sima, standard React komponens.
 const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const { address } = useAccount()
   const { balance, formatChessAmount } = useChessToken()
@@ -58,7 +57,9 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         throw new Error(data.error || "Failed to claim rewards.");
       }
 
-      setSuccess(`Successfully claimed ${pendingRewards} $CHESS! Transaction: ${data.transactionHash.slice(0, 10)}...`);
+      const txHashShort = data.transactionHash ? `${data.transactionHash.slice(0, 6)}...${data.transactionHash.slice(-4)}` : '';
+      setSuccess(`Successfully claimed ${pendingRewards.toFixed(2)} $CHESS! Tx: ${txHashShort}`);
+      
       // Meghívjuk a szülőtől kapott függvényt, hogy frissítse az összes adatot az oldalon
       onClaimSuccess();
 
@@ -66,11 +67,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setError(err.message || "An unknown error occurred.");
     } finally {
       setIsClaiming(false)
-      // Az üzenet eltüntetése 5 másodperc után
       setTimeout(() => {
         setSuccess(null);
         setError(null);
-      }, 5000);
+      }, 7000); // Hagyjunk több időt az üzenet olvasására
     }
   }, [user.fid, pendingRewards, onClaimSuccess]);
 
@@ -81,7 +81,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           <FiUser className="text-white text-xl" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">{user.displayName}</h2>
+          <h2 className="text-xl font-bold text-white">{user.displayName || user.username}</h2>
           <p className="text-gray-400">
             @{user.username} • FID: {user.fid}
           </p>
@@ -114,22 +114,16 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         </div>
       </div>
 
-      {/* Claim Gomb */}
       <div className="space-y-2">
         <button
           onClick={handleClaim}
           disabled={isClaiming || !hasPendingRewards || !address}
           className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isClaiming ? (
-            <FiLoader className="animate-spin" />
-          ) : (
-            <FiAward />
-          )}
+          {isClaiming ? <FiLoader className="animate-spin" /> : <FiAward />}
           {isClaiming ? "Processing Claim..." : `Claim ${pendingRewards.toFixed(2)} $CHESS`}
         </button>
         
-        {/* Hiba- és sikerüzenetek */}
         {error && (
           <div className="p-2 text-sm bg-red-900/50 text-red-300 rounded-md flex items-center gap-2">
             <FiX size={16} /> {error}
@@ -141,11 +135,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           </div>
         )}
       </div>
-
     </div>
-  )
-})
+  );
+}; // JAVÍTÁS: Itt záródik a komponens egy pontosvesszővel.
 
-UserProfile.displayName = "UserProfile"
+UserProfile.displayName = "UserProfile";
 
-export default UserProfile
+export default UserProfile;
