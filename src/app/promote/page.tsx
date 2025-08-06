@@ -4,14 +4,13 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
-// JAVÍTÁS: A UserProfileRef-et eltávolítottuk, mert az új modellben már nincs rá szükség.
-import UserProfile from "@/components/UserProfile";
+// FONTOS: Győződj meg róla, hogy a UserProfile komponensed újra exportálja a UserProfileRef típust!
+import UserProfile, { type UserProfileRef } from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
-import { usePromotions } from "@/hooks/usePromotions";
-import type { PromoCast } from "@/types/promotions";
+import { PromoCast, DatabasePromotion } from "@/types/promotions";
 
 interface FarcasterUser {
   fid: number;
@@ -20,11 +19,20 @@ interface FarcasterUser {
   pfpUrl?: string;
 }
 
-interface ShareTimer {
-  promotionId: number;
-  canShare: boolean;
-  timeRemaining: number;
-}
+const convertDbToPromoCast = (dbPromo: DatabasePromotion): PromoCast => ({
+  id: dbPromo.id.toString(),
+  castUrl: dbPromo.cast_url,
+  author: { fid: dbPromo.fid, username: dbPromo.username, displayName: dbPromo.display_name || dbPromo.username },
+  rewardPerShare: dbPromo.reward_per_share,
+  totalBudget: dbPromo.total_budget,
+  sharesCount: dbPromo.shares_count,
+  remainingBudget: dbPromo.remaining_budget,
+  shareText: dbPromo.share_text || undefined,
+  createdAt: dbPromo.created_at,
+  status: dbPromo.status,
+  blockchainHash: dbPromo.blockchain_hash || undefined,
+  contractCampaignId: dbPromo.contract_campaign_id ?? undefined,
+});
 
 const formatTimeRemaining = (hours: number): string => {
     if (hours <= 0) return "Ready to share";
@@ -42,26 +50,18 @@ const calculateProgress = (promo: PromoCast): number => {
 export default function PromotePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
+  const [promoCasts, setPromoCasts] = useState<PromoCast[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showFundingForm, setShowFundingForm] = useState(false);
   const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null);
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({});
+  const [shareTimers, setShareTimers] = useState<Record<string, { canShare: boolean; timeRemaining: number }>>({});
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
-
-  const {
-    promotions: allPromotions,
-    loading: promotionsLoading,
-    refetch: refetchPromotions,
-  } = usePromotions({
-    limit: 50,
-    offset: 0,
-    status: "all",
-  });
+  const userProfileRef = useRef<UserProfileRef>(null);
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
@@ -69,7 +69,7 @@ export default function PromotePage() {
         setIsAuthenticated(true);
         setProfile(ctx.user as FarcasterUser);
       }
-    }).catch(err => console.error("Farcaster context error:", err));
+    });
   }, []);
 
   const currentUser = useMemo(() => {
@@ -85,14 +85,24 @@ export default function PromotePage() {
         const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
         if (response.ok) {
             const data = await response.json();
-            const timersMap = data.timers.reduce((acc: Record<string, ShareTimer>, timer: ShareTimer) => {
-                acc[timer.promotionId.toString()] = timer;
+            const timersMap = data.timers.reduce((acc: any, timer: any) => {
+                acc[timer.promotionId.toString()] = { canShare: timer.canShare, timeRemaining: timer.timeRemaining };
                 return acc;
             }, {});
             setShareTimers(timersMap);
         }
     } catch (error) { console.error("Failed to fetch share timers:", error); }
   }, [currentUser.fid]);
+  
+  const fetchPromotions = useCallback(async () => {
+    try {
+      const response = await fetch("/api/promotions?status=all");
+      if (response.ok) {
+        const data = await response.json();
+        setPromoCasts(data.promotions.map(convertDbToPromoCast));
+      }
+    } catch (error) { console.error("Error fetching promotions:", error); }
+  }, []);
   
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return;
@@ -110,27 +120,29 @@ export default function PromotePage() {
     } catch (error) { console.error("Failed to fetch user stats:", error); }
   }, [currentUser.fid]);
   
-  // JAVÍTÁS: A refreshAllData most már stabil függőségekkel rendelkezik.
   const refreshAllData = useCallback(async () => {
       setLoading(true);
-      await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
+      await Promise.all([ fetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
       setLoading(false);
-  }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
+  }, [fetchPromotions, fetchUserStats, fetchShareTimers]);
 
-  // JAVÍTÁS: A fő useEffect függőségeit leegyszerűsítettük, hogy megszüntessük a végtelen ciklust.
+  // JAVÍTÁS: Ez a stabil useEffect, ami nem okoz végtelen ciklust.
   useEffect(() => {
-    if (isAuthenticated && profile?.fid) {
+    if (isAuthenticated && profile) {
       refreshAllData();
       const interval = setInterval(fetchShareTimers, 60000);
       return () => clearInterval(interval);
     }
-  // A refreshAllData és a fetchShareTimers már nem függőségek, mert a useCallback stabilizálja őket.
-  }, [isAuthenticated, profile]);
+  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
   const handleCreateCancel = () => { setShowForm(false); };
   const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
+  
+  const handleClaimSuccess = () => {
+    refreshAllData();
+  };
 
   const handleViewCast = (castUrl: string) => {
     try {
@@ -147,6 +159,7 @@ export default function PromotePage() {
     try {
       const castResult = await (miniAppSdk as any).actions.composeCast({ text: promo.shareText || `Check this out!`, embeds: [promo.castUrl] });
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
+        console.log("Cast was cancelled by user.");
         setSharingPromoId(null);
         return;
       }
@@ -162,6 +175,9 @@ export default function PromotePage() {
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
+      if (userProfileRef.current) {
+        await userProfileRef.current.refetchRewards(); // Vagy a helyes név, amit a UserProfile exportál
+      }
       await refreshAllData();
 
     } catch (error) {
@@ -172,27 +188,20 @@ export default function PromotePage() {
     }
   };
 
-  const myPromos = allPromotions.filter(p => p.author.fid === currentUser.fid);
-  const availablePromos = allPromotions.filter(p => {
-    if (p.status !== 'active' || p.author.fid === currentUser.fid) return false;
-    if (p.remainingBudget < p.rewardPerShare) return false;
-    return true;
-  });
+  const myPromos = promoCasts.filter(p => p.author.fid === currentUser.fid);
+  const availablePromos = promoCasts.filter(p => p.status === 'active' && p.author.fid !== currentUser.fid);
 
   const sortedAvailablePromos = useMemo(() => {
     return [...availablePromos].sort((a, b) => {
-      const timerA = shareTimers[a.id.toString()];
-      const timerB = shareTimers[b.id.toString()];
-      const canShareA = timerA?.canShare ?? true;
-      const canShareB = timerB?.canShare ?? true;
-
+      const canShareA = shareTimers[a.id.toString()]?.canShare ?? true;
+      const canShareB = shareTimers[b.id.toString()]?.canShare ?? true;
       if (canShareA && !canShareB) return -1;
       if (!canShareA && canShareB) return 1;
       return b.rewardPerShare - a.rewardPerShare;
     });
   }, [availablePromos, shareTimers]);
 
-  if (loading || (promotionsLoading && allPromotions.length === 0)) {
+  if (loading && !promoCasts.length) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
   }
 
@@ -223,10 +232,11 @@ export default function PromotePage() {
         )}
 
         <div className="mb-4">
-          <UserProfile
-            user={currentUser}
-            userStats={userStats}
-            onClaimSuccess={refreshAllData}
+          <UserProfile 
+            ref={userProfileRef}
+            user={currentUser} // Az új UserProfile ezt a propot várja
+            userStats={userStats} // Az új UserProfile ezt a propot is várja
+            onClaimSuccess={handleClaimSuccess}
           />
         </div>
         
@@ -306,7 +316,7 @@ export default function PromotePage() {
         
         {showFundingForm && fundingPromo && (
           <FundingForm 
-            promotionId={fundingPromo.id} 
+            promotionId={Number(fundingPromo.id)} 
             totalBudget={fundingPromo.totalBudget} 
             rewardPerShare={fundingPromo.rewardPerShare} 
             castUrl={fundingPromo.castUrl} 
