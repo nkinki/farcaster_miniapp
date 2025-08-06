@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
-// JAVÍTÁS: A UserProfileRef-et eltávolítottuk, mert az új, egyszerűsített modellben már nincs rá szükség.
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
@@ -12,7 +11,6 @@ import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import { usePromotions } from "@/hooks/usePromotions";
 import type { PromoCast } from "@/types/promotions";
-import { useChessToken } from "@/hooks/useChessToken";
 
 interface FarcasterUser {
   fid: number;
@@ -117,15 +115,13 @@ export default function PromotePage() {
       setLoading(false);
   }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
-  // JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó állapota változik.
-  // A refreshAllData és a fetchShareTimers már nem függőségek, mert a useCallback stabilizálja őket.
   useEffect(() => {
     if (isAuthenticated && profile?.fid) {
       refreshAllData();
       const interval = setInterval(fetchShareTimers, 60000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile]);
+  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
@@ -162,7 +158,6 @@ export default function PromotePage() {
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      // A refreshAllData hívás most már mindent frissít.
       await refreshAllData();
 
     } catch (error) {
@@ -312,7 +307,8 @@ export default function PromotePage() {
             rewardPerShare={fundingPromo.rewardPerShare} 
             castUrl={fundingPromo.castUrl} 
             shareText={fundingPromo.shareText || ""} 
-            status={promo.status} 
+            // JAVÍTÁS: Itt a helyes `fundingPromo` változót használjuk.
+            status={fundingPromo.status} 
             onSuccess={handleFundSuccess} 
             onCancel={handleFundCancel} 
           />
