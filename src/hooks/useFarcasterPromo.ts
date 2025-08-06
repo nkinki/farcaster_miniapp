@@ -2,7 +2,8 @@
 
 import { useReadContract, useWriteContract, useAccount, useWaitForTransactionReceipt } from "wagmi"
 import { CONTRACTS } from "../config/contracts"
-import FARCASTER_PROMO_ABI from "../abis/FarcasterPromo.json"
+// EZ A HELYES IMPORT:
+import { PROMO_CONTRACT_ADDRESS, PROMO_CONTRACT_ABI } from "@/abis/farcasterPromo";
 
 export function useFarcasterPromo() {
   const { address, isConnected } = useAccount()
