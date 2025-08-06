@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Nonce lekérdezése (DailyReward esetén 0, mert nincs nonce rendszer)
-    let nonce: bigint = 0n;
+    let nonce: bigint = BigInt(0);
     
     if (!isDailyReward) {
       // Csak RewardsClaim esetén kérdezzük le a nonce-t
