@@ -53,7 +53,14 @@ export async function POST(request: NextRequest) {
     };
     const message = { recipient: recipientAddress, amount: amountInWei, nonce: nonce };
 
+    console.log('Signing data:', { domain, types, message });
+    console.log('Signer address:', signerAccount.address);
+    
     const signature = await signerAccount.signTypedData({ domain, types, primaryType: 'Claim', message });
+
+    console.log('Generated signature:', signature);
+    console.log('Amount in wei:', amountInWei.toString());
+    console.log('Nonce:', nonce.toString());
 
     return NextResponse.json({ 
       signature,

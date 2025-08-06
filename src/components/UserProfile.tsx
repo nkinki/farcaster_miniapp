@@ -63,6 +63,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
     setSuccess(null);
 
     try {
+      // Először lekérjük a claim adatokat
       const sigResponse = await fetch("/api/generate-claim-signature", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,19 +72,38 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       const sigData = await sigResponse.json();
       if (!sigResponse.ok) throw new Error(sigData.error || "Could not get claim signature.");
 
-      const { signature, amount } = sigData;
+      const { signature, amount, nonce } = sigData;
 
       const hash = await writeContractAsync({
           address: rewardsClaimAddress,
           abi: rewardsClaimABI,
           functionName: 'claim',
           args: [address, BigInt(amount), signature],
+          gas: BigInt(200000), // Explicit gas limit beállítása
       });
       setClaimTxHash(hash);
       setSuccess("Claim transaction sent! Waiting for confirmation...");
 
     } catch (err: any) {
-      setError(err.shortMessage || err.message || "An unknown error occurred.");
+      console.error('Claim error:', err);
+      let errorMessage = "An unknown error occurred.";
+      
+      if (err.shortMessage) {
+        errorMessage = err.shortMessage;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      // Specifikus gas fee hibák kezelése
+      if (err.message?.includes('insufficient funds') || err.message?.includes('gas')) {
+        errorMessage = "Insufficient funds for gas fee. Please ensure you have enough ETH in your wallet.";
+      }
+      
+      if (err.message?.includes('execution reverted')) {
+        errorMessage = "Transaction failed. The contract may not have enough tokens or there's an issue with the signature.";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsClaiming(false);
     }
