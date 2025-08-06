@@ -27,8 +27,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 1. ADATBÁZIS ELLENŐRZÉS (Tranzakción kívül)
-    // Először csak olvassuk az adatot, hogy van-e mit csinálni.
     const [userStats] = await sql`
         SELECT COALESCE(SUM(reward_amount), 0) as total_earnings
         FROM shares WHERE sharer_fid = ${fid}
@@ -39,7 +37,6 @@ export async function POST(request: NextRequest) {
       throw new Error('No rewards to claim.');
     }
 
-    // 2. CÍM LEKÉRDEZÉSE
     const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
         headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
     });
@@ -52,7 +49,6 @@ export async function POST(request: NextRequest) {
       throw new Error(`Could not find a valid wallet for FID ${fid}.`);
     }
 
-    // 3. ON-CHAIN TRANZAKCIÓ INDÍTÁSA
     console.log(`Sending ${amountToClaim} CHESS to ${recipientAddress} for FID ${fid}`);
     const amountInWei = parseUnits(amountToClaim.toString(), 18);
 
@@ -71,9 +67,11 @@ export async function POST(request: NextRequest) {
         throw new Error('On-chain transfer transaction failed.');
     }
 
-    // 4. ADATBÁZIS FRISSÍTÉSE (Csak sikeres on-chain tranzakció után)
-    // Most már biztonságosan törölhetjük a sorokat.
-    const { rowCount } = await sql`DELETE FROM shares WHERE sharer_fid = ${fid}`;
+    // JAVÍTÁS: A `DELETE` parancsot kiegészítjük a `RETURNING *`-gal,
+    // és az eredményül kapott tömb hosszát használjuk a törölt sorok számaként.
+    const deletedShares = await sql`DELETE FROM shares WHERE sharer_fid = ${fid} RETURNING *`;
+    const rowCount = deletedShares.length;
+    
     console.log(`Deleted ${rowCount} share entries for FID ${fid}.`);
     
     // Opcionális: a kifizetés rögzítése egy `payouts` táblában
