@@ -15,34 +15,65 @@ const publicClient = createPublicClient({ chain: base, transport: http() });
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { fid, recipientAddress } = body;
+  const { fid, recipientAddress, contractAddress, amount: fixedAmount } = body;
 
   if (!fid || !recipientAddress || !isAddress(recipientAddress)) {
     return NextResponse.json({ error: 'FID and a valid recipient address are required' }, { status: 400 });
   }
 
+  // DailyReward szerződés támogatása
+  const isDailyReward = contractAddress === '0xa5c59fb76f3e2012dfd572739b9d5516034f1ff8';
+  console.log('Contract type:', isDailyReward ? 'DailyReward' : 'RewardsClaim');
+
   try {
-    const [userStats] = await sql`
-      SELECT COALESCE(SUM(reward_amount), 0) as total_earnings
-      FROM shares WHERE sharer_fid = ${fid}
-    `;
-    const amountToClaim = Number(userStats.total_earnings);
-    if (amountToClaim <= 0) {
-      throw new Error('No rewards to claim.');
+    let amountToClaim: number;
+    let amountInWei: bigint;
+
+    if (isDailyReward) {
+      // DailyReward: fix 10,000 CHESS
+      amountToClaim = fixedAmount ? Number(fixedAmount) : 10000;
+      amountInWei = parseUnits(amountToClaim.toString(), 18);
+      console.log('DailyReward amount:', amountToClaim, 'CHESS');
+    } else {
+      // RewardsClaim: adatbázisból lekérdezett összeg
+      const [userStats] = await sql`
+        SELECT COALESCE(SUM(reward_amount), 0) as total_earnings
+        FROM shares WHERE sharer_fid = ${fid}
+      `;
+      amountToClaim = Number(userStats.total_earnings);
+      if (amountToClaim <= 0) {
+        throw new Error('No rewards to claim.');
+      }
+      amountInWei = parseUnits(amountToClaim.toString(), 18);
+      console.log('RewardsClaim amount:', amountToClaim, 'CHESS');
     }
-    const amountInWei = parseUnits(amountToClaim.toString(), 18);
 
-    // Aktuális nonce lekérdezése a szerződésből
-    const nonce = await publicClient.readContract({
-        address: rewardsClaimAddress,
-        abi: rewardsClaimABI,
-        functionName: 'nonces',
-        args: [recipientAddress as `0x${string}`]
-    }) as bigint;
+    // Nonce lekérdezése (DailyReward esetén 0, mert nincs nonce rendszer)
+    let nonce: bigint = 0n;
+    
+    if (!isDailyReward) {
+      // Csak RewardsClaim esetén kérdezzük le a nonce-t
+      nonce = await publicClient.readContract({
+          address: rewardsClaimAddress,
+          abi: rewardsClaimABI,
+          functionName: 'nonces',
+          args: [recipientAddress as `0x${string}`]
+      }) as bigint;
+    }
+    
+    console.log('Nonce:', nonce.toString());
 
-    const domain = {
-      name: 'RewardsClaim', version: '1',
-      chainId: 8453, verifyingContract: rewardsClaimAddress,
+    // Domain beállítása a szerződés típusa alapján
+    const domain = isDailyReward ? {
+      name: 'DailyReward', 
+      version: '1',
+      chainId: 8453, 
+      verifyingContract: contractAddress as `0x${string}`,
+    } : {
+      name: 'RewardsClaim', 
+      version: '1',
+      chainId: 8453, 
+      verifyingContract: rewardsClaimAddress,
     };
     const types = {
       Claim: [
