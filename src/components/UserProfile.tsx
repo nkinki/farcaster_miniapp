@@ -1,13 +1,11 @@
-// FÁJL: /src/components/UserProfile.tsx
-
 "use client"
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useChessToken } from "@/hooks/useChessToken";
 import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader } from "react-icons/fi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { rewardsClaimAddress, rewardsClaimABI } from "@/abis/rewardsClaim";
+import { rewardsClaimAddress, rewardsClaimABI } from "@/abis/rewardsClaim"; // Győződj meg róla, hogy az útvonal helyes
 import type { Hash } from "viem";
 
 interface FarcasterUser {
@@ -29,19 +27,28 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const { address } = useAccount();
   const { balance, formatChessAmount } = useChessToken();
   
-  const [isClaiming, setIsClaiming] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false); // Amíg az API-tól várjuk az aláírást
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
   const [claimTxHash, setClaimTxHash] = useState<Hash | undefined>();
   const { writeContractAsync } = useWriteContract();
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ 
+
+  // JAVÍTÁS: A `useWaitForTransactionReceipt` hooknak nincs `onSuccess` callbackje.
+  // Ehelyett a `isSuccess` változót figyeljük egy külön `useEffect`-ben.
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ 
     hash: claimTxHash,
-    onSuccess: () => {
-        setSuccess("Transaction confirmed! Your rewards are on the way.");
-        onClaimSuccess(); // Adatok újratöltése
-    }
   });
+
+  // JAVÍTÁS: Ez a `useEffect` fut le, amikor a tranzakció sikeresen megerősítésre kerül.
+  useEffect(() => {
+    if (isSuccess) {
+      setSuccess("Transaction confirmed! Your rewards are on the way.");
+      onClaimSuccess(); // Adatok újratöltése
+      // Reseteljük a tranzakció hash-t, hogy ne fusson le újra a useEffect
+      setClaimTxHash(undefined); 
+    }
+  }, [isSuccess, onClaimSuccess]);
 
   const pendingRewards = userStats.totalEarnings;
   const hasPendingRewards = pendingRewards > 0;
@@ -56,7 +63,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
     setSuccess(null);
 
     try {
-      // 1. Aláírás kérése a backendtől
       const sigResponse = await fetch("/api/generate-claim-signature", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,9 +71,8 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       const sigData = await sigResponse.json();
       if (!sigResponse.ok) throw new Error(sigData.error || "Could not get claim signature.");
 
-      const { signature, amount, nonce } = sigData;
+      const { signature, amount } = sigData;
 
-      // 2. A smart contract `claim` függvényének meghívása az aláírással
       const hash = await writeContractAsync({
           address: rewardsClaimAddress,
           abi: rewardsClaimABI,
@@ -77,13 +82,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setClaimTxHash(hash);
       setSuccess("Claim transaction sent! Waiting for confirmation...");
 
-      // A `useWaitForTransactionReceipt` `onSuccess` callback-je fogja a többit intézni.
-
     } catch (err: any) {
       setError(err.shortMessage || err.message || "An unknown error occurred.");
+    } finally {
       setIsClaiming(false);
-    } 
-    // A `finally` blokk itt nem kell, mert a `isConfirming` kezeli a betöltést
+    }
   }, [user.fid, address, writeContractAsync, onClaimSuccess]);
 
   const isLoading = isClaiming || isConfirming;
