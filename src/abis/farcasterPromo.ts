@@ -1,4 +1,8 @@
-[
+// Fájl: /src/abis/farcasterPromo.ts
+
+export const PROMO_CONTRACT_ADDRESS = '0xeca8a11700476863a976b841dc32e351acf6ed1f' as const;
+
+export const PROMO_CONTRACT_ABI = [
 	{
 		"inputs": [
 			{
@@ -426,4 +430,4 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-]
+] as const;
