@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
-// JAVÍTÁS: A UserProfileRef importot eltávolítottuk, mert az új modellben nincs rá szükség.
+// JAVÍTÁS: A UserProfileRef-et eltávolítottuk, mert az új, egyszerűsített modellben már nincs rá szükség.
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
@@ -54,9 +54,6 @@ export default function PromotePage() {
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
   
-  // JAVÍTÁS: A useRef-re már nincs szükség a UserProfile-hoz.
-  // const userProfileRef = useRef<UserProfileRef>(null);
-
   const {
     promotions: allPromotions,
     loading: promotionsLoading,
@@ -66,8 +63,6 @@ export default function PromotePage() {
     offset: 0,
     status: "all",
   });
-
-  const { decimalsError, balanceError } = useChessToken();
 
   useEffect(() => {
     miniAppSdk.context.then(ctx => {
@@ -116,21 +111,21 @@ export default function PromotePage() {
     } catch (error) { console.error("Failed to fetch user stats:", error); }
   }, [currentUser.fid]);
   
-  // JAVÍTÁS: A refreshAllData most már stabil függőségekkel rendelkezik.
   const refreshAllData = useCallback(async () => {
       setLoading(true);
       await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
       setLoading(false);
   }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
-  // JAVÍTÁS: A fő useEffect most már stabil függőségekre támaszkodik, megszüntetve a ciklust.
+  // JAVÍTÁS: A fő useEffect most már csak akkor fut le, ha a felhasználó állapota változik.
+  // A refreshAllData és a fetchShareTimers már nem függőségek, mert a useCallback stabilizálja őket.
   useEffect(() => {
     if (isAuthenticated && profile?.fid) {
       refreshAllData();
       const interval = setInterval(fetchShareTimers, 60000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers]);
+  }, [isAuthenticated, profile]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
   const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
@@ -167,7 +162,7 @@ export default function PromotePage() {
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      // JAVÍTÁS: A `refreshAllData` hívás most már minden szükséges frissítést elvégez.
+      // A refreshAllData hívás most már mindent frissít.
       await refreshAllData();
 
     } catch (error) {
@@ -227,16 +222,8 @@ export default function PromotePage() {
             </button>
           </div>
         )}
-        
-        {(decimalsError || balanceError) && (
-          <div className="mb-4 p-4 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
-            <FiAlertTriangle className="text-red-400" />
-            <span className="text-red-200">Error: Could not load CHESS token data. Please try again later.</span>
-          </div>
-        )}
 
         <div className="mb-4">
-          {/* JAVÍTÁS: A ref-et eltávolítottuk, és átadjuk a szükséges propokat */}
           <UserProfile
             user={currentUser}
             userStats={userStats}
@@ -325,7 +312,7 @@ export default function PromotePage() {
             rewardPerShare={fundingPromo.rewardPerShare} 
             castUrl={fundingPromo.castUrl} 
             shareText={fundingPromo.shareText || ""} 
-            status={fundingPromo.status} 
+            status={promo.status} 
             onSuccess={handleFundSuccess} 
             onCancel={handleFundCancel} 
           />
