@@ -17,40 +17,33 @@ interface UserProfileProps {
 }
 
 export interface UserProfileRef {
-  refetchRewards: () => void
-  claimAllRewards: () => Promise<void>
-  getTotalPendingRewards: () => bigint
-  getCampaignCount: () => number
+  refetchRewards: () => void;
 }
 
-type ClaimMode = "auto" | "batch" | "single"
+type ClaimMode = "auto" | "batch"; // JAVÍTÁS: A 'single' módot eltávolítottuk
 
 const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref) => {
   const { address } = useAccount()
   const { balance, formatChessAmount } = useChessToken()
 
+  // JAVÍTÁS: A nem létező változókat eltávolítottuk a destrukturálásból
   const {
     totalPendingRewards,
     claimableCampaignIds,
     isPendingRewardsLoading,
     claimAllRewards,
     claimRewardsBatch,
-    claimSingleReward,
     isClaimingAll,
     isClaimingBatch,
-    isClaimingSingle,
     isClaimAllSuccess,
     isClaimBatchSuccess,
-    isClaimSingleSuccess,
     claimAllError,
     claimBatchError,
-    claimSingleError,
     refetchPendingRewards,
   } = useFarcasterPromo()
 
   const [claimMode, setClaimMode] = useState<ClaimMode>("auto")
   const [selectedCampaigns, setSelectedCampaigns] = useState<bigint[]>([])
-  const [showClaimOptions, setShowClaimOptions] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -59,41 +52,37 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
   const canClaimAll = campaignCount > 0 && campaignCount <= 15
   const needsBatchClaim = campaignCount > 15
 
-  // Auto-select claim mode based on campaign count
   useEffect(() => {
     if (campaignCount <= 15) {
       setClaimMode("auto")
     } else {
       setClaimMode("batch")
-      setShowClaimOptions(true)
     }
   }, [campaignCount])
 
-  // Handle successful claims
   useEffect(() => {
-    if (isClaimAllSuccess || isClaimBatchSuccess || isClaimSingleSuccess) {
+    // JAVÍTÁS: A 'single' sikert eltávolítottuk
+    if (isClaimAllSuccess || isClaimBatchSuccess) {
       setSuccess("Rewards claimed successfully! 🎉")
       setError(null)
       setSelectedCampaigns([])
       refetchPendingRewards()
-
-      // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000)
     }
-  }, [isClaimAllSuccess, isClaimBatchSuccess, isClaimSingleSuccess, refetchPendingRewards])
+  }, [isClaimAllSuccess, isClaimBatchSuccess, refetchPendingRewards])
 
-  // Handle errors
   useEffect(() => {
-    const currentError = claimAllError || claimBatchError || claimSingleError
+    // JAVÍTÁS: A 'single' hibát eltávolítottuk
+    const currentError = claimAllError || claimBatchError
     if (currentError) {
       setError(currentError.message || "Transaction failed")
       setSuccess(null)
     }
-  }, [claimAllError, claimBatchError, claimSingleError])
+  }, [claimAllError, claimBatchError])
 
   const handleClaimAll = async () => {
+    setError(null)
     try {
-      setError(null)
       await claimAllRewards()
     } catch (err: any) {
       setError(err.message || "Failed to claim rewards")
@@ -105,32 +94,21 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
       setError("Please select at least one campaign")
       return
     }
-
+    setError(null)
     try {
-      setError(null)
       await claimRewardsBatch(selectedCampaigns)
     } catch (err: any) {
       setError(err.message || "Failed to claim batch rewards")
     }
   }
 
-  const handleSingleClaim = async (campaignId: bigint) => {
-    try {
-      setError(null)
-      await claimSingleReward(campaignId)
-    } catch (err: any) {
-      setError(err.message || "Failed to claim reward")
-    }
-  }
-
   const toggleCampaignSelection = (campaignId: bigint) => {
     setSelectedCampaigns((prev) => {
-      const isSelected = prev.some((id) => id === campaignId)
-      if (isSelected) {
+      if (prev.includes(campaignId)) {
         return prev.filter((id) => id !== campaignId)
       } else {
-        if (prev.length >= 10) {
-          setError("Maximum 10 campaigns can be selected for batch claim")
+        if (prev.length >= 15) {
+          setError("Maximum 15 campaigns can be selected for a batch claim.")
           return prev
         }
         return [...prev, campaignId]
@@ -139,7 +117,7 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
   }
 
   const selectAllCampaigns = () => {
-    const maxSelection = Math.min(claimableCampaignIds.length, 10)
+    const maxSelection = Math.min(claimableCampaignIds.length, 15)
     setSelectedCampaigns(claimableCampaignIds.slice(0, maxSelection))
   }
 
@@ -147,25 +125,14 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
     setSelectedCampaigns([])
   }
 
-  const isProcessing = isClaimingAll || isClaimingBatch || isClaimingSingle
+  // JAVÍTÁS: A 'single' állapotot eltávolítottuk
+  const isProcessing = isClaimingAll || isClaimingBatch
 
-  useImperativeHandle(
-    ref,
-    () => ({
+  useImperativeHandle(ref, () => ({
       refetchRewards: () => {
         refetchPendingRewards()
       },
-      claimAllRewards: async () => {
-        await claimAllRewards()
-      },
-      getTotalPendingRewards: () => {
-        return totalPendingRewards
-      },
-      getCampaignCount: () => {
-        return campaignCount
-      },
-    }),
-    [totalPendingRewards, campaignCount, refetchPendingRewards],
+    }), [refetchPendingRewards]
   )
 
   return (
@@ -182,7 +149,6 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-[#181c23] p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
@@ -208,46 +174,15 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
         </div>
       </div>
 
-      {/* Claim Section */}
       {hasPendingRewards && (
         <div className="space-y-4">
-          {/* Gas Warning for Many Campaigns */}
           {needsBatchClaim && (
-            <div className="bg-yellow-900/50 border border-yellow-600 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FiAlertTriangle className="text-yellow-400" />
-                <span className="text-yellow-400 font-semibold">High Gas Cost Warning</span>
-              </div>
-              <p className="text-sm text-yellow-200">
-                You have {campaignCount} campaigns with pending rewards. Claiming all at once would be very expensive.
-                Please use batch claim (max 10 at a time) or individual claims.
-              </p>
+            <div className="bg-yellow-900/50 border border-yellow-600 rounded-lg p-4 text-sm text-yellow-200">
+              <FiAlertTriangle className="inline-block mr-2 text-yellow-400" />
+              You have rewards from {campaignCount} campaigns. To avoid high gas fees, please claim them in batches.
             </div>
           )}
 
-          {/* Claim Mode Selection */}
-          {needsBatchClaim && (
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setClaimMode("batch")}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  claimMode === "batch" ? "bg-purple-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                }`}
-              >
-                Batch Claim (Recommended)
-              </button>
-              <button
-                onClick={() => setClaimMode("single")}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  claimMode === "single" ? "bg-purple-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                }`}
-              >
-                Individual Claims
-              </button>
-            </div>
-          )}
-
-          {/* Auto Claim (for ≤15 campaigns) */}
           {canClaimAll && claimMode === "auto" && (
             <button
               onClick={handleClaimAll}
@@ -258,46 +193,25 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
             </button>
           )}
 
-          {/* Batch Claim Mode */}
           {claimMode === "batch" && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-white font-medium">Select campaigns to claim (max 10):</span>
+                <span className="text-white font-medium">Select campaigns (max 15):</span>
                 <div className="flex gap-2">
-                  <button
-                    onClick={selectAllCampaigns}
-                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
-                  >
-                    Select 10
-                  </button>
-                  <button
-                    onClick={clearSelection}
-                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded"
-                  >
-                    Clear
-                  </button>
+                  <button onClick={selectAllCampaigns} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded">Select 15</button>
+                  <button onClick={clearSelection} className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded">Clear</button>
                 </div>
               </div>
 
-              <div className="max-h-40 overflow-y-auto space-y-2">
-                {claimableCampaignIds.map((campaignId, index) => (
+              <div className="max-h-40 overflow-y-auto space-y-2 p-1">
+                {claimableCampaignIds.map((campaignId) => (
                   <div
                     key={campaignId.toString()}
-                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedCampaigns.some((id) => id === campaignId)
-                        ? "bg-purple-600/30 border border-purple-500"
-                        : "bg-[#181c23] hover:bg-gray-700"
-                    }`}
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${selectedCampaigns.includes(campaignId) ? "bg-purple-600/30 border border-purple-500" : "bg-[#181c23] hover:bg-gray-700"}`}
                     onClick={() => toggleCampaignSelection(campaignId)}
                   >
                     <span className="text-white">Campaign #{campaignId.toString()}</span>
-                    <div className="flex items-center gap-2">
-                      {selectedCampaigns.some((id) => id === campaignId) ? (
-                        <FiCheck className="text-green-400" />
-                      ) : (
-                        <div className="w-4 h-4 border border-gray-400 rounded"></div>
-                      )}
-                    </div>
+                    {selectedCampaigns.includes(campaignId) && <FiCheck className="text-green-400" />}
                   </div>
                 ))}
               </div>
@@ -307,37 +221,13 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
                 disabled={isProcessing || selectedCampaigns.length === 0 || !address}
                 className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isClaimingBatch
-                  ? "Claiming Selected Rewards..."
-                  : `Claim Selected Rewards (${selectedCampaigns.length})`}
+                {isClaimingBatch ? "Claiming Batch..." : `Claim Selected (${selectedCampaigns.length})`}
               </button>
-            </div>
-          )}
-
-          {/* Single Claim Mode */}
-          {claimMode === "single" && (
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {claimableCampaignIds.map((campaignId) => (
-                <div
-                  key={campaignId.toString()}
-                  className="flex items-center justify-between p-3 bg-[#181c23] rounded-lg"
-                >
-                  <span className="text-white">Campaign #{campaignId.toString()}</span>
-                  <button
-                    onClick={() => handleSingleClaim(campaignId)}
-                    disabled={isProcessing || !address}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded transition-colors disabled:opacity-50"
-                  >
-                    {isClaimingSingle ? "Claiming..." : "Claim"}
-                  </button>
-                </div>
-              ))}
             </div>
           )}
         </div>
       )}
 
-      {/* Status Messages */}
       {error && (
         <div className="mt-4 p-3 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
           <FiX className="text-red-400" />
@@ -352,11 +242,9 @@ const UserProfile = forwardRef<UserProfileRef, UserProfileProps>(({ user }, ref)
         </div>
       )}
 
-      {/* No Rewards Message */}
       {!hasPendingRewards && !isPendingRewardsLoading && (
-        <div className="text-center py-8">
-          <p className="text-gray-400">No pending rewards to claim</p>
-          <p className="text-sm text-gray-500 mt-1">Share some promotions to earn rewards!</p>
+        <div className="text-center py-4">
+          <p className="text-gray-400">No pending rewards to claim.</p>
         </div>
       )}
     </div>
