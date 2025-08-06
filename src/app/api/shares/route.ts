@@ -13,64 +13,54 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  // JAVÍTÁS: Manuális tranzakciókezelést használunk a típus-hiba elkerülésére
   try {
-    const result = await sql.transaction(async (tx) => {
-      const [promo] = await tx`
-        SELECT reward_per_share, remaining_budget, status 
-        FROM promotions WHERE id = ${promotionId} FOR UPDATE
-      `;
+    // Tranzakció indítása
+    await sql`BEGIN`;
 
-      if (!promo) throw new Error('Promotion not found');
-      if (promo.status !== 'active') throw new Error('Campaign is not active');
-      if (promo.remaining_budget < promo.reward_per_share) {
-        // Még ha a keret kimerül is, rögzítjük az utolsó megosztást, ha van rá keret.
-        // Ha a keret már a hívás előtt kimerült, akkor dobunk hibát.
-        // A biztonság kedvéért a státuszt a végén frissítjük.
-        throw new Error('Insufficient budget for this share');
-      }
+    const [promo] = await sql`
+      SELECT reward_per_share, remaining_budget, status 
+      FROM promotions WHERE id = ${promotionId} FOR UPDATE
+    `;
 
-      // JAVÍTÁS: A lekérdezéseket egy `Promise.all`-ba tesszük, hogy a driver
-      // helyesen tudja őket egyetlen tranzakcióként kezelni.
-      const [newShare, updatedPromotion] = await Promise.all([
-        tx`
-          INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount)
-          VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share})
-          RETURNING id, created_at
-        `,
-        tx`
-          UPDATE promotions
-          SET 
-            shares_count = shares_count + 1, 
-            remaining_budget = remaining_budget - ${promo.reward_per_share}
-          WHERE id = ${promotionId}
-          RETURNING shares_count, remaining_budget
-        `
-      ]);
+    if (!promo) {
+      await sql`ROLLBACK`; // Visszavonjuk a tranzakciót hiba esetén
+      return NextResponse.json({ error: 'Promotion not found' }, { status: 404 });
+    }
+    if (promo.status !== 'active') {
+      await sql`ROLLBACK`;
+      return NextResponse.json({ error: 'Campaign is not active' }, { status: 400 });
+    }
+    if (promo.remaining_budget < promo.reward_per_share) {
+      await sql`UPDATE promotions SET status = 'completed' WHERE id = ${promotionId}`;
+      await sql`COMMIT`; // Véglegesítjük a státusz frissítést
+      return NextResponse.json({ error: 'Insufficient budget for this share' }, { status: 400 });
+    }
 
-      // Ellenőrizzük, hogy a frissítés után kimerült-e a keret
-      if (updatedPromotion[0].remaining_budget < promo.reward_per_share) {
-        await tx`UPDATE promotions SET status = 'completed' WHERE id = ${promotionId}`;
-      }
+    // Új megosztás rögzítése
+    await sql`
+      INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount)
+      VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share})
+    `;
 
-      return {
-        shareId: newShare[0].id,
-        shareCreatedAt: newShare[0].created_at,
-        newSharesCount: updatedPromotion[0].shares_count,
-        remainingBudget: updatedPromotion[0].remaining_budget
-      };
-    });
+    // Promóció frissítése
+    await sql`
+      UPDATE promotions
+      SET 
+        shares_count = shares_count + 1, 
+        remaining_budget = remaining_budget - ${promo.reward_per_share}
+      WHERE id = ${promotionId}
+    `;
 
-    return NextResponse.json({ 
-        success: true, 
-        message: `Share recorded successfully`, 
-        data: result 
-    }, { status: 200 });
+    // Véglegesítjük a sikeres műveleteket
+    await sql`COMMIT`;
+
+    return NextResponse.json({ success: true, message: "Share recorded successfully" }, { status: 200 });
 
   } catch (error: any) {
-    console.error('API Error in POST /api/shares:', error.message);
-    if (['Promotion not found', 'Campaign is not active', 'Insufficient budget for this share'].includes(error.message)) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Ha bármilyen hiba történik a `try` blokkon belül, visszavonjuk a tranzakciót
+    await sql`ROLLBACK`;
+    console.error('API Error in POST /api/shares (Transaction Rolled Back):', error.message);
+    return NextResponse.json({ error: 'Internal server error during transaction' }, { status: 500 });
   }
 }
