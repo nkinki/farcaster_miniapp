@@ -1,91 +1,68 @@
+// FÁJL: /src/app/api/promotions/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-export const dynamic = 'force-dynamic';
+const sql = neon(process.env.NEON_DB_URL!);
 
-if (!process.env.NEON_DB_URL) {
-  throw new Error('NEON_DB_URL environment variable is not set');
-}
-
-const sql = neon(process.env.NEON_DB_URL);
-
+// Promóciók listázása
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const limit = parseInt(searchParams.get('limit') || '100');
-    const offset = parseInt(searchParams.get('offset') || '0');
-    const status = searchParams.get('status') || 'active';
+    const status = searchParams.get('status') || 'all';
 
-    // JAVÍTÁS: A SELECT parancsot egy változóba tesszük, hogy ne kelljen ismételni,
-    // és hozzáadjuk a hiányzó `contract_campaign_id` oszlopot.
-    const selectFields = sql`
-        id, fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, shares_count, remaining_budget,
-        status, blockchain_hash, created_at, updated_at,
-        contract_campaign_id
-    `;
-
-    let promotionsResult, totalResult;
+    let promotions;
     if (status === 'all') {
-      promotionsResult = await sql`SELECT ${selectFields} FROM promotions ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset};`;
-      totalResult = await sql`SELECT COUNT(*) FROM promotions;`;
+      promotions = await sql`SELECT * FROM promotions ORDER BY created_at DESC;`;
     } else {
-      promotionsResult = await sql`SELECT ${selectFields} FROM promotions WHERE status = ${status} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset};`;
-      totalResult = await sql`SELECT COUNT(*) FROM promotions WHERE status = ${status};`;
+      promotions = await sql`SELECT * FROM promotions WHERE status = ${status} ORDER BY created_at DESC;`;
     }
-
-    const totalPromotions = parseInt(totalResult[0].count as string, 10);
-    return NextResponse.json({ promotions: promotionsResult, total: totalPromotions });
-
-  } catch (error) {
+    
+    return NextResponse.json({ promotions }, { status: 200 });
+  } catch (error: any) {
     console.error('API Error in GET /api/promotions:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch promotions' }, { status: 500 });
   }
 }
 
-// A POST függvényed már helyes volt, de a teljesség kedvéért itt a végleges verzió.
+// Új promóció létrehozása
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { 
       fid, username, displayName, castUrl, shareText, 
-      rewardPerShare, totalBudget, blockchainHash, status, 
-      contractCampaignId 
+      rewardPerShare, totalBudget, blockchainHash 
     } = body;
 
-    if (
-      !fid || !username || !castUrl || !rewardPerShare || 
-      !totalBudget || !status || contractCampaignId === undefined
-    ) {
-      return NextResponse.json(
-        { error: 'Missing required fields, including contractCampaignId.' },
-        { status: 400 }
-      );
+    if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget || !blockchainHash) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    
-    const [promotion] = await sql`
-      INSERT INTO promotions (
-        fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, remaining_budget, blockchain_hash, status,
-        contract_campaign_id
-      ) VALUES (
-        ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null},
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, ${blockchainHash || null}, ${status},
-        ${contractCampaignId}
-      )
-      RETURNING *;
+
+    const [newPromotion] = await sql`
+      INSERT INTO promotions ${
+        sql({
+          fid: fid,
+          username: username,
+          display_name: displayName || null,
+          cast_url: castUrl,
+          share_text: shareText || null,
+          reward_per_share: rewardPerShare,
+          total_budget: totalBudget,
+          remaining_budget: totalBudget, // A keret kezdetben a teljes budget
+          status: 'active',
+          blockchain_hash: blockchainHash,
+        })
+      }
+      RETURNING id;
     `;
 
-    return NextResponse.json({ promotion }, { status: 201 });
+    return NextResponse.json({ success: true, promotion: newPromotion }, { status: 201 });
 
   } catch (error: any) {
-    console.error('Error creating promotion:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to create promotion',
-        details: error.message || 'Unknown error'
-      },
-      { status: 500 }
-    );
+    console.error('API Error in POST /api/promotions:', error);
+    if (error.code === '23505') { // PostgreSQL unique violation
+        return NextResponse.json({ error: 'This promotion might already exist.' }, { status: 409 });
+    }
+    return NextResponse.json({ error: 'Internal server error while saving promotion.' }, { status: 500 });
   }
 }
