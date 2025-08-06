@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Új promóció létrehozása (JAVÍTOTT VERZIÓ)
+// Új promóció létrehozása (VÉGLEGES JAVÍTÁS)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -38,23 +38,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // JAVÍTÁS: Létrehozunk egy tiszta JavaScript objektumot a beillesztendő adatokkal.
-    const promotionData = {
-      fid: fid,
-      username: username,
-      display_name: displayName || null,
-      cast_url: castUrl,
-      share_text: shareText || null,
-      reward_per_share: rewardPerShare,
-      total_budget: totalBudget,
-      remaining_budget: totalBudget, // A keret kezdetben a teljes budget
-      status: 'active',
-      blockchain_hash: blockchainHash,
-    };
-
-    // JAVÍTÁS: Ez a `neon` driver helyes és típus-biztos szintaxisa egy objektum beillesztésére.
+    // JAVÍTÁS: A klasszikus `VALUES` szintaxist használjuk, ami minden esetben működik.
+    // A változókat közvetlenül a `VALUES` listában adjuk át.
     const [newPromotion] = await sql`
-      INSERT INTO promotions ${sql(promotionData)}
+      INSERT INTO promotions (
+        fid, username, display_name, cast_url, share_text,
+        reward_per_share, total_budget, remaining_budget, status, blockchain_hash
+      ) VALUES (
+        ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null},
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}
+      )
       RETURNING id, cast_url, created_at;
     `;
 
