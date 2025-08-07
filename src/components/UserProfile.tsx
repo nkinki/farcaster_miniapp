@@ -38,8 +38,8 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
 
   const pendingRewards = userStats.pendingRewards ?? 0;
   const hasPendingRewards = pendingRewards > 0;
-  const MIN_CLAIM_AMOUNT = 10000;
-  const canClaim = pendingRewards >= MIN_CLAIM_AMOUNT;
+  // const MIN_CLAIM_AMOUNT = 10000;
+  // const canClaim = pendingRewards >= MIN_CLAIM_AMOUNT;
 
   const handleClaim = useCallback(async () => {
     if (!user.fid) {
@@ -195,11 +195,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       <div className="space-y-2">
         <button
           onClick={handleClaim}
-          disabled={isLoading || !canClaim || justClaimed}
+          disabled={isLoading || !hasPendingRewards || justClaimed}
           className={`w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-500 flex items-center justify-center gap-2 ${
             justClaimed 
               ? 'bg-gradient-to-r from-green-500 to-green-600 animate-claimSuccess' 
-              : canClaim 
+              : hasPendingRewards 
                 ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transform' 
                 : 'bg-gray-600 opacity-50 cursor-not-allowed'
           }`}
@@ -214,7 +214,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               <FiCheck className="animate-bounce" />
               <span>Claimed {claimedAmount.toFixed(2)} $CHESS!</span>
             </>
-          ) : canClaim ? (
+          ) : hasPendingRewards ? (
             <>
               <FiAward className="animate-pulse" />
               <span>Claim {pendingRewards.toFixed(2)} $CHESS</span>
@@ -222,16 +222,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           ) : (
             <>
               <FiAward />
-              <span>Minimum 10,000 $CHESS required</span>
+              <span>No Rewards to Claim</span>
             </>
           )}
         </button>
-        {!canClaim && (
-          <div className="p-3 text-sm bg-yellow-900/50 border border-yellow-600 text-yellow-300 rounded-md flex items-center gap-2 animate-fadeIn">
-            <FiAlertTriangle size={16} className="text-yellow-400" />
-            You need at least 10,000 $CHESS to claim your rewards.
-          </div>
-        )}
         
         {error && (
           <div className="p-3 text-sm bg-red-900/50 border border-red-600 text-red-300 rounded-md flex items-center gap-2 animate-fadeIn">
