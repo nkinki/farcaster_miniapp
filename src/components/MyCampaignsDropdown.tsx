@@ -103,7 +103,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampa
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
                 >
                   <FiSettings />
-                  Manage Campaign (Fund / Pause)
+                  Manage Campaign (Start / Pause)
                 </button>
 
               </div>

@@ -8,7 +8,7 @@ import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
 
 import PaymentForm from "../../components/PaymentForm";
-import FundingForm from "../../components/FundingForm";
+import CampaignManager from "../../components/CampaignManager";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import { usePromotions } from "@/hooks/usePromotions";
@@ -45,8 +45,8 @@ export default function PromotePage() {
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [showFundingForm, setShowFundingForm] = useState(false);
-  const [fundingPromo, setFundingPromo] = useState<PromoCast | null>(null);
+  const [showCampaignManager, setShowCampaignManager] = useState(false);
+  const [managingPromo, setManagingPromo] = useState<PromoCast | null>(null);
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({});
@@ -134,9 +134,9 @@ export default function PromotePage() {
   }, [isAuthenticated, profile]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
-  const handleFundSuccess = () => { setShowFundingForm(false); setFundingPromo(null); refreshAllData(); };
+  const handleManageSuccess = () => { setShowCampaignManager(false); setManagingPromo(null); refreshAllData(); };
   const handleCreateCancel = () => { setShowForm(false); };
-  const handleFundCancel = () => { setShowFundingForm(false); setFundingPromo(null); };
+  const handleManageCancel = () => { setShowCampaignManager(false); setManagingPromo(null); };
 
   const handleViewCast = (castUrl: string) => {
     try {
@@ -238,7 +238,7 @@ export default function PromotePage() {
 
 
         
-        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setFundingPromo(promo); setShowFundingForm(true); }} />
+        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} />
         
         <div className="flex justify-center my-8">
             <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"><FiPlus size={20} />Create Promotion</button>
@@ -312,16 +312,13 @@ export default function PromotePage() {
             )}
         </div>
         
-        {showFundingForm && fundingPromo && (
-          <FundingForm 
-            promotionId={fundingPromo.id} 
-            totalBudget={fundingPromo.totalBudget} 
-            rewardPerShare={fundingPromo.rewardPerShare} 
-            castUrl={fundingPromo.castUrl} 
-            shareText={fundingPromo.shareText || ""} 
-            status={fundingPromo.status} 
-            onSuccess={handleFundSuccess} 
-            onCancel={handleFundCancel} 
+        {showCampaignManager && managingPromo && (
+          <CampaignManager 
+            promotionId={managingPromo.id} 
+            currentStatus={managingPromo.status}
+            castUrl={managingPromo.castUrl} 
+            onSuccess={handleManageSuccess} 
+            onCancel={handleManageCancel} 
           />
         )}
         
