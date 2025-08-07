@@ -41,23 +41,23 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
-// Share szövegek AppRank névvel
+// Share szövegek @apprank linkkel
 const SHARE_TEXTS = [
-  "Share & Earn $CHESS with AppRank! 🚀",
-  "Discover top Farcaster apps on AppRank & earn! ⭐",
-  "Web3 rewards await you on AppRank! Join now! 🌐",
-  "Play chess, earn $CHESS tokens via AppRank! ♟️",
-  "AppRank: Your gateway to Farcaster's best apps! 🎯",
-  "Make money sharing on AppRank – it's that easy! 💸",
-  "Level up your Web3 game with AppRank rewards! 🎮",
-  "AppRank shows you where the alpha is! Don't sleep! 👀",
-  "From gaming to DeFi – find it all on AppRank! 🔥",
-  "Turn your shares into $CHESS with AppRank! 🏆",
-  "AppRank: Where Farcaster meets profit! Let's go! 🚀",
-  "Claim your rewards on AppRank! 💰",
+  "Share & Earn $CHESS with @apprank! 🚀",
+  "Discover top Farcaster apps on @apprank & earn! ⭐",
+  "Web3 rewards await you on @apprank! Join now! 🌐",
+  "Play chess, earn $CHESS tokens via @apprank! ♟️",
+  "@apprank: Your gateway to Farcaster's best apps! 🎯",
+  "Make money sharing on @apprank – it's that easy! 💸",
+  "Level up your Web3 game with @apprank rewards! 🎮",
+  "@apprank shows you where the alpha is! Don't sleep! 👀",
+  "From gaming to DeFi – find it all on @apprank! 🔥",
+  "Turn your shares into $CHESS with @apprank! 🏆",
+  "@apprank: Where Farcaster meets profit! Let's go! 🚀",
+  "Claim your rewards on @apprank! 💰",
   "Don’t miss out – share via AppRank and win!",
-  "Earn crypto for sharing on AppRank – tap now!",
-  "Get your $CHESS – share this AppRank promo!"
+  "Earn crypto for sharing on @apprank – tap now!",
+  "Get your $CHESS – share this @apprank promo!"
 ];
 
 export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormProps) {
@@ -97,7 +97,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             body: JSON.stringify({
               fid: user.fid, username: user.username, displayName: user.displayName,
               castUrl: castUrl, 
-              shareText: shareText ? `${hiddenShareText} ${shareText}` : hiddenShareText, // Kombinált szöveg
+              shareText: Number(totalBudget) >= 5000000 ? shareText : (shareText ? `${hiddenShareText} ${shareText}` : hiddenShareText), // Premium: 5M+ = reklám nélkül
               rewardPerShare: Number(rewardPerShare), totalBudget: Number(totalBudget),
               blockchainHash: createTxHash, // A befizetési tranzakció hash-ét mentjük
               status: 'active',
@@ -205,7 +205,11 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
           )}
         </div>
         <p className="text-xs text-gray-400 mt-1">
-          💡 We'll automatically add an AppRank promotional message. Your text will appear after it.
+          {Number(totalBudget) >= 5000000 ? (
+            <>🎉 <span className="text-yellow-400 font-semibold">PREMIUM:</span> No promotional message! Your text only.</>
+          ) : (
+            <>💡 We'll automatically add an @apprank promotional message. Your text will appear after it.</>
+          )}
         </p>
       </div>
       <div>
@@ -222,11 +226,17 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <label className="block text-sm font-medium text-purple-300 mb-1">Total Budget ($CHESS)*</label>
         <div className="grid grid-cols-5 gap-2">
           {budgetOptions.map((amount) => (
-            <button key={amount} onClick={() => setTotalBudget(amount.toString())} disabled={step >= CreationStep.ReadyToCreate} className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${totalBudget === amount.toString() ? "bg-blue-600 text-white shadow-lg" : "bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:bg-gray-800"}`}>
+            <button key={amount} onClick={() => setTotalBudget(amount.toString())} disabled={step >= CreationStep.ReadyToCreate} className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm relative ${totalBudget === amount.toString() ? "bg-blue-600 text-white shadow-lg" : "bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:bg-gray-800"}`}>
               {formatNumber(amount)}
+              {amount >= 5000000 && (
+                <span className="absolute -top-1 -right-1 text-xs bg-yellow-500 text-black px-1 rounded-full font-bold">👑</span>
+              )}
             </button>
           ))}
         </div>
+        <p className="text-xs text-gray-400 mt-1">
+          👑 5M+ $CHESS = Premium (no promotional messages)
+        </p>
       </div>
 
       {error && <p className="text-red-400 text-sm text-center bg-red-900/50 p-3 rounded-md">{error}</p>}
