@@ -66,7 +66,6 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
 
   const [castUrl, setCastUrl] = useState("");
   const [shareText, setShareText] = useState(""); // User által látható/szerkeszthető szöveg
-  const [hiddenShareText, setHiddenShareText] = useState(""); // Rejtett AppRank szöveg
   const [rewardPerShare, setRewardPerShare] = useState(rewardOptions[0].toString());
   const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
   
@@ -97,7 +96,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             body: JSON.stringify({
               fid: user.fid, username: user.username, displayName: user.displayName,
               castUrl: castUrl, 
-              shareText: Number(totalBudget) >= 5000000 ? shareText : (shareText ? `${hiddenShareText} ${shareText}` : hiddenShareText), // Premium: 5M+ = reklám nélkül
+              shareText: Number(totalBudget) >= 5000000 ? shareText : (shareText ? `${shareText}` : ''), // Premium: reklám nélkül, normál: csak user szöveg
               rewardPerShare: Number(rewardPerShare), totalBudget: Number(totalBudget),
               blockchainHash: createTxHash, // A befizetési tranzakció hash-ét mentjük
               status: 'active',
@@ -113,15 +112,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       }
     };
     saveToDb();
-  }, [isCreated, step, user, castUrl, shareText, hiddenShareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
-
-  // Rejtett share text beállítása első rendernél
-  useEffect(() => {
-    if (!hiddenShareText) {
-      setHiddenShareText(SHARE_TEXTS[Math.floor(Math.random() * SHARE_TEXTS.length)]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isCreated, step, user, castUrl, shareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
 
   const handleApprove = async () => {
     setError(null);
