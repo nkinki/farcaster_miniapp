@@ -19,7 +19,13 @@ const calculateProgress = (promo: PromoCast): number => {
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
-export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampaignsDropdownProps) {
+interface MyCampaignsDropdownProps {
+  myPromos: PromoCast[];
+  onManageClick: (promo: PromoCast) => void;
+  onDeleteClick?: (promo: PromoCast) => void;
+}
+
+export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteClick }: MyCampaignsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (myPromos.length === 0) {
@@ -106,6 +112,16 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick }: MyCampa
                   Manage Campaign (Start / Pause)
                 </button>
 
+                {/* Törlés gomb csak completed státuszhoz */}
+                {promo.status === "completed" && onDeleteClick && (
+                  <button
+                    onClick={() => onDeleteClick(promo)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                  >
+                    <FiX />
+                    Delete Campaign
+                  </button>
+                )}
               </div>
             ))}
           </div>

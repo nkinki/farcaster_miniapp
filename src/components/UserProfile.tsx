@@ -26,6 +26,9 @@ interface UserProfileProps {
 const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const { address } = useAccount();
   const { balance, formatChessAmount } = useChessToken();
+
+  // Összecsukható logika
+  const [collapsed, setCollapsed] = useState(false);
   
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,6 +116,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
 
   return (
     <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
+      {/* Összecsukható fejléc */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
@@ -136,7 +140,13 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             <p className="text-gray-400">@{user.username}</p>
           </div>
         </div>
-        
+        {/* Összecsukó gomb */}
+        <button
+          onClick={() => setCollapsed((prev) => !prev)}
+          className="ml-4 px-2 py-1 rounded bg-gray-700 text-white hover:bg-gray-600 text-xs"
+        >
+          {collapsed ? "Show" : "Hide"}
+        </button>
         {/* Total Reward Info Blokk */}
         <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-lg p-3 text-center min-w-[100px]">
           <div className="flex items-center justify-center gap-2 mb-1">
@@ -147,6 +157,8 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         </div>
       </div>
 
+      {/* Tartalom csak ha nincs összecsukva */}
+      {!collapsed && <>
       <div className="grid grid-cols-2 gap-3 mb-6 text-white">
         <div className="p-3 bg-[#181c23] rounded-lg">
           <div className="flex items-center justify-center gap-2 mb-1">
@@ -227,6 +239,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           </div>
         )}
       </div>
+      </>}
     </div>
   );
 };
