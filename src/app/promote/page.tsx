@@ -272,7 +272,13 @@ export default function PromotePage() {
         <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} />
         
         <div className="flex justify-center my-8">
-            <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg"><FiPlus size={20} />Create Promotion</button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-white shadow-lg neon-pulse"
+              style={{ position: 'relative', overflow: 'hidden' }}
+            >
+              <FiPlus size={20} />Create Promotion
+            </button>
         </div>
         
         {showForm && ( 
@@ -357,6 +363,26 @@ export default function PromotePage() {
           <ConnectWalletButton />
         </div> */}
       </div>
+      <style jsx global>{`
+        @keyframes neonPulse {
+          0% {
+            box-shadow: 0 0 8px #5D6AFF, 0 0 16px #00fff7, 0 0 32px #5D6AFF;
+            filter: brightness(1.1) saturate(1.2);
+          }
+          50% {
+            box-shadow: 0 0 24px #00fff7, 0 0 48px #5D6AFF, 0 0 96px #00fff7;
+            filter: brightness(1.3) saturate(1.5);
+          }
+          100% {
+            box-shadow: 0 0 8px #5D6AFF, 0 0 16px #00fff7, 0 0 32px #5D6AFF;
+            filter: brightness(1.1) saturate(1.2);
+          }
+        }
+        .neon-pulse {
+          animation: neonPulse 3.5s ease-in-out infinite;
+          border: 2px solid #5D6AFF;
+        }
+      `}</style>
     </div>
   );
 }
