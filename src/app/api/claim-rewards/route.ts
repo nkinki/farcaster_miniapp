@@ -27,17 +27,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Only count unclaimed rewards
+    // Get all unclaimed rewards (all shares for this user)
     const [userStats] = await sql`
         SELECT 
-          COALESCE(SUM(reward_amount), 0) as pending_earnings,
-          COUNT(*) as pending_shares
+          COALESCE(SUM(reward_amount), 0) as total_earnings,
+          COUNT(*) as total_shares
         FROM shares 
-        WHERE sharer_fid = ${fid} AND reward_claimed = FALSE
+        WHERE sharer_fid = ${fid}
     `;
 
-    const amountToClaim = Number(userStats.pending_earnings);
-    const sharesCount = Number(userStats.pending_shares);
+    const amountToClaim = Number(userStats.total_earnings);
+    const sharesCount = Number(userStats.total_shares);
     
     if (!amountToClaim || amountToClaim <= 0) {
       throw new Error('No rewards to claim.');
