@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
                 SELECT 
                     promotion_id,
                     sharer_fid,
-                    MAX(shared_at) as last_share_time
+                    MAX(created_at) as last_share_time
                 FROM shares
                 WHERE sharer_fid = ${fid}
                 GROUP BY promotion_id, sharer_fid

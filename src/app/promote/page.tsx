@@ -155,30 +155,49 @@ export default function PromotePage() {
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) return alert("Please connect your Farcaster account first.");
+    
+    // Clear any previous errors
+    setShareError(null);
     setSharingPromoId(promo.id.toString());
+    
     try {
-      const castResult = await (miniAppSdk as any).actions.composeCast({ text: promo.shareText || `Check this out!`, embeds: [promo.castUrl] });
+      const castResult = await (miniAppSdk as any).actions.composeCast({ 
+        text: promo.shareText || `Check this out!`, 
+        embeds: [promo.castUrl] 
+      });
+      
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
         setSharingPromoId(null);
         return;
       }
+      
       const response = await fetch('/api/shares', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          promotionId: Number(promo.id), sharerFid: currentUser.fid,
-          sharerUsername: currentUser.username, castHash: castResult.cast.hash,
+          promotionId: Number(promo.id), 
+          sharerFid: currentUser.fid,
+          sharerUsername: currentUser.username, 
+          castHash: castResult.cast.hash,
         }),
       });
+      
       const data = await response.json();
-      if (!response.ok) { throw new Error(data.error || "Failed to record share on the backend."); }
+      
+      if (!response.ok) { 
+        // Show the specific error message from the API
+        throw new Error(data.error || "Failed to record share on the backend."); 
+      }
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
+      // Refresh all data after successful share
       await refreshAllData();
 
     } catch (error) {
       console.error("Error during share process:", error);
-      setShareError(error instanceof Error ? error.message : "An unknown error occurred.");
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      setShareError(errorMessage);
     } finally {
       setSharingPromoId(null);
     }
