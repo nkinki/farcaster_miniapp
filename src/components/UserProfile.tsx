@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useChessToken } from "@/hooks/useChessToken";
-import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle } from "react-icons/fi";
+import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle, FiChevronDown, FiChevronUp } from "react-icons/fi";
 // Már nem használjuk a szerződést, csak az API-t
 
 interface FarcasterUser {
@@ -142,20 +142,25 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             <p className="text-gray-400">@{user.username}</p>
           </div>
         </div>
-        {/* Összecsukó gomb */}
-        <button
-          onClick={() => setCollapsed((prev) => !prev)}
-          className="ml-4 px-2 py-1 rounded bg-gray-700 text-white hover:bg-gray-600 text-xs"
-        >
-          {collapsed ? "Show" : "Hide"}
-        </button>
-        {/* Total Reward Info Blokk */}
-        <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-lg p-3 text-center min-w-[100px]">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiAward className="text-green-400" size={18} />
-            <span className="font-bold text-white text-lg">{userStats.totalEarnings.toFixed(0)}</span>
+        
+        <div className="flex items-center gap-4">
+          {/* Total Reward Info Blokk */}
+          <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-lg p-3 text-center min-w-[100px]">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <FiAward className="text-green-400" size={18} />
+              <span className="font-bold text-white text-lg">{userStats.totalEarnings.toFixed(0)}</span>
+            </div>
+            <p className="text-xs text-green-300 font-medium">Total Earned</p>
           </div>
-          <p className="text-xs text-green-300 font-medium">Total Earned</p>
+          
+          {/* Összecsukó gomb - jobb szélre */}
+          <button
+            onClick={() => setCollapsed((prev) => !prev)}
+            className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors"
+            title={collapsed ? "Show details" : "Hide details"}
+          >
+            {collapsed ? <FiChevronDown size={18} /> : <FiChevronUp size={18} />}
+          </button>
         </div>
       </div>
 
