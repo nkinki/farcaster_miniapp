@@ -33,4 +33,21 @@ body {
   .animate-apprankglow {
     animation: apprankglow 5s ease-in-out infinite;
   }
+  
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(-10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes claimSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  .animate-claimSuccess {
+    animation: claimSuccess 0.6s ease-in-out;
+  }
 }

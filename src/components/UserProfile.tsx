@@ -29,6 +29,8 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [justClaimed, setJustClaimed] = useState(false);
+  const [claimedAmount, setClaimedAmount] = useState(0);
 
   const pendingRewards = userStats.totalEarnings;
   const hasPendingRewards = pendingRewards > 0;
@@ -56,9 +58,17 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         throw new Error(claimData.error || "Claim failed.");
       }
 
-      // Sikeres claim
-      setSuccess(`Claim successful! Transaction hash: ${claimData.transactionHash}`);
-      onClaimSuccess(); // Adatok újratöltése
+      // Sikeres claim - animáció és állapot beállítása
+      const claimedRewards = pendingRewards;
+      setClaimedAmount(claimedRewards);
+      setJustClaimed(true);
+      setSuccess(`Successfully claimed ${claimedRewards.toFixed(2)} $CHESS!`);
+      
+      // Animáció után adatok újratöltése
+      setTimeout(() => {
+        onClaimSuccess(); // Adatok újratöltése
+        setJustClaimed(false);
+      }, 2000);
 
     } catch (err: any) {
       console.error('Claim error:', err);
@@ -82,6 +92,21 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setIsClaiming(false);
     }
   }, [user.fid, onClaimSuccess]);
+
+  // Auto-clear error and success messages
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (success && !justClaimed) {
+      const timer = setTimeout(() => setSuccess(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, justClaimed]);
 
   const isLoading = isClaiming;
 
@@ -155,14 +180,51 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       <div className="space-y-2">
         <button
           onClick={handleClaim}
-          disabled={isLoading || !hasPendingRewards}
-          className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          disabled={isLoading || !hasPendingRewards || justClaimed}
+          className={`w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-500 flex items-center justify-center gap-2 ${
+            justClaimed 
+              ? 'bg-gradient-to-r from-green-500 to-green-600 animate-claimSuccess' 
+              : hasPendingRewards 
+                ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transform' 
+                : 'bg-gray-600 opacity-50 cursor-not-allowed'
+          }`}
         >
-          {isLoading ? <FiLoader className="animate-spin" /> : <FiAward />}
-          {isClaiming ? "Processing..." : `Claim ${pendingRewards.toFixed(2)} $CHESS`}
+          {isClaiming ? (
+            <>
+              <FiLoader className="animate-spin" />
+              <span>Processing...</span>
+            </>
+          ) : justClaimed ? (
+            <>
+              <FiCheck className="animate-bounce" />
+              <span>Claimed {claimedAmount.toFixed(2)} $CHESS!</span>
+            </>
+          ) : hasPendingRewards ? (
+            <>
+              <FiAward className="animate-pulse" />
+              <span>Claim {pendingRewards.toFixed(2)} $CHESS</span>
+            </>
+          ) : (
+            <>
+              <FiAward />
+              <span>No Rewards to Claim</span>
+            </>
+          )}
         </button>
-        {error && <div className="p-2 text-sm bg-red-900/50 text-red-300 rounded-md flex items-center gap-2"><FiX size={16} /> {error}</div>}
-        {success && <div className="p-2 text-sm bg-green-900/50 text-green-300 rounded-md flex items-center gap-2"><FiCheck size={16} /> {success}</div>}
+        
+        {error && (
+          <div className="p-3 text-sm bg-red-900/50 border border-red-600 text-red-300 rounded-md flex items-center gap-2 animate-fadeIn">
+            <FiX size={16} className="text-red-400" /> 
+            {error}
+          </div>
+        )}
+        
+        {success && !justClaimed && (
+          <div className="p-3 text-sm bg-green-900/50 border border-green-600 text-green-300 rounded-md flex items-center gap-2 animate-fadeIn">
+            <FiCheck size={16} className="text-green-400" /> 
+            {success}
+          </div>
+        )}
       </div>
     </div>
   );
