@@ -1,12 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { neon } from "@neondatabase/serverless"
+import { type NextRequest, NextResponse } from 'next/server'
+import { neon } from '@neondatabase/serverless'
 
-export const dynamic = "force-dynamic"
-
-if (!process.env.NEON_DB_URL) {
-  throw new Error("NEON_DB_URL is not set")
-}
-const sql = neon(process.env.NEON_DB_URL)
+const sql = neon(process.env.NEON_DB_URL!)
 
 // Enhanced user stats interface
 interface UserStats {
@@ -20,34 +15,24 @@ interface UserStats {
   last_claim_date: string | null
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: { fid: string } }) {
   try {
     // Extract FID from URL path
-    const url = new URL(request.url)
-    const pathSegments = url.pathname.split("/")
-    const fidString = pathSegments[pathSegments.length - 1]
-
-    const fid = Number.parseInt(fidString, 10)
-
-    if (isNaN(fid) || fid <= 0) {
-      return NextResponse.json(
-        {
-          error: "Invalid Farcaster ID. Must be a positive integer.",
-        },
-        { status: 400 },
-      )
+    const fid = parseInt(params.fid, 10)
+    if (isNaN(fid)) {
+      return NextResponse.json({ error: 'Invalid FID' }, { status: 400 })
     }
 
     // Enhanced query to get comprehensive user statistics
     const [userStatsResult, campaignStatsResult, recentActivityResult] = await Promise.all([
       // Basic user statistics - separate total earnings from pending rewards
       sql`
-        SELECT
-          COUNT(DISTINCT s.id) AS total_shares,
-          COALESCE(SUM(s.reward_amount), 0) AS total_earnings,
-          COALESCE(SUM(CASE WHEN s.reward_claimed = FALSE THEN s.reward_amount ELSE 0 END), 0) AS pending_rewards,
-          MAX(s.shared_at) AS last_share_date,
-          MAX(s.shared_at) AS last_claim_date
+        SELECT 
+            COUNT(DISTINCT s.id) AS total_shares,
+            COALESCE(SUM(s.reward_amount), 0) AS total_earnings,
+            COALESCE(SUM(CASE WHEN s.reward_claimed = FALSE THEN s.reward_amount ELSE 0 END), 0) AS pending_rewards,
+            MAX(s.created_at) AS last_share_date,
+            MAX(s.claimed_at) AS last_claim_date
         FROM shares s
         WHERE s.sharer_fid = ${fid};
       `,
