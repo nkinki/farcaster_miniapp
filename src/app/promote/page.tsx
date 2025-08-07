@@ -9,7 +9,6 @@ import UserProfile from "@/components/UserProfile";
 
 import PaymentForm from "../../components/PaymentForm";
 import CampaignManager from "../../components/CampaignManager";
-import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import { usePromotions } from "@/hooks/usePromotions";
 import type { PromoCast } from "@/types/promotions";
@@ -354,9 +353,9 @@ export default function PromotePage() {
           />
         )} 
         
-        <div className="mt-8 flex justify-center">
+        {/* <div className="mt-8 flex justify-center">
           <ConnectWalletButton />
-        </div>
+        </div> */}
       </div>
     </div>
   );
