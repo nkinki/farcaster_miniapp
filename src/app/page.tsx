@@ -295,7 +295,7 @@ export default function Home() {
                  </h1>
                </div>
              </div>
-             <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster miniapp toplist and statistics</p>
+             <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster Miniapp Toplist, Stats, Promotions, and Growth</p>
              <p className="text-purple-200 text-xs font-medium">
                {`Snapshot date: ${snapshotDate}`}
              </p>
