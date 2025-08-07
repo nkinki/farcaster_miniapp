@@ -1,135 +1,167 @@
 "use client"
 
-import { useState } from 'react';
-import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiStar } from 'react-icons/fi';
-import { PromoCast } from '@/types/promotions';
+import { useState } from "react";
+import { FiPlay, FiPause, FiX, FiLoader, FiCheck } from "react-icons/fi";
+import { PromoCast } from "@/types/promotions";
 
-interface MyCampaignsDropdownProps {
-  myPromos: PromoCast[];
-  onManageClick: (promo: PromoCast) => void;
+interface CampaignManagerProps {
+  promotionId: string | number;
+  currentStatus: string;
+  castUrl: string;
+  onSuccess: () => void;
+  onCancel: () => void;
   onDeleteClick?: (promo: PromoCast) => void;
 }
 
-// Helper függvény a progress bar kiszámításához
-const calculateProgress = (promo: PromoCast): number => {
-  if (promo.totalBudget === 0) {
-    return 0;
-  }
-  const spent = promo.totalBudget - promo.remainingBudget;
-  return Math.round((spent / promo.totalBudget) * 100);
-};
+export default function CampaignManager({ 
+  promotionId, 
+  currentStatus, 
+  castUrl, 
+  onSuccess, 
+  onCancel,
+  onDeleteClick 
+}: CampaignManagerProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteClick }: MyCampaignsDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const handleStatusChange = async (newStatus: 'active' | 'paused') => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
 
-  // Rendezés: még osztható active kampányok elöl, majd nem osztható active, paused, inactive, completed
-  const sortedPromos = [...myPromos].sort((a, b) => {
-    const statusOrder = { active: 1, paused: 2, inactive: 3, completed: 4 };
-    const aIsShareable = a.status === 'active' && a.remainingBudget >= a.rewardPerShare;
-    const bIsShareable = b.status === 'active' && b.remainingBudget >= b.rewardPerShare;
-    if (aIsShareable === bIsShareable) {
-      return statusOrder[a.status] - statusOrder[b.status];
+    try {
+      const response = await fetch('/api/promotions/status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          promotionId: Number(promotionId),
+          status: newStatus
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update campaign status');
+      }
+
+      setSuccess(`Campaign ${newStatus === 'active' ? 'started' : 'paused'} successfully!`);
+      
+      // Kis késleltetés után bezárjuk a modalt és frissítjük az adatokat
+      setTimeout(() => {
+        onSuccess();
+      }, 1500);
+
+    } catch (err: any) {
+      console.error('Status change error:', err);
+      setError(err.message || 'An error occurred while updating the campaign status.');
+    } finally {
+      setIsLoading(false);
     }
-    return aIsShareable ? -1 : 1;
-  });
+  };
 
-  if (sortedPromos.length === 0) {
-    return null;
-  }
+  const handleDelete = () => {
+    if (onDeleteClick && window.confirm(`Are you sure you want to delete the campaign "${castUrl}"? This action cannot be undone.`)) {
+      const promo: PromoCast = {
+        id: Number(promotionId),
+        castUrl,
+        status: currentStatus,
+        // Minimális PromoCast objektum, mivel csak az id és castUrl szükséges a törléshez
+      } as PromoCast;
+      onDeleteClick(promo);
+    }
+  };
+
+  const canStart = currentStatus === 'paused' || currentStatus === 'inactive';
+  const canPause = currentStatus === 'active';
 
   return (
-    <div className="mb-8 bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
-      >
-        <FiStar className="text-purple-300 w-6" />
-        <span className="flex-1 text-center">My Campaigns ({sortedPromos.length})</span>
-        <div className="w-6">{isOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
-      </button>
-
-      {isOpen && (
-        <div className="p-4 border-t border-gray-700">
-          <div className="space-y-4 max-h-[30rem] overflow-y-auto pr-2">
-            {sortedPromos.map((promo) => (
-              <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700">
-                {/* Felső szekció: Cast URL és Státusz */}
-                <div className="flex justify-between items-start mb-3">
-                  <a
-                    href={promo.castUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white font-medium truncate pr-4 hover:text-purple-300 transition-colors"
-                    title={promo.castUrl}
-                  >
-                    {promo.castUrl}
-                  </a>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap ${
-                    promo.status === "active" ? "bg-green-600 text-white" :
-                    promo.status === "paused" ? "bg-yellow-600 text-white" :
-                    promo.status === "inactive" ? "bg-blue-600 text-white" :
-                    promo.status === "completed" ? "bg-gray-500 text-white" :
-                    "bg-gray-600 text-white"
-                  }`}>
-                    {promo.status === 'inactive' ? 'Needs Funding' : promo.status}
-                  </span>
-                </div>
-
-                {/* Statisztikai blokkok (2x2 rács) */}
-                <div className="grid grid-cols-2 gap-3 mb-4 text-white">
-                  <div className="p-3 bg-gray-800 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <FiUsers className="text-blue-400" />
-                      <span className="font-semibold">{promo.sharesCount}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 text-center">Total Shares</p>
-                  </div>
-                  <div className="p-3 bg-gray-800 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <FiDollarSign className="text-green-400" />
-                      <span className="font-semibold">{promo.rewardPerShare}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 text-center">Reward/Share</p>
-                  </div>
-                  <div className="p-3 bg-gray-800 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <FiTrendingUp className="text-purple-400" />
-                      <span className="font-semibold">{promo.remainingBudget}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 text-center">Remaining</p>
-                  </div>
-                  <div className="p-3 bg-gray-800 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <FiActivity className="text-gray-300" />
-                      <span className="font-semibold">{promo.totalBudget}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 text-center">Total Budget</p>
-                  </div>
-                </div>
-
-                {/* Progress bar a folyamat vizualizálásához */}
-                <div className="w-full bg-gray-700 rounded-full h-2.5 mb-4">
-                  <div
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 h-2.5 rounded-full"
-                    style={{ width: `${calculateProgress(promo)}%` }}
-                  ></div>
-                </div>
-
-                {/* "Manage" gomb, csak ha nem completed */}
-                {promo.status !== "completed" && (
-                  <button
-                    onClick={() => onManageClick(promo)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
-                  >
-                    <FiSettings />
-                    Manage Campaign (Start / Pause)
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] max-w-md w-full">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-white">Manage Campaign</h2>
+          <button 
+            onClick={onCancel}
+            className="text-gray-400 hover:text-white"
+          >
+            <FiX size={24} />
+          </button>
         </div>
-      )}
+
+        <div className="mb-6">
+          <p className="text-gray-400 text-sm mb-2">Campaign URL:</p>
+          <p className="text-white font-medium truncate">{castUrl}</p>
+          <p className="text-gray-400 text-sm mt-2">
+            Current Status: <span className={`font-semibold ${
+              currentStatus === 'active' ? 'text-green-400' :
+              currentStatus === 'paused' ? 'text-yellow-400' :
+              'text-red-400'
+            }`}>
+              {currentStatus === 'inactive' ? 'Needs Funding' : currentStatus}
+            </span>
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
+            <FiX className="text-red-400" />
+            <span className="text-red-200 text-sm">{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 p-3 bg-green-900/50 border border-green-600 rounded-lg flex items-center gap-2">
+            <FiCheck className="text-green-400" />
+            <span className="text-green-200 text-sm">{success}</span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {canStart && (
+            <button
+              onClick={() => handleStatusChange('active')}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? <FiLoader className="animate-spin" /> : <FiPlay />}
+              Start Campaign
+            </button>
+          )}
+
+          {canPause && (
+            <button
+              onClick={() => handleStatusChange('paused')}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? <FiLoader className="animate-spin" /> : <FiPause />}
+              Pause Campaign
+            </button>
+          )}
+
+          {onDeleteClick && (
+            <button
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiX />
+              Delete Campaign
+            </button>
+          )}
+
+          <button
+            onClick={onCancel}
+            disabled={isLoading}
+            className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
