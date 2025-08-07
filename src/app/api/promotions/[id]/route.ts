@@ -52,3 +52,52 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    // 1. Kiolvassuk a teljes URL-t
+    const url = new URL(request.url);
+    // 2. Szétvágjuk az útvonalat a '/' mentén
+    const pathSegments = url.pathname.split('/');
+    // 3. A dinamikus `[id]` mindig az utolsó elem lesz az útvonalban
+    const idString = pathSegments[pathSegments.length - 1];
+
+    const id = parseInt(idString, 10);
+    
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: 'Invalid promotion ID in URL' },
+        { status: 400 }
+      );
+    }
+
+    // Ellenőrizzük, hogy létezik-e a kampány
+    const [promotion] = await sql`
+      SELECT * FROM promotions WHERE id = ${id};
+    `;
+
+    if (!promotion) {
+      return NextResponse.json(
+        { error: 'Promotion not found' },
+        { status: 404 }
+      );
+    }
+
+    // Töröljük a kampányt
+    await sql`
+      DELETE FROM promotions WHERE id = ${id};
+    `;
+
+    return NextResponse.json({ 
+      message: 'Promotion deleted successfully',
+      deletedId: id 
+    });
+
+  } catch (error) {
+    console.error('API Error in DELETE /api/promotions/[id]:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

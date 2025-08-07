@@ -135,6 +135,30 @@ export default function PromotePage() {
   const handleCreateCancel = () => { setShowForm(false); };
   const handleManageCancel = () => { setShowCampaignManager(false); setManagingPromo(null); };
 
+  const handleDeleteCampaign = async (promo: PromoCast) => {
+    try {
+      const response = await fetch(`/api/promotions/${promo.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete campaign');
+      }
+
+      alert('Campaign deleted successfully!');
+      setShowCampaignManager(false);
+      setManagingPromo(null);
+      refreshAllData();
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete campaign');
+    }
+  };
+
   const handleViewCast = (castUrl: string) => {
     try {
       const urlParts = castUrl.split('/');
@@ -196,7 +220,7 @@ export default function PromotePage() {
   };
 
   const myPromos = allPromotions.filter(
-    p => p.author.fid === currentUser.fid && p.status !== "completed"
+    p => p.author.fid === currentUser.fid
   );
   const availablePromos = allPromotions.filter(p => {
     if (p.status !== 'active' || p.author.fid === currentUser.fid) return false;
@@ -257,7 +281,7 @@ export default function PromotePage() {
           />
         </div>
 
-        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} />
+        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} onDeleteClick={handleDeleteCampaign} />
         
         <div className="flex justify-center my-8">
             <button
@@ -343,7 +367,8 @@ export default function PromotePage() {
             currentStatus={managingPromo.status}
             castUrl={managingPromo.castUrl} 
             onSuccess={handleManageSuccess} 
-            onCancel={handleManageCancel} 
+            onCancel={handleManageCancel}
+            onDeleteClick={handleDeleteCampaign}
           />
         )} 
       </div>
