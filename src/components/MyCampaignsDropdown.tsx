@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 // JAVÍTÁS: Importáljuk az összes szükséges ikont
-import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiX } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiX, FiStar } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
 
 interface MyCampaignsDropdownProps {
@@ -38,7 +38,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"
       >
-        <div className="w-6"></div> {/* Üres div a szimmetriáért */}
+        <FiStar className="text-purple-300 w-6" />
         <span className="flex-1 text-center">My Campaigns ({myPromos.length})</span>
         <div className="w-6">{isOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
       </button>
