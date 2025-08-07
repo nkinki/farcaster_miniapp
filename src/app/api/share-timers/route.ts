@@ -39,13 +39,13 @@ export async function GET(request: NextRequest) {
         END as time_remaining_hours
       FROM promotions p
       LEFT JOIN (
-        SELECT DISTINCT ON (promotion_id) 
+        SELECT 
           promotion_id, 
           sharer_fid, 
-          created_at
+          MAX(created_at) as created_at
         FROM shares 
         WHERE sharer_fid = ${fid}
-        ORDER BY promotion_id, created_at DESC
+        GROUP BY promotion_id, sharer_fid
       ) s ON p.id = s.promotion_id
       WHERE p.status = 'active' 
         AND p.remaining_budget >= p.reward_per_share

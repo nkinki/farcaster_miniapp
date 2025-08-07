@@ -18,6 +18,7 @@ interface UserProfileProps {
   userStats: {
     totalEarnings: number;
     totalShares: number;
+    pendingRewards?: number;
   };
   onClaimSuccess: () => void;
 }
@@ -32,7 +33,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const [justClaimed, setJustClaimed] = useState(false);
   const [claimedAmount, setClaimedAmount] = useState(0);
 
-  const pendingRewards = userStats.totalEarnings;
+  const pendingRewards = userStats.pendingRewards ?? 0;
   const hasPendingRewards = pendingRewards > 0;
 
   const handleClaim = useCallback(async () => {

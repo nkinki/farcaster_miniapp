@@ -8,7 +8,7 @@ export async function POST() {
     console.log('Running database migration...');
     
     // Read the migration file
-    const migrationPath = join(process.cwd(), 'migrations', '002_fix_tables.sql');
+    const migrationPath = join(process.cwd(), 'migrations', '005_add_payouts_table.sql');
     const migrationSQL = readFileSync(migrationPath, 'utf8');
     
     console.log('Migration SQL loaded, executing...');

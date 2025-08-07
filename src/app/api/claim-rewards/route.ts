@@ -27,12 +27,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Only count unclaimed rewards
     const [userStats] = await sql`
-        SELECT COALESCE(SUM(reward_amount), 0) as total_earnings
-        FROM shares WHERE sharer_fid = ${fid}
+        SELECT 
+          COALESCE(SUM(reward_amount), 0) as pending_earnings,
+          COUNT(*) as pending_shares
+        FROM shares 
+        WHERE sharer_fid = ${fid} AND reward_claimed = FALSE
     `;
 
-    const amountToClaim = Number(userStats.total_earnings);
+    const amountToClaim = Number(userStats.pending_earnings);
+    const sharesCount = Number(userStats.pending_shares);
+    
     if (!amountToClaim || amountToClaim <= 0) {
       throw new Error('No rewards to claim.');
     }
@@ -67,17 +73,29 @@ export async function POST(request: NextRequest) {
         throw new Error('On-chain transfer transaction failed.');
     }
 
-    // JAVÍTÁS: A `DELETE` parancsot kiegészítjük a `RETURNING *`-gal,
-    // és az eredményül kapott tömb hosszát használjuk a törölt sorok számaként.
-    const deletedShares = await sql`DELETE FROM shares WHERE sharer_fid = ${fid} RETURNING *`;
-    const rowCount = deletedShares.length;
+    // Mark shares as claimed instead of deleting them
+    const claimedShares = await sql`
+      UPDATE shares 
+      SET reward_claimed = TRUE, claimed_at = NOW() 
+      WHERE sharer_fid = ${fid} AND reward_claimed = FALSE 
+      RETURNING *
+    `;
+    const claimedCount = claimedShares.length;
     
-    console.log(`Deleted ${rowCount} share entries for FID ${fid}.`);
+    console.log(`Marked ${claimedCount} shares as claimed for FID ${fid}.`);
     
-    // Opcionális: a kifizetés rögzítése egy `payouts` táblában
-    // await sql`INSERT INTO payouts (user_fid, amount, recipient_address, tx_hash) VALUES (${fid}, ${amountToClaim}, ${recipientAddress}, ${txHash})`;
+    // Record the payout in payouts table
+    await sql`
+      INSERT INTO payouts (user_fid, amount, recipient_address, tx_hash, shares_count) 
+      VALUES (${fid}, ${amountToClaim}, ${recipientAddress}, ${txHash}, ${sharesCount})
+    `;
 
-    return NextResponse.json({ success: true, transactionHash: txHash }, { status: 200 });
+    return NextResponse.json({ 
+      success: true, 
+      transactionHash: txHash,
+      claimedAmount: amountToClaim,
+      sharesCount: claimedCount
+    }, { status: 200 });
 
   } catch (error: any) {
     console.error('API Error in /api/claim-rewards:', error.message);

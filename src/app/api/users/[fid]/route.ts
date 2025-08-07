@@ -40,14 +40,14 @@ export async function GET(request: NextRequest) {
 
     // Enhanced query to get comprehensive user statistics
     const [userStatsResult, campaignStatsResult, recentActivityResult] = await Promise.all([
-      // Basic user statistics - FIXED: removed claimed_at references
+      // Basic user statistics - separate total earnings from pending rewards
       sql`
         SELECT
           COUNT(DISTINCT s.id) AS total_shares,
           COALESCE(SUM(s.reward_amount), 0) AS total_earnings,
-          COALESCE(SUM(s.reward_amount), 0) AS pending_rewards,
+          COALESCE(SUM(CASE WHEN s.reward_claimed = FALSE THEN s.reward_amount ELSE 0 END), 0) AS pending_rewards,
           MAX(s.created_at) AS last_share_date,
-          MAX(s.created_at) AS last_claim_date
+          MAX(s.claimed_at) AS last_claim_date
         FROM shares s
         WHERE s.sharer_fid = ${fid};
       `,

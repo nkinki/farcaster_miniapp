@@ -47,7 +47,7 @@ export default function PromotePage() {
   const [showForm, setShowForm] = useState(false);
   const [showCampaignManager, setShowCampaignManager] = useState(false);
   const [managingPromo, setManagingPromo] = useState<PromoCast | null>(null);
-  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0 });
+  const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0, pendingRewards: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({});
   const [isShareListOpen, setIsShareListOpen] = useState(false);
@@ -110,6 +110,7 @@ export default function PromotePage() {
           setUserStats({
             totalEarnings: data.user.total_earnings,
             totalShares: data.user.total_shares,
+            pendingRewards: data.user.pending_rewards,
           });
         }
       }
