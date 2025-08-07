@@ -73,25 +73,21 @@ export async function POST(request: NextRequest) {
         throw new Error('On-chain transfer transaction failed.');
     }
 
-    // Mark shares as claimed instead of deleting them
-    const claimedShares = await sql`
-      UPDATE shares 
-      SET reward_claimed = TRUE
-      WHERE sharer_fid = ${fid} AND reward_claimed = FALSE 
+    // Delete shares after successful claim (original behavior)
+    const deletedShares = await sql`
+      DELETE FROM shares 
+      WHERE sharer_fid = ${fid}
       RETURNING *
     `;
-    const claimedCount = claimedShares.length;
+    const deletedCount = deletedShares.length;
     
-    console.log(`Marked ${claimedCount} shares as claimed for FID ${fid}.`);
-    
-    // TODO: Record the payout in payouts table when it's created
-    // await sql`INSERT INTO payouts (user_fid, amount, recipient_address, tx_hash, shares_count) VALUES (${fid}, ${amountToClaim}, ${recipientAddress}, ${txHash}, ${sharesCount})`;
+    console.log(`Deleted ${deletedCount} share entries for FID ${fid}.`);
 
     return NextResponse.json({ 
       success: true, 
       transactionHash: txHash,
       claimedAmount: amountToClaim,
-      sharesCount: claimedCount
+      sharesCount: deletedCount
     }, { status: 200 });
 
   } catch (error: any) {
