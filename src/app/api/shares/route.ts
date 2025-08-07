@@ -78,6 +78,20 @@ export async function POST(request: NextRequest) {
       WHERE id = ${promotionId}
     `;
 
+    // Check if campaign should be marked as completed after this share
+    const [updatedPromo] = await sql`
+      SELECT remaining_budget, reward_per_share 
+      FROM promotions WHERE id = ${promotionId}
+    `;
+
+    if (updatedPromo && updatedPromo.remaining_budget <= 0) {
+      await sql`UPDATE promotions SET status = 'completed' WHERE id = ${promotionId}`;
+      console.log(`Campaign ${promotionId} marked as completed - budget exhausted`);
+    } else if (updatedPromo && updatedPromo.remaining_budget < updatedPromo.reward_per_share) {
+      await sql`UPDATE promotions SET status = 'completed' WHERE id = ${promotionId}`;
+      console.log(`Campaign ${promotionId} marked as completed - insufficient budget for next share`);
+    }
+
     console.log(`Share recorded successfully for user ${sharerFid}`);
 
     return NextResponse.json({ success: true, message: "Share recorded successfully" }, { status: 200 });

@@ -22,8 +22,19 @@ const calculateProgress = (promo: PromoCast): number => {
 export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteClick }: MyCampaignsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Automatikus státusz korrekció: ha nincs elég budget, akkor completed
+  const correctedPromos = myPromos.map(promo => {
+    if (promo.status === 'active' && promo.remainingBudget < promo.rewardPerShare) {
+      return { ...promo, status: 'completed' as const };
+    }
+    if (promo.remainingBudget <= 0 && promo.status !== 'completed') {
+      return { ...promo, status: 'completed' as const };
+    }
+    return promo;
+  });
+
   // Rendezés: még osztható active kampányok elöl, majd nem osztható active, paused, inactive, completed
-  const sortedPromos = [...myPromos].sort((a, b) => {
+  const sortedPromos = [...correctedPromos].sort((a, b) => {
     const statusOrder = { active: 1, paused: 2, inactive: 3, completed: 4 };
     const aIsShareable = a.status === 'active' && a.remainingBudget >= a.rewardPerShare;
     const bIsShareable = b.status === 'active' && b.remainingBudget >= b.rewardPerShare;
