@@ -12,6 +12,64 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    console.log(`Checking 48h cooldown for user ${sharerFid} on promotion ${promotionId}`);
+    
+    // Check current unclaimed shares
+    const [lastUnclaimedShare] = await sql`
+      SELECT created_at
+      FROM shares 
+      WHERE promotion_id = ${promotionId} AND sharer_fid = ${sharerFid}
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    // Check claimed shares from claims table
+    const [lastClaimedShare] = await sql`
+      SELECT 
+        c.created_at as claim_date,
+        jsonb_array_elements(c.claimed_shares)->>'created_at' as share_date,
+        (jsonb_array_elements(c.claimed_shares)->>'promotion_id')::integer as promotion_id
+      FROM claims c
+      WHERE c.user_fid = ${sharerFid}
+      AND (jsonb_array_elements(c.claimed_shares)->>'promotion_id')::integer = ${promotionId}
+      ORDER BY jsonb_array_elements(c.claimed_shares)->>'created_at' DESC
+      LIMIT 1
+    `;
+
+    let lastShareTime = null;
+
+    // Find the most recent share (either unclaimed or claimed)
+    if (lastUnclaimedShare && lastClaimedShare) {
+      const unclaimedTime = new Date(lastUnclaimedShare.created_at);
+      const claimedTime = new Date(lastClaimedShare.share_date);
+      lastShareTime = unclaimedTime > claimedTime ? unclaimedTime : claimedTime;
+    } else if (lastUnclaimedShare) {
+      lastShareTime = new Date(lastUnclaimedShare.created_at);
+    } else if (lastClaimedShare) {
+      lastShareTime = new Date(lastClaimedShare.share_date);
+    }
+
+    if (lastShareTime) {
+      const now = new Date();
+      const hoursSinceLastShare = (now.getTime() - lastShareTime.getTime()) / (1000 * 60 * 60);
+      
+      console.log(`Last share was ${hoursSinceLastShare.toFixed(2)} hours ago`);
+      
+      if (hoursSinceLastShare < 48) {
+        const hoursRemaining = 48 - hoursSinceLastShare;
+        const h = Math.floor(hoursRemaining);
+        const m = Math.floor((hoursRemaining - h) * 60);
+        
+        console.log(`48h cooldown active: ${h}h ${m}m remaining`);
+        
+        return NextResponse.json({ 
+          error: `You can share this campaign again in ${h}h ${m}m` 
+        }, { status: 400 });
+      }
+    } else {
+      console.log(`No previous share found for user ${sharerFid} on promotion ${promotionId}`);
+    }
+
     const [promo] = await sql`
       SELECT reward_per_share, remaining_budget, status 
       FROM promotions WHERE id = ${promotionId}
@@ -28,6 +86,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Insufficient budget for this share' }, { status: 400 });
     }
 
+    console.log(`Recording new share for user ${sharerFid} on promotion ${promotionId}`);
+
     // Record the share
     await sql`
       INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount)
@@ -42,6 +102,8 @@ export async function POST(request: NextRequest) {
         remaining_budget = remaining_budget - ${promo.reward_per_share}
       WHERE id = ${promotionId}
     `;
+
+    console.log(`Share recorded successfully for user ${sharerFid}`);
 
     return NextResponse.json({ success: true, message: "Share recorded successfully" }, { status: 200 });
 

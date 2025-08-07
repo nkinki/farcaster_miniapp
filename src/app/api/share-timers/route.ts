@@ -19,27 +19,53 @@ export async function GET(request: NextRequest) {
                 p.status,
                 p.remaining_budget,
                 p.reward_per_share,
-                s.last_share_time,
+                GREATEST(
+                    COALESCE(s.last_unclaimed_share, '1970-01-01'::timestamp),
+                    COALESCE(c.last_claimed_share, '1970-01-01'::timestamp)
+                ) as last_share_time,
                 CASE 
-                    WHEN s.last_share_time IS NULL THEN true
-                    WHEN s.last_share_time < NOW() - INTERVAL '48 hours' THEN true
+                    WHEN GREATEST(
+                        COALESCE(s.last_unclaimed_share, '1970-01-01'::timestamp),
+                        COALESCE(c.last_claimed_share, '1970-01-01'::timestamp)
+                    ) = '1970-01-01'::timestamp THEN true
+                    WHEN GREATEST(
+                        COALESCE(s.last_unclaimed_share, '1970-01-01'::timestamp),
+                        COALESCE(c.last_claimed_share, '1970-01-01'::timestamp)
+                    ) < NOW() - INTERVAL '48 hours' THEN true
                     ELSE false 
                 END as can_share,
                 CASE
-                    WHEN s.last_share_time IS NULL THEN 0
-                    WHEN s.last_share_time < NOW() - INTERVAL '48 hours' THEN 0
-                    ELSE EXTRACT(EPOCH FROM (s.last_share_time + INTERVAL '48 hours' - NOW())) / 3600
+                    WHEN GREATEST(
+                        COALESCE(s.last_unclaimed_share, '1970-01-01'::timestamp),
+                        COALESCE(c.last_claimed_share, '1970-01-01'::timestamp)
+                    ) = '1970-01-01'::timestamp THEN 0
+                    WHEN GREATEST(
+                        COALESCE(s.last_unclaimed_share, '1970-01-01'::timestamp),
+                        COALESCE(c.last_claimed_share, '1970-01-01'::timestamp)
+                    ) < NOW() - INTERVAL '48 hours' THEN 0
+                    ELSE EXTRACT(EPOCH FROM (GREATEST(
+                        COALESCE(s.last_unclaimed_share, '1970-01-01'::timestamp),
+                        COALESCE(c.last_claimed_share, '1970-01-01'::timestamp)
+                    ) + INTERVAL '48 hours' - NOW())) / 3600
                 END as time_remaining_hours
             FROM promotions p
             LEFT JOIN (
                 SELECT 
                     promotion_id,
                     sharer_fid,
-                    MAX(created_at) as last_share_time
+                    MAX(created_at) as last_unclaimed_share
                 FROM shares
                 WHERE sharer_fid = ${fid}
                 GROUP BY promotion_id, sharer_fid
             ) s ON p.id = s.promotion_id
+            LEFT JOIN (
+                SELECT 
+                    (jsonb_array_elements(claimed_shares)->>'promotion_id')::integer as promotion_id,
+                    MAX((jsonb_array_elements(claimed_shares)->>'created_at')::timestamp) as last_claimed_share
+                FROM claims
+                WHERE user_fid = ${fid}
+                GROUP BY (jsonb_array_elements(claimed_shares)->>'promotion_id')::integer
+            ) c ON p.id = c.promotion_id
             WHERE p.status = 'active'
             AND p.remaining_budget >= p.reward_per_share
             ORDER BY p.reward_per_share DESC
@@ -49,7 +75,7 @@ export async function GET(request: NextRequest) {
             promotionId: row.id,
             canShare: row.can_share,
             timeRemaining: Math.max(0, row.time_remaining_hours),
-            lastShareTime: row.last_share_time,
+            lastShareTime: row.last_share_time === '1970-01-01T00:00:00.000Z' ? null : row.last_share_time,
             campaignStatus: row.status,
             remainingBudget: row.remaining_budget,
             rewardPerShare: row.reward_per_share,

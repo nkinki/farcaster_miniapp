@@ -27,17 +27,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Get all unclaimed rewards (all shares for this user - no reward_claimed column exists)
-    const [userStats] = await sql`
+    // Get all unclaimed rewards and their details
+    const userShares = await sql`
         SELECT 
-          COALESCE(SUM(reward_amount), 0) as total_earnings,
-          COUNT(*) as total_shares
+          id, promotion_id, reward_amount, created_at
         FROM shares 
         WHERE sharer_fid = ${fid}
+        ORDER BY created_at DESC
     `;
 
-    const amountToClaim = Number(userStats.total_earnings);
-    const sharesCount = Number(userStats.total_shares);
+    if (userShares.length === 0) {
+      throw new Error('No rewards to claim.');
+    }
+
+    const amountToClaim = userShares.reduce((sum, share) => sum + Number(share.reward_amount), 0);
+    const sharesCount = userShares.length;
     
     if (!amountToClaim || amountToClaim <= 0) {
       throw new Error('No rewards to claim.');
@@ -73,7 +77,27 @@ export async function POST(request: NextRequest) {
         throw new Error('On-chain transfer transaction failed.');
     }
 
-    // Delete shares after successful claim (original behavior - no reward_claimed column)
+    // Create claims table if it doesn't exist
+    await sql`
+      CREATE TABLE IF NOT EXISTS claims (
+        id SERIAL PRIMARY KEY,
+        user_fid INTEGER NOT NULL,
+        amount DECIMAL(18, 2) NOT NULL,
+        shares_count INTEGER NOT NULL,
+        recipient_address VARCHAR(42) NOT NULL,
+        tx_hash VARCHAR(66) NOT NULL,
+        claimed_shares JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    // Record the claim with share details
+    await sql`
+      INSERT INTO claims (user_fid, amount, shares_count, recipient_address, tx_hash, claimed_shares)
+      VALUES (${fid}, ${amountToClaim}, ${sharesCount}, ${recipientAddress}, ${txHash}, ${JSON.stringify(userShares)})
+    `;
+
+    // Delete shares after successful claim (original behavior)
     const deletedShares = await sql`
       DELETE FROM shares 
       WHERE sharer_fid = ${fid}
@@ -81,7 +105,7 @@ export async function POST(request: NextRequest) {
     `;
     const deletedCount = deletedShares.length;
     
-    console.log(`Deleted ${deletedCount} share entries for FID ${fid}.`);
+    console.log(`Deleted ${deletedCount} share entries for FID ${fid} and recorded claim history`);
 
     return NextResponse.json({ 
       success: true, 

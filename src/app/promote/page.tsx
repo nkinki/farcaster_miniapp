@@ -185,7 +185,7 @@ export default function PromotePage() {
       const data = await response.json();
       
       if (!response.ok) { 
-        // Show the specific error message from the API
+        // Show the specific error message from the API (including 48h cooldown)
         throw new Error(data.error || "Failed to record share on the backend."); 
       }
       
@@ -198,6 +198,11 @@ export default function PromotePage() {
       console.error("Error during share process:", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       setShareError(errorMessage);
+      
+      // Also show alert for 48h cooldown errors
+      if (errorMessage.includes('can share this campaign again in')) {
+        alert(errorMessage);
+      }
     } finally {
       setSharingPromoId(null);
     }
