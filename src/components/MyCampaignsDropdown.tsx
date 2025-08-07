@@ -50,7 +50,15 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
               <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700">
                 {/* Felső szekció: Cast URL és Státusz */}
                 <div className="flex justify-between items-start mb-3">
-                  <p className="text-white font-medium truncate pr-4">{promo.castUrl}</p>
+                  <a
+                    href={promo.castUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white font-medium truncate pr-4 hover:text-purple-300 transition-colors"
+                    title={promo.castUrl}
+                  >
+                    {promo.castUrl}
+                  </a>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap ${
                     promo.status === "active" ? "bg-green-600 text-white" :
                     promo.status === "paused" ? "bg-yellow-600 text-white" :
@@ -79,7 +87,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                     <p className="text-xs text-gray-400 text-center">Reward/Share</p>
                   </div>
                   <div className="p-3 bg-gray-800 rounded-lg">
-                    <div className="flex items-center justify-centerx gap-2 mb-1">
+                    <div className="flex items-center justify-center gap-2 mb-1">
                       <FiTrendingUp className="text-purple-400" />
                       <span className="font-semibold">{promo.remainingBudget}</span>
                     </div>
