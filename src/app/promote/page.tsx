@@ -88,8 +88,8 @@ export default function PromotePage() {
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
-        // TEMPORARY: Use mock API for testing until database is fixed
-        const response = await fetch(`/api/test-share-timers?fid=${currentUser.fid}`);
+        // Use real API now that it's fixed
+        const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
         if (response.ok) {
             const data = await response.json();
             // JAVÍTÁS: Az API most már `data.timers`-t ad vissza
@@ -107,8 +107,8 @@ export default function PromotePage() {
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
-      // TEMPORARY: Use mock API for testing until database is fixed
-      const response = await fetch(`/api/test-user-stats?fid=${currentUser.fid}`);
+      // Use real API now that it's fixed
+      const response = await fetch(`/api/users/${currentUser.fid}`);
       if (response.ok) {
         const data = await response.json();
         if (data.user) {

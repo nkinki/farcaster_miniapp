@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Get all unclaimed rewards (all shares for this user)
+    // Get all unclaimed rewards (all shares for this user - no reward_claimed column exists)
     const [userStats] = await sql`
         SELECT 
           COALESCE(SUM(reward_amount), 0) as total_earnings,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         throw new Error('On-chain transfer transaction failed.');
     }
 
-    // Delete shares after successful claim (original behavior)
+    // Delete shares after successful claim (original behavior - no reward_claimed column)
     const deletedShares = await sql`
       DELETE FROM shares 
       WHERE sharer_fid = ${fid}
