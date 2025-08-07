@@ -253,6 +253,7 @@ export default function PromotePage() {
             <div className="bg-[#23283a] border border-[#a64d79] rounded-2xl px-6 py-3 flex items-center gap-2 shadow-sm mx-auto pulse-glow">
               <FiStar className="text-purple-300" size={24} />
               <h1 className="text-2xl font-bold text-white text-center tracking-wide">PROMOTIONS</h1>
+              <FiStar className="text-purple-300" size={24} />
             </div>
           </div>
           <div className="flex items-center justify-start mt-1">
