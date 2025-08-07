@@ -226,9 +226,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             </>
           )}
         </button>
-        {!canClaim && hasPendingRewards && (
-          <p className="text-xs text-gray-400 text-center mt-1">Min. 10,000 $CHESS required</p>
-        )}
+        <p className="text-xs text-gray-400 text-center mt-1">Min. 10,000 $CHESS required</p>
         
         {error && (
           <div className="p-3 text-sm bg-red-900/50 border border-red-600 text-red-300 rounded-md flex items-center gap-2 animate-fadeIn">
