@@ -18,6 +18,28 @@ const treasuryAccount = privateKeyToAccount(privateKey);
 const publicClient = createPublicClient({ chain: base, transport: http() });
 const walletClient = createWalletClient({ account: treasuryAccount, chain: base, transport: http() });
 
+async function setupDatabase() {
+    // Create claims table if it doesn't exist
+    await sql`
+      CREATE TABLE IF NOT EXISTS claims (
+        id SERIAL PRIMARY KEY,
+        user_fid INTEGER NOT NULL,
+        amount DECIMAL(18, 2) NOT NULL,
+        shares_count INTEGER NOT NULL,
+        recipient_address VARCHAR(42) NOT NULL,
+        tx_hash VARCHAR(66) NOT NULL,
+        claimed_shares_ids INTEGER[] NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    // Add reward_claimed column to shares table if it doesn't exist
+    try {
+        await sql`ALTER TABLE shares ADD COLUMN IF NOT EXISTS reward_claimed BOOLEAN DEFAULT FALSE`;
+    } catch (e) {
+        console.log('reward_claimed column might already exist, continuing...');
+    }
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { fid } = body;
@@ -27,13 +49,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Get all unclaimed rewards and their details
+    await setupDatabase();
+
+    // Get all unclaimed rewards
     const userShares = await sql`
-        SELECT 
-          id, promotion_id, reward_amount, created_at
+        SELECT id, reward_amount 
         FROM shares 
-        WHERE sharer_fid = ${fid}
-        ORDER BY created_at DESC
+        WHERE sharer_fid = ${fid} AND reward_claimed = FALSE
     `;
 
     if (userShares.length === 0) {
@@ -42,6 +64,7 @@ export async function POST(request: NextRequest) {
 
     const amountToClaim = userShares.reduce((sum, share) => sum + Number(share.reward_amount), 0);
     const sharesCount = userShares.length;
+    const shareIds = userShares.map(s => s.id);
     
     if (!amountToClaim || amountToClaim <= 0) {
       throw new Error('No rewards to claim.');
@@ -77,41 +100,26 @@ export async function POST(request: NextRequest) {
         throw new Error('On-chain transfer transaction failed.');
     }
 
-    // Create claims table if it doesn't exist
+    // Mark shares as claimed
     await sql`
-      CREATE TABLE IF NOT EXISTS claims (
-        id SERIAL PRIMARY KEY,
-        user_fid INTEGER NOT NULL,
-        amount DECIMAL(18, 2) NOT NULL,
-        shares_count INTEGER NOT NULL,
-        recipient_address VARCHAR(42) NOT NULL,
-        tx_hash VARCHAR(66) NOT NULL,
-        claimed_shares JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      )
+      UPDATE shares 
+      SET reward_claimed = TRUE
+      WHERE id = ANY(${shareIds})
     `;
-
-    // Record the claim with share details
-    await sql`
-      INSERT INTO claims (user_fid, amount, shares_count, recipient_address, tx_hash, claimed_shares)
-      VALUES (${fid}, ${amountToClaim}, ${sharesCount}, ${recipientAddress}, ${txHash}, ${JSON.stringify(userShares)})
-    `;
-
-    // Delete shares after successful claim (original behavior)
-    const deletedShares = await sql`
-      DELETE FROM shares 
-      WHERE sharer_fid = ${fid}
-      RETURNING *
-    `;
-    const deletedCount = deletedShares.length;
     
-    console.log(`Deleted ${deletedCount} share entries for FID ${fid} and recorded claim history`);
+    // Record the claim
+    await sql`
+      INSERT INTO claims (user_fid, amount, shares_count, recipient_address, tx_hash, claimed_shares_ids)
+      VALUES (${fid}, ${amountToClaim}, ${sharesCount}, ${recipientAddress}, ${txHash}, ${shareIds})
+    `;
+    
+    console.log(`Marked ${sharesCount} shares as claimed for FID ${fid} and recorded claim history`);
 
     return NextResponse.json({ 
       success: true, 
       transactionHash: txHash,
       claimedAmount: amountToClaim,
-      sharesCount: deletedCount
+      sharesCount: sharesCount
     }, { status: 200 });
 
   } catch (error: any) {
