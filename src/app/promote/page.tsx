@@ -208,7 +208,9 @@ export default function PromotePage() {
     }
   };
 
-  const myPromos = allPromotions.filter(p => p.author.fid === currentUser.fid);
+  const myPromos = allPromotions.filter(
+    p => p.author.fid === currentUser.fid && p.status !== "completed"
+  );
   const availablePromos = allPromotions.filter(p => {
     if (p.status !== 'active' || p.author.fid === currentUser.fid) return false;
     if (p.remainingBudget < p.rewardPerShare) return false;
