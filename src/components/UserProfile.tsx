@@ -106,22 +106,38 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">{user.displayName || user.username}</h2>
-          <p className="text-gray-400">@{user.username} • FID: {user.fid}</p>
+          <p className="text-gray-400">@{user.username}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-[#181c23] p-4 rounded-lg text-center">
-          <p className="text-sm text-gray-400 mb-2">Total Shares</p>
-          <p className="text-lg font-bold text-white">{userStats.totalShares}</p>
+      <div className="grid grid-cols-2 gap-3 mb-6 text-white">
+        <div className="p-3 bg-[#181c23] rounded-lg">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <FiTrendingUp className="text-blue-400" />
+            <span className="font-semibold">{userStats.totalShares}</span>
+          </div>
+          <p className="text-xs text-gray-400 text-center">Total Shares</p>
         </div>
-        <div className="bg-[#181c23] p-4 rounded-lg text-center">
-          <p className="text-sm text-gray-400 mb-2">Pending Rewards</p>
-          <p className="text-lg font-bold text-white">{pendingRewards.toFixed(2)} $CHESS</p>
+        <div className="p-3 bg-[#181c23] rounded-lg">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <FiAward className="text-green-400" />
+            <span className="font-semibold">{pendingRewards.toFixed(2)}</span>
+          </div>
+          <p className="text-xs text-gray-400 text-center">Pending Rewards</p>
         </div>
-        <div className="bg-[#181c23] p-4 rounded-lg text-center">
-          <p className="text-sm text-gray-400 mb-2">Your Balance</p>
-          <p className="text-lg font-bold text-white">{formatChessAmount(balance)} $CHESS</p>
+        <div className="p-3 bg-[#181c23] rounded-lg">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <FiDollarSign className="text-purple-400" />
+            <span className="font-semibold">{formatChessAmount(balance)}</span>
+          </div>
+          <p className="text-xs text-gray-400 text-center">Your Balance</p>
+        </div>
+        <div className="p-3 bg-[#181c23] rounded-lg">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <FiUser className="text-yellow-400" />
+            <span className="font-semibold">FID: {user.fid}</span>
+          </div>
+          <p className="text-xs text-gray-400 text-center">Farcaster ID</p>
         </div>
       </div>
 
