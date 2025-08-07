@@ -26,23 +26,23 @@ export async function GET(request: NextRequest) {
         p.status,
         p.remaining_budget,
         p.reward_per_share,
-        s.created_at as last_share_time,
+        s.shared_at as last_share_time,
         CASE 
-          WHEN s.created_at IS NULL THEN true
-          WHEN s.created_at < NOW() - INTERVAL '48 hours' THEN true
+          WHEN s.shared_at IS NULL THEN true
+          WHEN s.shared_at < NOW() - INTERVAL '48 hours' THEN true
           ELSE false
         END as can_share,
         CASE 
-          WHEN s.created_at IS NULL THEN 0
-          WHEN s.created_at < NOW() - INTERVAL '48 hours' THEN 0
-          ELSE EXTRACT(EPOCH FROM (s.created_at + INTERVAL '48 hours' - NOW())) / 3600
+          WHEN s.shared_at IS NULL THEN 0
+          WHEN s.shared_at < NOW() - INTERVAL '48 hours' THEN 0
+          ELSE EXTRACT(EPOCH FROM (s.shared_at + INTERVAL '48 hours' - NOW())) / 3600
         END as time_remaining_hours
       FROM promotions p
       LEFT JOIN (
         SELECT 
           promotion_id, 
           sharer_fid, 
-          MAX(created_at) as created_at
+          MAX(shared_at) as shared_at
         FROM shares 
         WHERE sharer_fid = ${fid}
         GROUP BY promotion_id, sharer_fid

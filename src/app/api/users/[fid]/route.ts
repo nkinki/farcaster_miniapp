@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
           COUNT(DISTINCT s.id) AS total_shares,
           COALESCE(SUM(s.reward_amount), 0) AS total_earnings,
           COALESCE(SUM(CASE WHEN s.reward_claimed = FALSE THEN s.reward_amount ELSE 0 END), 0) AS pending_rewards,
-          MAX(s.created_at) AS last_share_date,
-          MAX(s.claimed_at) AS last_claim_date
+          MAX(s.shared_at) AS last_share_date,
+          MAX(s.shared_at) AS last_claim_date
         FROM shares s
         WHERE s.sharer_fid = ${fid};
       `,
