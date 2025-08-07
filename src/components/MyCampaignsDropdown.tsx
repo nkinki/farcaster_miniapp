@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react';
-import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiStar } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiStar, FiTrash } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
 
 interface MyCampaignsDropdownProps {
@@ -126,8 +126,8 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                   ></div>
                 </div>
 
-                {/* "Manage" gomb, csak ha nem completed */}
-                {promo.status !== "completed" && (
+                {/* Gomb logika: Manage ha nem completed, Delete ha completed */}
+                {promo.status !== "completed" ? (
                   <button
                     onClick={() => onManageClick(promo)}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
@@ -135,6 +135,16 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                     <FiSettings />
                     Manage
                   </button>
+                ) : (
+                  onDeleteClick && (
+                    <button
+                      onClick={() => onDeleteClick(promo)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                    >
+                      <FiTrash />
+                      Delete Campaign
+                    </button>
+                  )
                 )}
               </div>
             ))}
