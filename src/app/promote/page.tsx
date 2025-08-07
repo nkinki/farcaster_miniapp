@@ -91,11 +91,14 @@ export default function PromotePage() {
         const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
         if (response.ok) {
             const data = await response.json();
-            const timersMap = data.timers.reduce((acc: Record<string, ShareTimer>, timer: ShareTimer) => {
-                acc[timer.promotionId.toString()] = timer;
-                return acc;
-            }, {});
-            setShareTimers(timersMap);
+            // JAVÍTÁS: Az API most már `data.timers`-t ad vissza
+            if (data.timers) {
+              const timersMap = data.timers.reduce((acc: Record<string, ShareTimer>, timer: ShareTimer) => {
+                  acc[timer.promotionId.toString()] = timer;
+                  return acc;
+              }, {});
+              setShareTimers(timersMap);
+            }
         }
     } catch (error) { console.error("Failed to fetch share timers:", error); }
   }, [currentUser.fid]);
