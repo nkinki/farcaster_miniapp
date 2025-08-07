@@ -312,7 +312,7 @@ export default function Home() {
           <div className="flex justify-between items-center max-w-2xl mx-auto mb-1 px-2">
             <Link href="/promote" className="inline-block">
               <span 
-                className="px-4 py-1 text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                className="flex items-center gap-2 px-4 py-1 text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                 onClick={async () => {
                   if (hapticsSupported) {
                     try {
@@ -323,7 +323,8 @@ export default function Home() {
                   }
                 }}
               >
-                🚀 Share & Earn
+                <FiDollarSign size={22} className="text-green-300" />
+                Share & Earn
               </span>
             </Link>
             <form className="flex items-center" onSubmit={(e) => e.preventDefault()}>
