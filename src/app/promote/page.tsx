@@ -4,9 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
-// JAVÍTÁS: A UserProfileRef-et eltávolítottuk, mert az új modellben már nincs rá szükség.
 import UserProfile from "@/components/UserProfile";
-
 import PaymentForm from "../../components/PaymentForm";
 import CampaignManager from "../../components/CampaignManager";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
@@ -87,11 +85,9 @@ export default function PromotePage() {
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
-        // Use real API now that it's fixed
         const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
         if (response.ok) {
             const data = await response.json();
-            // JAVÍTÁS: Az API most már `data.timers`-t ad vissza
             if (data.timers) {
               const timersMap = data.timers.reduce((acc: Record<string, ShareTimer>, timer: ShareTimer) => {
                   acc[timer.promotionId.toString()] = timer;
@@ -106,7 +102,6 @@ export default function PromotePage() {
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
-      // Use real API now that it's fixed
       const response = await fetch(`/api/users/${currentUser.fid}`);
       if (response.ok) {
         const data = await response.json();
@@ -121,21 +116,18 @@ export default function PromotePage() {
     } catch (error) { console.error("Failed to fetch user stats:", error); }
   }, [currentUser.fid]);
   
-  // JAVÍTÁS: A refreshAllData most már stabil függőségekkel rendelkezik.
   const refreshAllData = useCallback(async () => {
       setLoading(true);
       await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
       setLoading(false);
   }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
 
-  // JAVÍTÁS: A fő useEffect függőségeit leegyszerűsítettük, hogy megszüntessük a végtelen ciklust.
   useEffect(() => {
     if (isAuthenticated && profile?.fid) {
       refreshAllData();
       const interval = setInterval(fetchShareTimers, 60000);
       return () => clearInterval(interval);
     }
-  // A refreshAllData és a fetchShareTimers már nem függőségek, mert a useCallback stabilizálja őket.
   }, [isAuthenticated, profile]);
   
   const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
@@ -155,7 +147,6 @@ export default function PromotePage() {
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) return alert("Please connect your Farcaster account first.");
     
-    // Clear any previous errors
     setShareError(null);
     setSharingPromoId(promo.id.toString());
     
@@ -184,13 +175,11 @@ export default function PromotePage() {
       const data = await response.json();
       
       if (!response.ok) { 
-        // Show the specific error message from the API (including 48h cooldown)
         throw new Error(data.error || "Failed to record share on the backend."); 
       }
       
       alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
-      // Refresh all data after successful share
       await refreshAllData();
 
     } catch (error) {
@@ -198,7 +187,6 @@ export default function PromotePage() {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       setShareError(errorMessage);
       
-      // Also show alert for 48h cooldown errors
       if (errorMessage.includes('can share this campaign again in')) {
         alert(errorMessage);
       }
@@ -238,7 +226,7 @@ export default function PromotePage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-4">
           <div className="flex items-center justify-center">
-            <div className="bg-[#23283a]/80 border border-[#5D6AFF]/20 rounded-2xl px-6 py-3 flex items-center gap-2 shadow-sm mx-auto">
+            <div className="bg-[#23283a] border border-[#a64d79] rounded-2xl px-6 py-3 flex items-center gap-2 shadow-sm mx-auto pulse-glow">
               <FiStar className="text-purple-300" size={24} />
               <h1 className="text-2xl font-bold text-white text-center tracking-wide">PROMOTIONS</h1>
             </div>
@@ -269,14 +257,12 @@ export default function PromotePage() {
           />
         </div>
 
-
-        
         <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} />
         
         <div className="flex justify-center my-8">
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-white shadow-lg neon-pulse"
+              className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg pulse-glow"
               style={{ position: 'relative', overflow: 'hidden' }}
             >
               <FiPlus size={20} />Create Promotion
@@ -360,29 +346,25 @@ export default function PromotePage() {
             onCancel={handleManageCancel} 
           />
         )} 
-        
-        {/* <div className="mt-8 flex justify-center">
-          <ConnectWalletButton />
-        </div> */}
       </div>
       <style jsx global>{`
-        @keyframes neonPulse {
+        @keyframes pulseGlow {
           0% {
-            box-shadow: 0 0 2px #5D6AFF, 0 0 6px #00fff7;
-            filter: brightness(1.03) saturate(1.08);
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
           }
           50% {
-            box-shadow: 0 0 8px #00fff7, 0 0 16px #5D6AFF;
-            filter: brightness(1.09) saturate(1.15);
+            box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff;
+            filter: brightness(1.1) saturate(1.2);
           }
           100% {
-            box-shadow: 0 0 2px #5D6AFF, 0 0 6px #00fff7;
-            filter: brightness(1.03) saturate(1.08);
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
           }
         }
-        .neon-pulse {
-          animation: neonPulse 5s ease-in-out infinite;
-          border: 2px solid #5D6AFF;
+        .pulse-glow {
+          animation: pulseGlow 3.5s ease-in-out infinite;
+          border: 2px solid #a259ff;
         }
       `}</style>
     </div>
