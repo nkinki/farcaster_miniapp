@@ -296,7 +296,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <header className="mb-6 text-center">
              <div className="flex justify-center items-center mb-2">
-               <div className="flex items-center gap-2">
+               <div className="bg-[#23283a] border border-[#a64d79] rounded-2xl px-6 py-3 flex items-center gap-2 shadow-lg">
                  <Image src="/icon.png" alt="AppRank icon" width={48} height={48} className="w-12 h-12" />
                  <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
                    APPRANK
@@ -508,7 +508,7 @@ export default function Home() {
           }
         }
         .pulse-glow {
-          animation: pulseGlow 3.5s ease-in-out infinite;
+          animation: pulseGlow 5s ease-in-out infinite;
           border: 2px solid #5D6AFF;
         }
       `}</style>
