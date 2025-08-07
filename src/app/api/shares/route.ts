@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
   try {
     console.log(`Checking 48h cooldown for user ${sharerFid} on promotion ${promotionId}`);
     
-    // Check current unclaimed shares
-    const [lastUnclaimedShare] = await sql`
+    // Check if user can share this promotion (48h cooldown) - only check unclaimed shares
+    const [lastShare] = await sql`
       SELECT created_at
       FROM shares 
       WHERE promotion_id = ${promotionId} AND sharer_fid = ${sharerFid}
@@ -23,33 +23,8 @@ export async function POST(request: NextRequest) {
       LIMIT 1
     `;
 
-    // Check claimed shares from claims table
-    const [lastClaimedShare] = await sql`
-      SELECT 
-        c.created_at as claim_date,
-        jsonb_array_elements(c.claimed_shares)->>'created_at' as share_date,
-        (jsonb_array_elements(c.claimed_shares)->>'promotion_id')::integer as promotion_id
-      FROM claims c
-      WHERE c.user_fid = ${sharerFid}
-      AND (jsonb_array_elements(c.claimed_shares)->>'promotion_id')::integer = ${promotionId}
-      ORDER BY jsonb_array_elements(c.claimed_shares)->>'created_at' DESC
-      LIMIT 1
-    `;
-
-    let lastShareTime = null;
-
-    // Find the most recent share (either unclaimed or claimed)
-    if (lastUnclaimedShare && lastClaimedShare) {
-      const unclaimedTime = new Date(lastUnclaimedShare.created_at);
-      const claimedTime = new Date(lastClaimedShare.share_date);
-      lastShareTime = unclaimedTime > claimedTime ? unclaimedTime : claimedTime;
-    } else if (lastUnclaimedShare) {
-      lastShareTime = new Date(lastUnclaimedShare.created_at);
-    } else if (lastClaimedShare) {
-      lastShareTime = new Date(lastClaimedShare.share_date);
-    }
-
-    if (lastShareTime) {
+    if (lastShare) {
+      const lastShareTime = new Date(lastShare.created_at);
       const now = new Date();
       const hoursSinceLastShare = (now.getTime() - lastShareTime.getTime()) / (1000 * 60 * 60);
       
