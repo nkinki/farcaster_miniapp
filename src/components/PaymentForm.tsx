@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits, type Hash } from "viem";
+import { FiX } from "react-icons/fi";
 
 // JAVÍTÁS: Pontos import útvonalak a képernyőfotód alapján
 import { treasuryDepositAddress, treasuryDepositABI } from "@/abis/treasuryDeposit";
@@ -102,6 +103,14 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
     saveToDb();
   }, [isCreated, step, user, castUrl, shareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
 
+  // Share text mező automatikus kitöltése első rendernél
+  useEffect(() => {
+    if (!shareText) {
+      setShareText(SHARE_TEXTS[Math.floor(Math.random() * SHARE_TEXTS.length)]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleApprove = async () => {
     setError(null);
     if (!totalBudget || !address) {
@@ -161,7 +170,27 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       </div>
       <div>
         <label htmlFor="shareText" className="block text-sm font-medium text-purple-300 mb-1">Share Text (Optional)</label>
-        <input type="text" id="shareText" value={shareText} onChange={(e) => setShareText(e.target.value)} className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white" disabled={step >= CreationStep.ReadyToCreate}/>
+        <div className="relative">
+          <input
+            type="text"
+            id="shareText"
+            value={shareText}
+            onChange={(e) => setShareText(e.target.value)}
+            className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white pr-10"
+            disabled={step >= CreationStep.ReadyToCreate}
+          />
+          {shareText && (
+            <button
+              type="button"
+              onClick={() => setShareText("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              tabIndex={-1}
+              aria-label="Clear share text"
+            >
+              <FiX size={18} />
+            </button>
+          )}
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-purple-300 mb-1">Reward / Share ($CHESS)*</label>
