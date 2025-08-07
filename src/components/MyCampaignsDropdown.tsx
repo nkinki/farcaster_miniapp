@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 // JAVÍTÁS: Importáljuk az összes szükséges ikont
-import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiX } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
 
 interface MyCampaignsDropdownProps {
