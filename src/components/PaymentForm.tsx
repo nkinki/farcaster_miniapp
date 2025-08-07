@@ -44,6 +44,16 @@ const formatNumber = (num: number): string => {
 // Share szövegek AppRank névvel
 const SHARE_TEXTS = [
   "Share & Earn $CHESS with AppRank! 🚀",
+  "Discover top Farcaster apps on AppRank & earn! ⭐",
+  "Web3 rewards await you on AppRank! Join now! 🌐",
+  "Play chess, earn $CHESS tokens via AppRank! ♟️",
+  "AppRank: Your gateway to Farcaster's best apps! 🎯",
+  "Make money sharing on AppRank – it's that easy! 💸",
+  "Level up your Web3 game with AppRank rewards! 🎮",
+  "AppRank shows you where the alpha is! Don't sleep! 👀",
+  "From gaming to DeFi – find it all on AppRank! 🔥",
+  "Turn your shares into $CHESS with AppRank! 🏆",
+  "AppRank: Where Farcaster meets profit! Let's go! 🚀",
   "Claim your rewards on AppRank! 💰",
   "Don’t miss out – share via AppRank and win!",
   "Earn crypto for sharing on AppRank – tap now!",
@@ -55,7 +65,8 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
   const { writeContractAsync, isPending } = useWriteContract();
 
   const [castUrl, setCastUrl] = useState("");
-  const [shareText, setShareText] = useState("");
+  const [shareText, setShareText] = useState(""); // User által látható/szerkeszthető szöveg
+  const [hiddenShareText, setHiddenShareText] = useState(""); // Rejtett AppRank szöveg
   const [rewardPerShare, setRewardPerShare] = useState(rewardOptions[0].toString());
   const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
   
@@ -85,7 +96,8 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               fid: user.fid, username: user.username, displayName: user.displayName,
-              castUrl: castUrl, shareText: shareText,
+              castUrl: castUrl, 
+              shareText: shareText ? `${hiddenShareText} ${shareText}` : hiddenShareText, // Kombinált szöveg
               rewardPerShare: Number(rewardPerShare), totalBudget: Number(totalBudget),
               blockchainHash: createTxHash, // A befizetési tranzakció hash-ét mentjük
               status: 'active',
@@ -101,12 +113,12 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       }
     };
     saveToDb();
-  }, [isCreated, step, user, castUrl, shareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
+  }, [isCreated, step, user, castUrl, shareText, hiddenShareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
 
-  // Share text mező automatikus kitöltése első rendernél
+  // Rejtett share text beállítása első rendernél
   useEffect(() => {
-    if (!shareText) {
-      setShareText(SHARE_TEXTS[Math.floor(Math.random() * SHARE_TEXTS.length)]);
+    if (!hiddenShareText) {
+      setHiddenShareText(SHARE_TEXTS[Math.floor(Math.random() * SHARE_TEXTS.length)]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -169,13 +181,14 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white" disabled={step >= CreationStep.ReadyToCreate} />
       </div>
       <div>
-        <label htmlFor="shareText" className="block text-sm font-medium text-purple-300 mb-1">Share Text (Optional)</label>
+        <label htmlFor="shareText" className="block text-sm font-medium text-purple-300 mb-1">Additional Share Text (Optional)</label>
         <div className="relative">
           <input
             type="text"
             id="shareText"
             value={shareText}
             onChange={(e) => setShareText(e.target.value)}
+            placeholder="Add your custom message here..."
             className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white pr-10"
             disabled={step >= CreationStep.ReadyToCreate}
           />
@@ -191,6 +204,9 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             </button>
           )}
         </div>
+        <p className="text-xs text-gray-400 mt-1">
+          💡 We'll automatically add an AppRank promotional message. Your text will appear after it.
+        </p>
       </div>
       <div>
         <label className="block text-sm font-medium text-purple-300 mb-1">Reward / Share ($CHESS)*</label>
