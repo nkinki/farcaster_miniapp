@@ -366,20 +366,20 @@ export default function PromotePage() {
       <style jsx global>{`
         @keyframes neonPulse {
           0% {
-            box-shadow: 0 0 8px #5D6AFF, 0 0 16px #00fff7, 0 0 32px #5D6AFF;
-            filter: brightness(1.1) saturate(1.2);
+            box-shadow: 0 0 2px #5D6AFF, 0 0 6px #00fff7;
+            filter: brightness(1.03) saturate(1.08);
           }
           50% {
-            box-shadow: 0 0 24px #00fff7, 0 0 48px #5D6AFF, 0 0 96px #00fff7;
-            filter: brightness(1.3) saturate(1.5);
+            box-shadow: 0 0 8px #00fff7, 0 0 16px #5D6AFF;
+            filter: brightness(1.09) saturate(1.15);
           }
           100% {
-            box-shadow: 0 0 8px #5D6AFF, 0 0 16px #00fff7, 0 0 32px #5D6AFF;
-            filter: brightness(1.1) saturate(1.2);
+            box-shadow: 0 0 2px #5D6AFF, 0 0 6px #00fff7;
+            filter: brightness(1.03) saturate(1.08);
           }
         }
         .neon-pulse {
-          animation: neonPulse 3.5s ease-in-out infinite;
+          animation: neonPulse 5s ease-in-out infinite;
           border: 2px solid #5D6AFF;
         }
       `}</style>
