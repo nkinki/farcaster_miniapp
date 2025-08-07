@@ -40,11 +40,20 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
+// Share szövegek AppRank névvel
+const SHARE_TEXTS = [
+  "Share & Earn $CHESS with AppRank! 🚀",
+  "Claim your rewards on AppRank! 💰",
+  "Don’t miss out – share via AppRank and win!",
+  "Earn crypto for sharing on AppRank – tap now!",
+  "Get your $CHESS – share this AppRank promo!"
+];
+
 export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormProps) {
   const { address } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
 
-  const [castUrl, setCastUrl] = useState("https://warpcast.com/dwr/0x5c7987b7");
+  const [castUrl, setCastUrl] = useState("");
   const [shareText, setShareText] = useState("");
   const [rewardPerShare, setRewardPerShare] = useState(rewardOptions[0].toString());
   const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
