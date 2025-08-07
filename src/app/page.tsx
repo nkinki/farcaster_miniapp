@@ -81,7 +81,6 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
       <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
       <Image src={app.iconUrl} alt={`${app.name} logo`} width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
       
-      {/* JAVÍTÁS: A statisztikák most már itt, egy függőleges blokkban jelennek meg */}
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-lg text-white truncate">{app.name}</div>
         <div className="flex flex-col items-start mt-1 space-y-1">
@@ -104,7 +103,6 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
             )}
         </div>
       </div>
-      {/* FAVORIT SZÍVECSE GOMB */}
       <button
         onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
         className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ml-4 bg-transparent hover:bg-gray-700/50 rounded-full"
@@ -118,7 +116,6 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
   );
 }
 
-
 // --- MAIN PAGE COMPONENT ---
 export default function Home() {
   const [miniapps, setMiniapps] = useState<Miniapp[]>([])
@@ -131,8 +128,7 @@ export default function Home() {
   const [openMiniappIndex, setOpenMiniappIndex] = useState<number | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
 
-    useEffect(() => {
-    // Check haptics support
+  useEffect(() => {
     const checkHaptics = async () => {
       try {
         await sdk.haptics.impactOccurred('light');
@@ -165,10 +161,8 @@ export default function Home() {
         setLoading(false)
       })
 
-    // Farcaster natív "Add Mini App" prompt minden indításkor
     sdk.actions.addMiniApp();
 
-    // Get Farcaster user context
     sdk.context.then((ctx) => {
       const farcasterUser = ctx.user as { fid?: number; username?: string; displayName?: string; pfp?: string } | undefined
       console.log('Farcaster user context:', farcasterUser)
@@ -185,7 +179,6 @@ export default function Home() {
   }, [loading])
 
   const toggleFavorite = async (domain: string) => {
-    // Haptic feedback for favorite toggle
     if (hapticsSupported) {
       try {
         await sdk.haptics.impactOccurred('light');
@@ -228,7 +221,6 @@ export default function Home() {
 
   const openMiniappByIndex = async (index: number, apps: Miniapp[]) => {
     if (index >= 0 && index < apps.length) {
-      // Haptic feedback for opening miniapp
       if (hapticsSupported) {
         try {
           await sdk.haptics.impactOccurred('medium');
@@ -312,7 +304,7 @@ export default function Home() {
           <div className="flex justify-center items-center mb-4">
             <Link href="/promote" className="inline-block">
               <span 
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
                 onClick={async () => {
                   if (hapticsSupported) {
                     try {
@@ -360,7 +352,6 @@ export default function Home() {
                     }
                   }
                 }}
-
               >
                 <div className="flex items-center justify-between px-2 mb-1">
                   <div className="text-xs text-cyan-400 font-medium">⭐ Favorites</div>
@@ -408,26 +399,6 @@ export default function Home() {
               ))}
             </div>
           </div>
-
-          {/* BELSŐ NAVIGÁCIÓ GOMB - ELTÁVOLÍTVA */}
-          {/* <div className="mt-8 text-center">
-            <Link href="/promote" className="inline-block">
-              <span 
-                className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-                onClick={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('medium');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
-                  }
-                }}
-              >
-                🚀 Create Promotion
-              </span>
-            </Link>
-          </div> */}
         </div>
 
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
