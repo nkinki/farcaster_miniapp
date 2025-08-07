@@ -309,7 +309,23 @@ export default function Home() {
              </p>
            </header>
 
-          <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
+          <div className="flex justify-between items-center max-w-2xl mx-auto mb-1 px-2">
+            <Link href="/promote" className="inline-block">
+              <span 
+                className="px-4 py-1 text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                onClick={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.impactOccurred('medium');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
+                    }
+                  }
+                }}
+              >
+                🚀 Share & Earn
+              </span>
+            </Link>
             <form className="flex items-center" onSubmit={(e) => e.preventDefault()}>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs w-[110px]" />
               <button type="submit" className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900" aria-label="Keresés">
@@ -389,8 +405,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* BELSŐ NAVIGÁCIÓ GOMB */}
-          <div className="mt-8 text-center">
+          {/* BELSŐ NAVIGÁCIÓ GOMB - ELTÁVOLÍTVA */}
+          {/* <div className="mt-8 text-center">
             <Link href="/promote" className="inline-block">
               <span 
                 className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
@@ -407,7 +423,7 @@ export default function Home() {
                 🚀 Create Promotion
               </span>
             </Link>
-          </div>
+          </div> */}
         </div>
 
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
