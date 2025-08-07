@@ -22,10 +22,21 @@ const calculateProgress = (promo: PromoCast): number => {
 export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteClick }: MyCampaignsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Rendezés státusz szerint: active > paused > inactive > completed
+  // Rendezés: még osztható active kampányok elöl, majd nem osztható active, paused, inactive, completed
   const sortedPromos = [...myPromos].sort((a, b) => {
     const statusOrder = { active: 1, paused: 2, inactive: 3, completed: 4 };
-    return statusOrder[a.status] - statusOrder[b.status];
+
+    // Oszthatóság ellenőrzése: remainingBudget >= rewardPerShare
+    const aIsShareable = a.status === 'active' && a.remainingBudget >= a.rewardPerShare;
+    const bIsShareable = b.status === 'active' && b.remainingBudget >= b.rewardPerShare;
+
+    // Ha mindkettő osztható vagy egyik sem osztható, akkor státusz szerint rendezzük
+    if (aIsShareable === bIsShareable) {
+      return statusOrder[a.status] - statusOrder[b.status];
+    }
+
+    // Az osztható kampányok előrébb kerülnek
+    return aIsShareable ? -1 : 1;
   });
 
   if (sortedPromos.length === 0) {
