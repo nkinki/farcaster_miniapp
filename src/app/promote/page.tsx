@@ -6,7 +6,7 @@ import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizo
 import Link from "next/link";
 // JAVÍTÁS: A UserProfileRef-et eltávolítottuk, mert az új modellben már nincs rá szükség.
 import UserProfile from "@/components/UserProfile";
-import DailyRewardTest from "@/components/DailyRewardTest";
+
 import PaymentForm from "../../components/PaymentForm";
 import FundingForm from "../../components/FundingForm";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
@@ -231,10 +231,7 @@ export default function PromotePage() {
           />
         </div>
 
-        {/* DailyReward Test Component */}
-        <div className="mb-4">
-          <DailyRewardTest user={currentUser} />
-        </div>
+
         
         <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setFundingPromo(promo); setShowFundingForm(true); }} />
         
