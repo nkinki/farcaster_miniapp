@@ -309,10 +309,10 @@ export default function Home() {
              </p>
            </header>
 
-          <div className="flex justify-between items-center max-w-2xl mx-auto mb-1 px-2">
+          <div className="flex justify-center items-center mb-4">
             <Link href="/promote" className="inline-block">
               <span 
-                className="flex items-center gap-2 px-4 py-1 text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
                 onClick={async () => {
                   if (hapticsSupported) {
                     try {
@@ -323,10 +323,13 @@ export default function Home() {
                   }
                 }}
               >
-                <FiDollarSign size={22} className="text-green-300" />
+                <FiDollarSign size={28} className="text-green-300" />
                 Share & Earn
               </span>
             </Link>
+          </div>
+
+          <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
             <form className="flex items-center" onSubmit={(e) => e.preventDefault()}>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs w-[110px]" />
               <button type="submit" className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900" aria-label="Keresés">
@@ -489,6 +492,25 @@ export default function Home() {
           100% { color: #5D6AFF; text-shadow: 0 0 6px #5D6AFF, 0 0 12px #5D6AFF; }
         }
         .animate-chessneon { animation: chessneon 7s linear infinite; }
+        
+        @keyframes pulseGlow {
+          0% {
+            box-shadow: 0 0 8px #5D6AFF, 0 0 16px #00fff7, 0 0 32px #5D6AFF;
+            filter: brightness(1.1) saturate(1.2);
+          }
+          50% {
+            box-shadow: 0 0 24px #00fff7, 0 0 48px #5D6AFF, 0 0 96px #00fff7;
+            filter: brightness(1.3) saturate(1.5);
+          }
+          100% {
+            box-shadow: 0 0 8px #5D6AFF, 0 0 16px #00fff7, 0 0 32px #5D6AFF;
+            filter: brightness(1.1) saturate(1.2);
+          }
+        }
+        .pulse-glow {
+          animation: pulseGlow 3.5s ease-in-out infinite;
+          border: 2px solid #5D6AFF;
+        }
       `}</style>
     </>
   )
