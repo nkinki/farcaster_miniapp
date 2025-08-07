@@ -75,7 +75,12 @@ export default function PromotePage() {
 
   const currentUser = useMemo(() => {
     if (isAuthenticated && profile) {
-      return { fid: profile.fid, username: profile.username || "user", displayName: profile.displayName || "Current User" };
+      return { 
+        fid: profile.fid, 
+        username: profile.username || "user", 
+        displayName: profile.displayName || "Current User",
+        pfpUrl: profile.pfpUrl
+      };
     }
     return { fid: 0, username: "guest", displayName: "Guest" };
   }, [isAuthenticated, profile]);
