@@ -237,9 +237,11 @@ export default function PromotePage() {
     <div className={`min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6`}>
       <div className="max-w-4xl mx-auto">
         <div className="mb-4">
-          <div className="flex items-center justify-center gap-2">
-            <FiStar className="text-purple-300" size={24} />
-            <h1 className="text-2xl font-bold text-white text-center">PROMOTIONS</h1>
+          <div className="flex items-center justify-center">
+            <div className="bg-[#23283a]/80 border border-[#5D6AFF]/20 rounded-2xl px-6 py-3 flex items-center gap-2 shadow-sm mx-auto">
+              <FiStar className="text-purple-300" size={24} />
+              <h1 className="text-2xl font-bold text-white text-center tracking-wide">PROMOTIONS</h1>
+            </div>
           </div>
           <div className="flex items-center justify-start mt-1">
             <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors">
