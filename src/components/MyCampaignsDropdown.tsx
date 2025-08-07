@@ -25,17 +25,11 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
   // Rendezés: még osztható active kampányok elöl, majd nem osztható active, paused, inactive, completed
   const sortedPromos = [...myPromos].sort((a, b) => {
     const statusOrder = { active: 1, paused: 2, inactive: 3, completed: 4 };
-
-    // Oszthatóság ellenőrzése: remainingBudget >= rewardPerShare
     const aIsShareable = a.status === 'active' && a.remainingBudget >= a.rewardPerShare;
     const bIsShareable = b.status === 'active' && b.remainingBudget >= b.rewardPerShare;
-
-    // Ha mindkettő osztható vagy egyik sem osztható, akkor státusz szerint rendezzük
     if (aIsShareable === bIsShareable) {
       return statusOrder[a.status] - statusOrder[b.status];
     }
-
-    // Az osztható kampányok előrébb kerülnek
     return aIsShareable ? -1 : 1;
   });
 
@@ -132,8 +126,8 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                   </button>
                 )}
 
-                {/* "Delete" gomb csak completed státuszhoz */}
-                {promo.status === "completed" && onDeleteClick && (
+                {/* "Delete" gomb minden kampányhoz, ha onDeleteClick definiálva van */}
+                {onDeleteClick && (
                   <button
                     onClick={() => onDeleteClick(promo)}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
