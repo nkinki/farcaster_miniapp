@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
                     COUNT(DISTINCT s.id) AS total_shares,
                     COALESCE(SUM(s.reward_amount), 0) AS total_earnings,
                     COALESCE(SUM(CASE WHEN s.reward_claimed = FALSE THEN s.reward_amount ELSE 0 END), 0) AS pending_rewards,
-                    MAX(s.created_at) AS last_share_date,
-                    MAX(s.claimed_at) AS last_claim_date
+                    MAX(s.shared_at) AS last_share_date,
+                    MAX(s.shared_at) AS last_claim_date
                 FROM shares s
                 WHERE s.sharer_fid = ${fid};
             `,
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
                     remaining_budget,
                     reward_per_share
                 FROM promotions
-                WHERE creator_fid = ${fid}
+                WHERE fid = ${fid}
                 ORDER BY created_at DESC;
             `,
             // Recent share activity for the user
@@ -46,11 +46,11 @@ export async function GET(request: NextRequest) {
                 SELECT 
                     p.cast_url, 
                     s.reward_amount, 
-                    s.created_at
+                    s.shared_at
                 FROM shares s
                 JOIN promotions p ON s.promotion_id = p.id
                 WHERE s.sharer_fid = ${fid}
-                ORDER BY s.created_at DESC
+                ORDER BY s.shared_at DESC
                 LIMIT 5;
             `
         ]);

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     // Mark shares as claimed instead of deleting them
     const claimedShares = await sql`
       UPDATE shares 
-      SET reward_claimed = TRUE, claimed_at = NOW()
+      SET reward_claimed = TRUE
       WHERE sharer_fid = ${fid} AND reward_claimed = FALSE 
       RETURNING *
     `;

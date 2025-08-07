@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
                 SELECT 
                     promotion_id,
                     sharer_fid,
-                    MAX(created_at) as last_share_time
+                    MAX(shared_at) as last_share_time
                 FROM shares
                 WHERE sharer_fid = ${fid}
                 GROUP BY promotion_id, sharer_fid
@@ -45,7 +45,21 @@ export async function GET(request: NextRequest) {
             ORDER BY p.reward_per_share DESC
         `;
 
-        return NextResponse.json(promotionsWithTimers);
+        const timers = promotionsWithTimers.map((row: any) => ({
+            promotionId: row.id,
+            canShare: row.can_share,
+            timeRemaining: Math.max(0, row.time_remaining_hours),
+            lastShareTime: row.last_share_time,
+            campaignStatus: row.status,
+            remainingBudget: row.remaining_budget,
+            rewardPerShare: row.reward_per_share,
+        }));
+
+        return NextResponse.json({
+            success: true,
+            timers: timers,
+            total: timers.length,
+        });
     } catch (error: any) {
         console.error('API Error in /api/share-timers:', error.message);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
