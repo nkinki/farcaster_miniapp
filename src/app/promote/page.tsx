@@ -49,7 +49,7 @@ export default function PromotePage() {
   const [managingPromo, setManagingPromo] = useState<PromoCast | null>(null);
   const [userStats, setUserStats] = useState({ totalEarnings: 0, totalShares: 0, pendingRewards: 0 });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({});
+  const [shareTimers, setShareTimers] = useState<Record<string, ShareTimer>>({}); 
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
@@ -88,7 +88,8 @@ export default function PromotePage() {
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
-        const response = await fetch(`/api/share-timers?fid=${currentUser.fid}`);
+        // TEMPORARY: Use mock API for testing until database is fixed
+        const response = await fetch(`/api/test-share-timers?fid=${currentUser.fid}`);
         if (response.ok) {
             const data = await response.json();
             // JAVÍTÁS: Az API most már `data.timers`-t ad vissza
@@ -106,7 +107,8 @@ export default function PromotePage() {
   const fetchUserStats = useCallback(async () => {
     if (!currentUser.fid) return;
     try {
-      const response = await fetch(`/api/users/${currentUser.fid}`);
+      // TEMPORARY: Use mock API for testing until database is fixed
+      const response = await fetch(`/api/test-user-stats?fid=${currentUser.fid}`);
       if (response.ok) {
         const data = await response.json();
         if (data.user) {
@@ -324,7 +326,7 @@ export default function PromotePage() {
             onSuccess={handleManageSuccess} 
             onCancel={handleManageCancel} 
           />
-        )}
+        )} 
         
         <div className="mt-8 flex justify-center">
           <ConnectWalletButton />
