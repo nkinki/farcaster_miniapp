@@ -36,7 +36,7 @@ async function main() {
       if (result.rows.length > 0) {
         const gainer = result.rows[0];
         notificationTitle = `Today's Top Gainer: ${gainer.name}!`;
-        notificationBody = `It jumped (+${gainer.change}) spots on the toplist today. Share it on AppRank and earn $CHESS! 💰`;
+        notificationBody = `It jumped (+${gainer.change}) spots on the toplist today. Share it on @apprank and earn $CHESS! 💰`;
       }
     } else if (notificationType === 'TOP_1_72H') {
       console.log("Executing TOP_1_72H logic...");
@@ -46,7 +46,7 @@ async function main() {
       if (result.rows.length > 0) {
         const rocket = result.rows[0];
         notificationTitle = `72-Hour Rocket: ${rocket.name}!`;
-        notificationBody = `It's up (+${rocket.change}) spots in the last 3 days! Share this winner on AppRank & get rewarded! 🎯`;
+        notificationBody = `It's up (+${rocket.change}) spots in the last 3 days! Share this winner on @apprank & get rewarded! 🎯`;
       }
     } else if (notificationType === 'TOP_3_24H') {
       console.log("Executing TOP_3_24H logic...");
@@ -58,15 +58,15 @@ async function main() {
         const notificationVariants = [
           {
             title: `🔥 Top 3 Movers in 24 Hours!`,
-            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Share these winners on AppRank and earn $CHESS! 💸`
+            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Share these winners on @apprank and earn $CHESS! 💸`
           },
           {
             title: `🏆 24-Hour Ranking Stars!`,
-            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Promote these top apps and get paid! Share on AppRank! 🤑`
+            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Promote these top apps and get paid! Share on @apprank! 🤑`
           },
           {
             title: `🚀 Hottest Apps Today!`,
-            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Turn these trending apps into $CHESS! Share & Earn now! ⚡`
+            body: `${result.rows.map((app, index) => `${index + 1}. ${app.name} (+${app.change})`).join(' | ')} | Don’t miss the action!`
           }
         ];
         // Randomly select one variant
