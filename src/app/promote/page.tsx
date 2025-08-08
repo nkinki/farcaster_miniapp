@@ -416,7 +416,7 @@ export default function PromotePage() {
                 window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
               }
             }}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-lg text-white shadow-md transition-all duration-300"
+            className="flex items-center gap-3 px-6 py-3 text-base font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg transition-all duration-300"
           >
             👥 Join AppRank Group
           </button>
