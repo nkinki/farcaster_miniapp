@@ -41,23 +41,23 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
-// Share szövegek @apprank linkkel
+// Share szövegek AppRank linkkel
 const SHARE_TEXTS = [
-  "Share & Earn $CHESS with @apprank! 🚀",
-  "Discover top Farcaster apps on @apprank & earn! ⭐",
-  "Web3 rewards await you on @apprank! Join now! 🌐",
-  "Play chess, earn $CHESS tokens via @apprank! ♟️",
-  "@apprank: Your gateway to Farcaster's best apps! 🎯",
-  "Make money sharing on @apprank – it's that easy! 💸",
-  "Level up your Web3 game with @apprank rewards! 🎮",
-  "@apprank shows you where the alpha is! Don't sleep! 👀",
-  "From gaming to DeFi – find it all on @apprank! 🔥",
-  "Turn your shares into $CHESS with @apprank! 🏆",
-  "@apprank: Where Farcaster meets profit! Let's go! 🚀",
-  "Claim your rewards on @apprank! 💰",
+  "Share & Earn $CHESS with AppRank! 🚀",
+  "Discover top Farcaster apps on AppRank & earn! ⭐",
+  "Web3 rewards await you on AppRank! Join now! 🌐",
+  "Play chess, earn $CHESS tokens via AppRank! ♟️",
+  "AppRank: Your gateway to Farcaster's best apps! 🎯",
+  "Make money sharing on AppRank – it's that easy! 💸",
+  "Level up your Web3 game with AppRank rewards! 🎮",
+  "AppRank shows you where the alpha is! Don't sleep! 👀",
+  "From gaming to DeFi – find it all on AppRank! 🔥",
+  "Turn your shares into $CHESS with AppRank! 🏆",
+  "AppRank: Where Farcaster meets profit! Let's go! 🚀",
+  "Claim your rewards on AppRank! 💰",
   "Don’t miss out – share via AppRank and win!",
-  "Earn crypto for sharing on @apprank – tap now!",
-  "Get your $CHESS – share this @apprank promo!"
+  "Earn crypto for sharing on AppRank – tap now!",
+  "Get your $CHESS – share this AppRank promo!"
 ];
 
 export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormProps) {
@@ -199,7 +199,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
           {Number(totalBudget) >= 5000000 ? (
             <>🎉 <span className="text-yellow-400 font-semibold">PREMIUM:</span> No promotional message! Your text only.</>
           ) : (
-            <>💡 We'll automatically add an @apprank promotional message. Your text will appear after it.</>
+            <>💡 We'll automatically add an AppRank promotional message. Your text will appear after it.</>
           )}
         </p>
       </div>

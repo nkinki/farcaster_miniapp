@@ -11,23 +11,23 @@ import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import { usePromotions } from "@/hooks/usePromotions";
 import type { PromoCast } from "@/types/promotions";
 
-// Share szövegek @apprank linkkel - minden megosztásnál random
+// Share szövegek AppRank linkkel - minden megosztásnál random
 const SHARE_TEXTS = [
-  "Share & Earn $CHESS with @apprank! 🚀",
-  "Discover top Farcaster apps on @apprank & earn! ⭐",
-  "Web3 rewards await you on @apprank! Join now! 🌐",
-  "Play chess, earn $CHESS tokens via @apprank! ♟️",
-  "@apprank: Your gateway to Farcaster's best apps! 🎯",
-  "Make money sharing on @apprank – it's that easy! 💸",
-  "Level up your Web3 game with @apprank rewards! 🎮",
-  "@apprank shows you where the alpha is! Don't sleep! 👀",
-  "From gaming to DeFi – find it all on @apprank! 🔥",
-  "Turn your shares into $CHESS with @apprank! 🏆",
-  "@apprank: Where Farcaster meets profit! Let's go! 🚀",
-  "Claim your rewards on @apprank! 💰",
-  "Don't miss out – share via @apprank and win!",
-  "Earn crypto for sharing on @apprank – tap now!",
-  "Get your $CHESS – share this @apprank promo!"
+  "Share & Earn $CHESS with AppRank! 🚀",
+  "Discover top Farcaster apps on AppRank & earn! ⭐",
+  "Web3 rewards await you on AppRank! Join now! 🌐",
+  "Play chess, earn $CHESS tokens via AppRank! ♟️",
+  "AppRank: Your gateway to Farcaster's best apps! 🎯",
+  "Make money sharing on AppRank – it's that easy! 💸",
+  "Level up your Web3 game with AppRank rewards! 🎮",
+  "AppRank shows you where the alpha is! Don't sleep! 👀",
+  "From gaming to DeFi – find it all on AppRank! 🔥",
+  "Turn your shares into $CHESS with AppRank! 🏆",
+  "AppRank: Where Farcaster meets profit! Let's go! 🚀",
+  "Claim your rewards on AppRank! 💰",
+  "Don't miss out – share via AppRank and win!",
+  "Earn crypto for sharing on AppRank – tap now!",
+  "Get your $CHESS – share this AppRank promo!"
 ];
 
 interface FarcasterUser {
@@ -194,7 +194,7 @@ export default function PromotePage() {
     setSharingPromoId(promo.id.toString());
     
     try {
-      // Minden megosztásnál új random @apprank szöveg generálása
+      // Minden megosztásnál új random AppRank szöveg generálása
       const randomAppRankText = SHARE_TEXTS[Math.floor(Math.random() * SHARE_TEXTS.length)];
       
       // Premium check: ha a promo 5M+ budget volt, akkor nincs AppRank szöveg
