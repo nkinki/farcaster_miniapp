@@ -325,7 +325,15 @@ export default function PromotePage() {
             </button>
             
             <button
-              onClick={() => window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank')}
+              onClick={() => {
+                try {
+                  (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
+                } catch (error) {
+                  console.log('SDK openUrl error:', error);
+                  // Fallback to window.open if SDK fails
+                  window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
+                }
+              }}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-lg text-white shadow-md transition-all duration-300"
             >
               👥 Join AppRank Group
