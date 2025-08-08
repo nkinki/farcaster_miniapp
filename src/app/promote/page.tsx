@@ -315,13 +315,20 @@ export default function PromotePage() {
 
         <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} onDeleteClick={handleDeleteCampaign} />
         
-        <div className="flex justify-center my-8">
+        <div className="flex justify-center items-center gap-4 my-8">
             <button
               onClick={() => setShowForm(true)}
               className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg pulse-glow"
               style={{ position: 'relative', overflow: 'hidden' }}
             >
               <FiPlus size={20} />Create Promotion
+            </button>
+            
+            <button
+              onClick={() => window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank')}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-lg text-white shadow-md transition-all duration-300"
+            >
+              👥 Join AppRank Group
             </button>
         </div>
         
