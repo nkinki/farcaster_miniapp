@@ -30,6 +30,36 @@ const SHARE_TEXTS = [
   "Get your $CHESS – share this AppRank promo!"
 ];
 
+// Top csatornák véletlenszerű kiválasztáshoz (súlyozott)
+const RANDOM_CHANNELS = [
+  { id: '', weight: 30 }, // Home Feed - 30% esély
+  { id: 'farcaster', weight: 15 }, // /farcaster - 15% esély
+  { id: 'degen', weight: 12 }, // /degen - 12% esély
+  { id: 'base', weight: 10 }, // /base - 10% esély
+  { id: 'crypto', weight: 8 }, // /crypto - 8% esély
+  { id: 'ethereum', weight: 6 }, // /ethereum - 6% esély
+  { id: 'web3', weight: 5 }, // /web3 - 5% esély
+  { id: 'defi', weight: 4 }, // /defi - 4% esély
+  { id: 'dev', weight: 4 }, // /dev - 4% esély
+  { id: 'founders', weight: 3 }, // /founders - 3% esély
+  { id: 'gaming', weight: 3 } // /gaming - 3% esély
+];
+
+// Véletlenszerű csatorna kiválasztása súlyok alapján
+const getRandomChannel = (): string => {
+  const totalWeight = RANDOM_CHANNELS.reduce((sum, channel) => sum + channel.weight, 0);
+  let random = Math.random() * totalWeight;
+  
+  for (const channel of RANDOM_CHANNELS) {
+    random -= channel.weight;
+    if (random <= 0) {
+      return channel.id;
+    }
+  }
+  
+  return ''; // Fallback: Home Feed
+};
+
 interface FarcasterUser {
   fid: number;
   username?: string;
@@ -69,6 +99,7 @@ export default function PromotePage() {
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+
 
   const {
     promotions: allPromotions,
@@ -206,10 +237,22 @@ export default function PromotePage() {
             : randomAppRankText // Normál: csak random AppRank szöveg
           );
       
-      const castResult = await (miniAppSdk as any).actions.composeCast({ 
+      // Véletlenszerű csatorna kiválasztása minden megosztásnál
+      const randomChannel = getRandomChannel();
+      
+      const castOptions: any = { 
         text: finalText, 
         embeds: [promo.castUrl] 
-      });
+      };
+      
+      // Ha nem Home Feed, akkor hozzáadjuk a csatornát
+      if (randomChannel) {
+        castOptions.channel = randomChannel;
+      }
+      
+      console.log(`Sharing to channel: ${randomChannel || 'Home Feed'}`);
+      
+      const castResult = await (miniAppSdk as any).actions.composeCast(castOptions);
       
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
         setSharingPromoId(null);
