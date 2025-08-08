@@ -200,7 +200,7 @@ export default function PromotePage() {
       // Premium check: ha a promo 5M+ budget volt, akkor nincs AppRank szöveg
       const isPremium = promo.totalBudget >= 5000000;
       const finalText = isPremium 
-        ? (promo.shareText || `Check this out!`) // Premium: csak user szöveg
+        ? (promo.shareText || ``) // Premium: csak user szöveg, ha nincs akkor üres
         : (promo.shareText 
             ? `${randomAppRankText} ${promo.shareText}` // Normál: random AppRank + user szöveg
             : randomAppRankText // Normál: csak random AppRank szöveg
