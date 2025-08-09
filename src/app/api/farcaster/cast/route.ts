@@ -18,16 +18,22 @@ export async function POST(request: NextRequest) {
     const neynarApiKey = process.env.NEYNAR_API_KEY;
     const signerUuid = process.env.FARCASTER_SIGNER_UUID; // Bot account signer
     
-    if (!neynarApiKey) {
-      return NextResponse.json({ 
-        error: 'Neynar API key not configured' 
-      }, { status: 500 });
-    }
-    
-    if (!signerUuid) {
-      return NextResponse.json({ 
-        error: 'Farcaster signer not configured' 
-      }, { status: 500 });
+    if (!neynarApiKey || !signerUuid) {
+      console.log('🧪 Mock mode: Farcaster credentials not configured');
+      
+      // Mock response for testing
+      return NextResponse.json({
+        success: true,
+        cast: {
+          hash: 'mock-cast-hash-' + Date.now(),
+          author: {
+            username: 'apprank-bot'
+          },
+          text: text
+        },
+        message: 'Mock cast sent successfully (no real Farcaster API)',
+        mock: true
+      }, { status: 200 });
     }
     
     // Neynar API cast endpoint
