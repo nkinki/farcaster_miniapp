@@ -1,45 +1,30 @@
-name: New Promotion Notifications
+name: 'Notification: New Promotions (Every 30 min)'
 
 on:
   schedule:
-    # Ellenőrzés minden 30 percben (gyakrabban mint a 3x napi)
+    # Ellenőrzés minden 30 percben
     - cron: '*/30 * * * *'
   workflow_dispatch: # Manual trigger
 
 jobs:
-  check-new-promotions:
+  notify-new-promotions:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Python
-      uses: actions/setup-python@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        python-version: '3.11'
+        node-version: '22'
+        cache: 'npm'
         
-    - name: Install Python dependencies
-      run: |
-        pip install requests python-dotenv
+    - name: Install dependencies
+      run: npm install
         
-    - name: Check for new promotions
-      run: python check_new_promotions.py
+    - name: Check for new promotions and send notifications
+      run: npx tsx scripts/sendNotifications.ts
       env:
-        NEXT_PUBLIC_BASE_URL: 'https://farc-nu.vercel.app'
-        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
-        NEYNAR_API_KEY: ${{ secrets.NEYNAR_API_KEY }}
-        FARCASTER_SIGNER_UUID: ${{ secrets.FARCASTER_SIGNER_UUID }}
-        
-    - name: Send notification if new promotions found
-      if: success()
-      run: |
-        echo "🔔 New promotion check completed"
-        # Itt implementálhatod a konkrét értesítési logikát:
-        # - Email küldés
-        # - Farcaster cast
-        # - Discord webhook
-        # - Slack notification
-        # stb.
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NOTIFICATION_TYPE: 'NEW_PROMOTION'

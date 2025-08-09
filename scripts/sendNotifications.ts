@@ -74,6 +74,22 @@ async function main() {
         notificationTitle = selectedVariant.title;
         notificationBody = selectedVariant.body;
       }
+    } else if (notificationType === 'NEW_PROMOTION') {
+      console.log("Executing NEW_PROMOTION logic...");
+      // Check for new promotions in the last 30 minutes
+      const result = await pool.query(
+        `SELECT username, display_name, total_budget, reward_per_share, cast_url 
+         FROM promotions 
+         WHERE status = 'active' 
+         AND created_at > NOW() - INTERVAL '30 minutes' 
+         ORDER BY created_at DESC 
+         LIMIT 1`
+      );
+      if (result.rows.length > 0) {
+        const promotion = result.rows[0];
+        notificationTitle = `🚀 NEW PROMOTION ALERT!`;
+        notificationBody = `@${promotion.username} just created a promotion: ${promotion.total_budget.toLocaleString()} CHESS budget, ${promotion.reward_per_share.toLocaleString()} CHESS per share! Share & Earn now! 💰`;
+      }
     }
 
     // If a title was set, send the notification
