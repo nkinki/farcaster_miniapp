@@ -123,8 +123,10 @@ async function sendNotification(tokenRows: any[], title: string, body: string, n
             const batch = tokens.slice(i, i + 100);
             const notificationPayload = {
                 // FINAL, LIVE NOTIFICATION ID
-                // Combines type and date to make it unique per type, per day
-                notificationId: `apprank-report-${notificationType}-${new Date().toISOString().slice(0, 10)}`,
+                // Combines type, date and timestamp to make it unique per notification
+                notificationId: notificationType === 'NEW_PROMOTION' 
+                    ? `apprank-promotion-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                    : `apprank-report-${notificationType}-${new Date().toISOString().slice(0, 10)}`,
                 title,
                 body,
                 targetUrl: 'https://farc-nu.vercel.app',
