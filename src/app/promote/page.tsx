@@ -13,21 +13,21 @@ import type { PromoCast } from "@/types/promotions";
 
 // Share szövegek AppRank linkkel - minden megosztásnál random
 const SHARE_TEXTS = [
-  "Share & Earn $CHESS with AppRank! 🚀",
-  "Discover top Farcaster apps on AppRank & earn! ⭐",
-  "Web3 rewards await you on AppRank! Join now! 🌐",
-  "Play chess, earn $CHESS tokens via AppRank! ♟️",
-  "AppRank: Your gateway to Farcaster's best apps! 🎯",
-  "Make money sharing on AppRank – it's that easy! 💸",
-  "Level up your Web3 game with AppRank rewards! 🎮",
-  "AppRank shows you where the alpha is! Don't sleep! 👀",
-  "From gaming to DeFi – find it all on AppRank! 🔥",
-  "Turn your shares into $CHESS with AppRank! 🏆",
-  "AppRank: Where Farcaster meets profit! Let's go! 🚀",
-  "Claim your rewards on AppRank! 💰",
-  "Don't miss out – share via AppRank and win!",
-  "Earn crypto for sharing on AppRank – tap now!",
-  "Get your $CHESS – share this AppRank promo!"
+  "Share & Earn $CHESS with AppRank! 🚀\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Discover top Farcaster apps on AppRank & earn! ⭐\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Web3 rewards await you on AppRank! Join now! 🌐\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Play chess, earn $CHESS tokens via AppRank! ♟️\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "AppRank: Your gateway to Farcaster's best apps! 🎯\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Make money sharing on AppRank – it's that easy! 💸\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Level up your Web3 game with AppRank rewards! 🎮\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "AppRank shows you where the alpha is! Don't sleep! 👀\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "From gaming to DeFi – find it all on AppRank! 🔥\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Turn your shares into $CHESS with AppRank! 🏆\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "AppRank: Where Farcaster meets profit! Let's go! 🚀\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Claim your rewards on AppRank! 💰\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Don't miss out – share via AppRank and win!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Earn crypto for sharing on AppRank – tap now!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "Get your $CHESS – share this AppRank promo!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank"
 ];
 
 // Top csatornák véletlenszerű kiválasztáshoz (súlyozott)
