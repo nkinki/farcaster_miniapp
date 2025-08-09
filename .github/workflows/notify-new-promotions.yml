@@ -1,0 +1,43 @@
+name: New Promotion Notifications
+
+on:
+  schedule:
+    # Ellenőrzés minden 30 percben (gyakrabban mint a 3x napi)
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  check-new-promotions:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install Python dependencies
+      run: |
+        pip install requests python-dotenv
+        
+    - name: Check for new promotions
+      run: python check_new_promotions.py
+      env:
+        NEXT_PUBLIC_BASE_URL: 'https://apprank-farcaster.vercel.app'
+        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+        
+    - name: Send notification if new promotions found
+      if: success()
+      run: |
+        echo "🔔 New promotion check completed"
+        # Itt implementálhatod a konkrét értesítési logikát:
+        # - Email küldés
+        # - Farcaster cast
+        # - Discord webhook
+        # - Slack notification
+        # stb.

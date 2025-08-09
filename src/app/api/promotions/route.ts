@@ -51,6 +51,26 @@ export async function POST(request: NextRequest) {
       RETURNING id, cast_url, created_at;
     `;
 
+    // Automatikus értesítés trigger (nem blokkoló)
+    try {
+      const notifyResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/promotions/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          promotionId: newPromotion.id,
+          notificationType: 'new_promotion'
+        })
+      });
+      
+      if (notifyResponse.ok) {
+        console.log(`✅ Notification sent for promotion ${newPromotion.id}`);
+      } else {
+        console.warn(`⚠️ Failed to send notification for promotion ${newPromotion.id}`);
+      }
+    } catch (notifyError) {
+      console.warn('⚠️ Notification failed (non-blocking):', notifyError);
+    }
+
     return NextResponse.json({ success: true, promotion: newPromotion }, { status: 201 });
 
   } catch (error: any) {
