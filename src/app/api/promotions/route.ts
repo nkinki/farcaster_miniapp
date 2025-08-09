@@ -51,9 +51,12 @@ export async function POST(request: NextRequest) {
       RETURNING id, cast_url, created_at;
     `;
 
-    // Automatikus értesítés trigger (nem blokkoló)
+    // Automatikus értesítések trigger (nem blokkoló)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    
+    // 1. Email értesítés
     try {
-      const notifyResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/promotions/notify`, {
+      const notifyResponse = await fetch(`${baseUrl}/api/promotions/notify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -63,12 +66,36 @@ export async function POST(request: NextRequest) {
       });
       
       if (notifyResponse.ok) {
-        console.log(`✅ Notification sent for promotion ${newPromotion.id}`);
+        console.log(`✅ Email notification sent for promotion ${newPromotion.id}`);
       } else {
-        console.warn(`⚠️ Failed to send notification for promotion ${newPromotion.id}`);
+        console.warn(`⚠️ Failed to send email notification for promotion ${newPromotion.id}`);
       }
     } catch (notifyError) {
-      console.warn('⚠️ Notification failed (non-blocking):', notifyError);
+      console.warn('⚠️ Email notification failed (non-blocking):', notifyError);
+    }
+    
+    // 2. Farcaster cast értesítés
+    try {
+      const farcasterResponse = await fetch(`${baseUrl}/api/farcaster/notify-promotion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promotionId: newPromotion.id,
+          username: username,
+          displayName: displayName || username,
+          totalBudget: totalBudget,
+          rewardPerShare: rewardPerShare,
+          castUrl: castUrl
+        })
+      });
+      
+      if (farcasterResponse.ok) {
+        console.log(`✅ Farcaster notification sent for promotion ${newPromotion.id}`);
+      } else {
+        console.warn(`⚠️ Failed to send Farcaster notification for promotion ${newPromotion.id}`);
+      }
+    } catch (farcasterError) {
+      console.warn('⚠️ Farcaster notification failed (non-blocking):', farcasterError);
     }
 
     return NextResponse.json({ success: true, promotion: newPromotion }, { status: 201 });

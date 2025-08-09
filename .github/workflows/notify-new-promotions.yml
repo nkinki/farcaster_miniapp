@@ -30,6 +30,8 @@ jobs:
         EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+        NEYNAR_API_KEY: ${{ secrets.NEYNAR_API_KEY }}
+        FARCASTER_SIGNER_UUID: ${{ secrets.FARCASTER_SIGNER_UUID }}
         
     - name: Send notification if new promotions found
       if: success()
