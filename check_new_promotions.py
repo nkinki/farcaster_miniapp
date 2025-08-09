@@ -14,7 +14,7 @@ def check_new_promotions():
     """Új promotionök ellenőrzése és értesítés küldése"""
     
     # API URL
-    base_url = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://apprank-farcaster.vercel.app')
+    base_url = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://farc-nu.vercel.app')
     api_url = f'{base_url}/api/promotions/notify'
     
     # Utolsó ellenőrzés időpontja (30 perc)

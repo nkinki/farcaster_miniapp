@@ -13,7 +13,7 @@ def test_notification_api():
     print("🧪 Testing Promotion Notification API")
     print("=" * 50)
     
-    base_url = "http://localhost:3000"
+    base_url = "https://farc-nu.vercel.app"
     
     # 1. GET teszt
     print("\n1️⃣ Testing GET endpoint...")
@@ -59,7 +59,7 @@ def test_real_notification_check():
     
     print("\n3️⃣ Testing real notification check...")
     
-    base_url = "http://localhost:3000"
+    base_url = "https://farc-nu.vercel.app"
     api_url = f"{base_url}/api/promotions/notify"
     
     try:
