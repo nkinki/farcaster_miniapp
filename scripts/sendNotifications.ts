@@ -77,14 +77,28 @@ async function main() {
     } else if (notificationType === 'NEW_PROMOTION') {
       console.log("Executing NEW_PROMOTION logic...");
       // Check for new promotions in the last 3 hours (matching cron schedule)
+      // Add debug logging to see what's happening
+      const debugResult = await pool.query(`SELECT NOW() as current_time, NOW() - INTERVAL '3 hours' as cutoff_time`);
+      console.log('Debug - Current time:', debugResult.rows[0].current_time);
+      console.log('Debug - Cutoff time:', debugResult.rows[0].cutoff_time);
+      
       const result = await pool.query(
-        `SELECT username, display_name, total_budget, reward_per_share, cast_url 
+        `SELECT username, display_name, total_budget, reward_per_share, cast_url, created_at
          FROM promotions 
          WHERE status = 'active' 
          AND created_at > NOW() - INTERVAL '3 hours' 
          ORDER BY created_at DESC 
          LIMIT 1`
       );
+      
+      console.log('Debug - Found promotions:', result.rows.length);
+      if (result.rows.length === 0) {
+        // Check what active promotions exist
+        const allActiveResult = await pool.query(
+          `SELECT username, created_at, status FROM promotions WHERE status = 'active' ORDER BY created_at DESC LIMIT 3`
+        );
+        console.log('Debug - All active promotions:', allActiveResult.rows);
+      }
       if (result.rows.length > 0) {
         const promotion = result.rows[0];
         notificationTitle = `🚀 NEW PROMOTION ALERT!`;
