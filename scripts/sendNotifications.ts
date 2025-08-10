@@ -76,12 +76,12 @@ async function main() {
       }
     } else if (notificationType === 'NEW_PROMOTION') {
       console.log("Executing NEW_PROMOTION logic...");
-      // Check for new promotions in the last 30 minutes
+      // Check for new promotions in the last 3 hours (matching cron schedule)
       const result = await pool.query(
         `SELECT username, display_name, total_budget, reward_per_share, cast_url 
          FROM promotions 
          WHERE status = 'active' 
-         AND created_at > NOW() - INTERVAL '30 minutes' 
+         AND created_at > NOW() - INTERVAL '3 hours' 
          ORDER BY created_at DESC 
          LIMIT 1`
       );
