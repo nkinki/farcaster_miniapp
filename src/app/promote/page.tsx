@@ -32,17 +32,17 @@ const SHARE_TEXTS = [
 
 // Top csatornák véletlenszerű kiválasztáshoz (súlyozott)
 const RANDOM_CHANNELS = [
-  { id: '', weight: 30 }, // Home Feed - 30% esély
-  { id: 'farcaster', weight: 15 }, // /farcaster - 15% esély
-  { id: 'degen', weight: 12 }, // /degen - 12% esély
-  { id: 'base', weight: 10 }, // /base - 10% esély
-  { id: 'crypto', weight: 8 }, // /crypto - 8% esély
-  { id: 'ethereum', weight: 6 }, // /ethereum - 6% esély
-  { id: 'web3', weight: 5 }, // /web3 - 5% esély
-  { id: 'defi', weight: 4 }, // /defi - 4% esély
-  { id: 'dev', weight: 4 }, // /dev - 4% esély
-  { id: 'founders', weight: 3 }, // /founders - 3% esély
-  { id: 'gaming', weight: 3 } // /gaming - 3% esély
+  { id: '', weight: 5 }, // Home Feed - csak 5% esély
+  { id: 'farcaster', weight: 20 }, // /farcaster - 20% esély
+  { id: 'degen', weight: 15 }, // /degen - 15% esély
+  { id: 'base', weight: 12 }, // /base - 12% esély
+  { id: 'crypto', weight: 10 }, // /crypto - 10% esély
+  { id: 'ethereum', weight: 8 }, // /ethereum - 8% esély
+  { id: 'web3', weight: 8 }, // /web3 - 8% esély
+  { id: 'defi', weight: 6 }, // /defi - 6% esély
+  { id: 'dev', weight: 6 }, // /dev - 6% esély
+  { id: 'founders', weight: 5 }, // /founders - 5% esély
+  { id: 'gaming', weight: 5 } // /gaming - 5% esély
 ];
 
 // Véletlenszerű csatorna kiválasztása súlyok alapján
@@ -250,7 +250,8 @@ export default function PromotePage() {
         castOptions.channel = randomChannel;
       }
       
-      console.log(`Sharing to channel: ${randomChannel || 'Home Feed'}`);
+      console.log(`🎯 Selected channel: "${randomChannel || 'Home Feed'}"`);
+      console.log(`📝 Cast options:`, castOptions);
       
       const castResult = await (miniAppSdk as any).actions.composeCast(castOptions);
       
