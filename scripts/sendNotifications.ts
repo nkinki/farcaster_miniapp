@@ -76,17 +76,20 @@ async function main() {
       }
     } else if (notificationType === 'NEW_PROMOTION') {
       console.log("Executing NEW_PROMOTION logic...");
-      // Check for new promotions in the last 3 hours (matching cron schedule)
-      // Add debug logging to see what's happening
-      const debugResult = await pool.query(`SELECT NOW() as current_time, NOW() - INTERVAL '3 hours' as cutoff_time`);
-      console.log('Debug - Current time:', debugResult.rows[0].current_time);
-      console.log('Debug - Cutoff time:', debugResult.rows[0].cutoff_time);
+      // Check for new promotions that haven't been notified yet
+      // First, check if notification_sent column exists, if not add it
+      try {
+        await pool.query(`ALTER TABLE promotions ADD COLUMN IF NOT EXISTS notification_sent BOOLEAN DEFAULT FALSE`);
+      } catch (error) {
+        console.log('Column notification_sent might already exist or other error:', error);
+      }
       
       const result = await pool.query(
-        `SELECT username, display_name, total_budget, reward_per_share, cast_url, created_at
+        `SELECT id, username, display_name, total_budget, reward_per_share, cast_url, created_at
          FROM promotions 
          WHERE status = 'active' 
-         AND created_at > NOW() - INTERVAL '3 hours' 
+         AND (notification_sent IS NULL OR notification_sent = FALSE)
+         AND created_at > NOW() - INTERVAL '7 days'
          ORDER BY created_at DESC 
          LIMIT 1`
       );
@@ -103,6 +106,9 @@ async function main() {
         const promotion = result.rows[0];
         notificationTitle = `🚀 NEW PROMOTION ALERT!`;
         notificationBody = `@${promotion.username} just created a promotion: ${promotion.total_budget.toLocaleString()} CHESS budget, ${promotion.reward_per_share.toLocaleString()} CHESS per share! Share & Earn now! 💰`;
+        
+        // Store promotion ID for marking as notified after successful send
+        (global as any).promotionToMarkNotified = promotion.id;
       }
     }
 
@@ -111,6 +117,19 @@ async function main() {
       console.log(`Composed Message -> Title: "${notificationTitle}", Body: "${notificationBody}"`);
       // Pass the notificationType to the helper function
       await sendNotification(tokenRows, notificationTitle, notificationBody, notificationType);
+      
+      // Mark promotion as notified if this was a NEW_PROMOTION notification
+      if (notificationType === 'NEW_PROMOTION' && (global as any).promotionToMarkNotified) {
+        try {
+          await pool.query(
+            `UPDATE promotions SET notification_sent = TRUE WHERE id = $1`,
+            [(global as any).promotionToMarkNotified]
+          );
+          console.log(`Marked promotion ${(global as any).promotionToMarkNotified} as notified`);
+        } catch (error) {
+          console.error('Error marking promotion as notified:', error);
+        }
+      }
     } else {
       console.log("No relevant data found for this notification type. No notification will be sent.");
     }
