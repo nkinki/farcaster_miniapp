@@ -247,7 +247,7 @@ export default function PromotePage() {
       
       // Ha nem Home Feed, akkor hozzáadjuk a csatornát
       if (randomChannel) {
-        castOptions.channel = randomChannel;
+        castOptions.channelKey = randomChannel;
       }
       
       console.log(`🎯 Selected channel: "${randomChannel || 'Home Feed'}"`);
