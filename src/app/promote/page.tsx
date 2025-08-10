@@ -33,15 +33,15 @@ const SHARE_TEXTS = [
 // Top csatornák véletlenszerű kiválasztáshoz (súlyozott)
 const RANDOM_CHANNELS = [
   { id: '', weight: 5 }, // Home Feed - csak 5% esély
-  { id: 'farcaster', weight: 20 }, // /farcaster - 20% esély
-  { id: 'degen', weight: 15 }, // /degen - 15% esély
-  { id: 'base', weight: 12 }, // /base - 12% esély
-  { id: 'crypto', weight: 10 }, // /crypto - 10% esély
-  { id: 'ethereum', weight: 8 }, // /ethereum - 8% esély
+  { id: 'farcaster', weight: 15 }, // /farcaster - 15% esély (csökkentve)
+  { id: 'degen', weight: 5 }, // /degen - 5% esély (csökkentve)
+  { id: 'base', weight: 20 }, // /base - 20% esély (növelve)
+  { id: 'crypto', weight: 12 }, // /crypto - 12% esély (növelve)
+  { id: 'ethereum', weight: 10 }, // /ethereum - 10% esély (növelve)
   { id: 'web3', weight: 8 }, // /web3 - 8% esély
-  { id: 'defi', weight: 6 }, // /defi - 6% esély
+  { id: 'defi', weight: 8 }, // /defi - 8% esély (növelve)
   { id: 'dev', weight: 6 }, // /dev - 6% esély
-  { id: 'founders', weight: 5 }, // /founders - 5% esély
+  { id: 'founders', weight: 6 }, // /founders - 6% esély (növelve)
   { id: 'gaming', weight: 5 } // /gaming - 5% esély
 ];
 
