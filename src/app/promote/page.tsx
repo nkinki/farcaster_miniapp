@@ -254,9 +254,10 @@ export default function PromotePage() {
       const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
       const isConversationUrl = promo.castUrl.includes('/conversations/');
       
-      // TESZT: Csak hosszú hash-eket fogadunk el (42+ karakter)
-      // Rövid hash-ek (mint 0xe1e06cde) nem valid Farcaster cast hash-ek
-      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length >= 42;
+      // Farcaster cast hash: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
+      // Példa: 0xa2fbef8c8e4d00d8f84ff45f9763b8bae2c5c544abc123def456789012345678
+      // Rövid hash-ek (mint 0xde59c5e9) csak URL azonosítók, nem valódi cast hash-ek
+      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length === 66;
       
       console.log(`🔍 URL Analysis:`, {
         isWarpcastUrl,
@@ -267,7 +268,7 @@ export default function PromotePage() {
       });
       
       if (hasValidCastHash) {
-        // Valid cast hash - quote cast + AppRank miniapp link
+        // Valid 256-bit cast hash - quote cast + AppRank miniapp link
         castOptions.parent = { 
           type: 'cast', 
           hash: castHash 
@@ -276,9 +277,9 @@ export default function PromotePage() {
         castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
         console.log(`🔗 Creating quote cast with hash: ${castHash} + AppRank embed`);
       } else {
-        // Nincs valid cast hash - csak embed
+        // Rövid hash vagy nincs hash - csak embed (biztonságosabb)
         castOptions.embeds = [promo.castUrl];
-        console.log(`📎 Creating embed with URL: ${promo.castUrl}`);
+        console.log(`📎 Creating embed with URL: ${promo.castUrl} (hash too short: ${castHash?.length || 0} chars)`);
       }
       
       // Ha nem Home Feed, akkor hozzáadjuk a csatornát
