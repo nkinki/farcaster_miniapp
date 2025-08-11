@@ -11,23 +11,23 @@ import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import { usePromotions } from "@/hooks/usePromotions";
 import type { PromoCast } from "@/types/promotions";
 
-// Share szövegek AppRank linkkel - minden megosztásnál random
+// Share szövegek promótereknek - AppRank lehetőségek népszerűsítése
 const SHARE_TEXTS = [
-  "Share & Earn $CHESS with AppRank! 🚀\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Discover top Farcaster apps on AppRank & earn! ⭐\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Web3 rewards await you on AppRank! Join now! 🌐\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Play chess, earn $CHESS tokens via AppRank! ♟️\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "AppRank: Your gateway to Farcaster's best apps! 🎯\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Make money sharing on AppRank – it's that easy! 💸\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Level up your Web3 game with AppRank rewards! 🎮\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "AppRank shows you where the alpha is! Don't sleep! 👀\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "From gaming to DeFi – find it all on AppRank! 🔥\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Turn your shares into $CHESS with AppRank! 🏆\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "AppRank: Where Farcaster meets profit! Let's go! 🚀\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Claim your rewards on AppRank! 💰\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Don't miss out – share via AppRank and win!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Earn crypto for sharing on AppRank – tap now!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  "Get your $CHESS – share this AppRank promo!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank"
+  "🚀 Want to promote your content? Try AppRank for free and reach thousands!",
+  "⭐ Content creators! AppRank offers free promotion opportunities - check it out!",
+  "🌐 Need more visibility? AppRank helps you promote for free - give it a try!",
+  "♟️ Promote your project on AppRank! Free trial available - why not test it?",
+  "🎯 Looking for promotion? AppRank is your solution - try it free today!",
+  "💸 Boost your reach with AppRank! Free promotion available - test it now!",
+  "🎮 Level up your marketing with AppRank! Free trial - what do you have to lose?",
+  "👀 Want alpha promotion results? Try AppRank for free and see the difference!",
+  "🔥 Ready to promote? AppRank offers free opportunities - give it a shot!",
+  "🏆 Serious about promotion? AppRank delivers results - try it free first!",
+  "🚀 Promote smarter with AppRank! Free trial available - test the waters!",
+  "💰 Need promotion that works? AppRank offers free testing - why wait?",
+  "✨ Discover AppRank's promotion power! Free trial available - try it today!",
+  "⚡ Quick promotion results? AppRank delivers - free trial, no risk!",
+  "🎁 Gift yourself better promotion! AppRank offers free trials - start now!"
 ];
 
 // Kiválasztott Farcaster csatornák súlyozott listája
