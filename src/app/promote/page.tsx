@@ -30,9 +30,16 @@ const SHARE_TEXTS = [
   "🎁 Gift yourself better promotion! AppRank offers free trials - start now!"
 ];
 
-// Csak Home Feed - nincs csatorna tagság probléma
+// 80% Home Feed + 20% többi csatorna
 const SELECTED_CHANNELS = [
-  { id: '', name: 'Home Feed', weight: 100, description: 'Mindenki látja, nincs tagság szükséges' }
+  { id: '', name: 'Home Feed', weight: 80, description: 'Mindenki látja, nincs tagság szükséges' },
+  { id: 'chess', name: 'Chess', weight: 4, description: 'Chess játékosok és stratégia' },
+  { id: 'crypto', name: 'Crypto', weight: 4, description: 'Cryptocurrency és blockchain' },
+  { id: 'tech', name: 'Tech', weight: 3, description: 'Technológia és innováció' },
+  { id: 'gaming', name: 'Gaming', weight: 3, description: 'Játékok és gaming kultúra' },
+  { id: 'ai', name: 'AI', weight: 2, description: 'Mesterséges intelligencia' },
+  { id: 'startup', name: 'Startup', weight: 2, description: 'Startup ökoszisztéma' },
+  { id: 'web3', name: 'Web3', weight: 2, description: 'Decentralizált web' }
 ];
 
 // Súlyozott véletlenszerű csatorna kiválasztás
@@ -52,12 +59,20 @@ const getRandomChannel = (): string => {
 
 
 
-// Fallback csatornák listája hiba esetén
-const getChannelFallbacks = (failedChannel: string): string[] => {
-  // Minden csatorna kivéve a sikertelen
-  return SELECTED_CHANNELS
+// Fallback csatornák listája hiba esetén - prioritás szerint
+const getChannelFallbacks = (failedChannel: string): (string | null)[] => {
+  // Prioritás: Home Feed → nagyobb súlyú csatornák → kisebbek
+  const fallbacks = SELECTED_CHANNELS
     .filter(ch => ch.id !== failedChannel)
-    .map(ch => ch.id);
+    .sort((a, b) => b.weight - a.weight) // Súly szerint csökkenő sorrendben
+    .map(ch => ch.id === '' ? null : ch.id); // Home Feed = null
+  
+  // Mindig legyen Home Feed az utolsó fallback
+  if (!fallbacks.includes(null)) {
+    fallbacks.push(null);
+  }
+  
+  return fallbacks;
 };
 
 interface FarcasterUser {
@@ -300,11 +315,12 @@ export default function PromotePage() {
       }
       
       console.log(`🎯 Selected channel: "${randomChannel || 'Home Feed'}"`);
+      console.log(`📊 Channel distribution: Home Feed (80%), Chess (4%), Crypto (4%), Tech (3%), Gaming (3%), AI (2%), Startup (2%), Web3 (2%)`);
       console.log(`📝 Cast options:`, castOptions);
       
       // Fallback rendszer: próbáljuk meg különböző csatornákkal
       let castResult = null;
-      let attemptedChannels = [randomChannel];
+      let attemptedChannels: (string | null)[] = [randomChannel];
       
       try {
         castResult = await (miniAppSdk as any).actions.composeCast(castOptions);
