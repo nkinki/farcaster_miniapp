@@ -30,16 +30,16 @@ const SHARE_TEXTS = [
   "🎁 Gift yourself better promotion! AppRank offers free trials - start now!"
 ];
 
-// 80% Home Feed + 20% többi csatorna
+// New Channel Distribution: 80% Home Feed + 20% targeted channels
 const SELECTED_CHANNELS = [
-  { id: '', name: 'Home Feed', weight: 80, description: 'Mindenki látja, nincs tagság szükséges' },
-  { id: 'chess', name: 'Chess', weight: 4, description: 'Chess játékosok és stratégia' },
-  { id: 'crypto', name: 'Crypto', weight: 4, description: 'Cryptocurrency és blockchain' },
-  { id: 'tech', name: 'Tech', weight: 3, description: 'Technológia és innováció' },
-  { id: 'gaming', name: 'Gaming', weight: 3, description: 'Játékok és gaming kultúra' },
-  { id: 'ai', name: 'AI', weight: 2, description: 'Mesterséges intelligencia' },
-  { id: 'startup', name: 'Startup', weight: 2, description: 'Startup ökoszisztéma' },
-  { id: 'web3', name: 'Web3', weight: 2, description: 'Decentralizált web' }
+  { id: '', name: 'Home Feed', weight: 80, description: 'Maximum safety and reach' },
+  { id: 'crypto', name: 'Crypto', weight: 3, description: 'Crypto discussions' },
+  { id: 'web3', name: 'Web3', weight: 3, description: 'Web3 technologies' },
+  { id: 'farcaster', name: 'Farcaster', weight: 3, description: 'Farcaster platform' },
+  { id: 'founders', name: 'Founders', weight: 3, description: 'Startup founders' },
+  { id: 'builders', name: 'Builders', weight: 3, description: 'Builder community' },
+  { id: 'airdrop', name: 'Airdrop', weight: 3, description: 'Airdrop community' },
+  { id: 'onchain', name: 'Onchain', weight: 2, description: 'Onchain activity' }
 ];
 
 // Súlyozott véletlenszerű csatorna kiválasztás
@@ -315,7 +315,7 @@ export default function PromotePage() {
       }
       
       console.log(`🎯 Selected channel: "${randomChannel || 'Home Feed'}"`);
-      console.log(`📊 Channel distribution: Home Feed (80%), Chess (4%), Crypto (4%), Tech (3%), Gaming (3%), AI (2%), Startup (2%), Web3 (2%)`);
+      console.log(`📊 New Channel Distribution: Home Feed (80%), Crypto (3%), Web3 (3%), Farcaster (3%), Founders (3%), Builders (3%), Airdrop (3%), Onchain (2%)`);
       console.log(`📝 Cast options:`, castOptions);
       
       // Fallback rendszer: próbáljuk meg különböző csatornákkal
