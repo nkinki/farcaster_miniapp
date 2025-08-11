@@ -218,63 +218,7 @@ export default function PromotePage() {
     } catch (error) { window.open(castUrl, '_blank'); }
   };
 
-  // 👍 LIKE EREDETI CAST FUNKCIÓ
-  const handleLikeOriginalCast = async (castUrl: string) => {
-    try {
-      const shortHash = castUrl.split('/').pop();
-      if (!shortHash || !shortHash.startsWith('0x')) {
-        console.log('⚠️ No valid hash found in URL');
-        return;
-      }
-      
-      const response = await fetch('/api/farcaster-actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'like',
-          castHash: shortHash,
-          userFid: currentUser.fid
-        })
-      });
-      
-      if (response.ok) {
-        console.log(`👍 Successfully liked original cast: ${shortHash}`);
-      } else {
-        console.log(`⚠️ Like failed: ${await response.text()}`);
-      }
-    } catch (error) {
-      console.log(`⚠️ Like error: ${error}`);
-    }
-  };
 
-  // 🔄 RECAST EREDETI CAST FUNKCIÓ
-  const handleRecastOriginalCast = async (castUrl: string) => {
-    try {
-      const shortHash = castUrl.split('/').pop();
-      if (!shortHash || !shortHash.startsWith('0x')) {
-        console.log('⚠️ No valid hash found in URL');
-        return;
-      }
-      
-      const response = await fetch('/api/farcaster-actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'recast',
-          castHash: shortHash,
-          userFid: currentUser.fid
-        })
-      });
-      
-      if (response.ok) {
-        console.log(`🔄 Successfully recasted original cast: ${shortHash}`);
-      } else {
-        console.log(`⚠️ Recast failed: ${await response.text()}`);
-      }
-    } catch (error) {
-      console.log(`⚠️ Recast error: ${error}`);
-    }
-  };
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) {
@@ -565,26 +509,10 @@ export default function PromotePage() {
                                  <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
                                </div>
                             )}
-                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed mb-2">
+                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
                               {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
                               {sharingPromoId === promo.id.toString() ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
                             </button>
-                            
-                            {/* Opcionális Like/Recast gombok az eredeti cast-ra */}
-                            <div className="flex gap-2">
-                              <button 
-                                onClick={() => handleLikeOriginalCast(promo.castUrl)}
-                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-300 font-semibold rounded-lg transition-all duration-300 border border-red-600/30"
-                              >
-                                👍 Like Original
-                              </button>
-                              <button 
-                                onClick={() => handleRecastOriginalCast(promo.castUrl)}
-                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 font-semibold rounded-lg transition-all duration-300 border border-blue-600/30"
-                              >
-                                🔄 Recast Original
-                              </button>
-                            </div>
                           </div>
                         </div>
                       );
