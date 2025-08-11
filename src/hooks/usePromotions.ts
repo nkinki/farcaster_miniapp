@@ -44,11 +44,17 @@ export function usePromotions({ limit = 20, offset = 0, status }: UsePromotionsP
       }
 
       const data = await response.json()
+      
+      console.log(`🔍 API Response:`, data)
+      console.log(`🔍 Promotions count:`, data.promotions?.length || 0)
 
       // Explicit típusmegadás, hogy Promotion[]-ként kezelje
       const promotionsArray: Promotion[] = Array.isArray(data.promotions) ? data.promotions : []
+      
+      console.log(`🔍 Promotions array:`, promotionsArray)
 
       const mappedPromotions = mapPromotionsToPromoCasts(promotionsArray)
+      console.log(`🔍 Mapped promotions:`, mappedPromotions)
       setPromotions(mappedPromotions)
     } catch (err: any) {
       console.error("Error fetching promotions:", err)

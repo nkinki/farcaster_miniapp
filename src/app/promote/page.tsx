@@ -199,13 +199,13 @@ export default function PromotePage() {
         throw new Error(data.error || 'Failed to delete campaign');
       }
 
-      alert('Campaign deleted successfully!');
+      console.log('✅ Campaign deleted successfully!');
       setShowCampaignManager(false);
       setManagingPromo(null);
       refreshAllData();
     } catch (error) {
       console.error('Error deleting campaign:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete campaign');
+      console.error('❌ Failed to delete campaign:', error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
@@ -219,7 +219,10 @@ export default function PromotePage() {
   };
 
   const handleSharePromo = async (promo: PromoCast) => {
-    if (!isAuthenticated || !currentUser.fid) return alert("Please connect your Farcaster account first.");
+    if (!isAuthenticated || !currentUser.fid) {
+      console.error("❌ Please connect your Farcaster account first.");
+      return;
+    }
     
     setShareError(null);
     setSharingPromoId(promo.id.toString());
@@ -295,7 +298,7 @@ export default function PromotePage() {
         throw new Error(data.error || "Failed to record share on the backend."); 
       }
       
-      alert(`Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
+      console.log(`✅ Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
       await refreshAllData();
 
@@ -305,7 +308,7 @@ export default function PromotePage() {
       setShareError(errorMessage);
       
       if (errorMessage.includes('can share this campaign again in')) {
-        alert(errorMessage);
+        console.error(`❌ Share error: ${errorMessage}`);
       }
     } finally {
       setSharingPromoId(null);
