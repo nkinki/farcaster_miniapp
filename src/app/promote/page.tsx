@@ -50,58 +50,7 @@ const getRandomChannel = (): string => {
   return ''; // Fallback: Home Feed
 };
 
-// 🎯 AUTOMATIKUS LIKE ÉS RECAST FUNKCIÓ
-const performAutomaticEngagement = async (ourCastHash: string, originalCastUrl: string, currentUser: FarcasterUser) => {
-  try {
-    console.log(`🎯 Starting automatic engagement for cast: ${ourCastHash}`);
-    
-    // 1. LIKE az eredeti cast-ra (ha van hash)
-    const originalShortHash = originalCastUrl.split('/').pop();
-    if (originalShortHash && originalShortHash.startsWith('0x')) {
-      try {
-        // Próbáljuk meg like-olni az eredeti cast-ot
-        await fetch('/api/farcaster-actions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'like',
-            castHash: originalShortHash,
-            userFid: currentUser.fid
-          })
-        });
-        console.log(`👍 Liked original cast: ${originalShortHash}`);
-      } catch (error) {
-        console.log(`⚠️ Could not like original cast: ${error}`);
-      }
-    }
-    
-    // 2. RECAST az eredeti cast-ra (ha van hash)
-    if (originalShortHash && originalShortHash.startsWith('0x')) {
-      try {
-        await fetch('/api/farcaster-actions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'recast',
-            castHash: originalShortHash,
-            userFid: currentUser.fid
-          })
-        });
-        console.log(`🔄 Recasted original cast: ${originalShortHash}`);
-      } catch (error) {
-        console.log(`⚠️ Could not recast original cast: ${error}`);
-      }
-    }
-    
-    // 3. Kis várakozás a rate limiting elkerülésére
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log(`✅ Automatic engagement completed`);
-    
-  } catch (error) {
-    console.log(`⚠️ Automatic engagement failed: ${error}`);
-  }
-};
+
 
 // Fallback csatornák listája hiba esetén
 const getChannelFallbacks = (failedChannel: string): string[] => {
@@ -269,6 +218,64 @@ export default function PromotePage() {
     } catch (error) { window.open(castUrl, '_blank'); }
   };
 
+  // 👍 LIKE EREDETI CAST FUNKCIÓ
+  const handleLikeOriginalCast = async (castUrl: string) => {
+    try {
+      const shortHash = castUrl.split('/').pop();
+      if (!shortHash || !shortHash.startsWith('0x')) {
+        console.log('⚠️ No valid hash found in URL');
+        return;
+      }
+      
+      const response = await fetch('/api/farcaster-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'like',
+          castHash: shortHash,
+          userFid: currentUser.fid
+        })
+      });
+      
+      if (response.ok) {
+        console.log(`👍 Successfully liked original cast: ${shortHash}`);
+      } else {
+        console.log(`⚠️ Like failed: ${await response.text()}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ Like error: ${error}`);
+    }
+  };
+
+  // 🔄 RECAST EREDETI CAST FUNKCIÓ
+  const handleRecastOriginalCast = async (castUrl: string) => {
+    try {
+      const shortHash = castUrl.split('/').pop();
+      if (!shortHash || !shortHash.startsWith('0x')) {
+        console.log('⚠️ No valid hash found in URL');
+        return;
+      }
+      
+      const response = await fetch('/api/farcaster-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'recast',
+          castHash: shortHash,
+          userFid: currentUser.fid
+        })
+      });
+      
+      if (response.ok) {
+        console.log(`🔄 Successfully recasted original cast: ${shortHash}`);
+      } else {
+        console.log(`⚠️ Recast failed: ${await response.text()}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ Recast error: ${error}`);
+    }
+  };
+
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) {
       console.error("❌ Please connect your Farcaster account first.");
@@ -311,28 +318,8 @@ export default function PromotePage() {
       let castHash: string | undefined = shortHash;
       let hasValidCastHash: boolean = false;
       
-      if (shortHash && shortHash.startsWith('0x') && shortHash.length < 66) {
-        try {
-          // Próbáljuk meg lekérni a teljes hash-t a teljes URL-lel
-          const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast?identifier=${encodeURIComponent(promo.castUrl)}&type=url`, {
-            headers: {
-              'api_key': 'NEYNAR_API_DOCS' // Publikus demo key
-            }
-          });
-          
-          if (neynarResponse.ok) {
-            const castData = await neynarResponse.json();
-            if (castData.cast && castData.cast.hash) {
-              castHash = castData.cast.hash;
-              console.log(`🔍 Full hash retrieved from URL: ${promo.castUrl} → ${castHash}`);
-            }
-          } else {
-            console.log(`⚠️ Neynar API response not OK: ${neynarResponse.status}`);
-          }
-        } catch (error) {
-          console.log(`⚠️ Could not fetch full hash for ${promo.castUrl}:`, error);
-        }
-      }
+      // Egyszerű megközelítés: csak akkor quote cast, ha már hosszú hash van
+      // Rövid hash-ek → embed (biztonságosabb és stabil)
       
       // Farcaster cast hash validáció: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
       // VAGY 42 karakteres hash is elfogadható (gyakori formátum)
@@ -432,9 +419,6 @@ export default function PromotePage() {
       }
       
       console.log(`✅ Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
-      
-      // 🎯 AUTOMATIKUS LIKE ÉS RECAST A MEGOSZTOTT CAST-RA
-      await performAutomaticEngagement(castResult.cast.hash, promo.castUrl, currentUser);
       
       await refreshAllData();
 
@@ -581,10 +565,26 @@ export default function PromotePage() {
                                  <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
                                </div>
                             )}
-                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed mb-2">
                               {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
                               {sharingPromoId === promo.id.toString() ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
                             </button>
+                            
+                            {/* Opcionális Like/Recast gombok az eredeti cast-ra */}
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => handleLikeOriginalCast(promo.castUrl)}
+                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-300 font-semibold rounded-lg transition-all duration-300 border border-red-600/30"
+                              >
+                                👍 Like Original
+                              </button>
+                              <button 
+                                onClick={() => handleRecastOriginalCast(promo.castUrl)}
+                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 font-semibold rounded-lg transition-all duration-300 border border-blue-600/30"
+                              >
+                                🔄 Recast Original
+                              </button>
+                            </div>
                           </div>
                         </div>
                       );
