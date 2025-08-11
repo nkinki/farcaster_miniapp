@@ -30,16 +30,9 @@ const SHARE_TEXTS = [
   "🎁 Gift yourself better promotion! AppRank offers free trials - start now!"
 ];
 
-// Kiválasztott Farcaster csatornák súlyozott listája
+// Csak Home Feed - nincs csatorna tagság probléma
 const SELECTED_CHANNELS = [
-  { id: '', name: 'Home Feed', weight: 80, description: 'Mindenki látja, nincs tagság szükséges' },
-  { id: 'crypto', name: '/crypto', weight: 3, description: 'Általános crypto beszélgetések' },
-  { id: 'web3', name: '/web3', weight: 3, description: 'Web3 technológiák' },
-  { id: 'farcaster', name: '/farcaster', weight: 3, description: 'Farcaster platform' },
-  { id: 'founders', name: '/founders', weight: 3, description: 'Startup alapítók' },
-  { id: 'builders', name: '/builders', weight: 3, description: 'Builder közösség' },
-  { id: 'onchain', name: '/onchain', weight: 2, description: 'Onchain aktivitás' },
-  { id: 'airdrop', name: '/airdrop', weight: 3, description: 'Airdrop közösség' }
+  { id: '', name: 'Home Feed', weight: 100, description: 'Mindenki látja, nincs tagság szükséges' }
 ];
 
 // Súlyozott véletlenszerű csatorna kiválasztás
@@ -270,25 +263,17 @@ export default function PromotePage() {
         hasValidCastHash
       });
       
-      if (hasValidCastHash && (isWarpcastUrl || (isFarcasterUrl && !promo.castUrl.includes('/miniapps/')))) {
-        // Valid cast hash és nem miniapp URL - próbáljuk quote cast-ként
+      if (hasValidCastHash) {
+        // Valid cast hash - mindig quote cast
         castOptions.parent = { 
           type: 'cast', 
           hash: castHash 
         };
         console.log(`🔗 Creating quote cast with hash: ${castHash}`);
       } else {
-        // Minden más esetben embed
+        // Nincs valid cast hash - embed
         castOptions.embeds = [promo.castUrl];
-        if (isFarcasterUrl && promo.castUrl.includes('/miniapps/')) {
-          console.log(`📱 Miniapp URL as embed: ${promo.castUrl}`);
-        } else if (isFarcasterUrl) {
-          console.log(`🖼️ Frame URL as embed: ${promo.castUrl}`);
-        } else if (isWarpcastUrl) {
-          console.log(`📎 Warpcast URL as embed: ${promo.castUrl}`);
-        } else {
-          console.log(`🌐 Other URL as embed: ${promo.castUrl}`);
-        }
+        console.log(`📎 Creating embed with URL: ${promo.castUrl}`);
       }
       
       // Ha nem Home Feed, akkor hozzáadjuk a csatornát
