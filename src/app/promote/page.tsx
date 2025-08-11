@@ -32,14 +32,14 @@ const SHARE_TEXTS = [
 
 // Kiválasztott Farcaster csatornák súlyozott listája
 const SELECTED_CHANNELS = [
-  { id: '', name: 'Home Feed', weight: 30, description: 'Mindenki látja, nincs tagság szükséges' },
-  { id: 'crypto', name: '/crypto', weight: 10, description: 'Általános crypto beszélgetések' },
-  { id: 'web3', name: '/web3', weight: 10, description: 'Web3 technológiák' },
-  { id: 'farcaster', name: '/farcaster', weight: 10, description: 'Farcaster platform' },
-  { id: 'founders', name: '/founders', weight: 10, description: 'Startup alapítók' },
-  { id: 'builders', name: '/builders', weight: 10, description: 'Builder közösség' },
-  { id: 'onchain', name: '/onchain', weight: 10, description: 'Onchain aktivitás' },
-  { id: 'airdrop', name: '/airdrop', weight: 10, description: 'Airdrop közösség' }
+  { id: '', name: 'Home Feed', weight: 80, description: 'Mindenki látja, nincs tagság szükséges' },
+  { id: 'crypto', name: '/crypto', weight: 3, description: 'Általános crypto beszélgetések' },
+  { id: 'web3', name: '/web3', weight: 3, description: 'Web3 technológiák' },
+  { id: 'farcaster', name: '/farcaster', weight: 3, description: 'Farcaster platform' },
+  { id: 'founders', name: '/founders', weight: 3, description: 'Startup alapítók' },
+  { id: 'builders', name: '/builders', weight: 3, description: 'Builder közösség' },
+  { id: 'onchain', name: '/onchain', weight: 2, description: 'Onchain aktivitás' },
+  { id: 'airdrop', name: '/airdrop', weight: 3, description: 'Airdrop közösség' }
 ];
 
 // Súlyozott véletlenszerű csatorna kiválasztás
