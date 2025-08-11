@@ -243,28 +243,48 @@ export default function PromotePage() {
       // Véletlenszerű csatorna kiválasztása minden megosztásnál
       const randomChannel = getRandomChannel();
       
-      // Debug: nézzük meg milyen URL-t kapunk
-      console.log(`🔍 Original cast URL: ${promo.castUrl}`);
-      
-      const castHash = promo.castUrl.split('/').pop();
-      console.log(`🔍 Extracted hash: ${castHash}`);
+      // URL típus felismerés és kezelés
+      console.log(`🔍 Original URL: ${promo.castUrl}`);
       
       const castOptions: any = { 
         text: finalText
       };
       
-      // MINDIG embed-et használunk, mert a cast hash-ek nem működnek
-      castOptions.embeds = [promo.castUrl];
-      console.log(`📎 Creating cast with embed: ${promo.castUrl}`);
+      // URL típus ellenőrzése és cast hash kinyerése
+      const castHash = promo.castUrl.split('/').pop();
+      const isWarpcastUrl = promo.castUrl.includes('warpcast.com');
+      const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
+      const isConversationUrl = promo.castUrl.includes('/conversations/');
+      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length > 10;
       
-      // Megjegyzés: Quote cast funkció kikapcsolva a "failed to find cast" hiba miatt
-      // if (castHash && castHash.startsWith('0x')) {
-      //   castOptions.parent = { 
-      //     type: 'cast', 
-      //     hash: castHash 
-      //   };
-      //   console.log(`🔗 Creating quote cast with hash: ${castHash}`);
-      // }
+      console.log(`🔍 URL Analysis:`, {
+        isWarpcastUrl,
+        isFarcasterUrl, 
+        isConversationUrl,
+        castHash,
+        hasValidCastHash
+      });
+      
+      if (hasValidCastHash && (isWarpcastUrl || (isFarcasterUrl && !promo.castUrl.includes('/miniapps/')))) {
+        // Valid cast hash és nem miniapp URL - próbáljuk quote cast-ként
+        castOptions.parent = { 
+          type: 'cast', 
+          hash: castHash 
+        };
+        console.log(`🔗 Creating quote cast with hash: ${castHash}`);
+      } else {
+        // Minden más esetben embed
+        castOptions.embeds = [promo.castUrl];
+        if (isFarcasterUrl && promo.castUrl.includes('/miniapps/')) {
+          console.log(`📱 Miniapp URL as embed: ${promo.castUrl}`);
+        } else if (isFarcasterUrl) {
+          console.log(`🖼️ Frame URL as embed: ${promo.castUrl}`);
+        } else if (isWarpcastUrl) {
+          console.log(`📎 Warpcast URL as embed: ${promo.castUrl}`);
+        } else {
+          console.log(`🌐 Other URL as embed: ${promo.castUrl}`);
+        }
+      }
       
       // Ha nem Home Feed, akkor hozzáadjuk a csatornát
       if (randomChannel) {
