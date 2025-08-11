@@ -255,7 +255,7 @@ export default function PromotePage() {
       const isWarpcastUrl = promo.castUrl.includes('warpcast.com');
       const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
       const isConversationUrl = promo.castUrl.includes('/conversations/');
-      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length > 10;
+      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length >= 8;
       
       console.log(`🔍 URL Analysis:`, {
         isWarpcastUrl,
