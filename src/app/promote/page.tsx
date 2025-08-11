@@ -249,21 +249,47 @@ export default function PromotePage() {
       };
       
       // URL típus ellenőrzése és cast hash kinyerése
-      const castHash = promo.castUrl.split('/').pop();
+      const shortHash = promo.castUrl.split('/').pop();
       const isWarpcastUrl = promo.castUrl.includes('warpcast.com');
       const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
       const isConversationUrl = promo.castUrl.includes('/conversations/');
       
-      // Farcaster cast hash: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
-      // Példa: 0xa2fbef8c8e4d00d8f84ff45f9763b8bae2c5c544abc123def456789012345678
-      // Rövid hash-ek (mint 0xde59c5e9) csak URL azonosítók, nem valódi cast hash-ek
-      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length === 66;
+      // Teljes cast hash lekérése API-ból (ha rövid hash)
+      let castHash = shortHash;
+      let hasValidCastHash = false;
+      
+      if (shortHash && shortHash.startsWith('0x') && shortHash.length < 66) {
+        try {
+          // Próbáljuk meg lekérni a teljes hash-t Neynar API-ból
+          const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast?identifier=${shortHash}&type=hash`, {
+            headers: {
+              'api_key': 'NEYNAR_API_DOCS' // Publikus demo key
+            }
+          });
+          
+          if (neynarResponse.ok) {
+            const castData = await neynarResponse.json();
+            if (castData.cast && castData.cast.hash) {
+              castHash = castData.cast.hash;
+              console.log(`🔍 Full hash retrieved: ${shortHash} → ${castHash}`);
+            }
+          }
+        } catch (error) {
+          console.log(`⚠️ Could not fetch full hash for ${shortHash}:`, error);
+        }
+      }
+      
+      // Farcaster cast hash validáció: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
+      // VAGY 42 karakteres hash is elfogadható (gyakori formátum)
+      hasValidCastHash = castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42);
       
       console.log(`🔍 URL Analysis:`, {
         isWarpcastUrl,
         isFarcasterUrl, 
         isConversationUrl,
+        shortHash,
         castHash,
+        hashLength: castHash?.length || 0,
         hasValidCastHash
       });
       
@@ -279,7 +305,7 @@ export default function PromotePage() {
       } else {
         // Rövid hash vagy nincs hash - csak embed (biztonságosabb)
         castOptions.embeds = [promo.castUrl];
-        console.log(`📎 Creating embed with URL: ${promo.castUrl} (hash too short: ${castHash?.length || 0} chars)`);
+        console.log(`📎 Creating embed with URL: ${promo.castUrl} (hash: ${castHash}, length: ${castHash?.length || 0} chars)`);
       }
       
       // Ha nem Home Feed, akkor hozzáadjuk a csatornát
