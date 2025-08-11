@@ -30,89 +30,39 @@ const SHARE_TEXTS = [
   "Get your $CHESS – share this AppRank promo!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank"
 ];
 
-// Csatornák prioritási sorrendben (fallback rendszerhez)
-const CHANNEL_PRIORITY = [
-  // Tier 1: Nagy, nyitott csatornák (magas tagság, kevés moderáció)
-  { id: '', name: 'Home Feed', tier: 1, description: 'Mindenki látja, nincs tagság szükséges' },
-  { id: 'base', name: '/base', tier: 1, description: 'Base blockchain közösség' },
-  { id: 'crypto', name: '/crypto', tier: 1, description: 'Általános crypto beszélgetések' },
-  { id: 'ethereum', name: '/ethereum', tier: 1, description: 'Ethereum közösség' },
-  
-  // Tier 2: Közepes csatornák (jó aktivitás, mérsékelt moderáció)
-  { id: 'web3', name: '/web3', tier: 2, description: 'Web3 technológiák' },
-  { id: 'defi', name: '/defi', tier: 2, description: 'Decentralized Finance' },
-  { id: 'farcaster', name: '/farcaster', tier: 2, description: 'Farcaster platform' },
-  { id: 'dev', name: '/dev', tier: 2, description: 'Fejlesztők közössége' },
-  
-  // Tier 3: Speciális csatornák (szigorúbb moderáció)
-  { id: 'degen', name: '/degen', tier: 3, description: 'Degen közösség' },
-  { id: 'founders', name: '/founders', tier: 3, description: 'Startup alapítók' },
-  { id: 'gaming', name: '/gaming', tier: 3, description: 'Gaming közösség' },
-  
-  // Tier 4: Alternatív csatornák
-  { id: 'nfts', name: '/nfts', tier: 4, description: 'NFT közösség' },
-  { id: 'ai', name: '/ai', tier: 4, description: 'Mesterséges intelligencia' },
-  { id: 'memes', name: '/memes', tier: 4, description: 'Meme közösség' },
-  { id: 'music', name: '/music', tier: 4, description: 'Zene közösség' },
-  { id: 'art', name: '/art', tier: 4, description: 'Művészet közösség' }
+// Kiválasztott Farcaster csatornák súlyozott listája
+const SELECTED_CHANNELS = [
+  { id: '', name: 'Home Feed', weight: 30, description: 'Mindenki látja, nincs tagság szükséges' },
+  { id: 'crypto', name: '/crypto', weight: 10, description: 'Általános crypto beszélgetések' },
+  { id: 'web3', name: '/web3', weight: 10, description: 'Web3 technológiák' },
+  { id: 'farcaster', name: '/farcaster', weight: 10, description: 'Farcaster platform' },
+  { id: 'founders', name: '/founders', weight: 10, description: 'Startup alapítók' },
+  { id: 'builders', name: '/builders', weight: 10, description: 'Builder közösség' },
+  { id: 'onchain', name: '/onchain', weight: 10, description: 'Onchain aktivitás' },
+  { id: 'airdrop', name: '/airdrop', weight: 10, description: 'Airdrop közösség' }
 ];
 
-// Véletlenszerű csatorna kiválasztása tier alapján (súlyozott)
+// Súlyozott véletlenszerű csatorna kiválasztás
 const getRandomChannel = (): string => {
-  const tierWeights = { 1: 40, 2: 35, 3: 20, 4: 5 }; // Tier 1 = 40% esély
-  const totalWeight = Object.values(tierWeights).reduce((sum, weight) => sum + weight, 0);
+  const totalWeight = SELECTED_CHANNELS.reduce((sum, channel) => sum + channel.weight, 0);
   let random = Math.random() * totalWeight;
   
-  // Tier kiválasztása
-  let selectedTier = 1;
-  for (const [tier, weight] of Object.entries(tierWeights)) {
-    random -= weight;
+  for (const channel of SELECTED_CHANNELS) {
+    random -= channel.weight;
     if (random <= 0) {
-      selectedTier = parseInt(tier);
-      break;
+      return channel.id;
     }
   }
   
-  // Csatorna kiválasztása a tier-en belül
-  const tierChannels = CHANNEL_PRIORITY.filter(ch => ch.tier === selectedTier);
-  const randomChannel = tierChannels[Math.floor(Math.random() * tierChannels.length)];
-  
-  return randomChannel?.id || ''; // Fallback: Home Feed
+  return ''; // Fallback: Home Feed
 };
 
 // Fallback csatornák listája hiba esetén
 const getChannelFallbacks = (failedChannel: string): string[] => {
-  const currentIndex = CHANNEL_PRIORITY.findIndex(ch => ch.id === failedChannel);
-  
-  // Ha nem találjuk, vagy már a legutolsó, akkor tier 1-től kezdjük
-  if (currentIndex === -1 || currentIndex >= CHANNEL_PRIORITY.length - 1) {
-    return CHANNEL_PRIORITY.filter(ch => ch.tier === 1).map(ch => ch.id);
-  }
-  
-  // Következő csatornák ugyanabból a tier-ből, majd alacsonyabb tier-ek
-  const currentTier = CHANNEL_PRIORITY[currentIndex].tier;
-  const fallbacks: string[] = [];
-  
-  // Ugyanabból a tier-ből a következők
-  const sameTierChannels = CHANNEL_PRIORITY
-    .filter(ch => ch.tier === currentTier && ch.id !== failedChannel)
+  // Minden csatorna kivéve a sikertelen
+  return SELECTED_CHANNELS
+    .filter(ch => ch.id !== failedChannel)
     .map(ch => ch.id);
-  fallbacks.push(...sameTierChannels);
-  
-  // Alacsonyabb tier-ek (biztonságosabbak)
-  for (let tier = currentTier - 1; tier >= 1; tier--) {
-    const tierChannels = CHANNEL_PRIORITY
-      .filter(ch => ch.tier === tier)
-      .map(ch => ch.id);
-    fallbacks.push(...tierChannels);
-  }
-  
-  // Home Feed mindig a végén
-  if (!fallbacks.includes('')) {
-    fallbacks.push('');
-  }
-  
-  return fallbacks;
 };
 
 interface FarcasterUser {
