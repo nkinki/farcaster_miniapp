@@ -253,7 +253,10 @@ export default function PromotePage() {
       const isWarpcastUrl = promo.castUrl.includes('warpcast.com');
       const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
       const isConversationUrl = promo.castUrl.includes('/conversations/');
-      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length >= 40;
+      
+      // TESZT: Csak hosszú hash-eket fogadunk el (42+ karakter)
+      // Rövid hash-ek (mint 0xe1e06cde) nem valid Farcaster cast hash-ek
+      const hasValidCastHash = castHash && castHash.startsWith('0x') && castHash.length >= 42;
       
       console.log(`🔍 URL Analysis:`, {
         isWarpcastUrl,
@@ -264,14 +267,16 @@ export default function PromotePage() {
       });
       
       if (hasValidCastHash) {
-        // Valid cast hash - mindig quote cast
+        // Valid cast hash - quote cast + AppRank miniapp link
         castOptions.parent = { 
           type: 'cast', 
           hash: castHash 
         };
-        console.log(`🔗 Creating quote cast with hash: ${castHash}`);
+        // Hozzáadjuk az AppRank miniapp linket is
+        castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
+        console.log(`🔗 Creating quote cast with hash: ${castHash} + AppRank embed`);
       } else {
-        // Nincs valid cast hash - embed
+        // Nincs valid cast hash - csak embed
         castOptions.embeds = [promo.castUrl];
         console.log(`📎 Creating embed with URL: ${promo.castUrl}`);
       }
