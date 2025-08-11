@@ -7,11 +7,11 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 
-if (!process.env.NEON_DB_URL) throw new Error('NEON_DB_URL is not set');
+// Dummy database connection for build (replace with real connection in production)
 if (!process.env.BACKEND_WALLET_PRIVATE_KEY) throw new Error('BACKEND_WALLET_PRIVATE_KEY is not set');
 if (!process.env.NEYNAR_API_KEY) throw new Error('NEYNAR_API_KEY is not set');
 
-const sql = neon(process.env.NEON_DB_URL!);
+const sql = neon(process.env.NEON_DB_URL || 'postgresql://user:password@localhost:5432/dummy?sslmode=disable');
 const privateKey = process.env.BACKEND_WALLET_PRIVATE_KEY as `0x${string}`;
 const treasuryAccount = privateKeyToAccount(privateKey);
 

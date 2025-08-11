@@ -255,8 +255,8 @@ export default function PromotePage() {
       const isConversationUrl = promo.castUrl.includes('/conversations/');
       
       // Teljes cast hash lekérése API-ból (ha rövid hash)
-      let castHash = shortHash;
-      let hasValidCastHash = false;
+      let castHash: string | undefined = shortHash;
+      let hasValidCastHash: boolean = false;
       
       if (shortHash && shortHash.startsWith('0x') && shortHash.length < 66) {
         try {
@@ -281,7 +281,7 @@ export default function PromotePage() {
       
       // Farcaster cast hash validáció: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
       // VAGY 42 karakteres hash is elfogadható (gyakori formátum)
-      hasValidCastHash = castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42);
+      hasValidCastHash = Boolean(castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42));
       
       console.log(`🔍 URL Analysis:`, {
         isWarpcastUrl,
