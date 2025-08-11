@@ -240,25 +240,28 @@ export default function PromotePage() {
       // Véletlenszerű csatorna kiválasztása minden megosztásnál
       const randomChannel = getRandomChannel();
       
-      // Próbáljuk kinyerni a cast hash-t az URL-ből quote cast-hoz
+      // Debug: nézzük meg milyen URL-t kapunk
+      console.log(`🔍 Original cast URL: ${promo.castUrl}`);
+      
       const castHash = promo.castUrl.split('/').pop();
+      console.log(`🔍 Extracted hash: ${castHash}`);
       
       const castOptions: any = { 
         text: finalText
       };
       
-      // Ha van cast hash (0x-szel kezdődik), akkor parent cast-ként használjuk (quote cast)
-      if (castHash && castHash.startsWith('0x')) {
-        castOptions.parent = { 
-          type: 'cast', 
-          hash: castHash 
-        };
-        console.log(`🔗 Creating quote cast with hash: ${castHash}`);
-      } else {
-        // Fallback: embed használata
-        castOptions.embeds = [promo.castUrl];
-        console.log(`📎 Creating cast with embed: ${promo.castUrl}`);
-      }
+      // MINDIG embed-et használunk, mert a cast hash-ek nem működnek
+      castOptions.embeds = [promo.castUrl];
+      console.log(`📎 Creating cast with embed: ${promo.castUrl}`);
+      
+      // Megjegyzés: Quote cast funkció kikapcsolva a "failed to find cast" hiba miatt
+      // if (castHash && castHash.startsWith('0x')) {
+      //   castOptions.parent = { 
+      //     type: 'cast', 
+      //     hash: castHash 
+      //   };
+      //   console.log(`🔗 Creating quote cast with hash: ${castHash}`);
+      // }
       
       // Ha nem Home Feed, akkor hozzáadjuk a csatornát
       if (randomChannel) {
