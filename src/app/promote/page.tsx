@@ -50,6 +50,59 @@ const getRandomChannel = (): string => {
   return ''; // Fallback: Home Feed
 };
 
+// 🎯 AUTOMATIKUS LIKE ÉS RECAST FUNKCIÓ
+const performAutomaticEngagement = async (ourCastHash: string, originalCastUrl: string, currentUser: FarcasterUser) => {
+  try {
+    console.log(`🎯 Starting automatic engagement for cast: ${ourCastHash}`);
+    
+    // 1. LIKE az eredeti cast-ra (ha van hash)
+    const originalShortHash = originalCastUrl.split('/').pop();
+    if (originalShortHash && originalShortHash.startsWith('0x')) {
+      try {
+        // Próbáljuk meg like-olni az eredeti cast-ot
+        await fetch('/api/farcaster-actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'like',
+            castHash: originalShortHash,
+            userFid: currentUser.fid
+          })
+        });
+        console.log(`👍 Liked original cast: ${originalShortHash}`);
+      } catch (error) {
+        console.log(`⚠️ Could not like original cast: ${error}`);
+      }
+    }
+    
+    // 2. RECAST az eredeti cast-ra (ha van hash)
+    if (originalShortHash && originalShortHash.startsWith('0x')) {
+      try {
+        await fetch('/api/farcaster-actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'recast',
+            castHash: originalShortHash,
+            userFid: currentUser.fid
+          })
+        });
+        console.log(`🔄 Recasted original cast: ${originalShortHash}`);
+      } catch (error) {
+        console.log(`⚠️ Could not recast original cast: ${error}`);
+      }
+    }
+    
+    // 3. Kis várakozás a rate limiting elkerülésére
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    console.log(`✅ Automatic engagement completed`);
+    
+  } catch (error) {
+    console.log(`⚠️ Automatic engagement failed: ${error}`);
+  }
+};
+
 // Fallback csatornák listája hiba esetén
 const getChannelFallbacks = (failedChannel: string): string[] => {
   // Minden csatorna kivéve a sikertelen
@@ -260,8 +313,8 @@ export default function PromotePage() {
       
       if (shortHash && shortHash.startsWith('0x') && shortHash.length < 66) {
         try {
-          // Próbáljuk meg lekérni a teljes hash-t Neynar API-ból
-          const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast?identifier=${shortHash}&type=hash`, {
+          // Próbáljuk meg lekérni a teljes hash-t a teljes URL-lel
+          const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast?identifier=${encodeURIComponent(promo.castUrl)}&type=url`, {
             headers: {
               'api_key': 'NEYNAR_API_DOCS' // Publikus demo key
             }
@@ -271,11 +324,13 @@ export default function PromotePage() {
             const castData = await neynarResponse.json();
             if (castData.cast && castData.cast.hash) {
               castHash = castData.cast.hash;
-              console.log(`🔍 Full hash retrieved: ${shortHash} → ${castHash}`);
+              console.log(`🔍 Full hash retrieved from URL: ${promo.castUrl} → ${castHash}`);
             }
+          } else {
+            console.log(`⚠️ Neynar API response not OK: ${neynarResponse.status}`);
           }
         } catch (error) {
-          console.log(`⚠️ Could not fetch full hash for ${shortHash}:`, error);
+          console.log(`⚠️ Could not fetch full hash for ${promo.castUrl}:`, error);
         }
       }
       
@@ -377,6 +432,9 @@ export default function PromotePage() {
       }
       
       console.log(`✅ Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
+      
+      // 🎯 AUTOMATIKUS LIKE ÉS RECAST A MEGOSZTOTT CAST-RA
+      await performAutomaticEngagement(castResult.cast.hash, promo.castUrl, currentUser);
       
       await refreshAllData();
 
