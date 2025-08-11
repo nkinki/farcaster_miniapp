@@ -30,34 +30,89 @@ const SHARE_TEXTS = [
   "Get your $CHESS – share this AppRank promo!\n\nhttps://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank"
 ];
 
-// Top csatornák véletlenszerű kiválasztáshoz (súlyozott)
-const RANDOM_CHANNELS = [
-  { id: '', weight: 5 }, // Home Feed - csak 5% esély
-  { id: 'farcaster', weight: 15 }, // /farcaster - 15% esély (csökkentve)
-  { id: 'degen', weight: 5 }, // /degen - 5% esély (csökkentve)
-  { id: 'base', weight: 20 }, // /base - 20% esély (növelve)
-  { id: 'crypto', weight: 12 }, // /crypto - 12% esély (növelve)
-  { id: 'ethereum', weight: 10 }, // /ethereum - 10% esély (növelve)
-  { id: 'web3', weight: 8 }, // /web3 - 8% esély
-  { id: 'defi', weight: 8 }, // /defi - 8% esély (növelve)
-  { id: 'dev', weight: 6 }, // /dev - 6% esély
-  { id: 'founders', weight: 6 }, // /founders - 6% esély (növelve)
-  { id: 'gaming', weight: 5 } // /gaming - 5% esély
+// Csatornák prioritási sorrendben (fallback rendszerhez)
+const CHANNEL_PRIORITY = [
+  // Tier 1: Nagy, nyitott csatornák (magas tagság, kevés moderáció)
+  { id: '', name: 'Home Feed', tier: 1, description: 'Mindenki látja, nincs tagság szükséges' },
+  { id: 'base', name: '/base', tier: 1, description: 'Base blockchain közösség' },
+  { id: 'crypto', name: '/crypto', tier: 1, description: 'Általános crypto beszélgetések' },
+  { id: 'ethereum', name: '/ethereum', tier: 1, description: 'Ethereum közösség' },
+  
+  // Tier 2: Közepes csatornák (jó aktivitás, mérsékelt moderáció)
+  { id: 'web3', name: '/web3', tier: 2, description: 'Web3 technológiák' },
+  { id: 'defi', name: '/defi', tier: 2, description: 'Decentralized Finance' },
+  { id: 'farcaster', name: '/farcaster', tier: 2, description: 'Farcaster platform' },
+  { id: 'dev', name: '/dev', tier: 2, description: 'Fejlesztők közössége' },
+  
+  // Tier 3: Speciális csatornák (szigorúbb moderáció)
+  { id: 'degen', name: '/degen', tier: 3, description: 'Degen közösség' },
+  { id: 'founders', name: '/founders', tier: 3, description: 'Startup alapítók' },
+  { id: 'gaming', name: '/gaming', tier: 3, description: 'Gaming közösség' },
+  
+  // Tier 4: Alternatív csatornák
+  { id: 'nfts', name: '/nfts', tier: 4, description: 'NFT közösség' },
+  { id: 'ai', name: '/ai', tier: 4, description: 'Mesterséges intelligencia' },
+  { id: 'memes', name: '/memes', tier: 4, description: 'Meme közösség' },
+  { id: 'music', name: '/music', tier: 4, description: 'Zene közösség' },
+  { id: 'art', name: '/art', tier: 4, description: 'Művészet közösség' }
 ];
 
-// Véletlenszerű csatorna kiválasztása súlyok alapján
+// Véletlenszerű csatorna kiválasztása tier alapján (súlyozott)
 const getRandomChannel = (): string => {
-  const totalWeight = RANDOM_CHANNELS.reduce((sum, channel) => sum + channel.weight, 0);
+  const tierWeights = { 1: 40, 2: 35, 3: 20, 4: 5 }; // Tier 1 = 40% esély
+  const totalWeight = Object.values(tierWeights).reduce((sum, weight) => sum + weight, 0);
   let random = Math.random() * totalWeight;
   
-  for (const channel of RANDOM_CHANNELS) {
-    random -= channel.weight;
+  // Tier kiválasztása
+  let selectedTier = 1;
+  for (const [tier, weight] of Object.entries(tierWeights)) {
+    random -= weight;
     if (random <= 0) {
-      return channel.id;
+      selectedTier = parseInt(tier);
+      break;
     }
   }
   
-  return ''; // Fallback: Home Feed
+  // Csatorna kiválasztása a tier-en belül
+  const tierChannels = CHANNEL_PRIORITY.filter(ch => ch.tier === selectedTier);
+  const randomChannel = tierChannels[Math.floor(Math.random() * tierChannels.length)];
+  
+  return randomChannel?.id || ''; // Fallback: Home Feed
+};
+
+// Fallback csatornák listája hiba esetén
+const getChannelFallbacks = (failedChannel: string): string[] => {
+  const currentIndex = CHANNEL_PRIORITY.findIndex(ch => ch.id === failedChannel);
+  
+  // Ha nem találjuk, vagy már a legutolsó, akkor tier 1-től kezdjük
+  if (currentIndex === -1 || currentIndex >= CHANNEL_PRIORITY.length - 1) {
+    return CHANNEL_PRIORITY.filter(ch => ch.tier === 1).map(ch => ch.id);
+  }
+  
+  // Következő csatornák ugyanabból a tier-ből, majd alacsonyabb tier-ek
+  const currentTier = CHANNEL_PRIORITY[currentIndex].tier;
+  const fallbacks: string[] = [];
+  
+  // Ugyanabból a tier-ből a következők
+  const sameTierChannels = CHANNEL_PRIORITY
+    .filter(ch => ch.tier === currentTier && ch.id !== failedChannel)
+    .map(ch => ch.id);
+  fallbacks.push(...sameTierChannels);
+  
+  // Alacsonyabb tier-ek (biztonságosabbak)
+  for (let tier = currentTier - 1; tier >= 1; tier--) {
+    const tierChannels = CHANNEL_PRIORITY
+      .filter(ch => ch.tier === tier)
+      .map(ch => ch.id);
+    fallbacks.push(...tierChannels);
+  }
+  
+  // Home Feed mindig a végén
+  if (!fallbacks.includes('')) {
+    fallbacks.push('');
+  }
+  
+  return fallbacks;
 };
 
 interface FarcasterUser {
@@ -294,11 +349,47 @@ export default function PromotePage() {
       console.log(`🎯 Selected channel: "${randomChannel || 'Home Feed'}"`);
       console.log(`📝 Cast options:`, castOptions);
       
-      const castResult = await (miniAppSdk as any).actions.composeCast(castOptions);
+      // Fallback rendszer: próbáljuk meg különböző csatornákkal
+      let castResult = null;
+      let attemptedChannels = [randomChannel];
+      
+      try {
+        castResult = await (miniAppSdk as any).actions.composeCast(castOptions);
+      } catch (channelError) {
+        console.log(`❌ Channel "${randomChannel}" failed, trying fallbacks...`);
+        
+        // Fallback csatornák lekérése
+        const fallbackChannels = getChannelFallbacks(randomChannel);
+        
+        for (const fallbackChannel of fallbackChannels) {
+          if (attemptedChannels.includes(fallbackChannel)) continue;
+          
+          try {
+            const fallbackOptions = { ...castOptions };
+            if (fallbackChannel) {
+              fallbackOptions.channelKey = fallbackChannel;
+            } else {
+              delete fallbackOptions.channelKey; // Home Feed
+            }
+            
+            console.log(`🔄 Trying fallback channel: "${fallbackChannel || 'Home Feed'}"`);
+            castResult = await (miniAppSdk as any).actions.composeCast(fallbackOptions);
+            
+            if (castResult && castResult.cast && castResult.cast.hash) {
+              console.log(`✅ Success with fallback channel: "${fallbackChannel || 'Home Feed'}"`);
+              break;
+            }
+          } catch (fallbackError) {
+            console.log(`❌ Fallback channel "${fallbackChannel || 'Home Feed'}" also failed`);
+            attemptedChannels.push(fallbackChannel);
+            continue;
+          }
+        }
+      }
       
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
-        setSharingPromoId(null);
-        return;
+        console.error(`❌ All channels failed. Attempted: ${attemptedChannels.join(', ')}`);
+        throw new Error(`Failed to share in any channel. Tried: ${attemptedChannels.map(ch => ch || 'Home Feed').join(', ')}`);
       }
       
       const response = await fetch('/api/shares', {
