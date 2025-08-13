@@ -143,6 +143,7 @@ export default function PromotePage() {
   // Lucky Box state
   const [showLuckyBox, setShowLuckyBox] = useState(false);
   const [luckyBoxReward, setLuckyBoxReward] = useState<number>(0);
+  const [isLuckyBoxPreview, setIsLuckyBoxPreview] = useState(false);
 
 
   const {
@@ -227,7 +228,8 @@ export default function PromotePage() {
   const handleCreateSuccess = () => { 
     setShowForm(false); 
     refreshAllData(); 
-    // Trigger Lucky Box after successful campaign creation
+    // Trigger REAL Lucky Box after successful campaign creation
+    setIsLuckyBoxPreview(false);
     setShowLuckyBox(true);
   };
   const handleManageSuccess = () => { setShowCampaignManager(false); setManagingPromo(null); refreshAllData(); };
@@ -237,27 +239,31 @@ export default function PromotePage() {
   // Lucky Box handlers
   const handleLuckyBoxClaim = async (amount: number) => {
     try {
-      // Update user stats with the reward
-      setUserStats(prev => ({
-        ...prev,
-        totalEarnings: prev.totalEarnings + amount,
-        pendingRewards: prev.pendingRewards + amount
-      }));
-      
-      setLuckyBoxReward(amount);
-      
-      // Optional: Send to backend to track rewards
-      await fetch('/api/user/lucky-box-reward', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          fid: profile?.fid, 
-          amount,
-          timestamp: new Date().toISOString()
-        })
-      });
-      
-      console.log(`🎁 Lucky Box reward claimed: ${amount} CHESS`);
+      // Only update stats if it's NOT a preview
+      if (!isLuckyBoxPreview) {
+        setUserStats(prev => ({
+          ...prev,
+          totalEarnings: prev.totalEarnings + amount,
+          pendingRewards: prev.pendingRewards + amount
+        }));
+        
+        setLuckyBoxReward(amount);
+        
+        // Optional: Send to backend to track rewards
+        await fetch('/api/user/lucky-box-reward', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            fid: profile?.fid, 
+            amount,
+            timestamp: new Date().toISOString()
+          })
+        });
+        
+        console.log(`🎁 Lucky Box reward claimed: ${amount} CHESS`);
+      } else {
+        console.log(`👀 Lucky Box preview: ${amount} CHESS (not claimed)`);
+      }
     } catch (error) {
       console.error('Failed to process lucky box reward:', error);
     }
@@ -265,7 +271,10 @@ export default function PromotePage() {
 
   const handleLuckyBoxClose = () => {
     setShowLuckyBox(false);
-    setLuckyBoxReward(0);
+    if (!isLuckyBoxPreview) {
+      setLuckyBoxReward(0);
+    }
+    setIsLuckyBoxPreview(false);
   };
 
   const handleDeleteCampaign = async (promo: PromoCast) => {
@@ -617,10 +626,53 @@ export default function PromotePage() {
           />
         )} 
 
+        {/* Lucky Box Preview - Always Visible */}
+        <div className="flex justify-center mt-4 mb-6">
+          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl p-6 text-center max-w-md">
+            <div className="text-4xl mb-3 animate-bounce">🎁</div>
+            <div className="text-white font-bold text-lg mb-2">Lucky Box Rewards!</div>
+            <div className="text-purple-200 text-sm mb-3">
+              Create campaigns to earn mystery rewards!
+            </div>
+            
+            {/* Mini Probability Display */}
+            <div className="bg-black/30 rounded-lg p-3 mb-3">
+              <div className="text-xs text-gray-300 space-y-1">
+                <div className="flex justify-between">
+                  <span>🎯 Common</span>
+                  <span>1-10 CHESS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>💎 Rare</span>
+                  <span>51-150 CHESS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>🌟 Mythic</span>
+                  <span>2K-10K CHESS</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setIsLuckyBoxPreview(true);
+                setShowLuckyBox(true);
+              }}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105"
+            >
+              🎁 Preview Lucky Box
+            </button>
+            
+            <div className="text-xs text-gray-400 mt-2">
+              💡 Real rewards after campaign creation
+            </div>
+          </div>
+        </div>
+
         {/* Lucky Box Success Message */}
         {luckyBoxReward > 0 && (
           <div className="flex justify-center mt-4 mb-6">
-            <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl p-4 text-center">
+            <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-4 text-center">
               <div className="text-2xl mb-2">🎉</div>
               <div className="text-white font-bold">Lucky Box Opened!</div>
               <div className="text-yellow-300 text-lg font-bold">+{luckyBoxReward.toLocaleString()} CHESS</div>
@@ -720,6 +772,7 @@ export default function PromotePage() {
         isOpen={showLuckyBox}
         onClose={handleLuckyBoxClose}
         onClaim={handleLuckyBoxClaim}
+        isPreview={isLuckyBoxPreview}
       />
 
       <style jsx global>{`

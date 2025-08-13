@@ -7,9 +7,10 @@ interface LuckyBoxProps {
   isOpen: boolean;
   onClose: () => void;
   onClaim: (amount: number) => void;
+  isPreview?: boolean; // Preview mode - no real rewards
 }
 
-export default function LuckyBox({ isOpen, onClose, onClaim }: LuckyBoxProps) {
+export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }: LuckyBoxProps) {
   const [isOpening, setIsOpening] = useState(false);
   const [reward, setReward] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -60,10 +61,21 @@ export default function LuckyBox({ isOpen, onClose, onClaim }: LuckyBoxProps) {
         
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">🎁 Lucky Box Reward!</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            🎁 {isPreview ? 'Lucky Box Preview!' : 'Lucky Box Reward!'}
+          </h2>
           <p className="text-purple-200 text-sm">
-            Congratulations on creating a promotion! 
-            <br />Open your reward box!
+            {isPreview ? (
+              <>
+                See what rewards await you!
+                <br />Create campaigns to earn real rewards!
+              </>
+            ) : (
+              <>
+                Congratulations on creating a promotion! 
+                <br />Open your reward box!
+              </>
+            )}
           </p>
         </div>
 
@@ -95,8 +107,8 @@ export default function LuckyBox({ isOpen, onClose, onClaim }: LuckyBoxProps) {
               <div className="text-4xl font-bold text-yellow-300 mb-2 animate-pulse">
                 {reward?.toLocaleString()} CHESS
               </div>
-              <div className="text-green-300 text-sm">
-                Added to your balance!
+              <div className={`text-sm ${isPreview ? 'text-orange-300' : 'text-green-300'}`}>
+                {isPreview ? 'Preview reward - Create campaigns for real rewards!' : 'Added to your balance!'}
               </div>
             </div>
           )}
@@ -142,7 +154,7 @@ export default function LuckyBox({ isOpen, onClose, onClaim }: LuckyBoxProps) {
                 onClick={handleOpenBox}
                 className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
               >
-                🎁 Open Lucky Box
+                🎁 {isPreview ? 'Preview Lucky Box' : 'Open Lucky Box'}
               </button>
               <button
                 onClick={handleClose}
@@ -154,12 +166,18 @@ export default function LuckyBox({ isOpen, onClose, onClaim }: LuckyBoxProps) {
           ) : reward ? (
             <button
               onClick={() => {
-                onClaim(reward);
+                if (!isPreview) {
+                  onClaim(reward);
+                }
                 handleClose();
               }}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300"
+              className={`w-full font-bold py-3 px-6 rounded-lg transition-all duration-300 ${
+                isPreview 
+                  ? 'bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-700 hover:to-yellow-700' 
+                  : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+              } text-white`}
             >
-              🎉 Claim Reward
+              {isPreview ? '👀 Preview Complete' : '🎉 Claim Reward'}
             </button>
           ) : (
             <div className="w-full text-center py-3 text-purple-200">
@@ -171,7 +189,10 @@ export default function LuckyBox({ isOpen, onClose, onClaim }: LuckyBoxProps) {
         {/* Fun Facts */}
         {!isOpening && (
           <div className="mt-4 text-center text-xs text-gray-400">
-            💡 Tip: Create more promotions to earn more Lucky Boxes!
+            💡 {isPreview 
+              ? 'Create your first campaign to earn real Lucky Box rewards!' 
+              : 'Tip: Create more promotions to earn more Lucky Boxes!'
+            }
           </div>
         )}
       </div>
