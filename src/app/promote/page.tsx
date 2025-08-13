@@ -591,44 +591,43 @@ export default function PromotePage() {
           </button>
         </div>
 
-        {/* Wallet Connection Section */}
-        <div className="flex flex-col items-center gap-4 mt-8 mb-8 p-6 bg-gray-800/50 rounded-xl border border-gray-700">
-          <h3 className="text-xl font-bold text-white mb-2">💰 Wallet & Token Info</h3>
+        {/* Wallet Connection Section - Szolidabb design */}
+        <div className="flex flex-col items-center gap-3 mt-6 mb-4 p-4 bg-black/20 rounded-lg border border-gray-600/30">
           
           {/* Wallet Status */}
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-2">
             {isConnected ? (
-              <div className="flex flex-col items-center gap-2">
-                <div className="text-green-400 font-semibold">
-                  ✅ Wallet Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-gray-400 text-sm opacity-80">
+                  wallet: {address?.slice(0, 6)}...{address?.slice(-4)}
                 </div>
-                <div className="text-gray-300 text-sm">
-                  💎 $CHESS Balance: {
-                    balanceLoading ? 'Loading...' : 
-                    chessBalance ? `${formatUnits(chessBalance, 18)} CHESS` : 
-                    '0 CHESS'
+                <div className="text-gray-300 text-xs opacity-70">
+                  chess: {
+                    balanceLoading ? 'loading...' : 
+                    chessBalance ? `${parseFloat(formatUnits(chessBalance, 18)).toFixed(2)}` : 
+                    '0.00'
                   }
                 </div>
                 <button
                   onClick={() => disconnect()}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300"
+                  className="px-3 py-1 text-xs bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded border border-gray-500/30 transition-all duration-300"
                 >
-                  Disconnect Wallet
+                  disconnect
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3">
-                <div className="text-yellow-400 font-semibold">
-                  ⚠️ Connect wallet to see $CHESS balance and approve transactions
+              <div className="flex flex-col items-center gap-2">
+                <div className="text-gray-400 text-xs opacity-60">
+                  connect wallet for chess balance & approvals
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-1 justify-center">
                   {connectors.map((connector) => (
                     <button
                       key={connector.id}
                       onClick={() => connect({ connector })}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300"
+                      className="px-2 py-1 text-xs bg-gray-700/40 hover:bg-gray-600/40 text-gray-300 rounded border border-gray-500/20 transition-all duration-300"
                     >
-                      Connect {connector.name}
+                      {connector.name.toLowerCase()}
                     </button>
                   ))}
                 </div>
@@ -637,24 +636,26 @@ export default function PromotePage() {
           </div>
 
           {/* Farcaster Auth Status */}
-          <div className="flex flex-col items-center gap-2 mt-4 pt-4 border-t border-gray-600">
-            {fcAuthenticated ? (
-              <div className="text-green-400 font-semibold">
-                ✅ Farcaster: {fcProfile?.username || 'Connected'}
+          {!fcAuthenticated && (
+            <div className="flex flex-col items-center gap-1 pt-2 border-t border-gray-600/20">
+              <div className="text-gray-400 text-xs opacity-60">
+                farcaster auth for full features
               </div>
-            ) : (
-              <div className="flex flex-col items-center gap-3">
-                <div className="text-yellow-400 font-semibold">
-                  ⚠️ Farcaster authentication needed for full features
-                </div>
+              <div className="scale-75">
                 <SignInButton
                   onSuccess={({ fid, username }) => {
                     console.log(`Farcaster signed in: ${username} (${fid})`);
                   }}
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
+          
+          {fcAuthenticated && (
+            <div className="text-gray-400 text-xs opacity-70 pt-1 border-t border-gray-600/20">
+              farcaster: {fcProfile?.username || 'connected'}
+            </div>
+          )}
         </div>
       </div>
       <style jsx global>{`
