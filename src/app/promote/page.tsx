@@ -628,16 +628,19 @@ export default function PromotePage() {
 
         {/* Lucky Box Preview - Always Visible */}
         <div className="flex justify-center mt-4 mb-6">
-          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl p-4 text-center max-w-sm">
+          <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm">
             <div className="text-3xl mb-2 animate-bounce">🎁</div>
             <div className="text-white font-bold mb-2">Lucky Box</div>
             
-            <div className="bg-black/30 rounded-lg p-3 mb-3">
+            <div className="bg-gray-800/50 rounded-lg p-3 mb-3">
               <div className="text-yellow-300 font-bold text-lg">
                 500 - 10,000 CHESS
               </div>
               <div className="text-gray-300 text-xs mt-1">
                 Every campaign = reward!
+              </div>
+              <div className="text-orange-400 text-xs mt-2 font-semibold">
+                🚧 Fejlesztés alatt
               </div>
             </div>
 
@@ -646,7 +649,7 @@ export default function PromotePage() {
                 setIsLuckyBoxPreview(true);
                 setShowLuckyBox(true);
               }}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
+              className="bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
             >
               🎁 Try Lucky Box
             </button>

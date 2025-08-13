@@ -54,23 +54,25 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl p-8 max-w-md w-full border border-purple-500/30 shadow-2xl">
+      <div className="bg-[#23283a] border border-[#a64d79] rounded-2xl p-8 max-w-md w-full shadow-2xl">
         
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-white mb-2">
             🎁 {isPreview ? 'Lucky Box Preview!' : 'Lucky Box Reward!'}
           </h2>
-          <p className="text-purple-200 text-sm">
+          <p className="text-gray-300 text-sm">
             {isPreview ? (
               <>
                 See what rewards await you!
                 <br />Create campaigns to earn real rewards!
+                <br /><span className="text-orange-400 font-semibold">🚧 Fejlesztés alatt</span>
               </>
             ) : (
               <>
                 Congratulations on creating a promotion! 
                 <br />Open your reward box!
+                <br /><span className="text-orange-400 font-semibold">🚧 Fejlesztés alatt</span>
               </>
             )}
           </p>
@@ -113,7 +115,7 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
 
         {/* Simple Info */}
         {!isOpening && (
-          <div className="bg-black/30 rounded-lg p-4 mb-6">
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-6">
             <div className="text-center text-gray-300">
               <div className="text-lg font-bold text-yellow-300 mb-2">
                 500 - 10,000 CHESS
@@ -131,13 +133,13 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
             <>
               <button
                 onClick={handleOpenBox}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+                className="flex-1 bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white font-bold py-3 px-6 rounded-lg transition-all duration-300"
               >
                 🎁 {isPreview ? 'Preview Lucky Box' : 'Open Lucky Box'}
               </button>
               <button
                 onClick={handleClose}
-                className="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-300"
+                className="px-4 py-3 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-lg border border-gray-500/30 transition-all duration-300"
               >
                 Later
               </button>
@@ -150,11 +152,11 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
                 }
                 handleClose();
               }}
-              className={`w-full font-bold py-3 px-6 rounded-lg transition-all duration-300 ${
+              className={`w-full font-bold py-3 px-6 rounded-lg border transition-all duration-300 text-white ${
                 isPreview 
-                  ? 'bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-700 hover:to-yellow-700' 
-                  : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
-              } text-white`}
+                  ? 'bg-[#23283a] border-orange-500 hover:bg-[#2a2f42]' 
+                  : 'bg-[#23283a] border-green-500 hover:bg-[#2a2f42]'
+              }`}
             >
               {isPreview ? '👀 Preview Complete' : '🎉 Claim Reward'}
             </button>
