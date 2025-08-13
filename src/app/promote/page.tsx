@@ -8,6 +8,7 @@ import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import CampaignManager from "../../components/CampaignManager";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
+import LuckyBox from "@/components/LuckyBox";
 import { usePromotions } from "@/hooks/usePromotions";
 import type { PromoCast } from "@/types/promotions";
 import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi';
@@ -138,6 +139,10 @@ export default function PromotePage() {
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+  
+  // Lucky Box state
+  const [showLuckyBox, setShowLuckyBox] = useState(false);
+  const [luckyBoxReward, setLuckyBoxReward] = useState<number>(0);
 
 
   const {
@@ -219,10 +224,49 @@ export default function PromotePage() {
     }
   }, [isAuthenticated, profile]);
   
-  const handleCreateSuccess = () => { setShowForm(false); refreshAllData(); };
+  const handleCreateSuccess = () => { 
+    setShowForm(false); 
+    refreshAllData(); 
+    // Trigger Lucky Box after successful campaign creation
+    setShowLuckyBox(true);
+  };
   const handleManageSuccess = () => { setShowCampaignManager(false); setManagingPromo(null); refreshAllData(); };
   const handleCreateCancel = () => { setShowForm(false); };
   const handleManageCancel = () => { setShowCampaignManager(false); setManagingPromo(null); };
+
+  // Lucky Box handlers
+  const handleLuckyBoxClaim = async (amount: number) => {
+    try {
+      // Update user stats with the reward
+      setUserStats(prev => ({
+        ...prev,
+        totalEarnings: prev.totalEarnings + amount,
+        pendingRewards: prev.pendingRewards + amount
+      }));
+      
+      setLuckyBoxReward(amount);
+      
+      // Optional: Send to backend to track rewards
+      await fetch('/api/user/lucky-box-reward', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          fid: profile?.fid, 
+          amount,
+          timestamp: new Date().toISOString()
+        })
+      });
+      
+      console.log(`🎁 Lucky Box reward claimed: ${amount} CHESS`);
+    } catch (error) {
+      console.error('Failed to process lucky box reward:', error);
+    }
+  };
+
+  const handleLuckyBoxClose = () => {
+    setShowLuckyBox(false);
+    setLuckyBoxReward(0);
+  };
 
   const handleDeleteCampaign = async (promo: PromoCast) => {
     try {
@@ -573,6 +617,18 @@ export default function PromotePage() {
           />
         )} 
 
+        {/* Lucky Box Success Message */}
+        {luckyBoxReward > 0 && (
+          <div className="flex justify-center mt-4 mb-6">
+            <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl p-4 text-center">
+              <div className="text-2xl mb-2">🎉</div>
+              <div className="text-white font-bold">Lucky Box Opened!</div>
+              <div className="text-yellow-300 text-lg font-bold">+{luckyBoxReward.toLocaleString()} CHESS</div>
+              <div className="text-gray-300 text-sm">Added to your earnings!</div>
+            </div>
+          </div>
+        )}
+
         {/* AppRank Group gomb közelebb a Share & Earn szekcióhoz */}
         <div className="flex justify-center mt-6 mb-8">
           <button
@@ -658,6 +714,14 @@ export default function PromotePage() {
           )}
         </div>
       </div>
+
+      {/* Lucky Box Modal */}
+      <LuckyBox
+        isOpen={showLuckyBox}
+        onClose={handleLuckyBoxClose}
+        onClaim={handleLuckyBoxClaim}
+      />
+
       <style jsx global>{`
         @keyframes pulseGlow {
           0% {
