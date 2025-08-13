@@ -15,17 +15,14 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
   const [reward, setReward] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Lucky Box reward calculation with weighted probabilities
+  // Lucky Box reward calculation - Simplified with higher amounts
   const calculateReward = (): number => {
     const random = Math.random();
     
-    // Weighted probability system
-    if (random < 0.40) return Math.floor(Math.random() * 10) + 1;        // 40% chance: 1-10 CHESS
-    if (random < 0.70) return Math.floor(Math.random() * 40) + 11;       // 30% chance: 11-50 CHESS  
-    if (random < 0.85) return Math.floor(Math.random() * 100) + 51;      // 15% chance: 51-150 CHESS
-    if (random < 0.95) return Math.floor(Math.random() * 350) + 151;     // 10% chance: 151-500 CHESS
-    if (random < 0.99) return Math.floor(Math.random() * 1500) + 501;    // 4% chance: 501-2000 CHESS
-    return Math.floor(Math.random() * 8000) + 2001;                      // 1% chance: 2001-10000 CHESS
+    // Simplified probability system - minimum 500 CHESS
+    if (random < 0.60) return Math.floor(Math.random() * 1000) + 500;    // 60% chance: 500-1500 CHESS
+    if (random < 0.85) return Math.floor(Math.random() * 2500) + 1500;   // 25% chance: 1500-4000 CHESS
+    return Math.floor(Math.random() * 6000) + 4000;                      // 15% chance: 4000-10000 CHESS
   };
 
   const handleOpenBox = async () => {
@@ -114,33 +111,15 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
           )}
         </div>
 
-        {/* Probability Info */}
+        {/* Simple Info */}
         {!isOpening && (
           <div className="bg-black/30 rounded-lg p-4 mb-6">
-            <div className="text-xs text-gray-300 space-y-1">
-              <div className="flex justify-between">
-                <span>🎯 Common (40%)</span>
-                <span>1-10 CHESS</span>
+            <div className="text-center text-gray-300">
+              <div className="text-lg font-bold text-yellow-300 mb-2">
+                500 - 10,000 CHESS
               </div>
-              <div className="flex justify-between">
-                <span>⭐ Uncommon (30%)</span>
-                <span>11-50 CHESS</span>
-              </div>
-              <div className="flex justify-between">
-                <span>💎 Rare (15%)</span>
-                <span>51-150 CHESS</span>
-              </div>
-              <div className="flex justify-between">
-                <span>🏆 Epic (10%)</span>
-                <span>151-500 CHESS</span>
-              </div>
-              <div className="flex justify-between">
-                <span>👑 Legendary (4%)</span>
-                <span>501-2K CHESS</span>
-              </div>
-              <div className="flex justify-between">
-                <span>🌟 Mythic (1%)</span>
-                <span>2K-10K CHESS</span>
+              <div className="text-sm">
+                Every campaign creation = Lucky Box reward!
               </div>
             </div>
           </div>

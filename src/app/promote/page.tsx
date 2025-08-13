@@ -628,28 +628,16 @@ export default function PromotePage() {
 
         {/* Lucky Box Preview - Always Visible */}
         <div className="flex justify-center mt-4 mb-6">
-          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl p-6 text-center max-w-md">
-            <div className="text-4xl mb-3 animate-bounce">🎁</div>
-            <div className="text-white font-bold text-lg mb-2">Lucky Box Rewards!</div>
-            <div className="text-purple-200 text-sm mb-3">
-              Create campaigns to earn mystery rewards!
-            </div>
+          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl p-4 text-center max-w-sm">
+            <div className="text-3xl mb-2 animate-bounce">🎁</div>
+            <div className="text-white font-bold mb-2">Lucky Box</div>
             
-            {/* Mini Probability Display */}
             <div className="bg-black/30 rounded-lg p-3 mb-3">
-              <div className="text-xs text-gray-300 space-y-1">
-                <div className="flex justify-between">
-                  <span>🎯 Common</span>
-                  <span>1-10 CHESS</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>💎 Rare</span>
-                  <span>51-150 CHESS</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>🌟 Mythic</span>
-                  <span>2K-10K CHESS</span>
-                </div>
+              <div className="text-yellow-300 font-bold text-lg">
+                500 - 10,000 CHESS
+              </div>
+              <div className="text-gray-300 text-xs mt-1">
+                Every campaign = reward!
               </div>
             </div>
 
@@ -658,14 +646,10 @@ export default function PromotePage() {
                 setIsLuckyBoxPreview(true);
                 setShowLuckyBox(true);
               }}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
             >
-              🎁 Preview Lucky Box
+              🎁 Try Lucky Box
             </button>
-            
-            <div className="text-xs text-gray-400 mt-2">
-              💡 Real rewards after campaign creation
-            </div>
           </div>
         </div>
 
