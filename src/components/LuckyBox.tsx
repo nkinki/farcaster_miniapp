@@ -66,13 +66,13 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
               <>
                 See what rewards await you!
                 <br />Create campaigns to earn real rewards!
-                <br /><span className="text-orange-400 font-semibold">🚧 Fejlesztés alatt</span>
+                <br /><span className="text-orange-400 font-semibold">🚧 Under Development</span>
               </>
             ) : (
               <>
                 Congratulations on creating a promotion! 
                 <br />Open your reward box!
-                <br /><span className="text-orange-400 font-semibold">🚧 Fejlesztés alatt</span>
+                <br /><span className="text-orange-400 font-semibold">🚧 Under Development</span>
               </>
             )}
           </p>

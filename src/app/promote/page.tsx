@@ -640,7 +640,7 @@ export default function PromotePage() {
                 Every campaign = reward!
               </div>
               <div className="text-orange-400 text-xs mt-2 font-semibold">
-                🚧 Fejlesztés alatt
+                🚧 Under Development
               </div>
             </div>
 
