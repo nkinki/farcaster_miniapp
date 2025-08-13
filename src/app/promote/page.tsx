@@ -10,6 +10,10 @@ import CampaignManager from "../../components/CampaignManager";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import { usePromotions } from "@/hooks/usePromotions";
 import type { PromoCast } from "@/types/promotions";
+import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi';
+import { SignInButton, useProfile } from '@farcaster/auth-kit';
+import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
+import { formatUnits } from 'viem';
 
 // Share szövegek promótereknek - AppRank lehetőségek népszerűsítése
 const SHARE_TEXTS = [
@@ -102,6 +106,26 @@ const calculateProgress = (promo: PromoCast): number => {
 };
 
 export default function PromotePage() {
+  // Wallet hooks
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  
+  // Farcaster Auth hooks
+  const { isAuthenticated: fcAuthenticated, profile: fcProfile } = useProfile();
+  
+  // $CHESS token balance
+  const { data: chessBalance, isLoading: balanceLoading } = useReadContract({
+    address: CHESS_TOKEN_ADDRESS,
+    abi: CHESS_TOKEN_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address && isConnected,
+      refetchInterval: 10000, // Refresh every 10 seconds
+    }
+  });
+  
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -565,6 +589,72 @@ export default function PromotePage() {
           >
             👥 Join AppRank Group
           </button>
+        </div>
+
+        {/* Wallet Connection Section */}
+        <div className="flex flex-col items-center gap-4 mt-8 mb-8 p-6 bg-gray-800/50 rounded-xl border border-gray-700">
+          <h3 className="text-xl font-bold text-white mb-2">💰 Wallet & Token Info</h3>
+          
+          {/* Wallet Status */}
+          <div className="flex flex-col items-center gap-3">
+            {isConnected ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="text-green-400 font-semibold">
+                  ✅ Wallet Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+                </div>
+                <div className="text-gray-300 text-sm">
+                  💎 $CHESS Balance: {
+                    balanceLoading ? 'Loading...' : 
+                    chessBalance ? `${formatUnits(chessBalance, 18)} CHESS` : 
+                    '0 CHESS'
+                  }
+                </div>
+                <button
+                  onClick={() => disconnect()}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300"
+                >
+                  Disconnect Wallet
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div className="text-yellow-400 font-semibold">
+                  ⚠️ Connect wallet to see $CHESS balance and approve transactions
+                </div>
+                <div className="flex flex-col gap-2">
+                  {connectors.map((connector) => (
+                    <button
+                      key={connector.id}
+                      onClick={() => connect({ connector })}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300"
+                    >
+                      Connect {connector.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Farcaster Auth Status */}
+          <div className="flex flex-col items-center gap-2 mt-4 pt-4 border-t border-gray-600">
+            {fcAuthenticated ? (
+              <div className="text-green-400 font-semibold">
+                ✅ Farcaster: {fcProfile?.username || 'Connected'}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div className="text-yellow-400 font-semibold">
+                  ⚠️ Farcaster authentication needed for full features
+                </div>
+                <SignInButton
+                  onSuccess={({ fid, username }) => {
+                    console.log(`Farcaster signed in: ${username} (${fid})`);
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <style jsx global>{`
