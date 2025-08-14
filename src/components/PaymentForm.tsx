@@ -41,8 +41,9 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
-// Share szövegek AppRank linkkel
-const SHARE_TEXTS = [
+// Note: SHARE_TEXTS moved to promote/page.tsx to avoid duplication
+// Removed unused SHARE_TEXTS - using promote/page.tsx version instead
+const SHARE_TEXTS_UNUSED = [
   "Share & Earn $CHESS with AppRank! 🚀",
   "Discover top Farcaster apps on AppRank & earn! ⭐",
   "Web3 rewards await you on AppRank! Join now! 🌐",

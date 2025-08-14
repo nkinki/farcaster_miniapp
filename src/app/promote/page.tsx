@@ -16,23 +16,20 @@ import { SignInButton, useProfile } from '@farcaster/auth-kit';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 import { formatUnits } from 'viem';
 
-// Share szövegek promótereknek - AppRank lehetőségek népszerűsítése
+// Share szövegek promótereknek - $CHESS token és ingyenes promóció
 const SHARE_TEXTS = [
-  "🚀 Want to promote your content? Try AppRank for free and reach thousands!",
-  "⭐ Content creators! AppRank offers free promotion opportunities - check it out!",
-  "🌐 Need more visibility? AppRank helps you promote for free - give it a try!",
-  "♟️ Promote your project on AppRank! Free trial available - why not test it?",
-  "🎯 Looking for promotion? AppRank is your solution - try it free today!",
-  "💸 Boost your reach with AppRank! Free promotion available - test it now!",
-  "🎮 Level up your marketing with AppRank! Free trial - what do you have to lose?",
-  "👀 Want alpha promotion results? Try AppRank for free and see the difference!",
-  "🔥 Ready to promote? AppRank offers free opportunities - give it a shot!",
-  "🏆 Serious about promotion? AppRank delivers results - try it free first!",
-  "🚀 Promote smarter with AppRank! Free trial available - test the waters!",
-  "💰 Need promotion that works? AppRank offers free testing - why wait?",
-  "✨ Discover AppRank's promotion power! Free trial available - try it today!",
-  "⚡ Quick promotion results? AppRank delivers - free trial, no risk!",
-  "🎁 Gift yourself better promotion! AppRank offers free trials - start now!"
+  "🚀 Free promotion + earn $CHESS tokens! Try AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "⭐ Promote for FREE & get $CHESS rewards! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "🌐 Free promo + $CHESS earnings! Check AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "♟️ Earn $CHESS while promoting FREE! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "🎯 Free promotion + $CHESS tokens! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "💸 Get $CHESS for FREE promotion! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "🎮 Free promo + earn $CHESS! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "👀 $CHESS rewards + free promotion! Check: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "🔥 Promote FREE & earn $CHESS! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "🏆 Free promotion + $CHESS earnings! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "💰 Earn $CHESS with free promo! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  "✨ Free promotion + $CHESS tokens! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank"
 ];
 
 // New Channel Distribution: 80% Home Feed + 20% targeted channels
