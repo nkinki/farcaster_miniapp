@@ -759,6 +759,25 @@ export default function PromotePage() {
         isPreview={isLuckyBoxPreview}
       />
 
+      {/* Admin Access Button */}
+      <div className="mt-12 pt-8 border-t border-gray-700">
+        <div className="text-center">
+          <button
+            onClick={() => {
+              const code = prompt("Enter admin code:");
+              if (code === "admin123") {
+                window.open("/admin", "_blank");
+              } else if (code) {
+                alert("Invalid admin code");
+              }
+            }}
+            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            Admin Access
+          </button>
+        </div>
+      </div>
+
       <style jsx global>{`
         @keyframes pulseGlow {
           0% {
