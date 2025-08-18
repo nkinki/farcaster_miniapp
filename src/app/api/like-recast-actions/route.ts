@@ -153,6 +153,12 @@ export async function POST(request: NextRequest) {
       RETURNING id, created_at;
     `;
 
+    // ALSO create a shares record for frontend compatibility
+    await sql`
+      INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, action_type)
+      VALUES (${promotionId}, ${userFid}, ${username}, ${castHash}, ${rewardAmount}, 'like_recast')
+    `;
+
     return NextResponse.json({ 
       success: true, 
       actionId: newAction.id,
