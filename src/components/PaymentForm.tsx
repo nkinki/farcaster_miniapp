@@ -196,7 +196,10 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
           }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
-          👍 Like & Recast 🚧
+          <div className="flex flex-col items-center">
+            <span>👍 Like & Recast</span>
+            <span className="text-xs opacity-75">Under Development</span>
+          </div>
         </button>
       </div>
       
