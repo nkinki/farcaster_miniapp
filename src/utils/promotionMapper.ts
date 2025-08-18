@@ -34,6 +34,7 @@ export function mapPromotionToPromoCast(promotion: Promotion): PromoCast {
       username: promotion.username,
       displayName: promotion.display_name || promotion.username,
     },
+    actionType: promotion.action_type || 'quote', // Add actionType mapping
   }
 }
 
