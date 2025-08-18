@@ -115,7 +115,7 @@ export default function AdminPage() {
 
   // Egyszerű sablon szöveg generálása
   const generateSimpleTemplate = (promo: Promotion): string => {
-    return `🎯 New promotion @${promo.username} ${formatNumber(promo.total_budget)}/${formatNumber(promo.reward_per_share)} share ${promo.cast_url}`;
+    return `🎯 New promotion @${promo.username} ${formatNumber(promo.total_budget)}/${formatNumber(promo.reward_per_share)} share https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`;
   };
 
   // Másolás funkció
@@ -329,13 +329,13 @@ export default function AdminPage() {
                     <div className="mt-4 pt-4 border-t border-gray-600">
                       <button
                         onClick={() => copyToClipboard(templateText, copyId)}
-                        className={`w-full flex items-center justify-between gap-4 p-3 rounded-lg text-sm font-medium transition-all ${
+                        className={`w-full flex items-center justify-between gap-4 p-3 rounded-lg text-xs font-medium transition-all ${
                           copiedId === copyId
                             ? 'bg-green-600/20 border-green-500 text-green-300'
                             : 'bg-black/20 border-gray-600 text-gray-200 hover:bg-blue-600/10 hover:border-blue-500'
                         } border`}
                       >
-                        <span className="font-mono text-left flex-1">
+                        <span className="font-mono text-left flex-1 text-xs">
                           {templateText}
                         </span>
                         <div className="flex items-center gap-2 text-xs">
