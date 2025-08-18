@@ -14,7 +14,7 @@ interface Promotion {
   reward_per_share: number;
   total_budget: number;
   remaining_budget: number;
-  shares_count: number;
+  shares_count?: number; // Opcionális, ha hiányzik az adatbázisból
   status: string;
   created_at: string;
   updated_at: string;
@@ -47,6 +47,8 @@ export default function AdminPage() {
       }
       
       const data = await response.json();
+      console.log('API Response:', data); // Debug log
+      
       // Rendezés: aktív promóciók felül, azokon belül időrend szerint (legfrissebb elöl)
       const sortedPromotions = (data.promotions || []).sort((a: Promotion, b: Promotion) => {
         // Először státusz szerint rendezés (aktív felül)
@@ -56,6 +58,13 @@ export default function AdminPage() {
         // Ha mindkettő ugyanaz a státusz, akkor dátum szerint (legfrissebb elöl)
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
+      
+      // Debug log a #153-as promócióhoz
+      const promo153 = sortedPromotions.find(p => p.id === 153);
+      if (promo153) {
+        console.log('Promotion #153:', promo153);
+      }
+      
       setPromotions(sortedPromotions);
       
       // Statisztikák számítása
@@ -113,8 +122,8 @@ export default function AdminPage() {
 
   // Progress számítás
   const calculateProgress = (promo: Promotion): number => {
-    if (promo.total_budget === 0) return 0;
-    const spent = promo.total_budget - promo.remaining_budget;
+    if (!promo.total_budget || promo.total_budget === 0) return 0;
+    const spent = promo.total_budget - (promo.remaining_budget || 0);
     return Math.round((spent / promo.total_budget) * 100);
   };
 
@@ -294,19 +303,19 @@ export default function AdminPage() {
                       <div className="lg:w-80">
                         <div className="grid grid-cols-2 gap-4 mb-3">
                           <div className="text-center p-3 bg-gray-800/50 rounded-lg">
-                            <div className="text-lg font-bold text-green-400">{formatNumber(promo.reward_per_share)}</div>
+                            <div className="text-lg font-bold text-green-400">{formatNumber(promo.reward_per_share || 0)}</div>
                             <div className="text-xs text-gray-400">CHESS/megosztás</div>
                           </div>
                           <div className="text-center p-3 bg-gray-800/50 rounded-lg">
-                            <div className="text-lg font-bold text-blue-400">{promo.shares_count}</div>
+                            <div className="text-lg font-bold text-blue-400">{promo.shares_count || 0}</div>
                             <div className="text-xs text-gray-400">Megosztások</div>
                           </div>
                           <div className="text-center p-3 bg-gray-800/50 rounded-lg">
-                            <div className="text-lg font-bold text-purple-400">{formatNumber(promo.total_budget)}</div>
+                            <div className="text-lg font-bold text-purple-400">{formatNumber(promo.total_budget || 0)}</div>
                             <div className="text-xs text-gray-400">Teljes költségvetés</div>
                           </div>
                           <div className="text-center p-3 bg-gray-800/50 rounded-lg">
-                            <div className="text-lg font-bold text-yellow-400">{formatNumber(promo.remaining_budget)}</div>
+                            <div className="text-lg font-bold text-yellow-400">{formatNumber(promo.remaining_budget || 0)}</div>
                             <div className="text-xs text-gray-400">Fennmaradó</div>
                           </div>
                         </div>
