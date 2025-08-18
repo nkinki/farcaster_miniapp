@@ -699,7 +699,7 @@ export default function PromotePage() {
                                 {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
                                 {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
                               </button>
-                            ) : (
+                            ) : promo.actionType === 'like_recast' ? (
                               <div className="space-y-2">
                                 <button onClick={() => handleLikeRecastAction(promo, 'like')} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
                                   {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : '❤️'}
@@ -710,6 +710,12 @@ export default function PromotePage() {
                                   {sharingPromoId === promo.id.toString() ? 'Processing...' : `Recast & Earn ${promo.rewardPerShare} $CHESS`}
                                 </button>
                               </div>
+                            ) : (
+                              // Fallback for unknown types - default to quote
+                              <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                                {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                                {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
+                              </button>
                             )}
                           </div>
                         </div>
