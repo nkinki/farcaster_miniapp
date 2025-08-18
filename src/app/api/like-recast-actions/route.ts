@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon, Pool } from '@neondatabase/serverless';
+import { Pool } from '@neondatabase/serverless';
 
 // Használj Pool-t a tranzakciókhoz
 const pool = new Pool({ connectionString: process.env.NEON_DB_URL! });
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         // Adatbázis tranzakció indítása
         await client.query('BEGIN');
 
-        // 2. Részfeladat rögzítése (hibakezeléssel, ha már létezik)
+        // 2. Részfeladat rögzítése
         await client.query(
             `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type)
              VALUES ($1, $2, $3)
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
             [promotionId, userFid, actionType]
         );
 
-        // 3. Teljesítés ellenőrzése: megvan-e mindkét akció?
+        // 3. Teljesítés ellenőrzése
         const { rows: completedActions } = await client.query(
             `SELECT COUNT(*) as count
              FROM like_recast_user_actions
@@ -42,9 +42,8 @@ export async function POST(request: NextRequest) {
 
         const actionCount = parseInt(completedActions[0].count, 10);
 
-        // 4. HA mindkét feladat kész (actionCount == 2), JUTALMAZÁS!
+        // 4. HA mindkét feladat kész, JUTALMAZÁS!
         if (actionCount === 2) {
-            // Először lekérjük a promóció adatait
             const { rows: promoRows } = await client.query(
                 `SELECT reward_per_share, remaining_budget FROM promotions WHERE id = $1 AND status = 'active'`,
                 [promotionId]
@@ -54,10 +53,7 @@ export async function POST(request: NextRequest) {
                 const promotion = promoRows[0];
                 const rewardAmount = promotion.reward_per_share;
 
-                // Ellenőrizzük, van-e elég keret
                 if (promotion.remaining_budget >= rewardAmount) {
-                    // Megpróbáljuk rögzíteni a teljesítést.
-                    // Az ON CONFLICT biztosítja, hogy csak egyszer kaphat jutalmat.
                     const completionResult = await client.query(
                         `INSERT INTO like_recast_completions (promotion_id, user_fid, reward_amount)
                          VALUES ($1, $2, $3)
@@ -65,13 +61,12 @@ export async function POST(request: NextRequest) {
                         [promotionId, userFid, rewardAmount]
                     );
 
-                    // Ha a beszúrás sikeres volt (1 sort érintett), akkor adjuk a jutalmat
-                    if (completionResult.rowCount > 0) {
-                        // Csökkentjük a kampány keretét
+                    // JAVÍTOTT SOR: Ez a feltétel most már biztonságos
+                    if (completionResult.rowCount) { 
                         await client.query(
                             `UPDATE promotions 
                              SET remaining_budget = remaining_budget - $1,
-                                 shares_count = shares_count + 1 -- vagy egy új 'completions_count' oszlop
+                                 shares_count = shares_count + 1
                              WHERE id = $2`,
                             [rewardAmount, promotionId]
                         );
@@ -93,12 +88,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, rewardGranted, message }, { status: 200 });
 
     } catch (error: any) {
-        // Hiba esetén visszavonjuk a tranzakciót
         await client.query('ROLLBACK');
         console.error('API Error in POST /api/like-recast-actions:', error);
         return NextResponse.json({ error: 'Failed to submit action' }, { status: 500 });
     } finally {
-        // A kliens kapcsolat felszabadítása
         client.release();
     }
 }
