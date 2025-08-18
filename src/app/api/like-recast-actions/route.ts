@@ -85,7 +85,12 @@ export async function POST(request: NextRequest) {
         // Tranzakció véglegesítése
         await client.query('COMMIT');
 
-        return NextResponse.json({ success: true, rewardGranted, message }, { status: 200 });
+        return NextResponse.json({ 
+            success: true, 
+            rewardGranted, 
+            message,
+            note: "🚧 Like & Recast functionality is under development"
+        }, { status: 200 });
 
     } catch (error: any) {
         await client.query('ROLLBACK');

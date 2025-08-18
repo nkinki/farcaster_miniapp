@@ -657,6 +657,7 @@ export default function PromotePage() {
                       }`}
                     >
                       👍 Like & Recast
+                      <div className="text-xs opacity-75">🚧 Under Development</div>
                     </button>
                   </div>
                   {sortedAvailablePromos.length === 0 ? (
@@ -708,6 +709,7 @@ export default function PromotePage() {
                               <button onClick={() => handleLikeRecastBoth(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-red-600 to-emerald-600 hover:from-red-700 hover:to-emerald-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
                                 {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : '👍'}
                                 {sharingPromoId === promo.id.toString() ? 'Processing...' : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`}
+                                <div className="text-xs opacity-75 mt-1">🚧 Under Development</div>
                               </button>
                             ) : (
                               // Fallback for unknown types - default to quote

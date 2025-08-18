@@ -199,7 +199,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         >
           <div className="flex flex-col items-center">
             <span>👍 Like & Recast</span>
-            <span className="text-xs opacity-75">Under Development</span>
+            <span className="text-xs opacity-75">🚧 Under Development</span>
           </div>
         </button>
       </div>

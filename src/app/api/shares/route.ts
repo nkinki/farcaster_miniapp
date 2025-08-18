@@ -94,7 +94,13 @@ export async function POST(request: NextRequest) {
 
     console.log(`Share recorded successfully for user ${sharerFid}`);
 
-    return NextResponse.json({ success: true, message: "Share recorded successfully" }, { status: 200 });
+    // Add note for like_recast promotions
+    const responseData: any = { success: true, message: "Share recorded successfully" };
+    if (promo.action_type === 'like_recast') {
+      responseData.note = "🚧 Like & Recast functionality is under development";
+    }
+
+    return NextResponse.json(responseData, { status: 200 });
 
   } catch (error: any) {
     console.error('API Error in POST /api/shares:', error.message);
