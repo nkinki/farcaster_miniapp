@@ -1,9 +1,7 @@
 // FÁJL: /src/app/api/promotions/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-
-const sql = neon(process.env.NEON_DB_URL!);
+import pool from '../../../../lib/db';
 
 // Promóciók listázása (ez a rész változatlan)
 export async function GET(request: NextRequest) {
@@ -13,9 +11,11 @@ export async function GET(request: NextRequest) {
 
     let promotions;
     if (status === 'all') {
-      promotions = await sql`SELECT * FROM promotions ORDER BY created_at DESC;`;
+      const result = await pool.query('SELECT * FROM promotions ORDER BY created_at DESC');
+      promotions = result.rows;
     } else {
-      promotions = await sql`SELECT * FROM promotions WHERE status = ${status} ORDER BY created_at DESC;`;
+      const result = await pool.query('SELECT * FROM promotions WHERE status = $1 ORDER BY created_at DESC', [status]);
+      promotions = result.rows;
     }
     
     return NextResponse.json({ promotions }, { status: 200 });
@@ -38,18 +38,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // JAVÍTÁS: A klasszikus `VALUES` szintaxist használjuk, ami minden esetben működik.
-    // A változókat közvetlenül a `VALUES` listában adjuk át.
-    const [newPromotion] = await sql`
+    // JAVÍTÁS: Pool query használata Neon helyett
+    const result = await pool.query(`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
         reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
       ) VALUES (
-        ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null},
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
+        $1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10
       )
       RETURNING id, cast_url, created_at;
-    `;
+    `, [fid, username, displayName || null, castUrl, shareText || null, rewardPerShare, totalBudget, totalBudget, blockchainHash, actionType || 'quote']);
+
+    const newPromotion = result.rows[0];
 
     // Automatikus értesítések trigger (nem blokkoló)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
