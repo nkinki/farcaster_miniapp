@@ -530,18 +530,13 @@ export default function PromotePage() {
     
     // Apply promotion type filter
     if (promotionFilter !== 'all') {
-      const promoActionType = p.actionType || 'quote'; // Use typed actionType field
-      console.log(`🔍 Filtering promotion ${p.id}: actionType=${promoActionType}, filter=${promotionFilter}`);
+      const promoActionType = (p as any).action_type || 'quote'; // Default to quote for existing promos
       if (promotionFilter === 'quote' && promoActionType !== 'quote') return false;
       if (promotionFilter === 'like_recast' && promoActionType !== 'like_recast') return false;
     }
     
     return true;
   });
-
-  console.log(`🔍 Available promotions after filtering:`, availablePromos.length);
-  console.log(`🔍 Current filter:`, promotionFilter);
-  console.log(`🔍 All promotions:`, allPromotions.map(p => ({ id: p.id, actionType: p.actionType, status: p.status })));
 
   const sortedAvailablePromos = useMemo(() => {
     return [...availablePromos].sort((a, b) => {
@@ -699,7 +694,7 @@ export default function PromotePage() {
                             )}
                             
                             {/* Different buttons based on promotion type */}
-                            {promo.actionType === 'quote' ? (
+                            {((promo as any).action_type || 'quote') === 'quote' ? (
                               <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
                                 {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
                                 {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
