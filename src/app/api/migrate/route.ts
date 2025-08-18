@@ -1,25 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import pool from '../../../../lib/db';
+import { neon } from '@neondatabase/serverless';
+
+const sql = neon(process.env.NEON_DB_URL!);
 
 export async function POST() {
   try {
     console.log('Running database migration...');
     
-    // Read the migration file
-    const migrationPath = join(process.cwd(), 'migrations', '005_add_payouts_table.sql');
-    const migrationSQL = readFileSync(migrationPath, 'utf8');
+    // Read all migration files
+    const migrationsDir = join(process.cwd(), 'migrations');
+    const migrationFiles = [
+      '005_add_payouts_table.sql',
+      '006_add_action_type.sql',
+      '007_create_like_recast_actions.sql'
+    ];
+    
+    let allMigrationSQL = '';
+    for (const file of migrationFiles) {
+      const migrationPath = join(migrationsDir, file);
+      try {
+        const migrationSQL = readFileSync(migrationPath, 'utf8');
+        allMigrationSQL += `\n-- Migration: ${file}\n${migrationSQL}\n`;
+        console.log(`Loaded migration: ${file}`);
+      } catch (error) {
+        console.log(`Migration file ${file} not found, skipping...`);
+      }
+    }
     
     console.log('Migration SQL loaded, executing...');
     
-    // Execute the migration
-    const client = await pool.connect();
+    // Execute the migration using Neon serverless
     try {
-      await client.query('BEGIN');
-      
       // Split the SQL by semicolons and execute each statement
-      const statements = migrationSQL
+      const statements = allMigrationSQL
         .split(';')
         .map(stmt => stmt.trim())
         .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
@@ -27,11 +42,11 @@ export async function POST() {
       for (const statement of statements) {
         if (statement.trim()) {
           console.log('Executing:', statement.substring(0, 100) + '...');
-          await client.query(statement);
+          // Use unsafe raw SQL for migrations
+          await sql.unsafe(statement);
         }
       }
       
-      await client.query('COMMIT');
       console.log('Migration completed successfully');
       
       return NextResponse.json({
@@ -39,10 +54,7 @@ export async function POST() {
         message: 'Database migration completed successfully'
       });
     } catch (error) {
-      await client.query('ROLLBACK');
       throw error;
-    } finally {
-      client.release();
     }
   } catch (error) {
     console.error('Migration failed:', error);
