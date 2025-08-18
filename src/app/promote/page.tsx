@@ -141,6 +141,9 @@ export default function PromotePage() {
   const [showLuckyBox, setShowLuckyBox] = useState(false);
   const [luckyBoxReward, setLuckyBoxReward] = useState<number>(0);
   const [isLuckyBoxPreview, setIsLuckyBoxPreview] = useState(false);
+  
+  // Filter state for promotion types
+  const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast'>('all');
 
 
   const {
@@ -305,6 +308,55 @@ export default function PromotePage() {
       if (castHash && castHash.startsWith('0x')) { (miniAppSdk as any).actions.viewCast({ hash: castHash }); } 
       else { window.open(castUrl, '_blank'); }
     } catch (error) { window.open(castUrl, '_blank'); }
+  };
+
+  const handleLikeRecastAction = async (promo: PromoCast, actionType: 'like' | 'recast') => {
+    if (!isAuthenticated || !currentUser.fid) {
+      setShareError("Please connect your Farcaster account first.");
+      return;
+    }
+    
+    setShareError(null);
+    setSharingPromoId(promo.id.toString());
+    
+    try {
+      // Extract cast hash from URL
+      const castHash = promo.castUrl.split('/').pop() || '';
+      
+      // Submit the action to our API
+      const response = await fetch('/api/like-recast-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promotionId: promo.id,
+          userFid: currentUser.fid,
+          username: currentUser.username,
+          actionType,
+          castHash,
+          rewardAmount: promo.rewardPerShare,
+          proofUrl: promo.castUrl // For manual verification
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || `Failed to submit ${actionType} action`);
+      }
+
+      // Show success message
+      setShareError(null);
+      console.log(`✅ ${actionType} action submitted successfully!`);
+      
+      // Refresh data
+      await refreshAllData();
+      
+    } catch (error: any) {
+      console.error(`❌ ${actionType} action failed:`, error);
+      setShareError(error.message || `Failed to submit ${actionType} action`);
+    } finally {
+      setSharingPromoId(null);
+    }
   };
 
 
@@ -475,6 +527,14 @@ export default function PromotePage() {
   const availablePromos = allPromotions.filter(p => {
     if (p.status !== 'active' || p.author.fid === currentUser.fid) return false;
     if (p.remainingBudget < p.rewardPerShare) return false;
+    
+    // Apply promotion type filter
+    if (promotionFilter !== 'all') {
+      const promoActionType = (p as any).action_type || 'quote'; // Default to quote for existing promos
+      if (promotionFilter === 'quote' && promoActionType !== 'quote') return false;
+      if (promotionFilter === 'like_recast' && promoActionType !== 'like_recast') return false;
+    }
+    
     return true;
   });
 
@@ -561,6 +621,39 @@ export default function PromotePage() {
             </button>
             {isShareListOpen && (
                 <div className="p-4 border-t border-gray-700 space-y-4">
+                  {/* Promotion Type Filter */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => setPromotionFilter('all')}
+                      className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                        promotionFilter === 'all'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      All Types
+                    </button>
+                    <button
+                      onClick={() => setPromotionFilter('quote')}
+                      className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                        promotionFilter === 'quote'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      💬 Quote
+                    </button>
+                    <button
+                      onClick={() => setPromotionFilter('like_recast')}
+                      className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                        promotionFilter === 'like_recast'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      👍 Like & Recast
+                    </button>
+                  </div>
                   {sortedAvailablePromos.length === 0 ? (
                     <div className="text-center py-8"><div className="text-gray-400 text-lg">No other active campaigns right now.</div></div>
                   ) : (
@@ -599,10 +692,25 @@ export default function PromotePage() {
                                  <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
                                </div>
                             )}
-                            <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
-                              {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
-                              {sharingPromoId === promo.id.toString() ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
-                            </button>
+                            
+                            {/* Different buttons based on promotion type */}
+                            {((promo as any).action_type || 'quote') === 'quote' ? (
+                              <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                                {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                                {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
+                              </button>
+                            ) : (
+                              <div className="space-y-2">
+                                <button onClick={() => handleLikeRecastAction(promo, 'like')} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                                  {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : '❤️'}
+                                  {sharingPromoId === promo.id.toString() ? 'Processing...' : `Like & Earn ${promo.rewardPerShare} $CHESS`}
+                                </button>
+                                <button onClick={() => handleLikeRecastAction(promo, 'recast')} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                                  {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : '🔄'}
+                                  {sharingPromoId === promo.id.toString() ? 'Processing...' : `Recast & Earn ${promo.rewardPerShare} $CHESS`}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

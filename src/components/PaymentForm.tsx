@@ -104,6 +104,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
               rewardPerShare: Number(rewardPerShare), totalBudget: Number(totalBudget),
               blockchainHash: createTxHash, // A befizetési tranzakció hash-ét mentjük
               status: 'active',
+              actionType: selectedAction, // 'quote' vagy 'like_recast'
             }),
           });
           if (!response.ok) throw new Error('Failed to save promotion to the database.');

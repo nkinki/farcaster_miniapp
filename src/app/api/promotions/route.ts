@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       fid, username, displayName, castUrl, shareText, 
-      rewardPerShare, totalBudget, blockchainHash 
+      rewardPerShare, totalBudget, blockchainHash, actionType 
     } = body;
 
     if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget || !blockchainHash) {
@@ -43,10 +43,10 @@ export async function POST(request: NextRequest) {
     const [newPromotion] = await sql`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, remaining_budget, status, blockchain_hash
+        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null},
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
       )
       RETURNING id, cast_url, created_at;
     `;
