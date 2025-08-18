@@ -47,7 +47,11 @@ export default function AdminPage() {
       }
       
       const data = await response.json();
-      setPromotions(data.promotions || []);
+      // Rendezés dátum szerint (legfrissebb elöl)
+      const sortedPromotions = (data.promotions || []).sort((a: Promotion, b: Promotion) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setPromotions(sortedPromotions);
       
       // Statisztikák számítása
       const totalPromotions = data.promotions?.length || 0;
@@ -321,35 +325,33 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    {/* Másolható szöveg */}
+                    {/* Másolható szöveg - egy kattintással */}
                     <div className="mt-4 pt-4 border-t border-gray-600">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 bg-black/20 rounded-lg p-3 border border-gray-600">
-                          <span className="text-gray-200 font-mono text-sm">
-                            {templateText}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => copyToClipboard(templateText, copyId)}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            copiedId === copyId
-                              ? 'bg-green-600 text-white'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
-                          }`}
-                        >
+                      <button
+                        onClick={() => copyToClipboard(templateText, copyId)}
+                        className={`w-full flex items-center justify-between gap-4 p-3 rounded-lg text-sm font-medium transition-all ${
+                          copiedId === copyId
+                            ? 'bg-green-600/20 border-green-500 text-green-300'
+                            : 'bg-black/20 border-gray-600 text-gray-200 hover:bg-blue-600/10 hover:border-blue-500'
+                        } border`}
+                      >
+                        <span className="font-mono text-left flex-1">
+                          {templateText}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs">
                           {copiedId === copyId ? (
                             <>
-                              <FiCheck size={16} />
+                              <FiCheck size={14} />
                               Másolva!
                             </>
                           ) : (
                             <>
-                              <FiCopy size={16} />
-                              Másolás
+                              <FiCopy size={14} />
+                              Kattints a másoláshoz
                             </>
                           )}
-                        </button>
-                      </div>
+                        </div>
+                      </button>
                     </div>
                   </div>
                 );
