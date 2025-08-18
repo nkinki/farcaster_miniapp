@@ -47,10 +47,15 @@ export default function AdminPage() {
       }
       
       const data = await response.json();
-      // Rendezés dátum szerint (legfrissebb elöl)
-      const sortedPromotions = (data.promotions || []).sort((a: Promotion, b: Promotion) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      // Rendezés: aktív promóciók felül, azokon belül időrend szerint (legfrissebb elöl)
+      const sortedPromotions = (data.promotions || []).sort((a: Promotion, b: Promotion) => {
+        // Először státusz szerint rendezés (aktív felül)
+        if (a.status === 'active' && b.status !== 'active') return -1;
+        if (a.status !== 'active' && b.status === 'active') return 1;
+        
+        // Ha mindkettő ugyanaz a státusz, akkor dátum szerint (legfrissebb elöl)
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
       setPromotions(sortedPromotions);
       
       // Statisztikák számítása
