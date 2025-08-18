@@ -60,7 +60,7 @@ export default function AdminPage() {
       });
       
       // Debug log a #153-as promócióhoz
-      const promo153 = sortedPromotions.find(p => p.id === 153);
+      const promo153 = sortedPromotions.find((p: Promotion) => p.id === 153);
       if (promo153) {
         console.log('Promotion #153:', promo153);
       }
