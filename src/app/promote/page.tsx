@@ -141,6 +141,9 @@ export default function PromotePage() {
   const [showLuckyBox, setShowLuckyBox] = useState(false);
   const [luckyBoxReward, setLuckyBoxReward] = useState<number>(0);
   const [isLuckyBoxPreview, setIsLuckyBoxPreview] = useState(false);
+  
+  // Action selection state
+  const [selectedActions, setSelectedActions] = useState<Record<string, 'quote' | 'like_recast'>>({});
 
 
   const {
@@ -319,6 +322,9 @@ export default function PromotePage() {
     setSharingPromoId(promo.id.toString());
     
     try {
+      // Kiválasztott akció lekérése
+      const selectedAction = selectedActions[promo.id.toString()] || 'quote';
+      
       // Minden megosztásnál új random AppRank szöveg generálása
       const randomAppRankText = SHARE_TEXTS[Math.floor(Math.random() * SHARE_TEXTS.length)];
       
@@ -336,6 +342,7 @@ export default function PromotePage() {
       
       // URL típus felismerés és kezelés
       console.log(`🔍 Original URL: ${promo.castUrl}`);
+      console.log(`🎯 Selected Action: ${selectedAction}`);
       
       const castOptions: any = { 
         text: finalText
@@ -368,8 +375,9 @@ export default function PromotePage() {
         hasValidCastHash
       });
       
-      if (hasValidCastHash) {
-        // Valid 256-bit cast hash - quote cast + AppRank miniapp link
+      // Akció alapú logika
+      if (selectedAction === 'quote' && hasValidCastHash) {
+        // Quote cast - csak valid hash esetén
         castOptions.parent = { 
           type: 'cast', 
           hash: castHash 
@@ -377,8 +385,27 @@ export default function PromotePage() {
         // Hozzáadjuk az AppRank miniapp linket is
         castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
         console.log(`🔗 Creating quote cast with hash: ${castHash} + AppRank embed`);
+      } else if (selectedAction === 'like_recast' && hasValidCastHash) {
+        // Like & Recast - csak valid hash esetén
+        try {
+          // Először like
+          await (miniAppSdk as any).actions.like({ castHash });
+          console.log(`👍 Liked cast: ${castHash}`);
+          
+          // Majd recast
+          await (miniAppSdk as any).actions.recast({ castHash });
+          console.log(`🔄 Recasted cast: ${castHash}`);
+          
+          // Végül egy normál cast az AppRank miniapp linkkel
+          castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
+          console.log(`📝 Creating promotional cast with AppRank embed`);
+        } catch (actionError) {
+          console.warn(`⚠️ Like/Recast failed, falling back to embed: ${actionError}`);
+          // Fallback: embed
+          castOptions.embeds = [promo.castUrl];
+        }
       } else {
-        // Rövid hash vagy nincs hash - csak embed (biztonságosabb)
+        // Fallback: embed (rövid hash vagy egyéb esetekben)
         castOptions.embeds = [promo.castUrl];
         console.log(`📎 Creating embed with URL: ${promo.castUrl} (hash: ${castHash}, length: ${castHash?.length || 0} chars)`);
       }
@@ -569,6 +596,33 @@ export default function PromotePage() {
                       const canShare = timerInfo?.canShare ?? true;
                       return (
                         <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700 flex flex-col gap-4">
+                          {/* Action Selection Buttons */}
+                          <div className="flex gap-2 mb-3">
+                            <button
+                              onClick={() => setSelectedActions(prev => ({ ...prev, [promo.id.toString()]: 'quote' }))}
+                              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                (selectedActions[promo.id.toString()] || 'quote') === 'quote'
+                                  ? 'bg-blue-600 text-white border border-blue-500'
+                                  : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
+                              }`}
+                            >
+                              💬 Quote
+                            </button>
+                            <button
+                              onClick={() => setSelectedActions(prev => ({ ...prev, [promo.id.toString()]: 'like_recast' }))}
+                              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                selectedActions[promo.id.toString()] === 'like_recast'
+                                  ? 'bg-green-600 text-white border border-green-500'
+                                  : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
+                              }`}
+                            >
+                              <div className="flex flex-col items-center">
+                                <span>👍 Like & Recast</span>
+                                <span className="text-xs text-orange-400 font-semibold">🚧 Under Dev</span>
+                              </div>
+                            </button>
+                          </div>
+                          
                           <div className="flex items-start justify-between">
                             <div className="flex-1 overflow-hidden pr-4">
                               <p className="text-white font-semibold truncate">{promo.castUrl}</p><p className="text-purple-300 text-sm">by @{promo.author.username}</p>
@@ -600,8 +654,15 @@ export default function PromotePage() {
                                </div>
                             )}
                             <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
-                              {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
-                              {sharingPromoId === promo.id.toString() ? 'Processing...' : `Share & Earn ${promo.rewardPerShare} $CHESS`}
+                              {sharingPromoId === promo.id.toString() ? (
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                              ) : (
+                                selectedActions[promo.id.toString()] === 'like_recast' ? '👍' : '💬'
+                              )}
+                              {sharingPromoId === promo.id.toString() 
+                                ? 'Processing...' 
+                                : `${selectedActions[promo.id.toString()] === 'like_recast' ? 'Like & Recast' : 'Quote'} & Earn ${promo.rewardPerShare} $CHESS`
+                              }
                             </button>
                           </div>
                         </div>
