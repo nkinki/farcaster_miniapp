@@ -18,6 +18,7 @@ export interface PromoCast {
     username: string
     displayName: string
   }
+  actionType: 'quote' | 'like_recast' // Add actionType field
 }
 
 // Database Promotion interface (az adatbázisból érkező adatokhoz)
@@ -35,6 +36,7 @@ export interface Promotion {
   status: string
   created_at: string
   updated_at: string
+  action_type: 'quote' | 'like_recast' // Add action_type field
 }
 
 // User interface for components
