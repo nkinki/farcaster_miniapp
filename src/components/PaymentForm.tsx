@@ -173,43 +173,31 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       <h2 className="text-2xl font-bold text-white text-center">Create a New Promotion</h2>
       
       {/* Action Selection Buttons */}
-      <div>
-        <label className="block text-sm font-medium text-purple-300 mb-2">Choose Action Type</label>
-        <div className="flex gap-2 mb-4">
-          <button
-            type="button"
-            onClick={() => setSelectedAction('quote')}
-            className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-              selectedAction === 'quote'
-                ? 'bg-blue-600 text-white border border-blue-500'
-                : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
-            }`}
-            disabled={step >= CreationStep.ReadyToCreate}
-          >
-            💬 Quote
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedAction('like_recast')}
-            className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-              selectedAction === 'like_recast'
-                ? 'bg-green-600 text-white border border-green-500'
-                : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
-            }`}
-            disabled={step >= CreationStep.ReadyToCreate}
-          >
-            <div className="flex flex-col items-center">
-              <span>👍 Like & Recast</span>
-              <span className="text-xs text-orange-400 font-semibold">🚧 Under Dev</span>
-            </div>
-          </button>
-        </div>
-        <p className="text-xs text-gray-400 mb-4">
-          {selectedAction === 'quote' 
-            ? '💬 Users will quote your cast with promotional text'
-            : '👍 Users will like & recast your cast, then create a promotional post'
-          }
-        </p>
+      <div className="flex gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setSelectedAction('quote')}
+          className={`flex-1 px-3 py-2 rounded text-sm transition-all ${
+            selectedAction === 'quote'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+          disabled={step >= CreationStep.ReadyToCreate}
+        >
+          💬 Quote
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedAction('like_recast')}
+          className={`flex-1 px-3 py-2 rounded text-sm transition-all ${
+            selectedAction === 'like_recast'
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+          disabled={step >= CreationStep.ReadyToCreate}
+        >
+          👍 Like & Recast 🚧
+        </button>
       </div>
       
       <div>
