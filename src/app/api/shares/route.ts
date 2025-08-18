@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     const [promo] = await sql`
-      SELECT reward_per_share, remaining_budget, status 
+      SELECT reward_per_share, remaining_budget, status, action_type 
       FROM promotions WHERE id = ${promotionId}
     `;
 
@@ -63,10 +63,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`Recording new share for user ${sharerFid} on promotion ${promotionId}`);
 
-    // Record the share
+    // Record the share with action_type
     await sql`
-      INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount)
-      VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share})
+      INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, action_type)
+      VALUES (${promotionId}, ${sharerFid}, ${sharerUsername}, ${castHash}, ${promo.reward_per_share}, ${promo.action_type})
     `;
 
     // Update promotion
