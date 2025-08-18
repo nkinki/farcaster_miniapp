@@ -1,4 +1,4 @@
-const { neon } = require('@neondatabase/serverless');
+const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
@@ -6,15 +6,20 @@ const path = require('path');
 require('dotenv').config({ path: '.env.local' });
 
 console.log('Environment check:');
-console.log('NEON_DB_URL exists:', !!process.env.NEON_DB_URL);
-console.log('NEON_DB_URL length:', process.env.NEON_DB_URL?.length || 0);
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
 
-if (!process.env.NEON_DB_URL) {
-  console.error('❌ NEON_DB_URL not found in environment variables');
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL not found in environment variables');
   process.exit(1);
 }
 
-const sql = neon(process.env.NEON_DB_URL);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
 async function runMigrations() {
   try {
@@ -37,18 +42,10 @@ async function runMigrations() {
       console.log(`📄 Running migration: ${file}`);
       const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
       
-      // Split by semicolons and execute each statement
-      const statements = migrationSQL
-        .split(';')
-        .map(stmt => stmt.trim())
-        .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
-      
-      for (const statement of statements) {
-        if (statement.trim()) {
-          console.log(`   Executing: ${statement.substring(0, 60)}...`);
-          await sql.unsafe(statement);
-        }
-      }
+      // Execute the entire migration file as one statement
+      // This prevents issues with semicolons inside CREATE TABLE statements
+      console.log(`   Executing migration file: ${file}`);
+      await pool.query(migrationSQL);
       
       console.log(`✅ Migration ${file} completed successfully`);
     }
@@ -58,6 +55,8 @@ async function runMigrations() {
   } catch (error) {
     console.error('❌ Migration failed:', error);
     process.exit(1);
+  } finally {
+    await pool.end();
   }
 }
 
