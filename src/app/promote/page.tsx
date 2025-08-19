@@ -144,6 +144,9 @@ export default function PromotePage() {
   
   // Filter state for promotion types
   const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast'>('all');
+  
+  // Track completed actions for each promotion
+  const [completedActions, setCompletedActions] = useState<Record<string, boolean>>({});
 
 
   const {
@@ -210,12 +213,30 @@ export default function PromotePage() {
       }
     } catch (error) { console.error("Failed to fetch user stats:", error); }
   }, [currentUser.fid]);
+
+  // Fetch completed actions for current user
+  const fetchCompletedActions = useCallback(async () => {
+    if (!currentUser.fid) return;
+    try {
+      const response = await fetch(`/api/users/${currentUser.fid}/completed-actions`);
+      if (response.ok) {
+        const data = await response.json();
+        const completed: Record<string, boolean> = {};
+        data.completedActions?.forEach((action: any) => {
+          completed[action.promotion_id] = true;
+        });
+        setCompletedActions(completed);
+      }
+    } catch (error) { 
+      console.error("Failed to fetch completed actions:", error); 
+    }
+  }, [currentUser.fid]);
   
   const refreshAllData = useCallback(async () => {
       setLoading(true);
-      await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers() ]);
+      await Promise.all([ refetchPromotions(), fetchUserStats(), fetchShareTimers(), fetchCompletedActions() ]);
       setLoading(false);
-  }, [refetchPromotions, fetchUserStats, fetchShareTimers]);
+  }, [refetchPromotions, fetchUserStats, fetchShareTimers, fetchCompletedActions]);
 
   useEffect(() => {
     if (isAuthenticated && profile?.fid) {
@@ -433,6 +454,12 @@ export default function PromotePage() {
 
         console.log('✅ Like & recast actions completed successfully');
         setShareError(null);
+        
+        // Mark this promotion as completed
+        setCompletedActions(prev => ({
+          ...prev,
+          [promo.id]: true
+        }));
         
         // Show success message
         setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
@@ -805,6 +832,18 @@ export default function PromotePage() {
                                   </button>
                                 );
                               } else if (promo.actionType === 'like_recast') {
+                                // Check if user already completed this action
+                                const isCompleted = completedActions[promo.id];
+                                
+                                if (isCompleted) {
+                                  return (
+                                    <div className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-lg">
+                                      <span>✅</span>
+                                      <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
+                                    </div>
+                                  );
+                                }
+                                
                                 return (
                                   <button 
                                     onClick={(e) => {
@@ -819,7 +858,6 @@ export default function PromotePage() {
                                   >
                                     {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : '👍'}
                                     {sharingPromoId === promo.id.toString() ? 'Processing...' : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`}
-                                    <div className="text-xs opacity-75 mt-1">🚧 Under Development</div>
                                   </button>
                                 );
                               } else {
