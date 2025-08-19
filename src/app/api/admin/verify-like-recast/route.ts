@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
             // Update the action as verified
             await client.query(
                 `UPDATE like_recast_user_actions 
-                 SET verification_method = 'manual', updated_at = CURRENT_TIMESTAMP
+                 SET verification_method = 'verified', updated_at = CURRENT_TIMESTAMP
                  WHERE id = $1`,
                 [actionId]
             );
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
             // Check if both like and recast are now verified
             const { rows: verifiedActions } = await client.query(
                 `SELECT COUNT(*) as count, 
-                        COUNT(CASE WHEN verification_method IN ('auto', 'manual') THEN 1 END) as verified_count
+                        COUNT(CASE WHEN verification_method IN ('auto', 'verified') THEN 1 END) as verified_count
                  FROM like_recast_user_actions
                  WHERE promotion_id = $1 AND user_fid = $2`,
                 [action.promotion_id, action.user_fid]
@@ -54,9 +54,12 @@ export async function POST(request: NextRequest) {
             const totalActions = parseInt(verifiedActions[0].count, 10);
             const verifiedCount = parseInt(verifiedActions[0].verified_count, 10);
 
+            console.log(`🔍 Verification check: ${verifiedCount}/${totalActions} actions verified`);
+
             // If both actions are verified, grant reward
             if (totalActions === 2 && verifiedCount === 2) {
                 const rewardAmount = action.reward_per_share;
+                console.log(`💰 Granting reward: ${rewardAmount} for user ${action.user_fid}`);
 
                 if (action.remaining_budget >= rewardAmount) {
                     // Record completion
@@ -76,15 +79,27 @@ export async function POST(request: NextRequest) {
                         [rewardAmount, action.promotion_id]
                     );
 
+                    // Update user earnings
+                    await client.query(
+                        `UPDATE users 
+                         SET total_earnings = total_earnings + $1,
+                             pending_rewards = pending_rewards + $1,
+                             updated_at = CURRENT_TIMESTAMP
+                         WHERE fid = $2`,
+                        [rewardAmount, action.user_fid]
+                    );
+
                     // Update manual verification status
                     await client.query(
                         `UPDATE manual_verifications 
                          SET status = 'verified', verified_by = $1, verified_at = CURRENT_TIMESTAMP, notes = $2
                          WHERE action_id = $3`,
-                        [adminId || 0, notes || 'Manually verified by admin', actionId]
+                        [adminId || 0, notes || 'Manually verified by admin - reward granted', actionId]
                     );
 
                     await client.query('COMMIT');
+
+                    console.log(`✅ Reward granted successfully: ${rewardAmount} to user ${action.user_fid}`);
 
                     return NextResponse.json({
                         success: true,

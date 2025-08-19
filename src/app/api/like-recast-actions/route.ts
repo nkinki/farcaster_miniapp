@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { promotionId, userFid, actionType, castHash } = body;
 
+        console.log('🔍 Like/Recast API called with:', { promotionId, userFid, actionType, castHash });
+
         // 1. Alapvető validáció
         if (!promotionId || !userFid || !actionType || !castHash) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -79,49 +81,47 @@ export async function POST(request: NextRequest) {
         }
 
         let rewardGranted = false;
-        let message = actionType === 'both' 
-            ? 'Both like and recast actions recorded.' 
-            : `Action '${actionType}' recorded.`;
-        let verificationMethod = 'pending';
+        let message = '';
+        let verificationMethod = 'manual'; // Default to manual for now
 
         // Adatbázis tranzakció indítása
         await client.query('BEGIN');
 
-        // 2. Automatikus ellenőrzés Farcaster API-val
-        let isVerified = await verifyWithFarcasterAPI(userFid, castHash, actionType);
-        
-        // Ha nem sikerült, próbáljuk Warpcast API-val
-        if (isVerified === null) {
-            isVerified = await verifyWithWarpcastAPI(userFid, castHash, actionType);
-        }
-        
-        // Ha automatikus ellenőrzés sikeres
-        if (isVerified === true) {
-            verificationMethod = 'auto';
-            message = `Action '${actionType}' automatically verified and recorded.`;
-        } else if (isVerified === false) {
-            // User nem végezte el a műveletet
-            verificationMethod = 'failed';
-            message = `Action '${actionType}' verification failed - action not found.`;
-        } else {
-            // Nem sikerült automatikusan ellenőrizni -> manual verification
+        // 2. Egyszerűsített verifikáció - minden 'both' action manual verification
+        if (actionType === 'both') {
             verificationMethod = 'manual';
-            message = `Action '${actionType}' recorded for manual verification.`;
+            message = 'Both like and recast actions recorded for manual verification.';
+        } else {
+            // Single action type - próbáljuk automatikus verifikációt
+            let isVerified = await verifyWithFarcasterAPI(userFid, castHash, actionType);
+            
+            if (isVerified === null) {
+                isVerified = await verifyWithWarpcastAPI(userFid, castHash, actionType);
+            }
+            
+            if (isVerified === true) {
+                verificationMethod = 'auto';
+                message = `Action '${actionType}' automatically verified and recorded.`;
+            } else if (isVerified === false) {
+                verificationMethod = 'failed';
+                message = `Action '${actionType}' verification failed - action not found.`;
+            } else {
+                verificationMethod = 'manual';
+                message = `Action '${actionType}' recorded for manual verification.`;
+            }
         }
 
         // 3. Részfeladat rögzítése verification method-dal
         if (actionType === 'both') {
             // For 'both' action type, create separate like and recast actions
-            // Ensure verificationMethod is properly set for both actions
-            const likeVerificationMethod = verificationMethod || 'manual';
-            const recastVerificationMethod = verificationMethod || 'manual';
+            console.log('📝 Inserting both like and recast actions with verification method:', verificationMethod);
             
             await client.query(
                 `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
                  VALUES ($1, $2, 'like', $3, $4)
                  ON CONFLICT (promotion_id, user_fid, action_type) 
                  DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP`,
-                [promotionId, userFid, likeVerificationMethod, castHash]
+                [promotionId, userFid, verificationMethod, castHash]
             );
             
             await client.query(
@@ -129,8 +129,10 @@ export async function POST(request: NextRequest) {
                  VALUES ($1, $2, 'recast', $3, $4)
                  ON CONFLICT (promotion_id, user_fid, action_type) 
                  DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP`,
-                [promotionId, userFid, recastVerificationMethod, castHash]
+                [promotionId, userFid, verificationMethod, castHash]
             );
+            
+            console.log('✅ Both actions inserted successfully');
         } else {
             // Single action type (like or recast)
             await client.query(
@@ -142,77 +144,27 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 4. Teljesítés ellenőrzése (csak automatikusan ellenőrzött vagy manual verification alatt álló)
-        const { rows: completedActions } = await client.query(
-            `SELECT COUNT(*) as count, 
-                    COUNT(CASE WHEN verification_method = 'auto' THEN 1 END) as auto_verified,
-                    COUNT(CASE WHEN verification_method = 'manual' THEN 1 END) as manual_pending
-             FROM like_recast_user_actions
-             WHERE promotion_id = $1 AND user_fid = $2`,
-            [promotionId, userFid]
-        );
-
-        const actionCount = parseInt(completedActions[0].count, 10);
-        const autoVerifiedCount = parseInt(completedActions[0].auto_verified, 10);
-        const manualPendingCount = parseInt(completedActions[0].manual_pending, 10);
-
-        // 5. Jutalmazás logika
-        if (actionCount === 2) {
-            // Csak akkor jutalmazzunk, ha mindkét automatikusan ellenőrzött
-            if (autoVerifiedCount === 2) {
-                const { rows: promoRows } = await client.query(
-                    `SELECT reward_per_share, remaining_budget FROM promotions WHERE id = $1 AND status = 'active'`,
-                    [promotionId]
-                );
-
-                if (promoRows.length > 0) {
-                    const promotion = promoRows[0];
-                    const rewardAmount = promotion.reward_per_share;
-
-                    if (promotion.remaining_budget >= rewardAmount) {
-                        const completionResult = await client.query(
-                            `INSERT INTO like_recast_completions (promotion_id, user_fid, reward_amount, verification_method)
-                             VALUES ($1, $2, $3, 'auto')
-                             ON CONFLICT (promotion_id, user_fid) DO NOTHING`,
-                            [promotionId, userFid, rewardAmount]
-                        );
-
-                        if (completionResult.rowCount) { 
-                            await client.query(
-                                `UPDATE promotions 
-                                 SET remaining_budget = remaining_budget - $1,
-                                     shares_count = shares_count + 1
-                                 WHERE id = $2`,
-                                [rewardAmount, promotionId]
-                            );
-
-                            rewardGranted = true;
-                            message = 'Congratulations! Both actions automatically verified and reward granted!';
-                        } else {
-                            message = 'Both actions completed, but reward has already been claimed.';
-                        }
-                    } else {
-                        message = 'Both actions completed, but promotion has insufficient budget.';
-                    }
-                }
-            } else if (manualPendingCount > 0) {
-                // Manual verification szükséges
-                message = 'Both actions recorded. Manual verification required before reward can be granted.';
-                
-                // Hozzáadjuk a manual verification queue-hoz
-                await client.query(
-                    `INSERT INTO manual_verifications (action_id, status, notes)
-                     SELECT id, 'pending', 'Both like and recast actions recorded, awaiting manual verification'
-                     FROM like_recast_user_actions 
-                     WHERE promotion_id = $1 AND user_fid = $2
-                     ON CONFLICT (action_id) DO NOTHING`,
-                    [promotionId, userFid]
-                );
-            }
+        // 4. Manual verification queue-hoz hozzáadás (ha manual verification)
+        if (verificationMethod === 'manual') {
+            console.log('📋 Adding to manual verification queue');
+            
+            // Hozzáadjuk a manual verification queue-hoz
+            await client.query(
+                `INSERT INTO manual_verifications (action_id, status, notes, promotion_id, user_fid)
+                 SELECT id, 'pending', $1, promotion_id, user_fid
+                 FROM like_recast_user_actions 
+                 WHERE promotion_id = $2 AND user_fid = $3
+                 ON CONFLICT (action_id) DO NOTHING`,
+                [`${actionType === 'both' ? 'Both like and recast' : actionType} actions recorded, awaiting manual verification`, promotionId, userFid]
+            );
+            
+            console.log('✅ Added to manual verification queue');
         }
 
         // Tranzakció véglegesítése
         await client.query('COMMIT');
+
+        console.log('🎉 Transaction committed successfully');
 
         return NextResponse.json({ 
             success: true, 
