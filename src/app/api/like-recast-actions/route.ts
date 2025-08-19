@@ -180,6 +180,69 @@ export async function POST(request: NextRequest) {
                     );
                     console.log('✅ Added action ID', action.id, 'to manual verification queue');
                 }
+                
+                // 5. Automatikus reward jóváírás ha mindkét action manual
+                if (bothActions.length === 2) {
+                    console.log('🎯 Both actions recorded - attempting automatic reward grant');
+                    
+                    // Ellenőrizzük a promotion adatait
+                    const { rows: promoRows } = await client.query(
+                        `SELECT reward_per_share, remaining_budget FROM promotions WHERE id = $1 AND status = 'active'`,
+                        [promotionId]
+                    );
+                    
+                    if (promoRows.length > 0) {
+                        const promotion = promoRows[0];
+                        const rewardAmount = promotion.reward_per_share;
+                        
+                        if (promotion.remaining_budget >= rewardAmount) {
+                            console.log(`💰 Granting automatic reward: ${rewardAmount} to user ${userFid}`);
+                            
+                            // Record completion
+                            await client.query(
+                                `INSERT INTO like_recast_completions (promotion_id, user_fid, reward_amount, verification_method)
+                                 VALUES ($1, $2, $3, 'auto_manual')
+                                 ON CONFLICT (promotion_id, user_fid) DO NOTHING`,
+                                [promotionId, userFid, rewardAmount]
+                            );
+                            
+                            // Update promotion budget
+                            await client.query(
+                                `UPDATE promotions 
+                                 SET remaining_budget = remaining_budget - $1,
+                                     shares_count = shares_count + 1
+                                 WHERE id = $2`,
+                                [rewardAmount, promotionId]
+                            );
+                            
+                            // Update user earnings
+                            await client.query(
+                                `UPDATE users 
+                                 SET total_earnings = total_earnings + $1,
+                                     pending_rewards = pending_rewards + $1,
+                                     updated_at = CURRENT_TIMESTAMP
+                                 WHERE fid = $2`,
+                                [rewardAmount, userFid]
+                            );
+                            
+                            // Update both actions as verified
+                            await client.query(
+                                `UPDATE like_recast_user_actions 
+                                 SET verification_method = 'verified', updated_at = CURRENT_TIMESTAMP
+                                 WHERE promotion_id = $1 AND user_fid = $2`,
+                                [promotionId, userFid]
+                            );
+                            
+                            rewardGranted = true;
+                            message = '🎉 Both actions completed! Reward automatically granted!';
+                            verificationMethod = 'auto_manual';
+                            
+                            console.log('✅ Automatic reward granted successfully!');
+                        } else {
+                            console.log('⚠️ Insufficient budget for automatic reward');
+                        }
+                    }
+                }
             } else {
                 // Single action type
                 const { rows: singleAction } = await client.query(
