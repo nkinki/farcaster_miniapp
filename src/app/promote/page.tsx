@@ -803,6 +803,7 @@ export default function PromotePage() {
                                   console.log('🔘 Button clicked!');
                                   console.log('📱 Event:', e);
                                   console.log('🎯 Promo:', promo);
+                                  console.log('🧪 Simple test - button works!');
                                   handleLikeRecastBoth(promo, e);
                                 }} 
                                 disabled={sharingPromoId === promo.id.toString() || !canShare} 
