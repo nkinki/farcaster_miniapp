@@ -164,8 +164,8 @@ export async function POST(request: NextRequest) {
               balance = users.balance + $3,
               updated_at = NOW()
           `, [userFid, username || `user_${userFid}`, totalReward]);
-        } catch (userError) {
-          console.warn('⚠️ Could not update user balance:', userError.message);
+        } catch (userError: any) {
+          console.warn('⚠️ Could not update user balance:', userError?.message || userError);
           // Continue without failing the transaction
         }
 
