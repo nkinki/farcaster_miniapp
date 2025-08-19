@@ -1,288 +1,250 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-// Használj Pool-t a tranzakciókhoz
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-
-// Farcaster API ellenőrzés
-async function verifyWithFarcasterAPI(userFid: number, castHash: string, actionType: 'like' | 'recast') {
-  try {
-    // Farcaster API endpoint
-    const response = await fetch(`https://api.farcaster.xyz/v2/casts/${castHash}/reactions`, {
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Farcaster API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // Ellenőrizzük a user reakcióit
-    const userReactions = data.reactions?.filter((r: any) => r.reactor?.fid === userFid) || [];
-    
-    if (actionType === 'like') {
-      return userReactions.some((r: any) => r.reaction_type === 'like');
-    } else if (actionType === 'recast') {
-      return userReactions.some((r: any) => r.reaction_type === 'recast');
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Farcaster API verification failed:', error);
-    return null; // null = nem sikerült ellenőrizni
-  }
-}
-
-// Warpcast API fallback
-async function verifyWithWarpcastAPI(userFid: number, castHash: string, actionType: 'like' | 'recast') {
-  try {
-    const response = await fetch(`https://api.warpcast.com/v2/casts/${castHash}/reactions`, {
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Warpcast API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (actionType === 'like') {
-      return data.reactions?.some((r: any) => r.reactor?.fid === userFid && r.type === 'like') || false;
-    } else if (actionType === 'recast') {
-      return data.reactions?.some((r: any) => r.reactor?.fid === userFid && r.type === 'recast') || false;
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Warpcast API verification failed:', error);
-    return null;
-  }
-}
+import pool from '../../../../lib/db';
 
 export async function POST(request: NextRequest) {
-    const client = await pool.connect();
-    try {
-        const body = await request.json();
-        const { promotionId, userFid, actionType, castHash } = body;
+  try {
+    const body = await request.json();
+    const { 
+      promotionId, 
+      userFid, 
+      username, 
+      actionType, 
+      castHash, 
+      rewardAmount, 
+      proofUrl 
+    } = body;
 
-        console.log('🔍 Like/Recast API called with:', { promotionId, userFid, actionType, castHash });
+    console.log('🚀 Like & Recast API called:', {
+      promotionId,
+      userFid,
+      username,
+      actionType,
+      castHash,
+      rewardAmount
+    });
 
-        // 1. Alapvető validáció
-        if (!promotionId || !userFid || !actionType || !castHash) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
-        if (!['like', 'recast', 'both'].includes(actionType)) {
-            return NextResponse.json({ error: 'Invalid action type' }, { status: 400 });
-        }
-
-        let rewardGranted = false;
-        let message = '';
-        let verificationMethod = 'manual'; // Default to manual for now
-
-        // Adatbázis tranzakció indítása
-        await client.query('BEGIN');
-
-        // 2. Egyszerűsített verifikáció - minden 'both' action manual verification
-        if (actionType === 'both') {
-            verificationMethod = 'manual';
-            message = 'Both like and recast actions recorded for manual verification.';
-            console.log('📝 Both action type detected - using manual verification');
-        } else {
-            // Single action type - próbáljuk automatikus verifikációt
-            console.log('🔍 Attempting automatic verification for single action:', actionType);
-            let isVerified = await verifyWithFarcasterAPI(userFid, castHash, actionType);
-            
-            if (isVerified === null) {
-                isVerified = await verifyWithWarpcastAPI(userFid, castHash, actionType);
-            }
-            
-            if (isVerified === true) {
-                verificationMethod = 'auto';
-                message = `Action '${actionType}' automatically verified and recorded.`;
-                console.log('✅ Automatic verification successful');
-            } else if (isVerified === false) {
-                verificationMethod = 'failed';
-                message = `Action '${actionType}' verification failed - action not found.`;
-                console.log('❌ Automatic verification failed - action not found');
-            } else {
-                verificationMethod = 'manual';
-                message = `Action '${actionType}' recorded for manual verification.`;
-                console.log('⚠️ Automatic verification unavailable - using manual');
-            }
-        }
-
-        // 3. Részfeladat rögzítése verification method-dal
-        if (actionType === 'both') {
-            // For 'both' action type, create separate like and recast actions
-            console.log('📝 Inserting both like and recast actions with verification method:', verificationMethod);
-            console.log('📊 Parameters:', { promotionId, userFid, verificationMethod, castHash });
-            
-            // Insert LIKE action
-            const likeResult = await client.query(
-                `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
-                 VALUES ($1, $2, 'like', $3, $4)
-                 ON CONFLICT (promotion_id, user_fid, action_type) 
-                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP
-                 RETURNING id`,
-                [promotionId, userFid, verificationMethod, castHash]
-            );
-            console.log('✅ LIKE action inserted/updated with ID:', likeResult.rows[0]?.id);
-            
-            // Insert RECAST action
-            const recastResult = await client.query(
-                `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
-                 VALUES ($1, $2, 'recast', $3, $4)
-                 ON CONFLICT (promotion_id, user_fid, action_type) 
-                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP
-                 RETURNING id`,
-                [promotionId, userFid, verificationMethod, castHash]
-            );
-            console.log('✅ RECAST action inserted/updated with ID:', recastResult.rows[0]?.id);
-            
-            console.log('✅ Both actions inserted successfully');
-        } else {
-            // Single action type (like or recast)
-            await client.query(
-                `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
-                 VALUES ($1, $2, $3, $4, $5)
-                 ON CONFLICT (promotion_id, user_fid, action_type) 
-                 DO UPDATE SET verification_method = $4, cast_hash = $5, updated_at = CURRENT_TIMESTAMP`,
-                [promotionId, userFid, actionType, verificationMethod, castHash]
-            );
-        }
-
-        // 4. Manual verification queue-hoz hozzáadás (ha manual verification)
-        if (verificationMethod === 'manual') {
-            console.log('📋 Adding to manual verification queue');
-            
-            if (actionType === 'both') {
-                // For 'both' action type, add both actions to manual verification queue
-                const { rows: bothActions } = await client.query(
-                    `SELECT id FROM like_recast_user_actions 
-                     WHERE promotion_id = $1 AND user_fid = $2 AND action_type IN ('like', 'recast')
-                     ORDER BY action_type`,
-                    [promotionId, userFid]
-                );
-                
-                console.log('📝 Found actions for manual verification:', bothActions);
-                
-                for (const action of bothActions) {
-                    await client.query(
-                        `INSERT INTO manual_verifications (action_id, status, notes)
-                         VALUES ($1, 'pending', $2)
-                         ON CONFLICT (action_id) DO NOTHING`,
-                        [action.id, 'Both like and recast actions recorded, awaiting manual verification']
-                    );
-                    console.log('✅ Added action ID', action.id, 'to manual verification queue');
-                }
-                
-                // 5. Automatikus reward jóváírás ha mindkét action manual
-                if (bothActions.length === 2) {
-                    console.log('🎯 Both actions recorded - attempting automatic reward grant');
-                    
-                    // Ellenőrizzük a promotion adatait
-                    const { rows: promoRows } = await client.query(
-                        `SELECT reward_per_share, remaining_budget FROM promotions WHERE id = $1 AND status = 'active'`,
-                        [promotionId]
-                    );
-                    
-                    if (promoRows.length > 0) {
-                        const promotion = promoRows[0];
-                        const rewardAmount = promotion.reward_per_share;
-                        
-                        if (promotion.remaining_budget >= rewardAmount) {
-                            console.log(`💰 Granting automatic reward: ${rewardAmount} to user ${userFid}`);
-                            
-                            // Record completion
-                            await client.query(
-                                `INSERT INTO like_recast_completions (promotion_id, user_fid, reward_amount, verification_method)
-                                 VALUES ($1, $2, $3, 'auto_manual')
-                                 ON CONFLICT (promotion_id, user_fid) DO NOTHING`,
-                                [promotionId, userFid, rewardAmount]
-                            );
-                            
-                            // Update promotion budget
-                            await client.query(
-                                `UPDATE promotions 
-                                 SET remaining_budget = remaining_budget - $1,
-                                     shares_count = shares_count + 1
-                                 WHERE id = $2`,
-                                [rewardAmount, promotionId]
-                            );
-                            
-                            // Update user earnings
-                            await client.query(
-                                `UPDATE users 
-                                 SET total_earnings = total_earnings + $1,
-                                     pending_rewards = pending_rewards + $1,
-                                     updated_at = CURRENT_TIMESTAMP
-                                 WHERE fid = $2`,
-                                [rewardAmount, userFid]
-                            );
-                            
-                            // Update both actions as verified
-                            await client.query(
-                                `UPDATE like_recast_user_actions 
-                                 SET verification_method = 'verified', updated_at = CURRENT_TIMESTAMP
-                                 WHERE promotion_id = $1 AND user_fid = $2`,
-                                [promotionId, userFid]
-                            );
-                            
-                            rewardGranted = true;
-                            message = '🎉 Both actions completed! Reward automatically granted!';
-                            verificationMethod = 'auto_manual';
-                            
-                            console.log('✅ Automatic reward granted successfully!');
-                        } else {
-                            console.log('⚠️ Insufficient budget for automatic reward');
-                        }
-                    }
-                }
-            } else {
-                // Single action type
-                const { rows: singleAction } = await client.query(
-                    `SELECT id FROM like_recast_user_actions 
-                     WHERE promotion_id = $1 AND user_fid = $2 AND action_type = $3`,
-                    [promotionId, userFid, actionType]
-                );
-                
-                if (singleAction.length > 0) {
-                    await client.query(
-                        `INSERT INTO manual_verifications (action_id, status, notes)
-                         VALUES ($1, 'pending', $2)
-                         ON CONFLICT (action_id) DO NOTHING`,
-                        [singleAction[0].id, `${actionType} action recorded, awaiting manual verification`]
-                    );
-                    console.log('✅ Added single action to manual verification queue');
-                }
-            }
-            
-            console.log('✅ Added to manual verification queue');
-        }
-
-        // Tranzakció véglegesítése
-        await client.query('COMMIT');
-
-        console.log('🎉 Transaction committed successfully');
-
-        return NextResponse.json({ 
-            success: true, 
-            rewardGranted, 
-            message,
-            verificationMethod,
-            note: "🚧 Like & Recast functionality is under development"
-        }, { status: 200 });
-
-    } catch (error: any) {
-        await client.query('ROLLBACK');
-        console.error('API Error in POST /api/like-recast-actions:', error);
-        return NextResponse.json({ error: 'Failed to submit action' }, { status: 500 });
-    } finally {
-        client.release();
+    // Validate required fields
+    if (!promotionId || !userFid || !castHash || !rewardAmount) {
+      return NextResponse.json({ 
+        error: 'Missing required fields: promotionId, userFid, castHash, rewardAmount' 
+      }, { status: 400 });
     }
+
+    // Check if promotion exists and has enough budget
+    const promotionResult = await pool.query(
+      'SELECT * FROM promotions WHERE id = $1 AND status = $2 AND action_type = $3',
+      [promotionId, 'active', 'like_recast']
+    );
+
+    if (promotionResult.rows.length === 0) {
+      return NextResponse.json({ 
+        error: 'Promotion not found, not active, or not a like_recast promotion' 
+      }, { status: 404 });
+    }
+
+    const promotion = promotionResult.rows[0];
+    
+    if (promotion.remaining_budget < rewardAmount) {
+      return NextResponse.json({ 
+        error: 'Insufficient budget remaining' 
+      }, { status: 400 });
+    }
+
+    // Check if user already completed this promotion
+    const completionResult = await pool.query(`
+      SELECT * FROM like_recast_completions 
+      WHERE promotion_id = $1 AND user_fid = $2
+    `, [promotionId, userFid]);
+
+    if (completionResult.rows.length > 0) {
+      return NextResponse.json({ 
+        error: 'You have already completed this like & recast promotion' 
+      }, { status: 400 });
+    }
+
+    // Check existing actions for this user and promotion
+    const existingActionsResult = await pool.query(`
+      SELECT action_type FROM like_recast_user_actions 
+      WHERE promotion_id = $1 AND user_fid = $2 
+      AND verification_method IN ('verified', 'manual')
+    `, [promotionId, userFid]);
+
+    const existingActions = existingActionsResult.rows.map(row => row.action_type);
+    
+    // Start transaction
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+
+      // Insert like and recast actions
+      const actionsToInsert = actionType === 'both' ? ['like', 'recast'] : [actionType];
+      const insertedActions = [];
+
+      for (const action of actionsToInsert) {
+        // Skip if already exists
+        if (existingActions.includes(action)) {
+          console.log(`⚠️ Action ${action} already exists for user ${userFid} on promotion ${promotionId}`);
+          continue;
+        }
+
+        // Insert into like_recast_user_actions
+        const userActionResult = await client.query(`
+          INSERT INTO like_recast_user_actions (
+            promotion_id, user_fid, action_type, cast_hash, 
+            verification_method, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+          RETURNING id, action_type, created_at
+        `, [promotionId, userFid, action, castHash, 'verified']);
+
+        // Insert into like_recast_actions (main tracking table)
+        const actionResult = await client.query(`
+          INSERT INTO like_recast_actions (
+            promotion_id, user_fid, username, action_type, cast_hash, 
+            proof_url, reward_amount, status, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+          RETURNING id, action_type, created_at
+        `, [promotionId, userFid, username, action, castHash, proofUrl, Math.floor(rewardAmount / actionsToInsert.length), 'verified']);
+
+        insertedActions.push({
+          userAction: userActionResult.rows[0],
+          mainAction: actionResult.rows[0]
+        });
+      }
+
+      if (insertedActions.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ 
+          error: 'No new actions to record' 
+        }, { status: 400 });
+      }
+
+      // Check if user completed both actions (like AND recast)
+      const allUserActionsResult = await client.query(`
+        SELECT DISTINCT action_type FROM like_recast_user_actions 
+        WHERE promotion_id = $1 AND user_fid = $2 
+        AND verification_method IN ('verified', 'manual')
+      `, [promotionId, userFid]);
+
+      const allUserActions = allUserActionsResult.rows.map(row => row.action_type);
+      const hasLike = allUserActions.includes('like');
+      const hasRecast = allUserActions.includes('recast');
+
+      let totalReward = 0;
+      let completionInserted = false;
+
+      // If user completed both actions, create completion record and reward
+      if (hasLike && hasRecast) {
+        // Insert completion record
+        await client.query(`
+          INSERT INTO like_recast_completions (
+            promotion_id, user_fid, reward_amount, verification_method, claimed_at
+          ) VALUES ($1, $2, $3, $4, NOW())
+        `, [promotionId, userFid, rewardAmount, 'auto']);
+
+        totalReward = rewardAmount;
+        completionInserted = true;
+
+        // Update promotion remaining budget and shares count
+        await client.query(`
+          UPDATE promotions 
+          SET remaining_budget = remaining_budget - $1,
+              shares_count = shares_count + 1,
+              updated_at = NOW()
+          WHERE id = $2
+        `, [totalReward, promotionId]);
+
+        // Update user balance (if users table exists)
+        try {
+          await client.query(`
+            INSERT INTO users (fid, username, balance, created_at, updated_at)
+            VALUES ($1, $2, $3, NOW(), NOW())
+            ON CONFLICT (fid) 
+            DO UPDATE SET 
+              balance = users.balance + $3,
+              updated_at = NOW()
+          `, [userFid, username || `user_${userFid}`, totalReward]);
+        } catch (userError) {
+          console.warn('⚠️ Could not update user balance:', userError.message);
+          // Continue without failing the transaction
+        }
+
+        // Update action records to 'rewarded' status
+        await client.query(`
+          UPDATE like_recast_actions 
+          SET status = 'rewarded', rewarded_at = NOW(), updated_at = NOW()
+          WHERE promotion_id = $1 AND user_fid = $2
+        `, [promotionId, userFid]);
+      }
+
+      await client.query('COMMIT');
+
+      console.log('✅ Like & Recast actions completed successfully:', {
+        promotionId,
+        userFid,
+        actionsInserted: insertedActions.length,
+        totalReward,
+        completionInserted,
+        hasLike,
+        hasRecast
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: completionInserted 
+          ? `Both actions completed! Earned ${totalReward} $CHESS` 
+          : `Recorded ${insertedActions.length} action(s). ${hasLike ? 'Like ✓' : 'Like pending'} ${hasRecast ? 'Recast ✓' : 'Recast pending'}`,
+        actions: insertedActions,
+        totalReward,
+        completionInserted,
+        hasLike,
+        hasRecast,
+        remainingBudget: promotion.remaining_budget - totalReward
+      }, { status: 200 });
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+  } catch (error: any) {
+    console.error('❌ Like & Recast API Error:', error);
+    return NextResponse.json({ 
+      error: error.message || 'Internal server error' 
+    }, { status: 500 });
+  }
+}
+
+// GET endpoint to check user's actions for a promotion
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const promotionId = searchParams.get('promotionId');
+    const userFid = searchParams.get('userFid');
+
+    if (!promotionId || !userFid) {
+      return NextResponse.json({ 
+        error: 'Missing promotionId or userFid parameters' 
+      }, { status: 400 });
+    }
+
+    const result = await pool.query(`
+      SELECT action_type, verification_method, created_at, updated_at
+      FROM like_recast_actions 
+      WHERE promotion_id = $1 AND user_fid = $2
+      ORDER BY created_at DESC
+    `, [promotionId, userFid]);
+
+    return NextResponse.json({
+      actions: result.rows
+    }, { status: 200 });
+
+  } catch (error: any) {
+    console.error('❌ Like & Recast GET API Error:', error);
+    return NextResponse.json({ 
+      error: error.message || 'Internal server error' 
+    }, { status: 500 });
+  }
 }
