@@ -359,65 +359,94 @@ export default function PromotePage() {
     }
   };
 
-     // Like & Recast combined action using Farcaster Frame
-   const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
-     console.log('🚀 handleLikeRecastBoth called!');
-     console.log('📊 Promo:', promo);
-     console.log('📱 Event:', e);
-     
-     // Prevent default behavior to avoid page reload
-     if (e) {
-       console.log('🛑 Preventing default behavior...');
-       e.preventDefault();
-       e.stopPropagation();
-       console.log('✅ Default behavior prevented');
-     }
-     
-     if (!isAuthenticated || !currentUser.fid) {
-       setShareError("Please connect your Farcaster account first.");
-       return;
-     }
-     
-     setShareError(null);
-     setSharingPromoId(promo.id.toString());
-     
-     try {
-       console.log('🚀 Starting like & recast frame for promo:', promo.id);
-       
-       // Extract cast hash from URL
-       const castHash = promo.castUrl.split('/').pop() || '';
-       
-       if (!castHash || !castHash.startsWith('0x')) {
-         throw new Error('Invalid cast hash. Please check the cast URL.');
-       }
-       
-       console.log('🔍 Using cast hash:', castHash);
-       
-       // Create a Farcaster Frame that opens the cast with like/recast buttons
-       const frameUrl = `${window.location.origin}/api/frame/like-recast?promoId=${promo.id}&castHash=${castHash}&reward=${promo.rewardPerShare}`;
-       
-       console.log('📱 Opening Farcaster Frame:', frameUrl);
-       
-       try {
-         // Open the frame in Farcaster
-         await (miniAppSdk as any).actions.openUrl(frameUrl);
-         console.log('✅ Frame opened successfully');
-         
-         // Show instruction message
-         setShareError('📱 Frame opened! Please like & recast the cast, then click "Check & Earn" to get your reward.');
-         
-       } catch (frameError) {
-         console.error('❌ Frame error:', frameError);
-         throw new Error('Failed to open like/recast frame. Please try again.');
-       }
-       
-     } catch (error: any) {
-       console.error('❌ Like & recast frame failed:', error);
-       setShareError(error.message || 'Failed to open like/recast frame');
-     } finally {
-       setSharingPromoId(null);
-     }
-   };
+           // Like & Recast combined action with timer and verification
+    const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
+      console.log('🚀 handleLikeRecastBoth called!');
+      console.log('📊 Promo:', promo);
+      console.log('📱 Event:', e);
+      
+      // Prevent default behavior to avoid page reload
+      if (e) {
+        console.log('🛑 Preventing default behavior...');
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('✅ Default behavior prevented');
+      }
+      
+      if (!isAuthenticated || !currentUser.fid) {
+        setShareError("Please connect your Farcaster account first.");
+        return;
+      }
+      
+      setShareError(null);
+      setSharingPromoId(promo.id.toString());
+      
+      try {
+        console.log('🚀 Starting like & recast actions for promo:', promo.id);
+        
+        // Extract cast hash from URL
+        const castHash = promo.castUrl.split('/').pop() || '';
+        
+        if (!castHash || !castHash.startsWith('0x')) {
+          throw new Error('Invalid cast hash. Please check the cast URL.');
+        }
+        
+        console.log('🔍 Using cast hash:', castHash);
+        
+        // First, open the cast so user can see it
+        console.log('📱 Opening cast for user to view...');
+        try {
+          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+          console.log('✅ Cast opened successfully');
+        } catch (viewError) {
+          console.log('⚠️ Could not open cast, continuing with like/recast...');
+        }
+        
+        // Show instruction message
+        setShareError('📱 Cast opened! Please like & recast it, then wait for verification...');
+        
+        // Wait 5 seconds for user to complete actions
+        console.log('⏳ Waiting 5 seconds for user to complete like/recast...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Now submit to our backend for reward verification
+        console.log('💰 Submitting actions for reward...');
+        const response = await fetch('/api/like-recast-actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promotionId: promo.id,
+            userFid: currentUser.fid,
+            username: currentUser.username,
+            actionType: 'both',
+            castHash,
+            rewardAmount: promo.rewardPerShare,
+            proofUrl: promo.castUrl
+          })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit actions for reward');
+        }
+
+        console.log('✅ Like & recast actions completed successfully');
+        setShareError(null);
+        
+        // Show success message
+        setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
+        
+        // Refresh data
+        await refreshAllData();
+        
+      } catch (error: any) {
+        console.error('❌ Like & recast actions failed:', error);
+        setShareError(error.message || 'Failed to complete like & recast actions');
+      } finally {
+        setSharingPromoId(null);
+      }
+    };
 
 
   const handleSharePromo = async (promo: PromoCast) => {
