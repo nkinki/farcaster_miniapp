@@ -35,7 +35,7 @@ export async function verifyLikeAndRecast(
         const testClient = getSSLHubRpcClient(endpoint);
         
         // Test with a simple call
-        await testClient.getInfo();
+        await testClient.getInfo({});
         
         client = testClient;
         workingEndpoint = endpoint;
