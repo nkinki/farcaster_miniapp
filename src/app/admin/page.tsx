@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiCheck, FiX, FiEye, FiRefreshCw, FiBarChart3, FiShare2, FiCopy } from 'react-icons/fi';
+import { FiCheck, FiX, FiEye, FiRefreshCw, FiBarChart, FiShare2, FiCopy } from 'react-icons/fi';
 
 interface PendingVerification {
   id: number;
@@ -160,7 +160,7 @@ export default function AdminPage() {
                   : 'text-gray-300 hover:text-white hover:bg-gray-700'
               }`}
             >
-              <FiBarChart3 className="inline mr-2" size={16} />
+              <FiBarChart className="inline mr-2" size={16} />
               Statistics
             </button>
             <button
