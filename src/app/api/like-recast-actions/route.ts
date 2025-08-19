@@ -91,8 +91,10 @@ export async function POST(request: NextRequest) {
         if (actionType === 'both') {
             verificationMethod = 'manual';
             message = 'Both like and recast actions recorded for manual verification.';
+            console.log('📝 Both action type detected - using manual verification');
         } else {
             // Single action type - próbáljuk automatikus verifikációt
+            console.log('🔍 Attempting automatic verification for single action:', actionType);
             let isVerified = await verifyWithFarcasterAPI(userFid, castHash, actionType);
             
             if (isVerified === null) {
@@ -102,12 +104,15 @@ export async function POST(request: NextRequest) {
             if (isVerified === true) {
                 verificationMethod = 'auto';
                 message = `Action '${actionType}' automatically verified and recorded.`;
+                console.log('✅ Automatic verification successful');
             } else if (isVerified === false) {
                 verificationMethod = 'failed';
                 message = `Action '${actionType}' verification failed - action not found.`;
+                console.log('❌ Automatic verification failed - action not found');
             } else {
                 verificationMethod = 'manual';
                 message = `Action '${actionType}' recorded for manual verification.`;
+                console.log('⚠️ Automatic verification unavailable - using manual');
             }
         }
 
