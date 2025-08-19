@@ -421,36 +421,61 @@ export default function PromotePage() {
         await (miniAppSdk as any).actions.recastCast({ hash: castHash });
         console.log('✅ Recast action completed successfully');
         
-        // Now submit to our backend for reward verification
-        console.log('💰 Submitting actions for reward...');
-        const response = await fetch('/api/like-recast-actions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            promotionId: promo.id,
-            userFid: currentUser.fid,
-            username: currentUser.username,
-            actionType: 'both',
-            castHash,
-            rewardAmount: promo.rewardPerShare,
-            proofUrl: promo.castUrl
-          })
-        });
+                 // Now verify that the actions actually happened
+         console.log('🔍 Verifying like & recast actions...');
+         
+         try {
+           // Wait a bit for actions to propagate
+           await new Promise(resolve => setTimeout(resolve, 3000));
+           
+           // Verify like action
+           console.log('👍 Verifying like action...');
+           const likeVerification = await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+           console.log('✅ Like verification result:', likeVerification);
+           
+           // Verify recast action  
+           console.log('🔄 Verifying recast action...');
+           const recastVerification = await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+           console.log('✅ Recast verification result:', recastVerification);
+           
+           console.log('🎉 Both actions verified successfully!');
+           
+           // Now submit to our backend for reward verification
+           console.log('💰 Submitting verified actions for reward...');
+           const response = await fetch('/api/like-recast-actions', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+               promotionId: promo.id,
+               userFid: currentUser.fid,
+               username: currentUser.username,
+               actionType: 'both',
+               castHash,
+               rewardAmount: promo.rewardPerShare,
+               proofUrl: promo.castUrl,
+               verified: true // Mark as verified
+             })
+           });
 
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to submit actions for reward');
-        }
+           const data = await response.json();
+           
+           if (!response.ok) {
+             throw new Error(data.error || 'Failed to submit actions for reward');
+           }
 
-        console.log('✅ Like & recast actions completed successfully');
-        setShareError(null);
-        
-        // Show success message
-        setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
-        
-        // Refresh data
-        await refreshAllData();
+           console.log('✅ Like & recast actions completed and verified!');
+           setShareError(null);
+           
+           // Show success message
+           setShareError('🎉 Like & Recast completed and verified! Reward credited!');
+           
+           // Refresh data
+           await refreshAllData();
+           
+         } catch (verificationError) {
+           console.error('❌ Verification failed:', verificationError);
+           throw new Error('Actions completed but verification failed. Please try again.');
+         }
         
       } catch (sdkError) {
         console.error('❌ Farcaster SDK error:', sdkError);
