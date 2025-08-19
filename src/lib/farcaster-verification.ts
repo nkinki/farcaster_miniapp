@@ -1,31 +1,5 @@
 import { getSSLHubRpcClient, Message } from "@farcaster/hub-nodejs";
 
-// Farcaster Hub client - try multiple endpoints
-const hubEndpoints = [
-  "nemes.farcaster.xyz:2283",
-  "hub-grpc.pinata.cloud:443",
-  "hub.farcaster.standardcrypto.vc:2283"
-];
-
-let client = getSSLHubRpcClient(hubEndpoints[0]);
-
-// Function to try different hub endpoints
-async function getWorkingClient() {
-  for (const endpoint of hubEndpoints) {
-    try {
-      console.log(`🔗 Trying hub endpoint: ${endpoint}`);
-      const testClient = getSSLHubRpcClient(endpoint);
-      // Test the connection with a simple call
-      await testClient.getHubInfo();
-      console.log(`✅ Connected to hub: ${endpoint}`);
-      return testClient;
-    } catch (error) {
-      console.warn(`⚠️ Failed to connect to ${endpoint}:`, error);
-    }
-  }
-  throw new Error('No working hub endpoints found');
-}
-
 export interface VerificationResult {
   success: boolean;
   hasLike: boolean;
@@ -44,62 +18,66 @@ export async function verifyLikeAndRecast(
   try {
     console.log(`🔍 Verifying like & recast for user ${userFid} on cast ${castHash} by author ${authorFid}`);
 
-    // Get working client
-    const workingClient = await getWorkingClient();
+    // Create client
+    const client = getSSLHubRpcClient("nemes.farcaster.xyz:2283");
 
     // Convert cast hash to bytes
     const castHashBytes = Buffer.from(castHash.slice(2), 'hex');
     console.log(`🔧 Cast hash bytes length: ${castHashBytes.length}`);
 
-    // Check for like reactions
-    console.log(`🔍 Checking likes for cast ${castHash} by author ${authorFid}...`);
-    const likeResult = await workingClient.getReactionsByTarget({
-      targetCastId: {
-        fid: authorFid,
-        hash: castHashBytes,
-      },
-      reactionType: 1, // Like = 1
-    });
-
-    // Check for recast reactions  
-    console.log(`🔍 Checking recasts for cast ${castHash} by author ${authorFid}...`);
-    const recastResult = await workingClient.getReactionsByTarget({
-      targetCastId: {
-        fid: authorFid,
-        hash: castHashBytes,
-      },
-      reactionType: 2, // Recast = 2
-    });
-
     let hasLike = false;
     let hasRecast = false;
 
-    // Check if user liked the cast
-    if (likeResult.isOk()) {
-      const likes = likeResult.value.messages;
-      console.log(`📊 Found ${likes.length} likes for cast ${castHash}`);
-      hasLike = likes.some((message: Message) => 
-        message.data?.fid === userFid && 
-        message.data?.reactionBody?.type === 1
-      );
-      console.log(`👍 Like check: ${hasLike ? 'FOUND' : 'NOT FOUND'} for user ${userFid}`);
-    } else {
-      console.error(`❌ Failed to fetch likes:`, likeResult.error);
-      // Don't fail completely, continue with recast check
+    // Check for like reactions
+    try {
+      console.log(`🔍 Checking likes for cast ${castHash} by author ${authorFid}...`);
+      const likeResult = await client.getReactionsByTarget({
+        targetCastId: {
+          fid: authorFid,
+          hash: castHashBytes,
+        },
+        reactionType: 1, // Like = 1
+      });
+
+      if (likeResult.isOk()) {
+        const likes = likeResult.value.messages;
+        console.log(`📊 Found ${likes.length} likes for cast ${castHash}`);
+        hasLike = likes.some((message: Message) => 
+          message.data?.fid === userFid && 
+          message.data?.reactionBody?.type === 1
+        );
+        console.log(`👍 Like check: ${hasLike ? 'FOUND' : 'NOT FOUND'} for user ${userFid}`);
+      } else {
+        console.error(`❌ Failed to fetch likes:`, likeResult.error);
+      }
+    } catch (error) {
+      console.error(`❌ Like check error:`, error);
     }
 
-    // Check if user recasted the cast
-    if (recastResult.isOk()) {
-      const recasts = recastResult.value.messages;
-      console.log(`📊 Found ${recasts.length} recasts for cast ${castHash}`);
-      hasRecast = recasts.some((message: Message) => 
-        message.data?.fid === userFid && 
-        message.data?.reactionBody?.type === 2
-      );
-      console.log(`🔄 Recast check: ${hasRecast ? 'FOUND' : 'NOT FOUND'} for user ${userFid}`);
-    } else {
-      console.error(`❌ Failed to fetch recasts:`, recastResult.error);
-      // Don't fail completely, return partial results
+    // Check for recast reactions  
+    try {
+      console.log(`🔍 Checking recasts for cast ${castHash} by author ${authorFid}...`);
+      const recastResult = await client.getReactionsByTarget({
+        targetCastId: {
+          fid: authorFid,
+          hash: castHashBytes,
+        },
+        reactionType: 2, // Recast = 2
+      });
+
+      if (recastResult.isOk()) {
+        const recasts = recastResult.value.messages;
+        console.log(`📊 Found ${recasts.length} recasts for cast ${castHash}`);
+        hasRecast = recasts.some((message: Message) => 
+          message.data?.fid === userFid && 
+          message.data?.reactionBody?.type === 2
+        );
+        console.log(`🔄 Recast check: ${hasRecast ? 'FOUND' : 'NOT FOUND'} for user ${userFid}`);
+      } else {
+        console.error(`❌ Failed to fetch recasts:`, recastResult.error);
+      }
+    } catch (error) {
+      console.error(`❌ Recast check error:`, error);
     }
 
     return {
@@ -127,9 +105,6 @@ export function parseCastUrl(castUrl: string): { authorFid: number; castHash: st
     // Example: https://farcaster.xyz/hamdanyusuf/0x1eaecd09
     const urlParts = castUrl.split('/');
     const castHash = urlParts[urlParts.length - 1];
-    
-    // For now, we'll need to get the author FID from the promotion data
-    // This is a simplified version - in production you might want to resolve username to FID
     
     return {
       authorFid: 0, // Will be filled from promotion data
