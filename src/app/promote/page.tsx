@@ -391,9 +391,22 @@ export default function PromotePage() {
         throw new Error('Invalid cast hash. Please check the cast URL.');
       }
       
-      console.log('🔍 Using cast hash:', castHash);
-      
-      // Use Farcaster SDK to like and recast
+              console.log('🔍 Using cast hash:', castHash);
+        
+        // First, open the cast so user can see it
+        console.log('📱 Opening cast for user to view...');
+        try {
+          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+          console.log('✅ Cast opened successfully');
+        } catch (viewError) {
+          console.log('⚠️ Could not open cast, continuing with like/recast...');
+        }
+        
+        // Wait a bit for user to view the cast
+        console.log('⏳ Waiting for user to view cast...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Use Farcaster SDK to like and recast
       try {
         // Like the cast using Farcaster SDK
         console.log('👍 Attempting to like cast...');
