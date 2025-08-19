@@ -112,20 +112,24 @@ export async function POST(request: NextRequest) {
         // 3. Részfeladat rögzítése verification method-dal
         if (actionType === 'both') {
             // For 'both' action type, create separate like and recast actions
+            // Ensure verificationMethod is properly set for both actions
+            const likeVerificationMethod = verificationMethod || 'manual';
+            const recastVerificationMethod = verificationMethod || 'manual';
+            
             await client.query(
                 `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
-                 VALUES ($1, $2, 'like', $4, $5)
+                 VALUES ($1, $2, 'like', $3, $4)
                  ON CONFLICT (promotion_id, user_fid, action_type) 
-                 DO UPDATE SET verification_method = $4, cast_hash = $5, updated_at = CURRENT_TIMESTAMP`,
-                [promotionId, userFid, 'like', verificationMethod, castHash]
+                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP`,
+                [promotionId, userFid, likeVerificationMethod, castHash]
             );
             
             await client.query(
                 `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
-                 VALUES ($1, $2, 'recast', $4, $5)
+                 VALUES ($1, $2, 'recast', $3, $4)
                  ON CONFLICT (promotion_id, user_fid, action_type) 
-                 DO UPDATE SET verification_method = $4, cast_hash = $5, updated_at = CURRENT_TIMESTAMP`,
-                [promotionId, userFid, 'recast', verificationMethod, castHash]
+                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP`,
+                [promotionId, userFid, recastVerificationMethod, castHash]
             );
         } else {
             // Single action type (like or recast)
