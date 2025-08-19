@@ -3,66 +3,59 @@ require('dotenv').config({ path: '.env.local' });
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 async function checkDatabase() {
   try {
-    console.log('🔍 Checking promotions table...');
+    console.log('🔍 Checking database tables...');
     
-    // Check the latest promotions with action_type
-    const promotionsResult = await pool.query(`
-      SELECT id, username, cast_url, action_type, created_at 
-      FROM promotions 
-      ORDER BY created_at DESC 
-      LIMIT 5
+    // Check what tables exist
+    const { rows: tables } = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      ORDER BY table_name
     `);
     
-    const promotions = promotionsResult.rows;
-    console.log('📊 Latest 5 promotions:');
-    promotions.forEach((promo, index) => {
-      console.log(`${index + 1}. ID: ${promo.id}, User: ${promo.username}, Action: ${promo.action_type || 'NULL'}, Created: ${promo.created_at}`);
+    console.log('📋 Existing tables:');
+    tables.forEach(table => {
+      console.log(`  - ${table.table_name}`);
     });
     
-    // Check action_type distribution
-    const actionTypeStatsResult = await pool.query(`
-      SELECT action_type, COUNT(*) as count 
-      FROM promotions 
-      GROUP BY action_type
-    `);
+    // Check if our specific tables exist
+    const targetTables = [
+      'like_recast_user_actions',
+      'like_recast_completions', 
+      'manual_verifications'
+    ];
     
-    const actionTypeStats = actionTypeStatsResult.rows;
-    console.log('\n📈 Action type distribution:');
-    actionTypeStats.forEach(stat => {
-      console.log(`${stat.action_type || 'NULL'}: ${stat.count} promotions`);
-    });
+    console.log('\n🎯 Checking target tables:');
+    for (const tableName of targetTables) {
+      const exists = tables.some(t => t.table_name === tableName);
+      console.log(`  ${tableName}: ${exists ? '✅ EXISTS' : '❌ MISSING'}`);
+    }
     
-    // Check if like_recast_actions table exists
-    try {
-      const tableCheckResult = await pool.query(`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_name = 'like_recast_actions'
-        );
-      `);
-      
-      const tableExists = tableCheckResult.rows[0].exists;
-      console.log(`\n📋 like_recast_actions table exists: ${tableExists}`);
-      
-      if (tableExists) {
-        const actionsResult = await pool.query(`
-          SELECT COUNT(*) as count FROM like_recast_actions
-        `);
-        console.log(`📊 Total like/recast actions: ${actionsResult.rows[0].count}`);
+    // If tables exist, show their structure
+    console.log('\n🔍 Table structures:');
+    for (const tableName of targetTables) {
+      if (tables.some(t => t.table_name === tableName)) {
+        const { rows: columns } = await pool.query(`
+          SELECT column_name, data_type, is_nullable, column_default
+          FROM information_schema.columns 
+          WHERE table_name = $1 
+          ORDER BY ordinal_position
+        `, [tableName]);
+        
+        console.log(`\n📊 ${tableName}:`);
+        columns.forEach(col => {
+          console.log(`  - ${col.column_name}: ${col.data_type} ${col.is_nullable === 'NO' ? 'NOT NULL' : 'NULL'} ${col.column_default ? `DEFAULT ${col.column_default}` : ''}`);
+        });
       }
-    } catch (tableError) {
-      console.log('\n📋 like_recast_actions table: Not found');
     }
     
   } catch (error) {
-    console.error('❌ Database check failed:', error);
+    console.error('❌ Error checking database:', error);
   } finally {
     await pool.end();
   }
