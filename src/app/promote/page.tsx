@@ -664,12 +664,26 @@ export default function PromotePage() {
       const timerB = shareTimers[b.id.toString()];
       const canShareA = timerA?.canShare ?? true;
       const canShareB = timerB?.canShare ?? true;
-
-      if (canShareA && !canShareB) return -1;
-      if (!canShareA && canShareB) return 1;
+      
+      // Check if like_recast actions are completed
+      const isCompletedA = completedActions[a.id] || false;
+      const isCompletedB = completedActions[b.id] || false;
+      
+      // For like_recast promotions, move completed ones to bottom
+      if (a.actionType === 'like_recast' && b.actionType === 'like_recast') {
+        if (!isCompletedA && isCompletedB) return -1; // A not completed, B completed -> A first
+        if (isCompletedA && !isCompletedB) return 1;  // A completed, B not completed -> B first
+      }
+      
+      // For quote promotions, use timer-based sorting
+      if (a.actionType === 'quote' && b.actionType === 'quote') {
+        if (canShareA && !canShareB) return -1;
+        if (!canShareA && canShareB) return 1;
+      }
+      
       return b.rewardPerShare - a.rewardPerShare;
     });
-  }, [availablePromos, shareTimers]);
+  }, [availablePromos, shareTimers, completedActions]);
 
   if (loading || (promotionsLoading && allPromotions.length === 0)) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
