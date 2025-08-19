@@ -5,9 +5,10 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { fid: string } }
+  context: { params: Promise<{ fid: string }> }
 ) {
   try {
+    const params = await context.params;
     const fid = parseInt(params.fid);
     
     if (isNaN(fid)) {
