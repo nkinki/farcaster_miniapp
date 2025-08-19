@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '../../../../lib/db';
+import { verifyWithRetry, parseCastUrl } from '@/lib/farcaster-verification';
 
 export async function POST(request: NextRequest) {
   try {
@@ -87,6 +88,48 @@ export async function POST(request: NextRequest) {
 
     const existingActions = existingActionsResult.rows.map(row => row.action_type);
     
+    // Automatic verification using Farcaster Hub
+    console.log('🤖 Starting automatic verification...');
+    
+    const castInfo = parseCastUrl(promotion.cast_url);
+    if (!castInfo) {
+      return NextResponse.json({ 
+        error: 'Invalid cast URL format' 
+      }, { status: 400 });
+    }
+
+    // Use promotion owner FID as author FID
+    const authorFid = promotion.fid || promotion.owner_fid || 1063244; // fallback to known FID
+    
+    const verificationResult = await verifyWithRetry(
+      userFid,
+      castHash,
+      authorFid,
+      3, // max retries
+      3000 // 3 second delay
+    );
+
+    console.log('🔍 Verification result:', verificationResult);
+
+    if (!verificationResult.success) {
+      return NextResponse.json({ 
+        error: 'Verification failed: ' + (verificationResult.error || 'Unknown error')
+      }, { status: 500 });
+    }
+
+    if (!verificationResult.hasLike || !verificationResult.hasRecast) {
+      return NextResponse.json({ 
+        error: `Verification failed: Missing actions. Like: ${verificationResult.hasLike}, Recast: ${verificationResult.hasRecast}`,
+        details: {
+          hasLike: verificationResult.hasLike,
+          hasRecast: verificationResult.hasRecast,
+          message: 'Please ensure you have both liked and recasted the post before claiming rewards.'
+        }
+      }, { status: 400 });
+    }
+
+    console.log('✅ Automatic verification passed! Both like and recast confirmed.');
+
     // Start transaction
     const client = await pool.connect();
     
@@ -130,14 +173,8 @@ export async function POST(request: NextRequest) {
           
           console.log(`✅ Main action inserted:`, actionResult.rows[0]);
 
-          // Create manual verification record for admin panel
-          await client.query(`
-            INSERT INTO manual_verifications (
-              action_id, status, created_at, updated_at
-            ) VALUES ($1, 'pending', NOW(), NOW())
-          `, [userActionResult.rows[0].id]);
-          
-          console.log(`✅ Manual verification record created for ${action} action`);
+          // Actions are automatically verified via Farcaster Hub
+          console.log(`✅ ${action} action automatically verified via Farcaster Hub`);
 
           insertedActions.push({
             userAction: userActionResult.rows[0],
