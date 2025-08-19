@@ -96,25 +96,28 @@ export default function AdminPage() {
         body: JSON.stringify({
           actionId,
           verified,
-          adminId: 1, // Hardcoded admin ID for now
           notes: notes || (verified ? 'Manually verified by admin' : 'Rejected by admin')
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Verification result:', data.message);
+        console.log('Verification result:', data);
         
-        // Refresh the list
-        await fetchPendingVerifications();
+        // Remove the processed verification from the list
+        setPendingVerifications(prev => 
+          prev.filter(v => v.action_id !== actionId)
+        );
+        
+        // Show success message
+        alert(verified ? 'Action verified and reward granted!' : 'Action rejected successfully');
       } else {
         const errorData = await response.json();
-        console.error('Verification failed:', errorData.error);
-        alert(`Verification failed: ${errorData.error}`);
+        alert(`Error: ${errorData.error || 'Failed to process verification'}`);
       }
     } catch (error) {
-      console.error('Error during verification:', error);
-      alert('Verification failed');
+      console.error('Error processing verification:', error);
+      alert('Error processing verification');
     } finally {
       setProcessing(null);
     }
@@ -130,7 +133,7 @@ export default function AdminPage() {
     navigator.clipboard.writeText(text);
   };
 
-  if (loading) {
+  if (loading && activeTab === 'verifications') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center">
         <div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Admin Panel...</div>
@@ -284,85 +287,94 @@ export default function AdminPage() {
               </button>
             </div>
 
-        {pendingVerifications.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-2xl text-green-400 mb-2">✅</div>
-            <div className="text-white text-xl">No pending verifications!</div>
-            <div className="text-purple-300">All like & recast actions have been processed.</div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {pendingVerifications.map((verification) => (
-              <div key={verification.id} className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <div className="text-purple-300 text-sm font-semibold">User</div>
-                    <div className="text-white">@{verification.user_username} (FID: {verification.user_fid})</div>
-                  </div>
-                  <div>
-                    <div className="text-purple-300 text-sm font-semibold">Action</div>
-                    <div className="text-white capitalize">{verification.action_type}</div>
-                  </div>
-                  <div>
-                    <div className="text-purple-300 text-sm font-semibold">Reward</div>
-                    <div className="text-green-400 font-bold">{verification.reward_per_share} $CHESS</div>
-                  </div>
-                  <div>
-                    <div className="text-purple-300 text-sm font-semibold">Budget</div>
-                    <div className="text-white">{verification.remaining_budget} remaining</div>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <div className="text-purple-300 text-sm font-semibold mb-2">Cast URL</div>
-                  <div className="text-white break-all bg-gray-800 p-2 rounded">
-                    {verification.cast_url}
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <div className="text-purple-300 text-sm font-semibold mb-2">Cast Hash</div>
-                  <div className="text-white break-all bg-gray-800 p-2 rounded font-mono text-sm">
-                    {verification.cast_hash || 'No hash provided'}
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <div className="text-purple-300 text-sm font-semibold mb-2">Submitted</div>
-                  <div className="text-white">
-                    {new Date(verification.created_at).toLocaleString()}
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleVerification(verification.action_id, true)}
-                    disabled={processing === verification.action_id}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {processing === verification.action_id ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    ) : (
-                      <FiCheck size={20} />
-                    )}
-                    Verify & Grant Reward
-                  </button>
-                  
-                  <button
-                    onClick={() => handleVerification(verification.action_id, false)}
-                    disabled={processing === verification.action_id}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {processing === verification.action_id ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    ) : (
-                      <FiX size={20} />
-                    )}
-                    Reject
-                  </button>
-                </div>
+            {pendingVerifications.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-2xl text-green-400 mb-2">✅</div>
+                <div className="text-white text-xl">No pending verifications!</div>
+                <div className="text-purple-300">All like & recast actions have been processed.</div>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-4">
+                {pendingVerifications.map((verification) => (
+                  <div key={verification.id} className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                      <div>
+                        <div className="text-purple-300 text-sm font-semibold">User</div>
+                        <div className="text-white">@{verification.user_username} (FID: {verification.user_fid})</div>
+                      </div>
+                      <div>
+                        <div className="text-purple-300 text-sm font-semibold">Action</div>
+                        <div className="text-white capitalize">{verification.action_type}</div>
+                      </div>
+                      <div>
+                        <div className="text-purple-300 text-sm font-semibold">Reward</div>
+                        <div className="text-green-400 font-bold">{verification.reward_per_share} $CHESS</div>
+                      </div>
+                      <div>
+                        <div className="text-purple-300 text-sm font-semibold">Budget</div>
+                        <div className="text-white">{verification.remaining_budget} remaining</div>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="text-purple-300 text-sm font-semibold mb-2">Cast URL</div>
+                      <div className="text-white break-all bg-gray-800 p-2 rounded">
+                        {verification.cast_url}
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="text-purple-300 text-sm font-semibold mb-2">Cast Hash</div>
+                      <div className="text-white break-all bg-gray-800 p-2 rounded font-mono text-sm">
+                        {verification.cast_hash}
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="text-purple-300 text-sm font-semibold mb-2">Submitted</div>
+                      <div className="text-white">
+                        {new Date(verification.created_at).toLocaleString()}
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="text-purple-300 text-sm font-semibold mb-2">Notes</div>
+                      <div className="text-gray-300 bg-gray-800 p-2 rounded">
+                        {verification.notes || 'No additional notes'}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => handleVerification(verification.action_id, true)}
+                        disabled={processing === verification.action_id}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {processing === verification.action_id ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        ) : (
+                          <FiCheck size={20} />
+                        )}
+                        Verify & Grant Reward
+                      </button>
+                      
+                      <button
+                        onClick={() => handleVerification(verification.action_id, false)}
+                        disabled={processing === verification.action_id}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {processing === verification.action_id ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        ) : (
+                          <FiX size={20} />
+                        )}
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
