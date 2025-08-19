@@ -183,16 +183,18 @@ export async function POST(request: NextRequest) {
           WHERE id = $2
         `, [totalReward, promotionId]);
 
-        // Update user balance (if users table exists)
+        // Update user balance and record
         try {
           await client.query(`
             INSERT INTO users (fid, username, balance, created_at, updated_at)
             VALUES ($1, $2, $3, NOW(), NOW())
             ON CONFLICT (fid) 
             DO UPDATE SET 
-              balance = users.balance + $3,
+              username = EXCLUDED.username,
+              balance = COALESCE(users.balance, 0) + $3,
               updated_at = NOW()
           `, [userFid, username || `user_${userFid}`, totalReward]);
+          console.log(`✅ User balance updated: +${totalReward} $CHESS for user ${userFid} (${username})`);
         } catch (userError: any) {
           console.warn('⚠️ Could not update user balance:', userError?.message || userError);
           // Continue without failing the transaction
