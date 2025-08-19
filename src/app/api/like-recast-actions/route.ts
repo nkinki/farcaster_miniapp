@@ -31,14 +31,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if promotion exists and has enough budget
+    console.log('🔍 Checking promotion:', { promotionId, status: 'active', actionType: 'like_recast' });
+    
     const promotionResult = await pool.query(
       'SELECT * FROM promotions WHERE id = $1 AND status = $2 AND action_type = $3',
       [promotionId, 'active', 'like_recast']
     );
 
+    console.log('🔍 Promotion query result:', {
+      rowCount: promotionResult.rows.length,
+      promotion: promotionResult.rows[0] || null
+    });
+
     if (promotionResult.rows.length === 0) {
+      // Try to find the promotion with any action_type for debugging
+      const debugResult = await pool.query(
+        'SELECT id, status, action_type FROM promotions WHERE id = $1',
+        [promotionId]
+      );
+      
+      console.log('🔍 Debug - promotion exists with different criteria:', debugResult.rows[0] || 'NOT FOUND');
+      
       return NextResponse.json({ 
-        error: 'Promotion not found, not active, or not a like_recast promotion' 
+        error: 'Promotion not found, not active, or not a like_recast promotion',
+        debug: debugResult.rows[0] || null
       }, { status: 404 });
     }
 
@@ -76,6 +92,7 @@ export async function POST(request: NextRequest) {
     
     try {
       await client.query('BEGIN');
+      console.log('🔄 Transaction started');
 
       // Insert like and recast actions
       const actionsToInsert = actionType === 'both' ? ['like', 'recast'] : [actionType];
@@ -88,28 +105,40 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
+        console.log(`🔄 Inserting ${action} action for user ${userFid} on promotion ${promotionId}`);
+        
         // Insert into like_recast_user_actions
-        const userActionResult = await client.query(`
-          INSERT INTO like_recast_user_actions (
-            promotion_id, user_fid, action_type, cast_hash, 
-            verification_method, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-          RETURNING id, action_type, created_at
-        `, [promotionId, userFid, action, castHash, 'verified']);
+        try {
+          const userActionResult = await client.query(`
+            INSERT INTO like_recast_user_actions (
+              promotion_id, user_fid, action_type, cast_hash, 
+              verification_method, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+            RETURNING id, action_type, created_at
+          `, [promotionId, userFid, action, castHash, 'verified']);
+          
+          console.log(`✅ User action inserted:`, userActionResult.rows[0]);
 
-        // Insert into like_recast_actions (main tracking table)
-        const actionResult = await client.query(`
-          INSERT INTO like_recast_actions (
-            promotion_id, user_fid, username, action_type, cast_hash, 
-            proof_url, reward_amount, status, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-          RETURNING id, action_type, created_at
-        `, [promotionId, userFid, username, action, castHash, proofUrl, Math.floor(rewardAmount / actionsToInsert.length), 'verified']);
+          // Insert into like_recast_actions (main tracking table)
+          const actionResult = await client.query(`
+            INSERT INTO like_recast_actions (
+              promotion_id, user_fid, username, action_type, cast_hash, 
+              proof_url, reward_amount, status, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+            RETURNING id, action_type, created_at
+          `, [promotionId, userFid, username, action, castHash, proofUrl, Math.floor(rewardAmount / actionsToInsert.length), 'verified']);
+          
+          console.log(`✅ Main action inserted:`, actionResult.rows[0]);
 
-        insertedActions.push({
-          userAction: userActionResult.rows[0],
-          mainAction: actionResult.rows[0]
-        });
+          insertedActions.push({
+            userAction: userActionResult.rows[0],
+            mainAction: actionResult.rows[0]
+          });
+          
+        } catch (insertError: any) {
+          console.error(`❌ Failed to insert ${action} action:`, insertError.message);
+          throw insertError; // This will trigger the rollback
+        }
       }
 
       if (insertedActions.length === 0) {
@@ -202,11 +231,18 @@ export async function POST(request: NextRequest) {
         remainingBudget: promotion.remaining_budget - totalReward
       }, { status: 200 });
 
-    } catch (error) {
-      await client.query('ROLLBACK');
+    } catch (error: any) {
+      console.error('❌ Transaction error, rolling back:', error.message);
+      try {
+        await client.query('ROLLBACK');
+        console.log('🔄 Transaction rolled back successfully');
+      } catch (rollbackError: any) {
+        console.error('❌ Rollback failed:', rollbackError.message);
+      }
       throw error;
     } finally {
       client.release();
+      console.log('🔌 Database connection released');
     }
 
   } catch (error: any) {
