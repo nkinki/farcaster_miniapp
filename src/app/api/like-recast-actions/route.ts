@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
       const allUserActionsResult = await client.query(`
         SELECT DISTINCT action_type FROM like_recast_user_actions 
         WHERE promotion_id = $1 AND user_fid = $2 
-        AND verification_method IN ('verified', 'manual')
+        AND verification_method IN ('auto', 'verified', 'manual')
       `, [promotionId, userFid]);
 
       const allUserActions = allUserActionsResult.rows.map(row => row.action_type);
