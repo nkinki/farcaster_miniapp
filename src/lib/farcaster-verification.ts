@@ -1,7 +1,30 @@
 import { getSSLHubRpcClient, Message } from "@farcaster/hub-nodejs";
 
-// Farcaster Hub client
-const client = getSSLHubRpcClient("nemes.farcaster.xyz:2283");
+// Farcaster Hub client - try multiple endpoints
+const hubEndpoints = [
+  "nemes.farcaster.xyz:2283",
+  "hub-grpc.pinata.cloud:443",
+  "hub.farcaster.standardcrypto.vc:2283"
+];
+
+let client = getSSLHubRpcClient(hubEndpoints[0]);
+
+// Function to try different hub endpoints
+async function getWorkingClient() {
+  for (const endpoint of hubEndpoints) {
+    try {
+      console.log(`🔗 Trying hub endpoint: ${endpoint}`);
+      const testClient = getSSLHubRpcClient(endpoint);
+      // Test the connection with a simple call
+      await testClient.getHubInfo();
+      console.log(`✅ Connected to hub: ${endpoint}`);
+      return testClient;
+    } catch (error) {
+      console.warn(`⚠️ Failed to connect to ${endpoint}:`, error);
+    }
+  }
+  throw new Error('No working hub endpoints found');
+}
 
 export interface VerificationResult {
   success: boolean;
@@ -19,13 +42,18 @@ export async function verifyLikeAndRecast(
   authorFid: number
 ): Promise<VerificationResult> {
   try {
-    console.log(`🔍 Verifying like & recast for user ${userFid} on cast ${castHash}`);
+    console.log(`🔍 Verifying like & recast for user ${userFid} on cast ${castHash} by author ${authorFid}`);
+
+    // Get working client
+    const workingClient = await getWorkingClient();
 
     // Convert cast hash to bytes
     const castHashBytes = Buffer.from(castHash.slice(2), 'hex');
+    console.log(`🔧 Cast hash bytes length: ${castHashBytes.length}`);
 
     // Check for like reactions
-    const likeResult = await client.getReactionsByTarget({
+    console.log(`🔍 Checking likes for cast ${castHash} by author ${authorFid}...`);
+    const likeResult = await workingClient.getReactionsByTarget({
       targetCastId: {
         fid: authorFid,
         hash: castHashBytes,
@@ -34,7 +62,8 @@ export async function verifyLikeAndRecast(
     });
 
     // Check for recast reactions  
-    const recastResult = await client.getReactionsByTarget({
+    console.log(`🔍 Checking recasts for cast ${castHash} by author ${authorFid}...`);
+    const recastResult = await workingClient.getReactionsByTarget({
       targetCastId: {
         fid: authorFid,
         hash: castHashBytes,
@@ -48,25 +77,29 @@ export async function verifyLikeAndRecast(
     // Check if user liked the cast
     if (likeResult.isOk()) {
       const likes = likeResult.value.messages;
+      console.log(`📊 Found ${likes.length} likes for cast ${castHash}`);
       hasLike = likes.some((message: Message) => 
         message.data?.fid === userFid && 
         message.data?.reactionBody?.type === 1
       );
       console.log(`👍 Like check: ${hasLike ? 'FOUND' : 'NOT FOUND'} for user ${userFid}`);
     } else {
-      console.warn(`⚠️ Failed to fetch likes:`, likeResult.error);
+      console.error(`❌ Failed to fetch likes:`, likeResult.error);
+      // Don't fail completely, continue with recast check
     }
 
     // Check if user recasted the cast
     if (recastResult.isOk()) {
       const recasts = recastResult.value.messages;
+      console.log(`📊 Found ${recasts.length} recasts for cast ${castHash}`);
       hasRecast = recasts.some((message: Message) => 
         message.data?.fid === userFid && 
         message.data?.reactionBody?.type === 2
       );
       console.log(`🔄 Recast check: ${hasRecast ? 'FOUND' : 'NOT FOUND'} for user ${userFid}`);
     } else {
-      console.warn(`⚠️ Failed to fetch recasts:`, recastResult.error);
+      console.error(`❌ Failed to fetch recasts:`, recastResult.error);
+      // Don't fail completely, return partial results
     }
 
     return {
