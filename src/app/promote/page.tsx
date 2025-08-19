@@ -533,9 +533,14 @@ export default function PromotePage() {
     if (p.status !== 'active' || p.author.fid === currentUser.fid) return false;
     if (p.remainingBudget < p.rewardPerShare) return false;
     
+    // Debug logging
+    console.log(`🔍 Filtering promo ${p.id}: actionType="${p.actionType}", filter="${promotionFilter}"`);
+    
     // Apply promotion type filter
     if (promotionFilter !== 'all') {
       const promoActionType = p.actionType || 'quote'; // Use mapped actionType field
+      console.log(`  📊 Action type check: ${promoActionType} === ${promotionFilter}? ${promoActionType === promotionFilter}`);
+      
       if (promotionFilter === 'quote' && promoActionType !== 'quote') return false;
       if (promotionFilter === 'like_recast' && promoActionType !== 'like_recast') return false;
     }
