@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        console.log(`Fetching user stats for FID: ${fid}`);
+        
+        // Get user stats from shares table (same as quote system)
         const [userStatsResult] = await sql`
             SELECT
                 COUNT(id) AS total_shares,
@@ -35,20 +38,32 @@ export async function GET(request: NextRequest) {
 
     } catch (error: any) {
         console.error(`API Error in GET /api/users/${fid}:`, error.message);
+        
         // Ha a reward_claimed oszlop nem létezik, adjunk vissza egy alap állapotot
         if (error.message.includes('column "reward_claimed" does not exist')) {
-            const [fallbackStats] = await sql`
-                SELECT COUNT(id) AS total_shares, COALESCE(SUM(reward_amount), 0) AS pending_rewards
-                FROM shares WHERE sharer_fid = ${fid};
-            `;
-            return NextResponse.json({
-                user: {
-                    total_shares: Number(fallbackStats.total_shares),
-                    total_earnings: Number(fallbackStats.pending_rewards),
-                    pending_rewards: Number(fallbackStats.pending_rewards),
-                }
-            });
+            try {
+                const [fallbackStats] = await sql`
+                    SELECT COUNT(id) AS total_shares, COALESCE(SUM(reward_amount), 0) AS pending_rewards
+                    FROM shares WHERE sharer_fid = ${fid};
+                `;
+                return NextResponse.json({
+                    user: {
+                        total_shares: Number(fallbackStats.total_shares),
+                        total_earnings: Number(fallbackStats.pending_rewards),
+                        pending_rewards: Number(fallbackStats.pending_rewards),
+                    }
+                });
+            } catch (fallbackError) {
+                console.error('Fallback query also failed:', fallbackError);
+            }
         }
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        
+        return NextResponse.json({
+            user: {
+                total_shares: 0,
+                total_earnings: 0,
+                pending_rewards: 0,
+            }
+        });
     }
 }

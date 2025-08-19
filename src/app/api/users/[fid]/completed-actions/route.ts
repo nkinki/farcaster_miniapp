@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL!,
+  ssl: { rejectUnauthorized: false }
+});
 
 export async function GET(
   request: NextRequest,
@@ -18,11 +21,11 @@ export async function GET(
     const client = await pool.connect();
     
     try {
-      // Get completed like_recast actions for this user
+      // Get completed like_recast actions for this user from shares table
       const { rows } = await client.query(`
         SELECT DISTINCT promotion_id
-        FROM like_recast_completions
-        WHERE user_fid = $1
+        FROM shares
+        WHERE sharer_fid = $1 AND action_type = 'like_recast'
       `, [fid]);
 
       return NextResponse.json({

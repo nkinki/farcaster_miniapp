@@ -31,6 +31,42 @@ export async function GET(request: NextRequest) {
       SELECT * FROM promotions LIMIT 3
     `;
     
+    // Check like_recast_completions table
+    let likeRecastCompletions = null;
+    let likeRecastCompletionsColumns = null;
+    try {
+      likeRecastCompletionsColumns = await sql`
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns 
+        WHERE table_name = 'like_recast_completions' 
+        ORDER BY ordinal_position
+      `;
+      
+      likeRecastCompletions = await sql`
+        SELECT * FROM like_recast_completions LIMIT 5
+      `;
+    } catch (error) {
+      console.log('like_recast_completions table does not exist or error:', error);
+    }
+    
+    // Check like_recast_user_actions table
+    let likeRecastUserActions = null;
+    let likeRecastUserActionsColumns = null;
+    try {
+      likeRecastUserActionsColumns = await sql`
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns 
+        WHERE table_name = 'like_recast_user_actions' 
+        ORDER BY ordinal_position
+      `;
+      
+      likeRecastUserActions = await sql`
+        SELECT * FROM like_recast_user_actions LIMIT 5
+      `;
+    } catch (error) {
+      console.log('like_recast_user_actions table does not exist or error:', error);
+    }
+    
     return NextResponse.json({
       success: true,
       tables: {
@@ -41,6 +77,14 @@ export async function GET(request: NextRequest) {
         promotions: {
           columns: promotionsColumns,
           sampleData: samplePromotions
+        },
+        like_recast_completions: {
+          columns: likeRecastCompletionsColumns,
+          sampleData: likeRecastCompletions
+        },
+        like_recast_user_actions: {
+          columns: likeRecastUserActionsColumns,
+          sampleData: likeRecastUserActions
         }
       }
     });

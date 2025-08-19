@@ -204,17 +204,18 @@ export async function POST(request: NextRequest) {
 
       // If user completed both actions, create completion record and reward
       if (hasLike && hasRecast) {
-        // Insert completion record
+        // Record in shares table (same as quote system)
         await client.query(`
-          INSERT INTO like_recast_completions (
-            promotion_id, user_fid, reward_amount, verification_method, claimed_at
-          ) VALUES ($1, $2, $3, $4, NOW())
-        `, [promotionId, userFid, rewardAmount, 'auto']);
+          INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, action_type)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [promotionId, userFid, username, castHash, rewardAmount, 'like_recast']);
+
+        console.log(`✅ Like & recast action recorded in shares table for user ${userFid}`);
 
         totalReward = rewardAmount;
         completionInserted = true;
 
-        // Update promotion remaining budget and shares count
+        // Update promotion remaining budget and shares count (same as quote system)
         await client.query(`
           UPDATE promotions 
           SET remaining_budget = remaining_budget - $1,
@@ -223,22 +224,22 @@ export async function POST(request: NextRequest) {
           WHERE id = $2
         `, [totalReward, promotionId]);
 
-        // Update user balance and record
-        try {
-          await client.query(`
-            INSERT INTO users (fid, username, balance, created_at, updated_at)
-            VALUES ($1, $2, $3, NOW(), NOW())
-            ON CONFLICT (fid) 
-            DO UPDATE SET 
-              username = EXCLUDED.username,
-              balance = COALESCE(users.balance, 0) + $3,
-              updated_at = NOW()
-          `, [userFid, username || `user_${userFid}`, totalReward]);
-          console.log(`✅ User balance updated: +${totalReward} $CHESS for user ${userFid} (${username})`);
-        } catch (userError: any) {
-          console.warn('⚠️ Could not update user balance:', userError?.message || userError);
-          // Continue without failing the transaction
+        // Check if campaign should be marked as completed (same as quote system)
+        const updatedPromoResult = await client.query(`
+          SELECT remaining_budget, reward_per_share 
+          FROM promotions WHERE id = $1
+        `, [promotionId]);
+
+        const updatedPromo = updatedPromoResult.rows[0];
+        if (updatedPromo && updatedPromo.remaining_budget <= 0) {
+          await client.query(`UPDATE promotions SET status = 'completed' WHERE id = $1`, [promotionId]);
+          console.log(`Campaign ${promotionId} marked as completed - budget exhausted`);
+        } else if (updatedPromo && updatedPromo.remaining_budget < updatedPromo.reward_per_share) {
+          await client.query(`UPDATE promotions SET status = 'completed' WHERE id = $1`, [promotionId]);
+          console.log(`Campaign ${promotionId} marked as completed - insufficient budget for next share`);
         }
+
+        // Note: User balance is calculated from shares table, no need to update users table
 
         // Update action records to 'rewarded' status
         await client.query(`
