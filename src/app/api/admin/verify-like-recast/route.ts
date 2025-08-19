@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
                         `UPDATE manual_verifications 
                          SET status = 'verified', verified_by = $1, verified_at = CURRENT_TIMESTAMP, notes = $2
                          WHERE action_id = $3`,
-                        [adminId || 0, notes || 'Manually verified by admin - reward granted', actionId]
+                        [adminId || 0, 'Manually verified by admin - reward granted', actionId]
                     );
 
                     await client.query('COMMIT');

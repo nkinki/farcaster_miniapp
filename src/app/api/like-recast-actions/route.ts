@@ -168,10 +168,10 @@ export async function POST(request: NextRequest) {
                 
                 for (const action of bothActions) {
                     await client.query(
-                        `INSERT INTO manual_verifications (action_id, status, notes, promotion_id, user_fid)
-                         VALUES ($1, 'pending', $2, $3, $4)
+                        `INSERT INTO manual_verifications (action_id, status, notes)
+                         VALUES ($1, 'pending', $2)
                          ON CONFLICT (action_id) DO NOTHING`,
-                        [action.id, 'Both like and recast actions recorded, awaiting manual verification', promotionId, userFid]
+                        [action.id, 'Both like and recast actions recorded, awaiting manual verification']
                     );
                     console.log('✅ Added action ID', action.id, 'to manual verification queue');
                 }
@@ -185,10 +185,10 @@ export async function POST(request: NextRequest) {
                 
                 if (singleAction.length > 0) {
                     await client.query(
-                        `INSERT INTO manual_verifications (action_id, status, notes, promotion_id, user_fid)
-                         VALUES ($1, 'pending', $2, $3, $4)
+                        `INSERT INTO manual_verifications (action_id, status, notes)
+                         VALUES ($1, 'pending', $2)
                          ON CONFLICT (action_id) DO NOTHING`,
-                        [singleAction[0].id, `${actionType} action recorded, awaiting manual verification`, promotionId, userFid]
+                        [singleAction[0].id, `${actionType} action recorded, awaiting manual verification`]
                     );
                     console.log('✅ Added single action to manual verification queue');
                 }
