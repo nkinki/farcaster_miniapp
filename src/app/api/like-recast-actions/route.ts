@@ -115,22 +115,29 @@ export async function POST(request: NextRequest) {
         if (actionType === 'both') {
             // For 'both' action type, create separate like and recast actions
             console.log('📝 Inserting both like and recast actions with verification method:', verificationMethod);
+            console.log('📊 Parameters:', { promotionId, userFid, verificationMethod, castHash });
             
-            await client.query(
+            // Insert LIKE action
+            const likeResult = await client.query(
                 `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
                  VALUES ($1, $2, 'like', $3, $4)
                  ON CONFLICT (promotion_id, user_fid, action_type) 
-                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP`,
+                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP
+                 RETURNING id`,
                 [promotionId, userFid, verificationMethod, castHash]
             );
+            console.log('✅ LIKE action inserted/updated with ID:', likeResult.rows[0]?.id);
             
-            await client.query(
+            // Insert RECAST action
+            const recastResult = await client.query(
                 `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
                  VALUES ($1, $2, 'recast', $3, $4)
                  ON CONFLICT (promotion_id, user_fid, action_type) 
-                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP`,
+                 DO UPDATE SET verification_method = $3, cast_hash = $4, updated_at = CURRENT_TIMESTAMP
+                 RETURNING id`,
                 [promotionId, userFid, verificationMethod, castHash]
             );
+            console.log('✅ RECAST action inserted/updated with ID:', recastResult.rows[0]?.id);
             
             console.log('✅ Both actions inserted successfully');
         } else {
@@ -148,15 +155,44 @@ export async function POST(request: NextRequest) {
         if (verificationMethod === 'manual') {
             console.log('📋 Adding to manual verification queue');
             
-            // Hozzáadjuk a manual verification queue-hoz
-            await client.query(
-                `INSERT INTO manual_verifications (action_id, status, notes, promotion_id, user_fid)
-                 SELECT id, 'pending', $1, promotion_id, user_fid
-                 FROM like_recast_user_actions 
-                 WHERE promotion_id = $2 AND user_fid = $3
-                 ON CONFLICT (action_id) DO NOTHING`,
-                [`${actionType === 'both' ? 'Both like and recast' : actionType} actions recorded, awaiting manual verification`, promotionId, userFid]
-            );
+            if (actionType === 'both') {
+                // For 'both' action type, add both actions to manual verification queue
+                const { rows: bothActions } = await client.query(
+                    `SELECT id FROM like_recast_user_actions 
+                     WHERE promotion_id = $1 AND user_fid = $2 AND action_type IN ('like', 'recast')
+                     ORDER BY action_type`,
+                    [promotionId, userFid]
+                );
+                
+                console.log('📝 Found actions for manual verification:', bothActions);
+                
+                for (const action of bothActions) {
+                    await client.query(
+                        `INSERT INTO manual_verifications (action_id, status, notes, promotion_id, user_fid)
+                         VALUES ($1, 'pending', $2, $3, $4)
+                         ON CONFLICT (action_id) DO NOTHING`,
+                        [action.id, 'Both like and recast actions recorded, awaiting manual verification', promotionId, userFid]
+                    );
+                    console.log('✅ Added action ID', action.id, 'to manual verification queue');
+                }
+            } else {
+                // Single action type
+                const { rows: singleAction } = await client.query(
+                    `SELECT id FROM like_recast_user_actions 
+                     WHERE promotion_id = $1 AND user_fid = $2 AND action_type = $3`,
+                    [promotionId, userFid, actionType]
+                );
+                
+                if (singleAction.length > 0) {
+                    await client.query(
+                        `INSERT INTO manual_verifications (action_id, status, notes, promotion_id, user_fid)
+                         VALUES ($1, 'pending', $2, $3, $4)
+                         ON CONFLICT (action_id) DO NOTHING`,
+                        [singleAction[0].id, `${actionType} action recorded, awaiting manual verification`, promotionId, userFid]
+                    );
+                    console.log('✅ Added single action to manual verification queue');
+                }
+            }
             
             console.log('✅ Added to manual verification queue');
         }
