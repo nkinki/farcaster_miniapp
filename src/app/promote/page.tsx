@@ -361,10 +361,16 @@ export default function PromotePage() {
 
   // Like & Recast combined action (single button triggers both sequentially)
   const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
+    console.log('🚀 handleLikeRecastBoth called!');
+    console.log('📊 Promo:', promo);
+    console.log('📱 Event:', e);
+    
     // Prevent default behavior to avoid page reload
     if (e) {
+      console.log('🛑 Preventing default behavior...');
       e.preventDefault();
       e.stopPropagation();
+      console.log('✅ Default behavior prevented');
     }
     
     if (!isAuthenticated || !currentUser.fid) {
@@ -792,7 +798,16 @@ export default function PromotePage() {
                                 {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
                               </button>
                             ) : promo.actionType === 'like_recast' ? (
-                              <button onClick={(e) => handleLikeRecastBoth(promo, e)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-red-600 to-emerald-600 hover:from-red-700 hover:to-emerald-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                              <button 
+                                onClick={(e) => {
+                                  console.log('🔘 Button clicked!');
+                                  console.log('📱 Event:', e);
+                                  console.log('🎯 Promo:', promo);
+                                  handleLikeRecastBoth(promo, e);
+                                }} 
+                                disabled={sharingPromoId === promo.id.toString() || !canShare} 
+                                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-red-600 to-emerald-600 hover:from-red-700 hover:to-emerald-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
+                              >
                                 {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : '👍'}
                                 {sharingPromoId === promo.id.toString() ? 'Processing...' : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`}
                                 <div className="text-xs opacity-75 mt-1">🚧 Under Development</div>
