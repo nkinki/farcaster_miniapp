@@ -378,17 +378,65 @@ export default function PromotePage() {
     try {
       console.log('🚀 Starting like & recast actions for promo:', promo.id);
       
-      // Execute both actions sequentially
-      await handleLikeRecastAction(promo, 'like');
-      await handleLikeRecastAction(promo, 'recast');
+      // Extract cast hash from URL
+      const castHash = promo.castUrl.split('/').pop() || '';
       
-      console.log('✅ Like & recast actions completed successfully');
+      if (!castHash || !castHash.startsWith('0x')) {
+        throw new Error('Invalid cast hash. Please check the cast URL.');
+      }
       
-      // Show success message
-      setShareError(null);
+      console.log('🔍 Using cast hash:', castHash);
       
-      // Refresh data
-      await refreshAllData();
+      // Use Farcaster SDK to like and recast
+      try {
+        // Like the cast using Farcaster SDK
+        console.log('👍 Attempting to like cast...');
+        await (miniAppSdk as any).actions.likeCast({ hash: castHash });
+        console.log('✅ Like action completed successfully');
+        
+        // Small delay between actions
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Recast the cast using Farcaster SDK
+        console.log('🔄 Attempting to recast cast...');
+        await (miniAppSdk as any).actions.recastCast({ hash: castHash });
+        console.log('✅ Recast action completed successfully');
+        
+        // Now submit to our backend for reward verification
+        console.log('💰 Submitting actions for reward...');
+        const response = await fetch('/api/like-recast-actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promotionId: promo.id,
+            userFid: currentUser.fid,
+            username: currentUser.username,
+            actionType: 'both',
+            castHash,
+            rewardAmount: promo.rewardPerShare,
+            proofUrl: promo.castUrl
+          })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit actions for reward');
+        }
+
+        console.log('✅ Like & recast actions completed successfully');
+        setShareError(null);
+        
+        // Show success message
+        setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
+        
+        // Refresh data
+        await refreshAllData();
+        
+      } catch (sdkError) {
+        console.error('❌ Farcaster SDK error:', sdkError);
+        throw new Error('Failed to like/recast cast. Please try again or check your Farcaster connection.');
+      }
       
     } catch (error: any) {
       console.error('❌ Like & recast actions failed:', error);

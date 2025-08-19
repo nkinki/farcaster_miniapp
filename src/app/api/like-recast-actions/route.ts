@@ -74,12 +74,14 @@ export async function POST(request: NextRequest) {
         if (!promotionId || !userFid || !actionType || !castHash) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
-        if (!['like', 'recast'].includes(actionType)) {
+        if (!['like', 'recast', 'both'].includes(actionType)) {
             return NextResponse.json({ error: 'Invalid action type' }, { status: 400 });
         }
 
         let rewardGranted = false;
-        let message = `Action '${actionType}' recorded.`;
+        let message = actionType === 'both' 
+            ? 'Both like and recast actions recorded.' 
+            : `Action '${actionType}' recorded.`;
         let verificationMethod = 'pending';
 
         // Adatbázis tranzakció indítása
@@ -108,13 +110,33 @@ export async function POST(request: NextRequest) {
         }
 
         // 3. Részfeladat rögzítése verification method-dal
-        await client.query(
-            `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
-             VALUES ($1, $2, $3, $4, $5)
-             ON CONFLICT (promotion_id, user_fid, action_type) 
-             DO UPDATE SET verification_method = $4, cast_hash = $5, updated_at = CURRENT_TIMESTAMP`,
-            [promotionId, userFid, actionType, verificationMethod, castHash]
-        );
+        if (actionType === 'both') {
+            // For 'both' action type, create separate like and recast actions
+            await client.query(
+                `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
+                 VALUES ($1, $2, 'like', $4, $5)
+                 ON CONFLICT (promotion_id, user_fid, action_type) 
+                 DO UPDATE SET verification_method = $4, cast_hash = $5, updated_at = CURRENT_TIMESTAMP`,
+                [promotionId, userFid, 'like', verificationMethod, castHash]
+            );
+            
+            await client.query(
+                `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
+                 VALUES ($1, $2, 'recast', $4, $5)
+                 ON CONFLICT (promotion_id, user_fid, action_type) 
+                 DO UPDATE SET verification_method = $4, cast_hash = $5, updated_at = CURRENT_TIMESTAMP`,
+                [promotionId, userFid, 'recast', verificationMethod, castHash]
+            );
+        } else {
+            // Single action type (like or recast)
+            await client.query(
+                `INSERT INTO like_recast_user_actions (promotion_id, user_fid, action_type, verification_method, cast_hash)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (promotion_id, user_fid, action_type) 
+                 DO UPDATE SET verification_method = $4, cast_hash = $5, updated_at = CURRENT_TIMESTAMP`,
+                [promotionId, userFid, actionType, verificationMethod, castHash]
+            );
+        }
 
         // 4. Teljesítés ellenőrzése (csak automatikusan ellenőrzött vagy manual verification alatt álló)
         const { rows: completedActions } = await client.query(
