@@ -83,7 +83,6 @@ export async function POST(request: NextRequest) {
                     await client.query(
                         `UPDATE users 
                          SET total_earnings = total_earnings + $1,
-                             pending_rewards = pending_rewards + $1,
                              updated_at = CURRENT_TIMESTAMP
                          WHERE fid = $2`,
                         [rewardAmount, action.user_fid]
