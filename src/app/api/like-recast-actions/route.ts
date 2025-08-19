@@ -130,6 +130,15 @@ export async function POST(request: NextRequest) {
           
           console.log(`✅ Main action inserted:`, actionResult.rows[0]);
 
+          // Create manual verification record for admin panel
+          await client.query(`
+            INSERT INTO manual_verifications (
+              action_id, status, created_at, updated_at
+            ) VALUES ($1, 'pending', NOW(), NOW())
+          `, [userActionResult.rows[0].id]);
+          
+          console.log(`✅ Manual verification record created for ${action} action`);
+
           insertedActions.push({
             userAction: userActionResult.rows[0],
             mainAction: actionResult.rows[0]
