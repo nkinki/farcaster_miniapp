@@ -18,8 +18,37 @@ export async function verifyLikeAndRecast(
   try {
     console.log(`🔍 Verifying like & recast for user ${userFid} on cast ${castHash} by author ${authorFid}`);
 
-    // Create client
-    const client = getSSLHubRpcClient("nemes.farcaster.xyz:2283");
+    // Try multiple hub endpoints
+    const hubEndpoints = [
+      "hub-grpc.pinata.cloud:443",
+      "nemes.farcaster.xyz:2283",
+      "hub.farcaster.standardcrypto.vc:2283"
+    ];
+
+    let client;
+    let workingEndpoint = null;
+
+    // Find working endpoint
+    for (const endpoint of hubEndpoints) {
+      try {
+        console.log(`🔗 Trying hub endpoint: ${endpoint}`);
+        const testClient = getSSLHubRpcClient(endpoint);
+        
+        // Test with a simple call
+        await testClient.getInfo();
+        
+        client = testClient;
+        workingEndpoint = endpoint;
+        console.log(`✅ Connected to hub: ${endpoint}`);
+        break;
+      } catch (error) {
+        console.warn(`⚠️ Failed to connect to ${endpoint}:`, error);
+      }
+    }
+
+    if (!client) {
+      throw new Error('No working hub endpoints found');
+    }
 
     // Convert cast hash to bytes
     const castHashBytes = Buffer.from(castHash.slice(2), 'hex');
