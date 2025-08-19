@@ -669,18 +669,22 @@ export default function PromotePage() {
       const isCompletedA = completedActions[a.id] || false;
       const isCompletedB = completedActions[b.id] || false;
       
-      // For like_recast promotions, move completed ones to bottom
-      if (a.actionType === 'like_recast' && b.actionType === 'like_recast') {
-        if (!isCompletedA && isCompletedB) return -1; // A not completed, B completed -> A first
-        if (isCompletedA && !isCompletedB) return 1;  // A completed, B not completed -> B first
+      // Priority levels: 1=Active, 2=48h Quote Wait, 3=Completed Like/Recast
+      const getPriority = (promo: any, canShare: boolean, isCompleted: boolean) => {
+        if (promo.actionType === 'like_recast' && isCompleted) return 3; // Completed like/recast - bottom
+        if (promo.actionType === 'quote' && !canShare) return 2; // 48h quote wait - middle
+        return 1; // Active (both quote available and like/recast available) - top
+      };
+      
+      const priorityA = getPriority(a, canShareA, isCompletedA);
+      const priorityB = getPriority(b, canShareB, isCompletedB);
+      
+      // Sort by priority first
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
       }
       
-      // For quote promotions, use timer-based sorting
-      if (a.actionType === 'quote' && b.actionType === 'quote') {
-        if (canShareA && !canShareB) return -1;
-        if (!canShareA && canShareB) return 1;
-      }
-      
+      // Within same priority, sort by reward amount (highest first)
       return b.rewardPerShare - a.rewardPerShare;
     });
   }, [availablePromos, shareTimers, completedActions]);
@@ -796,30 +800,36 @@ export default function PromotePage() {
                       const timerInfo = shareTimers[promo.id.toString()];
                       const canShare = timerInfo?.canShare ?? true;
                       return (
-                        <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700 flex flex-col gap-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 overflow-hidden pr-4">
-                              <p className="text-white font-semibold truncate">{promo.castUrl}</p><p className="text-purple-300 text-sm">by @{promo.author.username}</p>
+                        <div key={promo.id} className="bg-[#181c23] p-3 rounded-lg border border-gray-700 flex flex-col gap-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-1 overflow-hidden">
+                              <div className="bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-md min-w-[2rem] text-center">
+                                #{promo.id}
+                              </div>
+                              <div className="flex-1 overflow-hidden">
+                                <p className="text-white text-sm font-medium truncate">{promo.castUrl}</p>
+                                <p className="text-purple-300 text-xs">@{promo.author.username}</p>
+                              </div>
                             </div>
                             <div className="relative">
-                              <button onClick={() => setOpenMenuId(openMenuId === promo.id.toString() ? null : promo.id.toString())} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={20} /></button>
+                              <button onClick={() => setOpenMenuId(openMenuId === promo.id.toString() ? null : promo.id.toString())} className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={16} /></button>
                               {openMenuId === promo.id.toString() && ( 
-                                <div className="absolute right-0 mt-2 w-56 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> 
-                                  <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-700">
-                                    <FiEye size={16} /> View Cast (In-App)
+                                <div className="absolute right-0 mt-2 w-48 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> 
+                                  <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-gray-700">
+                                    <FiEye size={14} /> view cast
                                   </button> 
                                 </div> 
                               )}
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
-                            <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiDollarSign className="text-green-400" />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">Reward/Share</p></div>
-                            <div className="p-3 bg-gray-800 rounded-lg"><div className="flex items-center justify-center gap-1.5 mb-1 font-semibold"><FiUsers className="text-blue-400" />{promo.sharesCount}</div><p className="text-xs text-gray-400">Shares</p></div>
-                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">Remaining</p></div>
-                            <div className="p-3 bg-gray-800 rounded-lg"><div className="mb-1 font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">Total Budget</p></div>
+                          <div className="grid grid-cols-4 gap-2 text-center text-white">
+                            <div className="p-2 bg-gray-800 rounded"><div className="flex items-center justify-center gap-1 mb-0.5 text-sm font-semibold"><FiDollarSign className="text-green-400" size={12} />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">reward</p></div>
+                            <div className="p-2 bg-gray-800 rounded"><div className="flex items-center justify-center gap-1 mb-0.5 text-sm font-semibold"><FiUsers className="text-blue-400" size={12} />{promo.sharesCount}</div><p className="text-xs text-gray-400">shares</p></div>
+                            <div className="p-2 bg-gray-800 rounded"><div className="mb-0.5 text-sm font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">left</p></div>
+                            <div className="p-2 bg-gray-800 rounded"><div className="mb-0.5 text-sm font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">total</p></div>
                           </div>
-                          <div className="w-full bg-gray-700 rounded-full h-2.5">
-                            <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
+                          <div className="w-full bg-gray-700 rounded-full h-1.5">
+                            <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
                           </div>
                           <div>
                             {!canShare && timerInfo && (
