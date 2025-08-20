@@ -24,6 +24,11 @@ interface AdminStats {
   totalShares: number;
   totalRewards: number;
   totalUsers: number;
+  pendingVerifications: number;
+  todayVerifications: number;
+  totalBudget: number;
+  remainingBudget: number;
+  avgReward: string;
 }
 
 interface ShareablePromo {
