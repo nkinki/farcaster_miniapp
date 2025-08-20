@@ -49,7 +49,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
   }
 
   return (
-    <div className="mb-8 bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
+    <div className="mb-8 bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden pulse-glow">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors"

@@ -54,7 +54,7 @@ export default function LuckyBox({ isOpen, onClose, onClaim, isPreview = false }
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#23283a] border border-[#a64d79] rounded-2xl p-8 max-w-md w-full shadow-2xl">
+      <div className="bg-[#23283a] border border-[#a64d79] rounded-2xl p-8 max-w-md w-full shadow-2xl pulse-glow">
         
         {/* Header */}
         <div className="text-center mb-6">

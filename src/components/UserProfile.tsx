@@ -117,7 +117,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const isLoading = isClaiming;
 
   return (
-    <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79]">
+    <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] pulse-glow">
       {/* Összecsukható fejléc */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">

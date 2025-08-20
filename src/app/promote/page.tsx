@@ -743,7 +743,7 @@ export default function PromotePage() {
         </div>
         
         {showForm && ( 
-          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative"> 
+          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative pulse-glow"> 
             <button className="absolute top-3 right-3 text-gray-400 hover:text-white" onClick={handleCreateCancel}>
               <FiX size={24} />
             </button> 
@@ -925,7 +925,7 @@ export default function PromotePage() {
                 window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
               }
             }}
-            className="flex items-center gap-4 px-8 py-4 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-xl transition-all duration-300"
+            className="flex items-center gap-4 px-8 py-4 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-xl transition-all duration-300 pulse-glow"
           >
             👥 Join AppRank Group
           </button>
@@ -933,7 +933,7 @@ export default function PromotePage() {
 
         {/* Lucky Box Preview - Always Visible */}
         <div className="flex justify-center mt-4 mb-6">
-          <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm">
+          <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm pulse-glow">
             <div className="text-3xl mb-2 animate-bounce">🎁</div>
             <div className="text-white font-bold mb-2">Lucky Box</div>
             
@@ -961,7 +961,7 @@ export default function PromotePage() {
         {/* Lucky Box Success Message */}
         {luckyBoxReward > 0 && (
           <div className="flex justify-center mt-4 mb-6">
-            <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-4 text-center">
+            <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-4 text-center pulse-glow">
               <div className="text-2xl mb-2">🎉</div>
               <div className="text-white font-bold">Lucky Box Opened!</div>
               <div className="text-yellow-300 text-lg font-bold">+{luckyBoxReward.toLocaleString()} CHESS</div>
@@ -971,7 +971,7 @@ export default function PromotePage() {
         )}
 
         {/* Wallet Connection Section - Szolidabb design */}
-        <div className="flex flex-col items-center gap-3 mt-6 mb-4 p-4 bg-black/20 rounded-lg border border-gray-600/30">
+        <div className="flex flex-col items-center gap-3 mt-6 mb-4 p-4 bg-black/20 rounded-lg border border-gray-600/30 pulse-glow">
           
           {/* Wallet Status */}
           <div className="flex flex-col items-center gap-2">
