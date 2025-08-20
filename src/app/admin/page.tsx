@@ -305,10 +305,10 @@ export default function AdminPage() {
                   <div className="text-purple-300 text-xs font-semibold">Share Text (másolható)</div>
                   <div 
                     className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
-                    onClick={() => copyToClipboard(`🎯 Earn ${promo.reward_per_share} $CHESS for ${promo.action_type}! Join the promotion: ${promo.cast_url}`)}
+                    onClick={() => copyToClipboard(`🎯 Earn ${promo.reward_per_share} $CHESS for ${promo.action_type}! Join the promotion: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`)}
                   >
                     <div className="text-green-400 text-sm select-all">
-                      🎯 Earn {promo.reward_per_share} $CHESS for {promo.action_type}! Join the promotion: {promo.cast_url}
+                      🎯 Earn {promo.reward_per_share} $CHESS for {promo.action_type}! Join the promotion: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank
                     </div>
                   </div>
                 </div>
