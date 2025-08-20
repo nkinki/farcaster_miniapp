@@ -933,7 +933,7 @@ export default function PromotePage() {
 
         {/* Lucky Box Preview - Always Visible */}
         <div className="flex justify-center mt-4 mb-6">
-          <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm pulse-glow">
+          <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm">
             <div className="text-3xl mb-2 animate-bounce">🎁</div>
             <div className="text-white font-bold mb-2">Lucky Box</div>
             
@@ -971,7 +971,7 @@ export default function PromotePage() {
         )}
 
         {/* Wallet Connection Section - Szolidabb design */}
-        <div className="flex flex-col items-center gap-3 mt-6 mb-4 p-4 bg-black/20 rounded-lg border border-gray-600/30 pulse-glow">
+        <div className="flex flex-col items-center gap-3 mt-6 mb-4 p-4 bg-black/20 rounded-lg border border-gray-600/30">
           
           {/* Wallet Status */}
           <div className="flex flex-col items-center gap-2">
