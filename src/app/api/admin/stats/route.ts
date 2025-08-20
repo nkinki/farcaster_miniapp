@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const totalUsers = totalUsersResult[0] || { count: 0 };
 
     // Get pending verifications (with fallback if table doesn't exist)
-    let pendingVerifications = { count: 0 };
+    let pendingVerifications: any = { count: 0 };
     try {
       const pendingVerificationsResult = await sql`
         SELECT COUNT(*) as count FROM verifications WHERE status = 'pending'
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get completed verifications today (with fallback)
-    let todayVerifications = { count: 0 };
+    let todayVerifications: any = { count: 0 };
     try {
       const todayVerificationsResult = await sql`
         SELECT COUNT(*) as count FROM verifications 
