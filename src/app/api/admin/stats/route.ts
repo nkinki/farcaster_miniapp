@@ -79,6 +79,45 @@ export async function GET(request: NextRequest) {
     `;
     const avgReward = avgRewardResult[0] || { avg: 0 };
 
+    // FarChess statisztikák hozzáadása
+    let farChessStats = {
+      totalGames: 0,
+      activeGames: 0,
+      totalPlayers: 0,
+      totalMoves: 0,
+      completedGames: 0
+    };
+
+    try {
+      // FarChess games statisztikák
+      const [farChessGamesResult] = await sql`
+        SELECT COUNT(*) as total_games,
+               COUNT(CASE WHEN status = 'active' THEN 1 END) as active_games,
+               COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_games
+        FROM games
+      `;
+      
+      // FarChess players statisztikák
+      const [farChessPlayersResult] = await sql`
+        SELECT COUNT(DISTINCT player_fid) as total_players FROM game_players
+      `;
+      
+      // FarChess moves statisztikák
+      const [farChessMovesResult] = await sql`
+        SELECT COUNT(*) as total_moves FROM game_moves
+      `;
+
+      farChessStats = {
+        totalGames: Number(farChessGamesResult?.total_games) || 0,
+        activeGames: Number(farChessGamesResult?.active_games) || 0,
+        completedGames: Number(farChessGamesResult?.completed_games) || 0,
+        totalPlayers: Number(farChessPlayersResult?.total_players) || 0,
+        totalMoves: Number(farChessMovesResult?.total_moves) || 0
+      };
+    } catch (e) {
+      console.log('FarChess tables might not exist or be accessible:', e);
+    }
+
     const stats = {
       totalPromotions: Number(totalPromotions.count) || 0,
       activePromotions: Number(activePromotions.count) || 0,
@@ -90,6 +129,8 @@ export async function GET(request: NextRequest) {
       totalBudget: Number(totalBudget.total) || 0,
       remainingBudget: Number(remainingBudget.total) || 0,
       avgReward: Number(avgReward.avg).toFixed(2) || '0.00',
+      // FarChess statisztikák
+      farChess: farChessStats,
     };
 
     console.log('Admin stats result:', stats);

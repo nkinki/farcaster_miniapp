@@ -29,6 +29,13 @@ interface AdminStats {
   totalBudget: number;
   remainingBudget: number;
   avgReward: string;
+  farChess: {
+    totalGames: number;
+    activeGames: number;
+    completedGames: number;
+    totalPlayers: number;
+    totalMoves: number;
+  };
 }
 
 interface ShareablePromo {
@@ -243,6 +250,37 @@ export default function AdminPage() {
                 <div className="text-sm text-gray-300">Avg Reward/Share</div>
               </div>
             </div>
+
+            {/* FarChess statisztikák */}
+            {stats.farChess && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  ♟️ FarChess Statistics
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-amber-400">{stats.farChess.totalGames || 0}</div>
+                    <div className="text-sm text-gray-300">Total Games</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-green-400">{stats.farChess.activeGames || 0}</div>
+                    <div className="text-sm text-gray-300">Active Games</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-400">{stats.farChess.completedGames || 0}</div>
+                    <div className="text-sm text-gray-300">Completed Games</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-400">{stats.farChess.totalPlayers || 0}</div>
+                    <div className="text-sm text-gray-300">Total Players</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-rose-400">{stats.farChess.totalMoves || 0}</div>
+                    <div className="text-sm text-gray-300">Total Moves</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

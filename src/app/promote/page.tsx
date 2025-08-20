@@ -735,10 +735,9 @@ export default function PromotePage() {
         <div className="flex justify-center my-8">
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg pulse-glow"
-              style={{ position: 'relative', overflow: 'hidden' }}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 rounded-lg text-white transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              <FiPlus size={20} />Create Promotion
+              <FiPlus size={16} />Create Promotion
             </button>
         </div>
         
@@ -763,34 +762,33 @@ export default function PromotePage() {
                   <div className="flex gap-2 mb-4">
                     <button
                       onClick={() => setPromotionFilter('all')}
-                      className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                         promotionFilter === 'all'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-slate-700 text-white border border-slate-500'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
                       }`}
                     >
                       All Types
                     </button>
                     <button
                       onClick={() => setPromotionFilter('quote')}
-                      className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                         promotionFilter === 'quote'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-blue-600 text-white border border-blue-500'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
                       }`}
                     >
                       💬 Quote
                     </button>
                     <button
                       onClick={() => setPromotionFilter('like_recast')}
-                      className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                         promotionFilter === 'like_recast'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-emerald-600 text-white border border-emerald-500'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
                       }`}
                     >
                       👍 Like & Recast
-                      <div className="text-xs opacity-75">🚧 Under Development</div>
                     </button>
                   </div>
                   {sortedAvailablePromos.length === 0 ? (
@@ -850,8 +848,8 @@ export default function PromotePage() {
                               
                               if (promo.actionType === 'quote') {
                                 return (
-                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
-                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
+                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiShare2 size={14} />}
                                     {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
                                   </button>
                                 );
@@ -861,7 +859,7 @@ export default function PromotePage() {
                                 
                                 if (isCompleted) {
                                   return (
-                                    <div className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-lg">
+                                    <div className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm">
                                       <span>✅</span>
                                       <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
                                     </div>
@@ -878,17 +876,17 @@ export default function PromotePage() {
                                       handleLikeRecastBoth(promo, e);
                                     }} 
                                     disabled={sharingPromoId === promo.id.toString() || !canShare} 
-                                    className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-red-600 to-emerald-600 hover:from-red-700 hover:to-emerald-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
                                   >
-                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : '👍'}
+                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : '👍'}
                                     {sharingPromoId === promo.id.toString() ? 'Processing...' : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`}
                                   </button>
                                 );
                               } else {
                                 // Fallback for unknown types - default to quote
                                 return (
-                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
-                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <FiShare2 size={18} />}
+                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
+                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiShare2 size={14} />}
                                     {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
                                   </button>
                                 );
@@ -926,9 +924,6 @@ export default function PromotePage() {
               </div>
               <div className="text-gray-300 text-xs mt-1">
                 Every campaign = reward!
-              </div>
-              <div className="text-orange-400 text-xs mt-2 font-semibold">
-                🚧 Under Development
               </div>
             </div>
 
