@@ -751,7 +751,7 @@ export default function PromotePage() {
           </div>
         )}
 
-        <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden">
+        <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden pulse-glow">
             <button onClick={() => setIsShareListOpen(!isShareListOpen)} className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors">
                 <FiShare2 className="text-purple-300 w-6" />
                 <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
@@ -913,6 +913,24 @@ export default function PromotePage() {
           />
         )} 
 
+        {/* AppRank Group gomb közelebb a Share & Earn szekcióhoz */}
+        <div className="flex justify-center mt-6 mb-8">
+          <button
+            onClick={() => {
+              try {
+                (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
+              } catch (error) {
+                console.log('SDK openUrl error:', error);
+                // Fallback to window.open if SDK fails
+                window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
+              }
+            }}
+            className="flex items-center gap-4 px-8 py-4 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-xl transition-all duration-300"
+          >
+            👥 Join AppRank Group
+          </button>
+        </div>
+
         {/* Lucky Box Preview - Always Visible */}
         <div className="flex justify-center mt-4 mb-6">
           <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm">
@@ -951,24 +969,6 @@ export default function PromotePage() {
             </div>
           </div>
         )}
-
-        {/* AppRank Group gomb közelebb a Share & Earn szekcióhoz */}
-        <div className="flex justify-center mt-6 mb-8">
-          <button
-            onClick={() => {
-              try {
-                (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
-              } catch (error) {
-                console.log('SDK openUrl error:', error);
-                // Fallback to window.open if SDK fails
-                window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
-              }
-            }}
-            className="flex items-center gap-4 px-8 py-4 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-xl transition-all duration-300"
-          >
-            👥 Join AppRank Group
-          </button>
-        </div>
 
         {/* Wallet Connection Section - Szolidabb design */}
         <div className="flex flex-col items-center gap-3 mt-6 mb-4 p-4 bg-black/20 rounded-lg border border-gray-600/30">
