@@ -316,10 +316,14 @@ export default function AdminPage() {
             </div>
             {shareablePromos.map((promo) => (
               <div key={promo.id} className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
+                <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
                   <div>
                     <div className="text-purple-300 text-xs font-semibold">ID</div>
                     <div className="text-white font-bold">#{promo.id}</div>
+                  </div>
+                  <div>
+                    <div className="text-purple-300 text-xs font-semibold">Promoter</div>
+                    <div className="text-cyan-400 font-medium">@{promo.author_username}</div>
                   </div>
                   <div>
                     <div className="text-purple-300 text-xs font-semibold">Type</div>
@@ -360,10 +364,10 @@ export default function AdminPage() {
                   <div className="text-purple-300 text-xs font-semibold">Share Text (másolható)</div>
                   <div 
                     className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
-                    onClick={() => copyToClipboard(`🎯 Earn ${promo.reward_per_share} $CHESS for ${promo.action_type}! Join the promotion: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`)}
+                    onClick={() => copyToClipboard(`🎯 @${promo.author_username} offers ${promo.reward_per_share} $CHESS for ${promo.action_type} (${promo.remaining_budget}/${promo.total_budget} budget left)! Join: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`)}
                   >
                     <div className="text-green-400 text-sm select-all">
-                      🎯 Earn {promo.reward_per_share} $CHESS for {promo.action_type}! Join the promotion: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank
+                      🎯 @{promo.author_username} offers {promo.reward_per_share} $CHESS for {promo.action_type} ({promo.remaining_budget}/{promo.total_budget} budget left)! Join: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank
                     </div>
                   </div>
                 </div>
