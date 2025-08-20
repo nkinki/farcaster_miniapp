@@ -190,26 +190,53 @@ export default function AdminPage() {
 
         {/* Stats Tab */}
         {activeTab === 'stats' && stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400">{stats.totalPromotions}</div>
-              <div className="text-sm text-gray-300">Total Promotions</div>
+          <div className="space-y-6">
+            {/* Fő statisztikák */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-purple-400">{stats.totalPromotions}</div>
+                <div className="text-sm text-gray-300">Total Promotions</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-green-400">{stats.activePromotions}</div>
+                <div className="text-sm text-gray-300">Active Promotions</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-blue-400">{stats.totalShares}</div>
+                <div className="text-sm text-gray-300">Total Shares</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-yellow-400">{stats.totalRewards}</div>
+                <div className="text-sm text-gray-300">Total Rewards</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-pink-400">{stats.totalUsers}</div>
+                <div className="text-sm text-gray-300">Total Users</div>
+              </div>
             </div>
-            <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-400">{stats.activePromotions}</div>
-              <div className="text-sm text-gray-300">Active Promotions</div>
-            </div>
-            <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-400">{stats.totalShares}</div>
-              <div className="text-sm text-gray-300">Total Shares</div>
-            </div>
-            <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-400">{stats.totalRewards}</div>
-              <div className="text-sm text-gray-300">Total Rewards</div>
-            </div>
-            <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-pink-400">{stats.totalUsers}</div>
-              <div className="text-sm text-gray-300">Total Users</div>
+
+            {/* További statisztikák */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-red-400">{stats.pendingVerifications || 0}</div>
+                <div className="text-sm text-gray-300">Pending Verifications</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-cyan-400">{stats.todayVerifications || 0}</div>
+                <div className="text-sm text-gray-300">Today's Verifications</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-orange-400">{stats.totalBudget || 0}</div>
+                <div className="text-sm text-gray-300">Total Budget</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-emerald-400">{stats.remainingBudget || 0}</div>
+                <div className="text-sm text-gray-300">Remaining Budget</div>
+              </div>
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-indigo-400">{stats.avgReward || '0.00'}</div>
+                <div className="text-sm text-gray-300">Avg Reward/Share</div>
+              </div>
             </div>
           </div>
         )}
@@ -260,9 +287,25 @@ export default function AdminPage() {
                     </button>
                   </div>
                 </div>
-                <div className="mt-2">
-                  <div className="text-purple-300 text-xs font-semibold">Cast URL</div>
-                  <div className="text-gray-300 text-sm truncate">{promo.cast_url}</div>
+                {/* Másolható szövegek */}
+                <div className="mt-4 space-y-2">
+                  <div className="text-purple-300 text-xs font-semibold">Cast URL (kattintható)</div>
+                  <div 
+                    className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
+                    onClick={() => copyToClipboard(promo.cast_url)}
+                  >
+                    <div className="text-blue-400 text-sm break-all select-all">{promo.cast_url}</div>
+                  </div>
+                  
+                  <div className="text-purple-300 text-xs font-semibold">Share Text (másolható)</div>
+                  <div 
+                    className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
+                    onClick={() => copyToClipboard(`🎯 Earn ${promo.reward_per_share} $CHESS for ${promo.action_type}! Join the promotion: ${promo.cast_url}`)}
+                  >
+                    <div className="text-green-400 text-sm select-all">
+                      🎯 Earn {promo.reward_per_share} $CHESS for {promo.action_type}! Join the promotion: {promo.cast_url}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

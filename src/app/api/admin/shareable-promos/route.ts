@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users u ON p.fid = u.fid
       WHERE p.status = 'active'
       AND p.remaining_budget >= p.reward_per_share
-      ORDER BY p.reward_per_share DESC, p.id DESC
+      ORDER BY p.id DESC
     `;
 
     return NextResponse.json({
