@@ -35,6 +35,9 @@ interface AdminStats {
     completedGames: number;
     totalPlayers: number;
     totalMoves: number;
+    totalUsers: number;
+    totalGamesPlayed: number;
+    totalGamesWon: number;
   };
 }
 
@@ -257,10 +260,10 @@ export default function AdminPage() {
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   ♟️ FarChess Statistics
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-amber-400">{stats.farChess.totalGames || 0}</div>
-                    <div className="text-sm text-gray-300">Total Games</div>
+                    <div className="text-sm text-gray-300">PVP Games</div>
                   </div>
                   <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-green-400">{stats.farChess.activeGames || 0}</div>
@@ -271,12 +274,26 @@ export default function AdminPage() {
                     <div className="text-sm text-gray-300">Completed Games</div>
                   </div>
                   <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-400">{stats.farChess.totalPlayers || 0}</div>
-                    <div className="text-sm text-gray-300">Total Players</div>
-                  </div>
-                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-rose-400">{stats.farChess.totalMoves || 0}</div>
                     <div className="text-sm text-gray-300">Total Moves</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-400">{stats.farChess.totalUsers || 0}</div>
+                    <div className="text-sm text-gray-300">Chess Users</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{stats.farChess.totalGamesPlayed || 0}</div>
+                    <div className="text-sm text-gray-300">Games Played</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-emerald-400">{stats.farChess.totalGamesWon || 0}</div>
+                    <div className="text-sm text-gray-300">Games Won</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-orange-400">{stats.farChess.totalPlayers || 0}</div>
+                    <div className="text-sm text-gray-300">Unique Players</div>
                   </div>
                 </div>
               </div>

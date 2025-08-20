@@ -735,9 +735,10 @@ export default function PromotePage() {
         <div className="flex justify-center my-8">
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 rounded-lg text-white transition-all duration-200 shadow-sm hover:shadow-md"
+              className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg pulse-glow"
+              style={{ position: 'relative', overflow: 'hidden' }}
             >
-              <FiPlus size={16} />Create Promotion
+              <FiPlus size={20} />Create Promotion
             </button>
         </div>
         
@@ -848,7 +849,7 @@ export default function PromotePage() {
                               
                               if (promo.actionType === 'quote') {
                                 return (
-                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
+                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
                                     {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiShare2 size={14} />}
                                     {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
                                   </button>
@@ -876,7 +877,7 @@ export default function PromotePage() {
                                       handleLikeRecastBoth(promo, e);
                                     }} 
                                     disabled={sharingPromoId === promo.id.toString() || !canShare} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
                                   >
                                     {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : '👍'}
                                     {sharingPromoId === promo.id.toString() ? 'Processing...' : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`}
@@ -885,7 +886,7 @@ export default function PromotePage() {
                               } else {
                                 // Fallback for unknown types - default to quote
                                 return (
-                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
+                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
                                     {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiShare2 size={14} />}
                                     {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
                                   </button>

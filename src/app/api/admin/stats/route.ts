@@ -85,34 +85,49 @@ export async function GET(request: NextRequest) {
       activeGames: 0,
       totalPlayers: 0,
       totalMoves: 0,
-      completedGames: 0
+      completedGames: 0,
+      totalUsers: 0,
+      totalGamesPlayed: 0,
+      totalGamesWon: 0
     };
 
     try {
-      // FarChess games statisztikák
-      const [farChessGamesResult] = await sql`
+      // FarChess PVP games statisztikák
+      const [farChessPvpGamesResult] = await sql`
         SELECT COUNT(*) as total_games,
                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_games,
                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_games
-        FROM games
+        FROM pvp_games
       `;
       
-      // FarChess players statisztikák
+      // FarChess players statisztikák (pvp_games táblából)
       const [farChessPlayersResult] = await sql`
-        SELECT COUNT(DISTINCT player_fid) as total_players FROM game_players
+        SELECT COUNT(DISTINCT player1_fid) + COUNT(DISTINCT player2_fid) as total_players 
+        FROM pvp_games
       `;
       
       // FarChess moves statisztikák
       const [farChessMovesResult] = await sql`
-        SELECT COUNT(*) as total_moves FROM game_moves
+        SELECT COUNT(*) as total_moves FROM pvp_moves
+      `;
+
+      // User stats táblából további adatok
+      const [userStatsResult] = await sql`
+        SELECT COUNT(*) as total_users,
+               SUM(games_played) as total_games_played,
+               SUM(games_won) as total_games_won
+        FROM user_stats
       `;
 
       farChessStats = {
-        totalGames: Number(farChessGamesResult?.total_games) || 0,
-        activeGames: Number(farChessGamesResult?.active_games) || 0,
-        completedGames: Number(farChessGamesResult?.completed_games) || 0,
+        totalGames: Number(farChessPvpGamesResult?.total_games) || 0,
+        activeGames: Number(farChessPvpGamesResult?.active_games) || 0,
+        completedGames: Number(farChessPvpGamesResult?.completed_games) || 0,
         totalPlayers: Number(farChessPlayersResult?.total_players) || 0,
-        totalMoves: Number(farChessMovesResult?.total_moves) || 0
+        totalMoves: Number(farChessMovesResult?.total_moves) || 0,
+        totalUsers: Number(userStatsResult?.total_users) || 0,
+        totalGamesPlayed: Number(userStatsResult?.total_games_played) || 0,
+        totalGamesWon: Number(userStatsResult?.total_games_won) || 0
       };
     } catch (e) {
       console.log('FarChess tables might not exist or be accessible:', e);

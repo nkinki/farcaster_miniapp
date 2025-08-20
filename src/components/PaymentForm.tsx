@@ -178,10 +178,10 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <button
           type="button"
           onClick={() => setSelectedAction('quote')}
-          className={`flex-1 px-3 py-2 rounded text-sm transition-all ${
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
             selectedAction === 'quote'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              ? 'bg-orange-600 text-white border border-orange-500'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
           }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
@@ -190,23 +190,20 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <button
           type="button"
           onClick={() => setSelectedAction('like_recast')}
-          className={`flex-1 px-3 py-2 rounded text-sm transition-all ${
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
             selectedAction === 'like_recast'
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              ? 'bg-purple-600 text-white border border-purple-500'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
           }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
-          <div className="flex flex-col items-center">
-            <span>👍 Like & Recast</span>
-            <span className="text-xs opacity-75">🚧 Under Development</span>
-          </div>
+          👍 Like & Recast
         </button>
       </div>
       
       <div>
-        <label htmlFor="castUrl" className="block text-sm font-medium text-purple-300 mb-1">Cast URL*</label>
-        <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white" disabled={step >= CreationStep.ReadyToCreate} />
+        <label htmlFor="castUrl" className="block text-xs font-medium text-slate-400 mb-1">Cast URL*</label>
+        <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" disabled={step >= CreationStep.ReadyToCreate} />
       </div>
       <div>
         <label htmlFor="shareText" className="block text-sm font-medium text-purple-300 mb-1">Additional Share Text (Optional)</label>
