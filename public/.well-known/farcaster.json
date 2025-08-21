@@ -28,5 +28,8 @@
     "castShareUrl": "https://farc-nu.vercel.app",
     "homeUrl": "https://farc-nu.vercel.app",
     "webhookUrl": "https://farc-nu.vercel.app/api/webhook"
+  },
+  "baseBuilder": {
+    "allowedAddresses": ["0x05f2901e2C895a10fdbAa60E346de027b14A1875"]
   }
 }
