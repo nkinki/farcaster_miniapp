@@ -821,6 +821,37 @@ export default function PromotePage() {
                               )}
                             </div>
                           </div>
+                          
+                          {/* Content Preview - SEO Optimized */}
+                          <div className="bg-gray-900 rounded-lg p-2">
+                            <div className="text-xs text-gray-400 mb-2">📱 Content Preview:</div>
+                            <div className="bg-white rounded overflow-hidden h-40 sm:h-48 lg:h-56 relative">
+                              {/* Loading Skeleton */}
+                              <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                                <div className="text-gray-500 text-sm">Loading preview...</div>
+                              </div>
+                              <iframe 
+                                src={promo.castUrl} 
+                                className="w-full h-full border-0 relative z-10" 
+                                title={`Preview of campaign #${promo.id}`}
+                                loading="lazy"
+                                sandbox="allow-scripts allow-same-origin"
+                                onLoad={(e) => {
+                                  // Hide loading skeleton when iframe loads
+                                  const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                                  if (skeleton) skeleton.style.display = 'none';
+                                }}
+                                onError={(e) => {
+                                  // Show error message if iframe fails to load
+                                  const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                                  if (skeleton) {
+                                    skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Preview unavailable</div>';
+                                  }
+                                }}
+                              />
+                            </div>
+                          </div>
+                          
                           <div className="grid grid-cols-4 gap-2 text-center text-white">
                             <div className="p-2 bg-gray-800 rounded"><div className="flex items-center justify-center gap-1 mb-0.5 text-sm font-semibold"><FiDollarSign className="text-green-400" size={12} />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">reward</p></div>
                             <div className="p-2 bg-gray-800 rounded"><div className="flex items-center justify-center gap-1 mb-0.5 text-sm font-semibold"><FiUsers className="text-blue-400" size={12} />{promo.sharesCount}</div><p className="text-xs text-gray-400">shares</p></div>
