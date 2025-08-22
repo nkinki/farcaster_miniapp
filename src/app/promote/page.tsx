@@ -147,6 +147,9 @@ export default function PromotePage() {
   
   // Track completed actions for each promotion
   const [completedActions, setCompletedActions] = useState<Record<string, boolean>>({});
+  
+  // 10-second countdown timer for share/like buttons
+  const [buttonCountdowns, setButtonCountdowns] = useState<Record<string, number>>({});
 
 
   const {
@@ -213,6 +216,35 @@ export default function PromotePage() {
       }
     } catch (error) { console.error("Failed to fetch user stats:", error); }
   }, [currentUser.fid]);
+
+  // 10-second countdown effect for buttons
+  useEffect(() => {
+    const intervals: Record<string, NodeJS.Timeout> = {};
+    
+    Object.keys(buttonCountdowns).forEach(promoId => {
+      if (buttonCountdowns[promoId] > 0) {
+        intervals[promoId] = setInterval(() => {
+          setButtonCountdowns(prev => {
+            const newCount = prev[promoId] - 1;
+            if (newCount <= 0) {
+              const { [promoId]: _, ...rest } = prev;
+              return rest;
+            }
+            return { ...prev, [promoId]: newCount };
+          });
+        }, 1000);
+      }
+    });
+    
+    return () => {
+      Object.values(intervals).forEach(interval => clearInterval(interval));
+    };
+  }, [buttonCountdowns]);
+
+  // Start countdown when user clicks on campaign
+  const startButtonCountdown = (promoId: string) => {
+    setButtonCountdowns(prev => ({ ...prev, [promoId]: 10 }));
+  };
 
   // Fetch completed actions for current user
   const fetchCompletedActions = useCallback(async () => {
@@ -879,10 +911,34 @@ export default function PromotePage() {
                               });
                               
                               if (promo.actionType === 'quote') {
+                                const countdown = buttonCountdowns[promo.id.toString()];
+                                const isCountingDown = countdown > 0;
+                                const isDisabled = sharingPromoId === promo.id.toString() || !canShare || isCountingDown;
+                                
                                 return (
-                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
-                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiShare2 size={14} />}
-                                    {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
+                                  <button 
+                                    onClick={() => {
+                                      if (!isCountingDown) {
+                                        startButtonCountdown(promo.id.toString());
+                                        setTimeout(() => handleSharePromo(promo), 10000);
+                                      }
+                                    }} 
+                                    disabled={isDisabled} 
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                  >
+                                    {sharingPromoId === promo.id.toString() ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    ) : isCountingDown ? (
+                                      <FiClock size={14} />
+                                    ) : (
+                                      <FiShare2 size={14} />
+                                    )}
+                                    {sharingPromoId === promo.id.toString() 
+                                      ? 'Processing...' 
+                                      : isCountingDown 
+                                        ? `⏳ Wait ${countdown}s to Quote` 
+                                        : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`
+                                    }
                                   </button>
                                 );
                               } else if (promo.actionType === 'like_recast') {
@@ -898,28 +954,70 @@ export default function PromotePage() {
                                   );
                                 }
                                 
+                                const countdown = buttonCountdowns[promo.id.toString()];
+                                const isCountingDown = countdown > 0;
+                                const isDisabled = sharingPromoId === promo.id.toString() || !canShare || isCountingDown;
+                                
                                 return (
                                   <button 
                                     onClick={(e) => {
-                                      console.log('🔘 Button clicked!');
-                                      console.log('📱 Event:', e);
-                                      console.log('🎯 Promo:', promo);
-                                      console.log('🧪 Simple test - button works!');
-                                      handleLikeRecastBoth(promo, e);
+                                      if (!isCountingDown) {
+                                        console.log('🔘 Button clicked!');
+                                        console.log('📱 Event:', e);
+                                        console.log('🎯 Promo:', promo);
+                                        console.log('🧪 Simple test - button works!');
+                                        startButtonCountdown(promo.id.toString());
+                                        setTimeout(() => handleLikeRecastBoth(promo, e), 10000);
+                                      }
                                     }} 
-                                    disabled={sharingPromoId === promo.id.toString() || !canShare} 
+                                    disabled={isDisabled} 
                                     className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
                                   >
-                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : '👍'}
-                                    {sharingPromoId === promo.id.toString() ? 'Processing...' : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`}
+                                    {sharingPromoId === promo.id.toString() ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    ) : isCountingDown ? (
+                                      <FiClock size={14} />
+                                    ) : (
+                                      '👍'
+                                    )}
+                                    {sharingPromoId === promo.id.toString() 
+                                      ? 'Processing...' 
+                                      : isCountingDown 
+                                        ? `⏳ Wait ${countdown}s to Like & Recast` 
+                                        : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`
+                                    }
                                   </button>
                                 );
                               } else {
-                                // Fallback for unknown types - default to quote
+                                // Fallback for unknown types - default to quote with countdown
+                                const countdown = buttonCountdowns[promo.id.toString()];
+                                const isCountingDown = countdown > 0;
+                                const isDisabled = sharingPromoId === promo.id.toString() || !canShare || isCountingDown;
+                                
                                 return (
-                                  <button onClick={() => handleSharePromo(promo)} disabled={sharingPromoId === promo.id.toString() || !canShare} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm">
-                                    {sharingPromoId === promo.id.toString() ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiShare2 size={14} />}
-                                    {sharingPromoId === promo.id.toString() ? 'Processing...' : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`}
+                                  <button 
+                                    onClick={() => {
+                                      if (!isCountingDown) {
+                                        startButtonCountdown(promo.id.toString());
+                                        setTimeout(() => handleSharePromo(promo), 10000);
+                                      }
+                                    }} 
+                                    disabled={isDisabled} 
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                  >
+                                    {sharingPromoId === promo.id.toString() ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    ) : isCountingDown ? (
+                                      <FiClock size={14} />
+                                    ) : (
+                                      <FiShare2 size={14} />
+                                    )}
+                                    {sharingPromoId === promo.id.toString() 
+                                      ? 'Processing...' 
+                                      : isCountingDown 
+                                        ? `⏳ Wait ${countdown}s to Quote` 
+                                        : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`
+                                    }
                                   </button>
                                 );
                               }
