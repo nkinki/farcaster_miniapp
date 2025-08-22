@@ -76,13 +76,29 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                   {/* Embedded Content Preview */}
                   <div className="bg-gray-900 rounded-lg p-2">
                     <div className="text-xs text-gray-400 mb-2">📱 Content Preview (what users will share):</div>
-                    <div className="bg-white rounded overflow-hidden" style={{ height: '300px' }}>
+                    <div className="bg-white rounded overflow-hidden h-48 sm:h-64 lg:h-80 relative">
+                      {/* Loading Skeleton */}
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                        <div className="text-gray-500 text-sm">Loading preview...</div>
+                      </div>
                       <iframe 
                         src={promo.castUrl} 
-                        className="w-full h-full border-0" 
+                        className="w-full h-full border-0 relative z-10" 
                         title={`Preview of ${promo.castUrl}`}
                         loading="lazy"
                         sandbox="allow-scripts allow-same-origin"
+                        onLoad={(e) => {
+                          // Hide loading skeleton when iframe loads
+                          const skeleton = e.currentTarget.previousElementSibling;
+                          if (skeleton) skeleton.style.display = 'none';
+                        }}
+                        onError={(e) => {
+                          // Show error message if iframe fails to load
+                          const skeleton = e.currentTarget.previousElementSibling;
+                          if (skeleton) {
+                            skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Preview unavailable</div>';
+                          }
+                        }}
                       />
                     </div>
                     <div className="text-xs text-gray-500 mt-1 truncate">
@@ -109,13 +125,29 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                   {/* Embedded Content Preview */}
                   <div className="bg-gray-900 rounded-lg p-2">
                     <div className="text-xs text-gray-400 mb-2">📱 Content Preview (what users will share):</div>
-                    <div className="bg-white rounded overflow-hidden" style={{ height: '300px' }}>
+                    <div className="bg-white rounded overflow-hidden h-48 sm:h-64 lg:h-80 relative">
+                      {/* Loading Skeleton */}
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                        <div className="text-gray-500 text-sm">Loading preview...</div>
+                      </div>
                       <iframe 
                         src={promo.castUrl} 
-                        className="w-full h-full border-0" 
+                        className="w-full h-full border-0 relative z-10" 
                         title={`Preview of ${promo.castUrl}`}
                         loading="lazy"
                         sandbox="allow-scripts allow-same-origin"
+                        onLoad={(e) => {
+                          // Hide loading skeleton when iframe loads
+                          const skeleton = e.currentTarget.previousElementSibling;
+                          if (skeleton) skeleton.style.display = 'none';
+                        }}
+                        onError={(e) => {
+                          // Show error message if iframe fails to load
+                          const skeleton = e.currentTarget.previousElementSibling;
+                          if (skeleton) {
+                            skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Preview unavailable</div>';
+                          }
+                        }}
                       />
                     </div>
                     <div className="text-xs text-gray-500 mt-1 truncate">
