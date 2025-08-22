@@ -61,23 +61,67 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
               <div className="mb-2 text-green-400 font-semibold">Active</div>
               {activePromos.length === 0 && <div className="text-gray-400 mb-2">No active promotions.</div>}
               {activePromos.map(promo => (
-                <div key={promo.id} className="mb-2 p-2 bg-gray-800 rounded">
-                  <div className="text-white font-bold truncate">{promo.castUrl}</div>
-                  <div className="text-xs text-gray-400">Reward: {promo.rewardPerShare} | Budget: {promo.totalBudget}</div>
-                  <div className="text-xs text-green-400">Status: {promo.status}</div>
-                  <button className="mt-1 mr-2 px-2 py-1 text-xs bg-blue-700 text-white rounded" onClick={() => setEditPromo(promo)}>Edit</button>
-                  <button className="mt-1 px-2 py-1 text-xs bg-green-700 text-white rounded" onClick={() => setFundPromo(promo)}>Fund</button>
+                <div key={promo.id} className="mb-4 p-3 bg-gray-800 rounded-lg">
+                  {/* Promo Info Header */}
+                  <div className="mb-3">
+                    <div className="text-white font-bold text-sm mb-1">🎯 Promotion Details</div>
+                    <div className="text-xs text-gray-400 mb-1">Reward: {promo.rewardPerShare} | Budget: {promo.totalBudget}</div>
+                    <div className="text-xs text-green-400 mb-2">Status: {promo.status}</div>
+                    <div className="flex gap-2">
+                      <button className="px-2 py-1 text-xs bg-blue-700 text-white rounded hover:bg-blue-600" onClick={() => setEditPromo(promo)}>Edit</button>
+                      <button className="px-2 py-1 text-xs bg-green-700 text-white rounded hover:bg-green-600" onClick={() => setFundPromo(promo)}>Fund</button>
+                    </div>
+                  </div>
+                  
+                  {/* Embedded Content Preview */}
+                  <div className="bg-gray-900 rounded-lg p-2">
+                    <div className="text-xs text-gray-400 mb-2">📱 Content Preview (what users will share):</div>
+                    <div className="bg-white rounded overflow-hidden" style={{ height: '300px' }}>
+                      <iframe 
+                        src={promo.castUrl} 
+                        className="w-full h-full border-0" 
+                        title={`Preview of ${promo.castUrl}`}
+                        loading="lazy"
+                        sandbox="allow-scripts allow-same-origin"
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 truncate">
+                      🔗 {promo.castUrl}
+                    </div>
+                  </div>
                 </div>
               ))}
               <div className="mb-2 mt-4 text-yellow-400 font-semibold">Inactive / Paused</div>
               {inactivePromos.length === 0 && <div className="text-gray-400 mb-2">No inactive promotions.</div>}
               {inactivePromos.map(promo => (
-                <div key={promo.id} className="mb-2 p-2 bg-gray-800 rounded">
-                  <div className="text-white font-bold truncate">{promo.castUrl}</div>
-                  <div className="text-xs text-gray-400">Reward: {promo.rewardPerShare} | Budget: {promo.totalBudget}</div>
-                  <div className="text-xs text-yellow-400">Status: {promo.status}</div>
-                  <button className="mt-1 mr-2 px-2 py-1 text-xs bg-blue-700 text-white rounded" onClick={() => setEditPromo(promo)}>Edit</button>
-                  <button className="mt-1 px-2 py-1 text-xs bg-green-700 text-white rounded" onClick={() => setFundPromo(promo)}>Fund</button>
+                <div key={promo.id} className="mb-4 p-3 bg-gray-800 rounded-lg">
+                  {/* Promo Info Header */}
+                  <div className="mb-3">
+                    <div className="text-white font-bold text-sm mb-1">🎯 Promotion Details</div>
+                    <div className="text-xs text-gray-400 mb-1">Reward: {promo.rewardPerShare} | Budget: {promo.totalBudget}</div>
+                    <div className="text-xs text-yellow-400 mb-2">Status: {promo.status}</div>
+                    <div className="flex gap-2">
+                      <button className="px-2 py-1 text-xs bg-blue-700 text-white rounded hover:bg-blue-600" onClick={() => setEditPromo(promo)}>Edit</button>
+                      <button className="px-2 py-1 text-xs bg-green-700 text-white rounded hover:bg-green-600" onClick={() => setFundPromo(promo)}>Fund</button>
+                    </div>
+                  </div>
+                  
+                  {/* Embedded Content Preview */}
+                  <div className="bg-gray-900 rounded-lg p-2">
+                    <div className="text-xs text-gray-400 mb-2">📱 Content Preview (what users will share):</div>
+                    <div className="bg-white rounded overflow-hidden" style={{ height: '300px' }}>
+                      <iframe 
+                        src={promo.castUrl} 
+                        className="w-full h-full border-0" 
+                        title={`Preview of ${promo.castUrl}`}
+                        loading="lazy"
+                        sandbox="allow-scripts allow-same-origin"
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 truncate">
+                      🔗 {promo.castUrl}
+                    </div>
+                  </div>
                 </div>
               ))}
             </>
