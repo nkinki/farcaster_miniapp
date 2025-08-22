@@ -281,9 +281,9 @@ export default function PromotePage() {
   const handleCreateSuccess = () => { 
     setShowForm(false); 
     refreshAllData(); 
-    // Trigger REAL Lucky Box after successful campaign creation
-    setIsLuckyBoxPreview(false);
-    setShowLuckyBox(true);
+    // Trigger REAL Lucky Box after successful campaign creation - TEMPORARILY DISABLED
+    // setIsLuckyBoxPreview(false);
+    // setShowLuckyBox(true);
   };
   const handleManageSuccess = () => { setShowCampaignManager(false); setManagingPromo(null); refreshAllData(); };
   const handleCreateCancel = () => { setShowForm(false); };
@@ -1060,35 +1060,37 @@ export default function PromotePage() {
           </button>
         </div>
 
-        {/* Lucky Box Preview - Always Visible */}
-        <div className="flex justify-center mt-4 mb-6">
-          <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm">
-            <div className="text-3xl mb-2 animate-bounce">🎁</div>
-            <div className="text-white font-bold mb-2">Lucky Box</div>
-            
-            <div className="bg-gray-800/50 rounded-lg p-3 mb-3">
-              <div className="text-yellow-300 font-bold text-lg">
-                500 - 10,000 CHESS
+        {/* Lucky Box Preview - TEMPORARILY DISABLED */}
+        {false && (
+          <div className="flex justify-center mt-4 mb-6">
+            <div className="bg-[#23283a] border border-[#a64d79] rounded-xl p-4 text-center max-w-sm">
+              <div className="text-3xl mb-2 animate-bounce">🎁</div>
+              <div className="text-white font-bold mb-2">Lucky Box</div>
+              
+              <div className="bg-gray-800/50 rounded-lg p-3 mb-3">
+                <div className="text-yellow-300 font-bold text-lg">
+                  500 - 10,000 CHESS
+                </div>
+                <div className="text-gray-300 text-xs mt-1">
+                  Every campaign = reward!
+                </div>
               </div>
-              <div className="text-gray-300 text-xs mt-1">
-                Every campaign = reward!
-              </div>
+
+              <button
+                onClick={() => {
+                  setIsLuckyBoxPreview(true);
+                  setShowLuckyBox(true);
+                }}
+                className="bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
+              >
+                🎁 Try Lucky Box
+              </button>
             </div>
-
-            <button
-              onClick={() => {
-                setIsLuckyBoxPreview(true);
-                setShowLuckyBox(true);
-              }}
-              className="bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
-            >
-              🎁 Try Lucky Box
-            </button>
           </div>
-        </div>
+        )}
 
-        {/* Lucky Box Success Message */}
-        {luckyBoxReward > 0 && (
+        {/* Lucky Box Success Message - TEMPORARILY DISABLED */}
+        {false && luckyBoxReward > 0 && (
           <div className="flex justify-center mt-4 mb-6">
             <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-4 text-center pulse-glow">
               <div className="text-2xl mb-2">🎉</div>
@@ -1167,13 +1169,15 @@ export default function PromotePage() {
         </div>
       </div>
 
-      {/* Lucky Box Modal */}
-      <LuckyBox
-        isOpen={showLuckyBox}
-        onClose={handleLuckyBoxClose}
-        onClaim={handleLuckyBoxClaim}
-        isPreview={isLuckyBoxPreview}
-      />
+      {/* Lucky Box Modal - TEMPORARILY DISABLED */}
+      {false && (
+        <LuckyBox
+          isOpen={showLuckyBox}
+          onClose={handleLuckyBoxClose}
+          onClaim={handleLuckyBoxClaim}
+          isPreview={isLuckyBoxPreview}
+        />
+      )}
 
       {/* Admin Access Button */}
       <div className="mt-12 pt-8 border-t border-gray-700">
