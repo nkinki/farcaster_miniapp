@@ -89,12 +89,12 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                         sandbox="allow-scripts allow-same-origin"
                         onLoad={(e) => {
                           // Hide loading skeleton when iframe loads
-                          const skeleton = e.currentTarget.previousElementSibling;
+                          const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
                           if (skeleton) skeleton.style.display = 'none';
                         }}
                         onError={(e) => {
                           // Show error message if iframe fails to load
-                          const skeleton = e.currentTarget.previousElementSibling;
+                          const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
                           if (skeleton) {
                             skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Preview unavailable</div>';
                           }
@@ -138,12 +138,12 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                         sandbox="allow-scripts allow-same-origin"
                         onLoad={(e) => {
                           // Hide loading skeleton when iframe loads
-                          const skeleton = e.currentTarget.previousElementSibling;
+                          const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
                           if (skeleton) skeleton.style.display = 'none';
                         }}
                         onError={(e) => {
                           // Show error message if iframe fails to load
-                          const skeleton = e.currentTarget.previousElementSibling;
+                          const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
                           if (skeleton) {
                             skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Preview unavailable</div>';
                           }
