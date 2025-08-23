@@ -1,129 +1,50 @@
-// WebSocket connections storage
-const connections = new Map<string, WebSocket>()
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: any) {
+export async function GET(request: NextRequest) {
   try {
-    // WebSocket upgrade handling
-    const { socket, response } = await request.socket as any
+    // Check if this is a WebSocket upgrade request
+    const upgrade = request.headers.get('upgrade')
     
-    if (!socket) {
-      return new Response('WebSocket upgrade failed', { status: 400 })
+    if (upgrade === 'websocket') {
+      // Acknowledge WebSocket request but don't implement it
+      // Next.js API routes don't support WebSockets directly
+      return NextResponse.json({
+        success: false,
+        error: "WebSocket not supported in this environment. Use polling instead.",
+        message: "This endpoint is a placeholder. Real-time communication is handled via polling."
+      }, { status: 501 })
     }
-
-    // Connection handling
-    socket.on('message', (data: string) => {
-      try {
-        const message = JSON.parse(data)
-        handleWebSocketMessage(socket, message)
-      } catch (error) {
-        console.error('[WebSocket] Message parsing error:', error)
-      }
+    
+    // Regular GET request
+    return NextResponse.json({
+      success: true,
+      message: "PvP WebSocket endpoint (placeholder)",
+      note: "WebSocket connections are not supported in Next.js API routes. Use the rooms-status endpoint for real-time updates."
     })
-
-    socket.on('close', () => {
-      // Connection cleanup
-      const connectionId = Array.from(connections.entries())
-        .find(([_, ws]) => ws === socket)?.[0]
-      if (connectionId) {
-        connections.delete(connectionId)
-        console.log(`[WebSocket] Connection closed: ${connectionId}`)
-      }
-    })
-
-    socket.on('error', (error: Error) => {
-      console.error('[WebSocket] Socket error:', error)
-    })
-
-    return response
   } catch (error) {
-    console.error('[WebSocket] Setup error:', error)
-    return new Response('WebSocket setup failed', { status: 500 })
+    console.error('[WebSocket Route] Error:', error)
+    return NextResponse.json({
+      success: false,
+      error: "Internal server error"
+    }, { status: 500 })
   }
 }
 
-function handleWebSocketMessage(socket: WebSocket, message: any) {
-  switch (message.type) {
-    case 'JOIN_QUEUE':
-      handleJoinQueue(socket, message)
-      break
-    case 'LEAVE_QUEUE':
-      handleLeaveQueue(socket, message)
-      break
-    case 'FIND_MATCH':
-      handleFindMatch(socket, message)
-      break
-    default:
-      console.warn('[WebSocket] Unknown message type:', message.type)
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    return NextResponse.json({
+      success: false,
+      error: "WebSocket POST not supported",
+      message: "This endpoint only supports GET requests for WebSocket upgrade checks.",
+      receivedData: body
+    }, { status: 405 })
+  } catch (error) {
+    console.error('[WebSocket Route] POST Error:', error)
+    return NextResponse.json({
+      success: false,
+      error: "Invalid request body"
+    }, { status: 400 })
   }
 }
-
-function handleJoinQueue(socket: WebSocket, message: any) {
-  const { playerFid, playerName, playerAvatar } = message
-  const connectionId = `${playerFid}-${Date.now()}`
-  
-  connections.set(connectionId, socket)
-  
-  // Success response
-  socket.send(JSON.stringify({
-    type: 'QUEUE_JOINED',
-    connectionId,
-    message: 'Successfully joined matchmaking queue'
-  }))
-  
-  console.log(`[WebSocket] Player ${playerFid} joined queue`)
-}
-
-function handleLeaveQueue(socket: WebSocket, message: any) {
-  const { connectionId } = message
-  
-  if (connectionId && connections.has(connectionId)) {
-    connections.delete(connectionId)
-    socket.send(JSON.stringify({
-      type: 'QUEUE_LEFT',
-      message: 'Successfully left matchmaking queue'
-    }))
-    
-    console.log(`[WebSocket] Connection ${connectionId} left queue`)
-  }
-}
-
-function handleFindMatch(socket: WebSocket, message: any) {
-  const { playerFid, playerSkill } = message
-  
-  // Skill-based matching logic
-  // Simple random matching for now
-  
-  const availableConnections = Array.from(connections.entries())
-    .filter(([id, ws]) => !id.startsWith(playerFid.toString()))
-  
-  if (availableConnections.length > 0) {
-    const [opponentId, opponentSocket] = availableConnections[0]
-    
-    // Send match notification to both players
-    socket.send(JSON.stringify({
-      type: 'MATCH_FOUND',
-      opponent: {
-        connectionId: opponentId,
-        playerSkill: playerSkill || 1000
-      }
-    }))
-    
-    opponentSocket.send(JSON.stringify({
-      type: 'MATCH_FOUND',
-      opponent: {
-        connectionId: `${playerFid}-${Date.now()}`,
-        playerSkill: playerSkill || 1000
-      }
-    }))
-    
-    console.log(`[WebSocket] Match found between ${playerFid} and ${opponentId}`)
-  } else {
-    socket.send(JSON.stringify({
-      type: 'NO_MATCH_FOUND',
-      message: 'No opponents available at the moment'
-    }))
-  }
-}
-
-// Export connections Map for other API endpoints
-export { connections }
