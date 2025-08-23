@@ -588,7 +588,9 @@ export default function PvPArenaNew({ user, onMatchFound, onBackToMenu, onNoOppo
               </div>
             </div>
           </div>
-        ) : currentStep === "menu" ? (
+        )}
+        
+        {currentStep === "menu" ? (
           // FŐ MENÜ - SZOBÁK LISTÁJA
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             
