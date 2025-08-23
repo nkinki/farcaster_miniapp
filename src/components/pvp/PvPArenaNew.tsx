@@ -98,7 +98,7 @@ export default function PvPArenaNew({ user, onMatchFound, onBackToMenu, onNoOppo
         const response = await fetch('/api/pvp/rooms-status');
         const data = await response.json();
         if (data.success) {
-          setRooms(data.rooms);
+          setRooms(data.rooms as Room[]);
         }
       } catch (error) {
         addDebug(`❌ Failed to update rooms: ${error}`);
@@ -257,8 +257,8 @@ export default function PvPArenaNew({ user, onMatchFound, onBackToMenu, onNoOppo
       const data = await response.json();
       
       if (data.success && data.room) {
-        const room = data.room;
-        const readyPlayers = room.players.filter(p => p.isReady);
+        const room = data.room as Room;
+        const readyPlayers = room.players.filter((p: RoomPlayer) => p.isReady);
         
         if (readyPlayers.length === 2) {
           // Mindkét játékos ready - indulhat a játék
@@ -291,7 +291,7 @@ export default function PvPArenaNew({ user, onMatchFound, onBackToMenu, onNoOppo
       const data = await response.json();
       if (data.success) {
         // Játék indítása
-        const opponent = selectedRoom.players.find(p => p.user.fid !== user.fid)?.user;
+        const opponent = selectedRoom.players.find((p: RoomPlayer) => p.user.fid !== user.fid)?.user;
         if (opponent) {
           onMatchFound(opponent, true, String(selectedRoom.id));
         }
@@ -349,17 +349,17 @@ export default function PvPArenaNew({ user, onMatchFound, onBackToMenu, onNoOppo
 
   const getCurrentPlayerInRoom = () => {
     if (!selectedRoom) return null;
-    return selectedRoom.players.find(p => p.user.fid === user.fid);
+    return selectedRoom.players.find((p: RoomPlayer) => p.user.fid === user.fid);
   };
 
   const getOpponentInRoom = () => {
     if (!selectedRoom) return null;
-    return selectedRoom.players.find(p => p.user.fid !== user.fid);
+    return selectedRoom.players.find((p: RoomPlayer) => p.user.fid !== user.fid);
   };
 
   const canStartGame = () => {
     if (!selectedRoom) return false;
-    const readyPlayers = selectedRoom.players.filter(p => p.isReady);
+    const readyPlayers = selectedRoom.players.filter((p: RoomPlayer) => p.isReady);
     return readyPlayers.length === 2;
   };
 
@@ -651,7 +651,7 @@ export default function PvPArenaNew({ user, onMatchFound, onBackToMenu, onNoOppo
                   
                   {room.players.length > 0 && (
                     <div style={{ fontSize: "11px", color: "#10B981", marginBottom: "8px" }}>
-                      Players: {room.players.map(p => p.user.displayName || "Anonymous").join(", ")}
+                      Players: {room.players.map((p: RoomPlayer) => p.user.displayName || "Anonymous").join(", ")}
                     </div>
                   )}
                   
