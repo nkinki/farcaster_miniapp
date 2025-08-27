@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "drawNumber": 1,
+    "winningNumber": 0,
+    "jackpot": 1000000,
+    "totalTickets": 0,
+    "status": "active",
+    "startTime": "2025-08-27T08:59:56.580Z",
+    "endTime": "2025-08-28T08:59:56.599Z",
+    "createdAt": "2025-08-27T08:59:56.599Z"
+  }
+]

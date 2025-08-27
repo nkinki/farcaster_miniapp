@@ -453,6 +453,41 @@ export default function Home() {
             </button>
           </div>
         </nav>
+
+        {/* Lottó Gomb - Jobb alsó sarokban */}
+        <div 
+          className="fixed bottom-24 right-4 z-50 cursor-pointer"
+          onClick={() => {
+            window.location.href = '/lottery'
+          }}
+          style={{
+            background: 'linear-gradient(45deg, #FFC107, #FFD700)',
+            color: '#000',
+            border: 'none',
+            borderRadius: '50px',
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: '600',
+            boxShadow: '0 4px 15px rgba(255, 193, 7, 0.4)',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            minWidth: '120px',
+            justifyContent: 'center'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.boxShadow = '0 8px 25px rgba(255, 193, 7, 0.6)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 193, 7, 0.4)'
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>🎰</span>
+          <span>LOTTÓ</span>
+        </div>
       </div>
       <style jsx global>{`
         @keyframes chessneon {

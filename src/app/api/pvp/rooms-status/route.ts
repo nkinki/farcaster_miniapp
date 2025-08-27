@@ -1,11 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { rooms, type Room, type RoomPlayer } from './types'
+import { rooms, type Room, type RoomPlayer, CONNECTION_TIMEOUT, HEARTBEAT_INTERVAL } from './types'
+
+// Connection cleanup function
+function cleanupInactiveConnections() {
+  const now = new Date()
+  
+  rooms.forEach(room => {
+    // Check player1 connection
+    if (room.player1 && (now.getTime() - room.player1.lastHeartbeat.getTime()) > CONNECTION_TIMEOUT) {
+      console.log(`[Cleanup] Player 1 (${room.player1.displayName}) connection timeout in room ${room.id}`)
+      room.player1 = undefined
+    }
+    
+    // Check player2 connection
+    if (room.player2 && (now.getTime() - room.player2.lastHeartbeat.getTime()) > CONNECTION_TIMEOUT) {
+      console.log(`[Cleanup] Player 2 (${room.player2.displayName}) connection timeout in room ${room.id}`)
+      room.player2 = undefined
+    }
+    
+    // Update room status based on remaining players
+    if (!room.player1 && !room.player2) {
+      if (room.status !== 'empty') {
+        room.status = 'empty'
+        room.createdAt = undefined
+        room.gameId = undefined
+        console.log(`[Cleanup] Room ${room.id} status reset to empty`)
+      }
+    } else if (room.status === 'full' && (!room.player1 || !room.player2)) {
+      room.status = 'waiting'
+      console.log(`[Cleanup] Room ${room.id} status changed to waiting`)
+    } else if (room.status === 'playing' && (!room.player1 || !room.player2)) {
+      room.status = 'full'
+      console.log(`[Cleanup] Room ${room.id} status reverted to full from playing`)
+    }
+    
+    // Update room activity
+    room.lastActivity = now
+  })
+}
 
 export async function GET() {
   try {
+    // Cleanup inactive connections before returning rooms
+    cleanupInactiveConnections()
+    
     return NextResponse.json({
       success: true,
-      rooms: rooms
+      rooms: rooms,
+      timestamp: new Date().toISOString(),
+      connectionTimeout: CONNECTION_TIMEOUT,
+      heartbeatInterval: HEARTBEAT_INTERVAL
     })
   } catch (error) {
     console.error('[Rooms Status] Error:', error)
@@ -19,15 +63,17 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, roomId, playerFid, playerName, playerAvatar, isReady } = body
+    const { action, roomId, playerFid, playerName, playerAvatar, isReady, connectionId } = body
 
     switch (action) {
       case 'join':
-        return handleJoinRoom(roomId, playerFid, playerName, playerAvatar)
+        return handleJoinRoom(roomId, playerFid, playerName, playerAvatar, connectionId)
       case 'leave':
         return handleLeaveRoom(roomId, playerFid)
       case 'set_ready':
         return handleSetReady(roomId, playerFid, isReady)
+      case 'heartbeat':
+        return handleHeartbeat(roomId, playerFid, connectionId)
       case 'update_status':
         const { status, gameId } = body
         return handleUpdateStatus(roomId, status, gameId)
@@ -46,7 +92,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function handleJoinRoom(roomId: number, playerFid: number, playerName: string, playerAvatar?: string) {
+function handleJoinRoom(roomId: number, playerFid: number, playerName: string, playerAvatar?: string, connectionId?: string) {
   const room = rooms.find(r => r.id === roomId)
   if (!room) {
     return NextResponse.json({
@@ -70,28 +116,79 @@ function handleJoinRoom(roomId: number, playerFid: number, playerName: string, p
     }, { status: 400 })
   }
 
+  const now = new Date()
   const player: RoomPlayer = { 
     fid: playerFid, 
     displayName: playerName, 
     avatar: playerAvatar,
-    isReady: false
+    isReady: false,
+    lastHeartbeat: now,
+    isOnline: true,
+    connectionId: connectionId
   }
 
   if (room.status === 'empty') {
     room.player1 = player
     room.status = 'waiting'
-    room.createdAt = new Date()
+    room.createdAt = now
+    room.lastActivity = now
     console.log(`[Rooms] Player ${playerName} joined room ${roomId} as Player 1. Status: ${room.status}`)
   } else if (room.status === 'waiting' && !room.player2) {
     room.player2 = player
     room.status = 'full'
+    room.lastActivity = now
     console.log(`[Rooms] Player ${playerName} joined room ${roomId} as Player 2. Status: ${room.status}`)
   }
 
   return NextResponse.json({
     success: true,
     room: room,
-    message: `Successfully joined room ${room.name}`
+    message: `Successfully joined room ${room.name}`,
+    heartbeatInterval: HEARTBEAT_INTERVAL
+  })
+}
+
+function handleHeartbeat(roomId: number, playerFid: number, connectionId?: string) {
+  const room = rooms.find(r => r.id === roomId)
+  if (!room) {
+    return NextResponse.json({
+      success: false,
+      error: "Room not found"
+    }, { status: 404 })
+  }
+
+  const now = new Date()
+  let playerUpdated = false
+
+  // Update player1 heartbeat
+  if (room.player1?.fid === playerFid) {
+    room.player1.lastHeartbeat = now
+    room.player1.isOnline = true
+    if (connectionId) room.player1.connectionId = connectionId
+    playerUpdated = true
+  }
+  
+  // Update player2 heartbeat
+  if (room.player2?.fid === playerFid) {
+    room.player2.lastHeartbeat = now
+    room.player2.isOnline = true
+    if (connectionId) room.player2.connectionId = connectionId
+    playerUpdated = true
+  }
+
+  if (!playerUpdated) {
+    return NextResponse.json({
+      success: false,
+      error: "Player not found in room"
+    }, { status: 404 })
+  }
+
+  room.lastActivity = now
+
+  return NextResponse.json({
+    success: true,
+    message: "Heartbeat received",
+    nextHeartbeat: new Date(now.getTime() + HEARTBEAT_INTERVAL).toISOString()
   })
 }
 

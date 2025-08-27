@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { rooms } from '../rooms-status/route'
+import { rooms } from '../rooms-status/types'
 
 export async function POST(request: NextRequest) {
   try {
