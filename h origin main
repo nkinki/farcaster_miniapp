@@ -1,0 +1,3 @@
+[33m5823685[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m fix: Add explicit type annotations to fix TypeScript errors in PvPArenaNew
+[33m6c33031[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: Add missing types and API routes for PvP Arena
+[33m7c83331[m fix: Convert WebSocket route to Next.js compatible API route
