@@ -1,0 +1,10 @@
+[33m3e5a39c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: Fix missing closing brace in PvPArenaNew.tsx
+[33m5823685[m fix: Add explicit type annotations to fix TypeScript errors in PvPArenaNew
+[33m6c33031[m feat: Add missing types and API routes for PvP Arena
+[33m7c83331[m fix: Convert WebSocket route to Next.js compatible API route
+[33m35b8aaa[m feat: Update PvP Arena to v3.0 ULTIMATE with 50k rewards
+[33m2038aa2[m feat: Implement Farcaster Frame structure with two buttons
+[33mc400887[m feat: Implement Farcaster Frame structure with two buttons
+[33m9b011f3[m feat: Implement Farcaster Frame structure with two buttons
+[33m680ce4e[m feat: Implement Farcaster Frame structure with two buttons
+[33m0f8ffa4[m feat: Implement Farcaster Frame structure with two buttons

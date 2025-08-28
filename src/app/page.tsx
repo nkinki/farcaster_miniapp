@@ -7,6 +7,7 @@ import type { IconType } from "react-icons";
 import React from "react"
 import Link from "next/link"
 import Image from "next/image"
+import LamboLottery from "@/components/LamboLottery"
 
 // Tipusok
 interface Miniapp {
@@ -127,6 +128,8 @@ export default function Home() {
   const [openMiniapp, setOpenMiniapp] = useState<Miniapp | null>(null)
   const [openMiniappIndex, setOpenMiniappIndex] = useState<number | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
+  const [showLamboLottery, setShowLamboLottery] = useState(false)
+  const [userFid, setUserFid] = useState<number>(0)
 
   useEffect(() => {
     const checkHaptics = async () => {
@@ -168,6 +171,7 @@ export default function Home() {
       console.log('Farcaster user context:', farcasterUser)
       if (farcasterUser?.fid) {
         console.log('User authenticated:', farcasterUser)
+        setUserFid(farcasterUser.fid)
       }
     }).catch((error) => {
       console.error('Error getting Farcaster context:', error)
@@ -244,6 +248,16 @@ export default function Home() {
 
   return (
     <>
+      {/* Lambo Lottery Modal */}
+      <LamboLottery 
+        isOpen={showLamboLottery}
+        onClose={() => setShowLamboLottery(false)}
+        userFid={userFid}
+        onPurchaseSuccess={() => {
+          console.log('Lottery tickets purchased successfully!');
+        }}
+      />
+
       {openMiniapp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[85vh] flex flex-col">
@@ -301,7 +315,7 @@ export default function Home() {
              </p>
            </header>
 
-          <div className="flex justify-center items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
             <Link href="/promote" className="inline-block">
               <span 
                 className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
@@ -319,6 +333,30 @@ export default function Home() {
                 Share & Earn
               </span>
             </Link>
+            
+            <button
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.impactOccurred('medium');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
+                  }
+                }
+                setShowLamboLottery(true);
+              }}
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-600 hover:from-pink-500 hover:via-purple-500 hover:to-cyan-500 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-pink-400/50 hover:border-pink-300/70"
+              style={{
+                boxShadow: '0 0 20px rgba(236, 72, 153, 0.3), 0 0 40px rgba(147, 51, 234, 0.2)',
+                animation: 'pulse 2s infinite'
+              }}
+            >
+              <span className="text-2xl">🏎️</span>
+              BUY A LAMBO
+              <span className="text-xs bg-green-500 px-2 py-1 rounded-full animate-pulse">
+                LIVE NOW!
+              </span>
+            </button>
           </div>
 
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
