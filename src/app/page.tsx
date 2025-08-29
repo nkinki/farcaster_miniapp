@@ -336,29 +336,25 @@ export default function Home() {
             
 
             
-            <button
-              onClick={async () => {
-                if (hapticsSupported) {
-                  try {
-                    await sdk.haptics.impactOccurred('medium');
-                  } catch (error) {
-                    console.log('Haptics error:', error);
-                  }
-                }
-                setShowLamboLottery(true);
-              }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-600 hover:from-pink-500 hover:via-purple-500 hover:to-cyan-500 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-pink-400/50 hover:border-pink-300/70"
-              style={{
-                boxShadow: '0 0 20px rgba(236, 72, 153, 0.3), 0 0 40px rgba(147, 51, 234, 0.2)',
-                animation: 'pulse 2s infinite'
-              }}
-            >
-              <span className="text-2xl">🏎️</span>
-              BUY A LAMBO
-              <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
-                Under Development
-              </span>
-            </button>
+                         <button
+               onClick={async () => {
+                 if (hapticsSupported) {
+                   try {
+                     await sdk.haptics.impactOccurred('medium');
+                   } catch (error) {
+                     console.log('Haptics error:', error);
+                   }
+                 }
+                 setShowLamboLottery(true);
+               }}
+               className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+             >
+               <span className="text-2xl">🏎️</span>
+               BUY A LAMBO
+               <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
+                 Under Development
+               </span>
+             </button>
           </div>
 
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
