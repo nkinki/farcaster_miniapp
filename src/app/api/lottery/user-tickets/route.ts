@@ -9,10 +9,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const fid = searchParams.get('fid');
-
+    
     if (!fid) {
       return NextResponse.json(
-        { success: false, error: 'FID is required' },
+        { success: false, error: 'FID parameter is required' },
         { status: 400 }
       );
     }
@@ -20,33 +20,27 @@ export async function GET(request: NextRequest) {
     const client = await pool.connect();
     
     try {
-      // Get current active round
-      const roundResult = await client.query(`
-        SELECT id FROM lambo_lottery_rounds 
-        WHERE status = 'active' 
-        ORDER BY round_number DESC 
-        LIMIT 1
-      `);
-
-      if (roundResult.rows.length === 0) {
-        return NextResponse.json({ 
-          success: true, 
-          tickets: [] 
-        });
-      }
-
-      const roundId = roundResult.rows[0].id;
-
-      // Get user's tickets for current round
-      const ticketsResult = await client.query(`
-        SELECT * FROM lambo_lottery_tickets 
-        WHERE round_id = $1 AND fid = $2
-        ORDER BY ticket_number ASC
-      `, [roundId, parseInt(fid)]);
+      // Get user's tickets with draw information
+      const result = await client.query(`
+        SELECT 
+          t.id,
+          t.number,
+          t.created_at,
+          d.draw_number,
+          d.jackpot,
+          d.status as draw_status,
+          d.start_time,
+          d.end_time
+        FROM lottery_tickets t
+        JOIN lottery_draws d ON t.draw_id = d.id
+        WHERE t.player_fid = $1
+        ORDER BY t.created_at DESC
+      `, [fid]);
 
       return NextResponse.json({ 
         success: true, 
-        tickets: ticketsResult.rows 
+        tickets: result.rows,
+        total_tickets: result.rows.length
       });
     } finally {
       client.release();

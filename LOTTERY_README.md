@@ -15,31 +15,33 @@ A teljes BUY A LAMBO lottó rendszer implementálva van a Farcaster miniappban!
 
 ### Táblák
 
-1. **`lambo_lottery_rounds`** - Lottó körök
+1. **`lottery_draws`** - Lottó körök
    - `id` - Egyedi azonosító
-   - `round_number` - Kör száma
-   - `start_date` - Kezdés dátuma
-   - `end_date` - Befejezés dátuma
-   - `draw_date` - Húzás dátuma
-   - `prize_pool` - Nyereményalap (CHESS tokenekben)
-   - `status` - Állapot (active/completed/cancelled)
-   - `winner_fid` - Nyertes FID-je
-   - `winner_number` - Nyertes szám
-   - `total_tickets_sold` - Eladott jegyek száma
+   - `draw_number` - Kör száma
+   - `start_time` - Kezdés dátuma
+   - `end_time` - Befejezés dátuma
+   - `jackpot` - Nyereményalap (CHESS tokenekben)
+   - `status` - Állapot (pending/active/completed)
+   - `winning_number` - Nyertes szám
+   - `total_tickets` - Eladott jegyek száma
 
-2. **`lambo_lottery_tickets`** - Lottó jegyek
+2. **`lottery_tickets`** - Lottó jegyek
    - `id` - Egyedi azonosító
-   - `round_id` - Kör azonosítója
-   - `fid` - Felhasználó FID-je
-   - `ticket_number` - Jegy száma (1-100)
-   - `purchase_price` - Vásárlási ár (20,000 CHESS)
-   - `purchased_at` - Vásárlás dátuma
+   - `draw_id` - Kör azonosítója
+   - `player_fid` - Felhasználó FID-je
+   - `player_address` - Felhasználó címe
+   - `player_name` - Felhasználó neve
+   - `player_avatar` - Felhasználó avatárja
+   - `number` - Jegy száma (1-100)
+   - `created_at` - Vásárlás dátuma
 
-3. **`lambo_lottery_stats`** - Lottó statisztikák
-   - `total_rounds` - Összes kör
-   - `total_tickets_sold` - Összes eladott jegy
-   - `total_prize_distributed` - Összes kiosztott nyeremény
-   - `treasury_balance` - Kincstár egyenlege
+3. **`lottery_stats`** - Lottó statisztikák
+   - `id` - Egyedi azonosító
+   - `total_tickets` - Összes eladott jegy
+   - `active_tickets` - Aktív jegyek
+   - `total_jackpot` - Összes nyereményalap
+   - `next_draw_time` - Következő húzás ideje
+   - `last_draw_number` - Utolsó kör száma
 
 ## 🚀 API végpontok
 

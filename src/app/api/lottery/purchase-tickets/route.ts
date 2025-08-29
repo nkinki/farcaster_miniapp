@@ -7,27 +7,18 @@ const pool = new Pool({
 
 export async function POST(request: NextRequest) {
   try {
-    const { fid, round_id, ticket_numbers } = await request.json();
-
-    if (!fid || !round_id || !ticket_numbers || !Array.isArray(ticket_numbers)) {
+    const { fid, ticketNumbers, playerAddress, playerName, playerAvatar } = await request.json();
+    
+    if (!fid || !ticketNumbers || !Array.isArray(ticketNumbers) || ticketNumbers.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Invalid request data' },
         { status: 400 }
       );
     }
 
-    if (ticket_numbers.length === 0 || ticket_numbers.length > 10) {
+    if (ticketNumbers.length > 10) {
       return NextResponse.json(
-        { success: false, error: 'You can purchase 1-10 tickets at once' },
-        { status: 400 }
-      );
-    }
-
-    // Validate ticket numbers (1-100)
-    const invalidNumbers = ticket_numbers.filter(num => num < 1 || num > 100);
-    if (invalidNumbers.length > 0) {
-      return NextResponse.json(
-        { success: false, error: 'Ticket numbers must be between 1-100' },
+        { success: false, error: 'Maximum 10 tickets can be purchased at once' },
         { status: 400 }
       );
     }
@@ -37,97 +28,88 @@ export async function POST(request: NextRequest) {
     try {
       await client.query('BEGIN');
 
-      // Check if round is active
+      // Get current active round
       const roundResult = await client.query(`
-        SELECT * FROM lambo_lottery_rounds 
-        WHERE id = $1 AND status = 'active'
-      `, [round_id]);
+        SELECT id, total_tickets FROM lottery_draws 
+        WHERE status = 'active' 
+        ORDER BY draw_number DESC 
+        LIMIT 1
+      `);
 
       if (roundResult.rows.length === 0) {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { success: false, error: 'Round is not active' },
+          { success: false, error: 'No active round found' },
           { status: 400 }
         );
       }
 
       const round = roundResult.rows[0];
+      const currentTickets = round.total_tickets || 0;
 
-      // Check if draw time has passed
-      if (new Date() > new Date(round.draw_date)) {
+      // Check if there are enough available numbers
+      if (currentTickets + ticketNumbers.length > 100) {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { success: false, error: 'Ticket sales have ended for this round' },
+          { success: false, error: 'Not enough available ticket numbers' },
           { status: 400 }
         );
       }
 
-      // Check if tickets are already taken
-      const existingTicketsResult = await client.query(`
-        SELECT ticket_number FROM lambo_lottery_tickets 
-        WHERE round_id = $1 AND ticket_number = ANY($2)
-      `, [round_id, ticket_numbers]);
+      // Check if any of the requested numbers are already taken
+      const existingTickets = await client.query(`
+        SELECT number FROM lottery_tickets 
+        WHERE draw_id = $1 AND number = ANY($2)
+      `, [round.id, ticketNumbers]);
 
-      if (existingTicketsResult.rows.length > 0) {
-        const takenNumbers = existingTicketsResult.rows.map(row => row.ticket_number);
+      if (existingTickets.rows.length > 0) {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { success: false, error: `Tickets already taken: ${takenNumbers.join(', ')}` },
-          { status: 400 }
-        );
-      }
-
-      // Check if total tickets would exceed 100
-      const totalTicketsResult = await client.query(`
-        SELECT COUNT(*) as count FROM lambo_lottery_tickets 
-        WHERE round_id = $1
-      `, [round_id]);
-
-      const currentTicketCount = parseInt(totalTicketsResult.rows[0].count);
-      if (currentTicketCount + ticket_numbers.length > 100) {
-        await client.query('ROLLBACK');
-        return NextResponse.json(
-          { success: false, error: 'Not enough tickets available' },
+          { 
+            success: false, 
+            error: 'Some ticket numbers are already taken',
+            takenNumbers: existingTickets.rows.map(t => t.number)
+          },
           { status: 400 }
         );
       }
 
       // Insert tickets
-      const ticketPrice = 20000; // 20,000 CHESS tokens
-      const purchasedTickets = [];
-
-      for (const ticketNumber of ticket_numbers) {
+      const insertedTickets = [];
+      for (const number of ticketNumbers) {
         const ticketResult = await client.query(`
-          INSERT INTO lambo_lottery_tickets (round_id, fid, ticket_number, purchase_price)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO lottery_tickets (
+            draw_id, player_fid, player_address, player_name, player_avatar, number
+          ) VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING *
-        `, [round_id, fid, ticketNumber, ticketPrice]);
+        `, [round.id, fid, playerAddress || '0x0000000000000000000000000000000000000000', playerName || 'Anonymous', playerAvatar || '', number]);
         
-        purchasedTickets.push(ticketResult.rows[0]);
+        insertedTickets.push(ticketResult.rows[0]);
       }
 
       // Update round ticket count
       await client.query(`
-        UPDATE lambo_lottery_rounds 
-        SET total_tickets_sold = total_tickets_sold + $1,
-            prize_pool = prize_pool + $2
-        WHERE id = $3
-      `, [ticket_numbers.length, ticket_numbers.length * ticketPrice * 0.7, round_id]);
+        UPDATE lottery_draws 
+        SET total_tickets = total_tickets + $1
+        WHERE id = $2
+      `, [ticketNumbers.length, round.id]);
 
-      // Update lottery stats
+      // Update stats
       await client.query(`
-        UPDATE lambo_lottery_stats 
-        SET total_tickets_sold = total_tickets_sold + $1,
-            treasury_balance = treasury_balance + $2
+        UPDATE lottery_stats 
+        SET total_tickets = total_tickets + $1,
+            active_tickets = active_tickets + $1
         WHERE id = 1
-      `, [ticket_numbers.length, ticket_numbers.length * ticketPrice * 0.3]);
+      `, [ticketNumbers.length]);
 
       await client.query('COMMIT');
 
       return NextResponse.json({ 
         success: true, 
-        tickets: purchasedTickets,
-        message: `Successfully purchased ${ticket_numbers.length} ticket(s)`
+        message: `Successfully purchased ${ticketNumbers.length} tickets`,
+        tickets: insertedTickets,
+        round_id: round.id,
+        total_cost: ticketNumbers.length * 20000 // 20,000 CHESS per ticket
       });
     } catch (error) {
       await client.query('ROLLBACK');

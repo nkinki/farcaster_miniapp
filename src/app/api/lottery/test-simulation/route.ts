@@ -13,21 +13,21 @@ export async function POST(request: NextRequest) {
     try {
       if (action === 'reset') {
         // Reset all lottery data for testing
-        await client.query('DELETE FROM lambo_lottery_tickets');
-        await client.query('DELETE FROM lambo_lottery_rounds');
-        await client.query('DELETE FROM lambo_lottery_stats');
+        await client.query('DELETE FROM lottery_tickets');
+        await client.query('DELETE FROM lottery_draws');
+        await client.query('DELETE FROM lottery_stats');
         
         // Recreate initial data
         await client.query(`
-          INSERT INTO lambo_lottery_stats (id, total_rounds, total_tickets_sold, total_prize_distributed, treasury_balance)
-          VALUES (1, 0, 0, 0, 0)
+          INSERT INTO lottery_stats (total_tickets, active_tickets, total_jackpot, next_draw_time, last_draw_number)
+          VALUES (0, 0, 1000000, NOW() + INTERVAL '1 day', 0)
         `);
         
         await client.query(`
-          INSERT INTO lambo_lottery_rounds (
-            round_number, start_date, end_date, draw_date, prize_pool, status
+          INSERT INTO lottery_draws (
+            draw_number, start_time, end_time, jackpot, status
           ) VALUES (
-            1, NOW(), NOW() + INTERVAL '1 day', NOW() + INTERVAL '1 day' + INTERVAL '1 hour', 1000000, 'active'
+            1, NOW(), NOW() + INTERVAL '1 day', 1000000, 'active'
           )
         `);
         
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       if (action === 'simulate_purchase') {
         // Simulate ticket purchase
         const roundResult = await client.query(`
-          SELECT id FROM lambo_lottery_rounds WHERE status = 'active' LIMIT 1
+          SELECT id FROM lottery_draws WHERE status = 'active' LIMIT 1
         `);
         
         if (roundResult.rows.length === 0) {
@@ -56,17 +56,17 @@ export async function POST(request: NextRequest) {
         // Insert test tickets
         for (const number of testNumbers) {
           await client.query(`
-            INSERT INTO lambo_lottery_tickets (round_id, fid, ticket_number, purchase_price)
-            VALUES ($1, $2, $3, $4)
-            ON CONFLICT (round_id, ticket_number) DO NOTHING
-          `, [roundId, testFid, number, 20000]);
+            INSERT INTO lottery_tickets (draw_id, player_fid, player_address, player_name, number)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (draw_id, number) DO NOTHING
+          `, [roundId, testFid, '0x1234567890abcdef', 'TestUser', number]);
         }
         
-        // Update round ticket count
+        // Update draw ticket count
         await client.query(`
-          UPDATE lambo_lottery_rounds 
-          SET total_tickets_sold = (
-            SELECT COUNT(*) FROM lambo_lottery_tickets WHERE round_id = $1
+          UPDATE lottery_draws 
+          SET total_tickets = (
+            SELECT COUNT(*) FROM lottery_tickets WHERE draw_id = $1
           )
           WHERE id = $1
         `, [roundId]);
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       if (action === 'simulate_draw') {
         // Simulate drawing winner
         const roundResult = await client.query(`
-          SELECT * FROM lambo_lottery_rounds WHERE status = 'active' LIMIT 1
+          SELECT * FROM lottery_draws WHERE status = 'active' LIMIT 1
         `);
         
         if (roundResult.rows.length === 0) {
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         
         // Get all tickets
         const ticketsResult = await client.query(`
-          SELECT * FROM lambo_lottery_tickets WHERE round_id = $1
+          SELECT * FROM lottery_tickets WHERE draw_id = $1
         `, [round.id]);
         
         if (ticketsResult.rows.length === 0) {
@@ -108,31 +108,30 @@ export async function POST(request: NextRequest) {
         
         // Generate winning number
         const winningNumber = Math.floor(Math.random() * 100) + 1;
-        const winnerTicket = ticketsResult.rows.find(ticket => ticket.ticket_number === winningNumber);
+        const winnerTicket = ticketsResult.rows.find(ticket => ticket.number === winningNumber);
         
         // Complete round
         await client.query(`
-          UPDATE lambo_lottery_rounds 
+          UPDATE lottery_draws 
           SET status = 'completed', 
-              winner_fid = $1, 
-              winner_number = $2, 
+              winning_number = $1, 
               updated_at = NOW()
-          WHERE id = $3
-        `, [winnerTicket?.fid || null, winningNumber, round.id]);
+          WHERE id = $2
+        `, [winningNumber, round.id]);
         
         // Update stats
         await client.query(`
-          UPDATE lambo_lottery_stats 
-          SET total_rounds = total_rounds + 1,
-              total_prize_distributed = total_prize_distributed + $1
+          UPDATE lottery_stats 
+          SET last_draw_number = last_draw_number + 1,
+              total_tickets = total_tickets + $1
           WHERE id = 1
-        `, [winnerTicket ? round.prize_pool : 0]);
+        `, [ticketsResult.rows.length]);
         
         return NextResponse.json({ 
           success: true, 
           message: 'Draw simulation completed',
           winning_number: winningNumber,
-          winner_fid: winnerTicket?.fid || null,
+          winner_fid: winnerTicket?.player_fid || null,
           total_tickets: ticketsResult.rows.length
         });
       }
@@ -140,33 +139,32 @@ export async function POST(request: NextRequest) {
       if (action === 'simulate_new_round') {
         // Simulate creating new round
         const lastRoundResult = await client.query(`
-          SELECT * FROM lambo_lottery_rounds 
+          SELECT * FROM lottery_draws 
           WHERE status = 'completed' 
-          ORDER BY round_number DESC LIMIT 1
+          ORDER BY draw_number DESC LIMIT 1
         `);
         
-        let newPrizePool = 1000000;
+        let newJackpot = 1000000;
         
         if (lastRoundResult.rows.length > 0) {
           const lastRound = lastRoundResult.rows[0];
-          const lastRoundTickets = lastRound.total_tickets_sold || 0;
+          const lastRoundTickets = lastRound.total_tickets || 0;
           const ticketRevenue = lastRoundTickets * 20000;
           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
-          newPrizePool = 1000000 + carryOverAmount;
+          newJackpot = 1000000 + carryOverAmount;
         }
         
-        const nextRoundNumber = (lastRoundResult.rows[0]?.round_number || 0) + 1;
+        const nextDrawNumber = (lastRoundResult.rows[0]?.draw_number || 0) + 1;
         const now = new Date();
-        const startDate = new Date(now);
-        const endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        const drawDate = new Date(endDate.getTime() + 60 * 60 * 1000);
+        const startTime = new Date(now);
+        const endTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         
         const newRoundResult = await client.query(`
-          INSERT INTO lambo_lottery_rounds (
-            round_number, start_date, end_date, draw_date, prize_pool, status
-          ) VALUES ($1, $2, $3, $4, $5, 'active')
+          INSERT INTO lottery_draws (
+            draw_number, start_time, end_time, jackpot, status
+          ) VALUES ($1, $2, $3, $4, 'active')
           RETURNING *
-        `, [nextRoundNumber, startDate, endDate, drawDate, newPrizePool]);
+        `, [nextDrawNumber, startTime, endTime, newJackpot]);
         
         return NextResponse.json({ 
           success: true, 

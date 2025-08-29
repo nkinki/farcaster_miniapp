@@ -12,27 +12,25 @@ export async function GET() {
     try {
       // Get current active round
       const result = await client.query(`
-        SELECT * FROM lambo_lottery_rounds 
+        SELECT * FROM lottery_draws 
         WHERE status = 'active' 
-        ORDER BY round_number DESC 
+        ORDER BY draw_number DESC 
         LIMIT 1
       `);
 
       if (result.rows.length === 0) {
         // Create new round if none exists
         const newRoundResult = await client.query(`
-          INSERT INTO lambo_lottery_rounds (
-            round_number, 
-            start_date, 
-            end_date, 
-            draw_date, 
-            prize_pool, 
+          INSERT INTO lottery_draws (
+            draw_number, 
+            start_time, 
+            end_time, 
+            jackpot, 
             status
           ) VALUES (
-            COALESCE((SELECT MAX(round_number) FROM lambo_lottery_rounds), 0) + 1,
+            COALESCE((SELECT MAX(draw_number) FROM lottery_draws), 0) + 1,
             NOW(),
             NOW() + INTERVAL '1 day',
-            NOW() + INTERVAL '1 day' + INTERVAL '1 hour',
             1000000,
             'active'
           )
@@ -41,13 +39,35 @@ export async function GET() {
         
         return NextResponse.json({ 
           success: true, 
-          round: newRoundResult.rows[0] 
+          round: {
+            id: newRoundResult.rows[0].id,
+            round_number: newRoundResult.rows[0].draw_number,
+            start_date: newRoundResult.rows[0].start_time,
+            end_date: newRoundResult.rows[0].end_time,
+            draw_date: newRoundResult.rows[0].end_time,
+            prize_pool: newRoundResult.rows[0].jackpot,
+            status: newRoundResult.rows[0].status,
+            winner_fid: null,
+            winner_number: newRoundResult.rows[0].winning_number,
+            total_tickets_sold: newRoundResult.rows[0].total_tickets
+          }
         });
       }
 
       return NextResponse.json({ 
         success: true, 
-        round: result.rows[0] 
+        round: {
+          id: result.rows[0].id,
+          round_number: result.rows[0].draw_number,
+          start_date: result.rows[0].start_time,
+          end_date: result.rows[0].end_time,
+          draw_date: result.rows[0].end_time,
+          prize_pool: result.rows[0].jackpot,
+          status: result.rows[0].status,
+          winner_fid: null,
+          winner_number: result.rows[0].winning_number,
+          total_tickets_sold: result.rows[0].total_tickets
+        }
       });
     } finally {
       client.release();
