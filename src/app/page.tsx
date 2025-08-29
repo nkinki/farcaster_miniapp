@@ -353,8 +353,8 @@ export default function Home() {
             >
               <span className="text-2xl">🏎️</span>
               BUY A LAMBO
-              <span className="text-xs bg-green-500 px-2 py-1 rounded-full animate-pulse">
-                LIVE NOW!
+              <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
+                Under Development
               </span>
             </button>
           </div>
