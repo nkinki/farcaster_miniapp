@@ -1,26 +1,24 @@
 "use client"
-
 import { useState, useEffect } from 'react';
 import { FiRefreshCw, FiPlay, FiRotateCcw, FiPlus } from 'react-icons/fi';
+import LotteryTicketPurchase from '@/components/LotteryTicketPurchase';
 
 interface LotteryRound {
   id: number;
-  round_number: number;
-  start_date: string;
-  end_date: string;
-  draw_date: string;
-  prize_pool: number;
+  draw_number: number;
+  jackpot: number;
+  total_tickets: number;
   status: string;
-  winner_fid?: number;
-  winner_number?: number;
-  total_tickets_sold: number;
+  start_time: string;
+  end_time: string;
 }
 
 interface LotteryStats {
-  total_rounds: number;
-  total_tickets_sold: number;
-  total_prize_distributed: number;
-  treasury_balance: number;
+  total_tickets: number;
+  active_tickets: number;
+  total_jackpot: number;
+  last_draw_number: number;
+  next_draw_time: string;
 }
 
 export default function LotteryAdminPage() {
@@ -31,26 +29,22 @@ export default function LotteryAdminPage() {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
-      
-      // Fetch current round
-      const roundResponse = await fetch('/api/lottery/current-round');
+      const [roundResponse, statsResponse] = await Promise.all([
+        fetch('/api/lottery/current-round'),
+        fetch('/api/lottery/stats')
+      ]);
+
       if (roundResponse.ok) {
         const roundData = await roundResponse.json();
         setCurrentRound(roundData.round);
       }
 
-      // Fetch stats
-      const statsResponse = await fetch('/api/lottery/stats');
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStats(statsData.stats);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      setMessage('Error fetching data');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -59,186 +53,189 @@ export default function LotteryAdminPage() {
   }, []);
 
   const simulateAction = async (action: string) => {
+    setLoading(true);
+    setMessage('');
+
     try {
-      setLoading(true);
-      setMessage('');
-      
       const response = await fetch('/api/lottery/test-simulation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
-        setMessage(data.message);
-        await fetchData(); // Refresh data
+        setMessage(`✅ ${data.message}`);
+        fetchData(); // Refresh data
       } else {
-        setMessage(`Error: ${data.error}`);
+        setMessage(`❌ ${data.error}`);
       }
     } catch (error) {
-      console.error('Error simulating action:', error);
-      setMessage('Error simulating action');
+      setMessage('❌ An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatChessTokens = (amount: number) => {
-    return (amount / 1000000).toLocaleString('en-US', { 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 2 
-    }) + 'M';
+  const formatTime = (timeString: string) => {
+    return new Date(timeString).toLocaleString();
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+  const formatNumber = (num: number) => {
+    return num.toLocaleString();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">🎰 Lottery Admin Panel</h1>
-          <p className="text-purple-300">Test and simulate lottery operations</p>
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-yellow-400 mb-2">🎰 BUY A LAMBO LOTTERY</h1>
+          <p className="text-gray-400">Admin Panel - Test & Manage Lottery System</p>
         </div>
 
-        {/* Control Panel */}
-        <div className="bg-[#23283a] rounded-xl p-6 border border-purple-500/30 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4">Control Panel</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button
-              onClick={() => simulateAction('reset')}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              <FiRotateCcw size={16} />
-              Reset All
-            </button>
-            
-            <button
-              onClick={() => simulateAction('simulate_purchase')}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              <FiPlus size={16} />
-              Simulate Purchase
-            </button>
-            
-            <button
-              onClick={() => simulateAction('simulate_draw')}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              <FiPlay size={16} />
-              Simulate Draw
-            </button>
-            
-            <button
-              onClick={() => simulateAction('simulate_new_round')}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              <FiPlus size={16} />
-              New Round
-            </button>
-          </div>
-          
-          {message && (
-            <div className="mt-4 p-3 bg-gray-800 rounded-lg">
-              <p className="text-white">{message}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Admin Controls */}
+          <div className="space-y-6">
+            {/* Admin Actions */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4 text-yellow-400">Admin Controls</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => simulateAction('reset')}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 py-3 px-4 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  <FiRotateCcw />
+                  Reset All
+                </button>
+                <button
+                  onClick={() => simulateAction('simulate_purchase')}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  <FiPlay />
+                  Simulate Purchase
+                </button>
+                <button
+                  onClick={() => simulateAction('simulate_draw')}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 py-3 px-4 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  <FiPlay />
+                  Simulate Draw
+                </button>
+                <button
+                  onClick={() => simulateAction('simulate_new_round')}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  <FiPlus />
+                  New Round
+                </button>
+              </div>
             </div>
-          )}
+
+            {/* Current Round Info */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4 text-yellow-400">Current Round</h2>
+              {currentRound ? (
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Round Number:</span>
+                    <span className="font-bold">#{currentRound.draw_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Jackpot:</span>
+                    <span className="font-bold text-yellow-400">{formatNumber(currentRound.jackpot)} $CHESS</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Tickets Sold:</span>
+                    <span className="font-bold">{formatNumber(currentRound.total_tickets)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Status:</span>
+                    <span className={`font-bold px-2 py-1 rounded text-sm ${
+                      currentRound.status === 'active' ? 'bg-green-600' : 'bg-gray-600'
+                    }`}>
+                      {currentRound.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Start Time:</span>
+                    <span className="font-bold">{formatTime(currentRound.start_time)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">End Time:</span>
+                    <span className="font-bold">{formatTime(currentRound.end_time)}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-400">No active round found</p>
+              )}
+            </div>
+
+            {/* Lottery Statistics */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4 text-yellow-400">Lottery Statistics</h2>
+              {stats ? (
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total Tickets:</span>
+                    <span className="font-bold">{formatNumber(stats.total_tickets)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Active Tickets:</span>
+                    <span className="font-bold">{formatNumber(stats.active_tickets)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total Jackpot:</span>
+                    <span className="font-bold text-yellow-400">{formatNumber(stats.total_jackpot)} $CHESS</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Last Draw:</span>
+                    <span className="font-bold">#{stats.last_draw_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Next Draw:</span>
+                    <span className="font-bold">{formatTime(stats.next_draw_time)}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-400">No statistics available</p>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Ticket Purchase */}
+          <div className="space-y-6">
+            <LotteryTicketPurchase 
+              currentRound={currentRound}
+              onPurchaseSuccess={fetchData}
+            />
+          </div>
         </div>
 
-        {/* Current Round Info */}
-        {currentRound && (
-          <div className="bg-[#23283a] rounded-xl p-6 border border-pink-500/30 mb-6">
-            <h2 className="text-xl font-bold text-white mb-4">Current Round #{currentRound.round_number}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-pink-400">
-                  {formatChessTokens(currentRound.prize_pool)}
-                </div>
-                <div className="text-pink-300 text-sm">Prize Pool</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-400">
-                  {currentRound.total_tickets_sold}/100
-                </div>
-                <div className="text-cyan-300 text-sm">Tickets Sold</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">
-                  {currentRound.status}
-                </div>
-                <div className="text-purple-300 text-sm">Status</div>
-              </div>
-            </div>
-            
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-400">Start Date:</span>
-                <span className="text-white ml-2">{formatDate(currentRound.start_date)}</span>
-              </div>
-              <div>
-                <span className="text-gray-400">End Date:</span>
-                <span className="text-white ml-2">{formatDate(currentRound.end_date)}</span>
-              </div>
-              <div>
-                <span className="text-gray-400">Draw Date:</span>
-                <span className="text-white ml-2">{formatDate(currentRound.draw_date)}</span>
-              </div>
-              <div>
-                <span className="text-gray-400">Round ID:</span>
-                <span className="text-white ml-2">{currentRound.id}</span>
-              </div>
-            </div>
-            
-            {currentRound.winner_fid && (
-              <div className="mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
-                <div className="text-green-400 font-bold">Winner Found!</div>
-                <div className="text-white">FID: {currentRound.winner_fid}</div>
-                <div className="text-white">Winning Number: {currentRound.winner_number}</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Lottery Statistics */}
-        {stats && (
-          <div className="bg-[#23283a] rounded-xl p-6 border border-yellow-500/30">
-            <h2 className="text-xl font-bold text-white mb-4">Lottery Statistics</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">{stats.total_rounds}</div>
-                <div className="text-gray-300 text-sm">Total Rounds</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">{stats.total_tickets_sold}</div>
-                <div className="text-gray-300 text-sm">Total Tickets Sold</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">{formatChessTokens(stats.total_prize_distributed)}</div>
-                <div className="text-gray-300 text-sm">Total Prizes Distributed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">{formatChessTokens(stats.treasury_balance)}</div>
-                <div className="text-gray-300 text-sm">Treasury Balance</div>
-              </div>
-            </div>
+        {/* Status Message */}
+        {message && (
+          <div className={`text-center p-4 rounded-lg ${
+            message.startsWith('✅') ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
+          }`}>
+            {message}
           </div>
         )}
 
         {/* Refresh Button */}
-        <div className="mt-6 text-center">
+        <div className="text-center">
           <button
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 mx-auto"
+            className="flex items-center gap-2 mx-auto py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
           >
-            <FiRefreshCw className={loading ? 'animate-spin' : ''} size={16} />
+            <FiRefreshCw className={loading ? 'animate-spin' : ''} />
             Refresh Data
           </button>
         </div>
