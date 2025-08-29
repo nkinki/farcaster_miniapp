@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiShoppingCart, FiCheck, FiX } from 'react-icons/fi';
+import { FiShoppingCart, FiCheck, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 interface LotteryTicketPurchaseProps {
   currentRound: any;
@@ -13,9 +13,20 @@ export default function LotteryTicketPurchase({ currentRound, onPurchaseSuccess 
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Generate available ticket numbers (1-100)
-  const availableNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
+  // Generate available ticket numbers (1-100) - but only show 20 per page
+  const totalNumbers = 100;
+  const numbersPerPage = 20;
+  const totalPages = Math.ceil(totalNumbers / numbersPerPage);
+
+  const getPageNumbers = (page: number) => {
+    const start = (page - 1) * numbersPerPage + 1;
+    const end = Math.min(page * numbersPerPage, totalNumbers);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  };
+
+  const availableNumbers = getPageNumbers(currentPage);
 
   const handleNumberClick = (number: number) => {
     if (selectedNumbers.includes(number)) {
@@ -85,6 +96,18 @@ export default function LotteryTicketPurchase({ currentRound, onPurchaseSuccess 
 
   const totalCost = selectedNumbers.length * 20000; // 20,000 CHESS per ticket
 
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -113,14 +136,38 @@ export default function LotteryTicketPurchase({ currentRound, onPurchaseSuccess 
           </span>
         </div>
 
-        <div className="grid grid-cols-10 gap-2 max-h-60 overflow-y-auto">
+        {/* Page Navigation */}
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            className="flex items-center gap-1 px-2 py-1 text-sm text-gray-400 hover:text-white disabled:opacity-50"
+          >
+            <FiChevronLeft />
+            Previous
+          </button>
+          <span className="text-sm text-gray-400">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={nextPage}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-1 px-2 py-1 text-sm text-gray-400 hover:text-white disabled:opacity-50"
+          >
+            Next
+            <FiChevronRight />
+          </button>
+        </div>
+
+        {/* Numbers Grid */}
+        <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto">
           {availableNumbers.map((number) => (
             <button
               key={number}
               onClick={() => handleNumberClick(number)}
               disabled={isPurchasing}
               className={`
-                w-8 h-8 rounded text-sm font-medium transition-all
+                w-12 h-12 rounded text-sm font-medium transition-all
                 ${selectedNumbers.includes(number)
                   ? 'bg-green-500 text-white scale-110'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -131,6 +178,11 @@ export default function LotteryTicketPurchase({ currentRound, onPurchaseSuccess 
               {number}
             </button>
           ))}
+        </div>
+
+        {/* Page Info */}
+        <div className="text-center mt-2 text-xs text-gray-400">
+          Showing numbers {(currentPage - 1) * numbersPerPage + 1} - {Math.min(currentPage * numbersPerPage, totalNumbers)}
         </div>
       </div>
 
@@ -216,6 +268,7 @@ export default function LotteryTicketPurchase({ currentRound, onPurchaseSuccess 
         <p>• Each ticket costs 20,000 $CHESS</p>
         <p>• Maximum 10 tickets per purchase</p>
         <p>• Draw happens automatically when round ends</p>
+        <p>• Navigate through pages to see all 100 numbers</p>
       </div>
     </div>
   );
