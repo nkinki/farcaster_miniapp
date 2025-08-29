@@ -368,19 +368,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
             )}
 
-            {/* Rules */}
-            <div className="bg-black/40 rounded-xl p-4 border border-gray-500/30">
-              <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Choose 1-10 numbers between 1-100</li>
-                <li>• Each ticket costs 20,000 CHESS tokens</li>
-                <li>• Daily draw at 8 PM UTC</li>
-                <li>• Winner takes the entire prize pool (All In!)</li>
-                <li>• 70% of ticket sales go to next day's prize pool</li>
-                <li>• 30% goes to treasury</li>
-                <li>• Starting prize pool: 1,000,000 CHESS tokens</li>
-              </ul>
-            </div>
+                         {/* Rules */}
+             <div className="bg-black/40 rounded-xl p-4 border border-gray-500/30">
+               <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
+               <ul className="text-sm text-gray-400 space-y-1">
+                 <li>• Choose 1-10 numbers between 1-100</li>
+                 <li>• Each ticket costs 20,000 CHESS tokens</li>
+                 <li>• Daily draw at 8 PM UTC</li>
+                 <li>• Winner takes the entire prize pool (All In!)</li>
+               </ul>
+             </div>
           </div>
         )}
       </div>
