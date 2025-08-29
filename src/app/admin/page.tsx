@@ -263,7 +263,7 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-amber-400">{stats.farChess.totalGames || 0}</div>
-                    <div className="text-sm text-gray-300">PVP Games</div>
+                    <div className="text-sm text-gray-300">Chess Games</div>
                   </div>
                   <div className="bg-[#23283a] border border-[#8b5a3c] rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-green-400">{stats.farChess.activeGames || 0}</div>

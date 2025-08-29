@@ -1,4 +1,4 @@
-// User interface for PvP components
+// User interface for Farcaster components
 export interface User {
   fid: number;
   displayName?: string;
