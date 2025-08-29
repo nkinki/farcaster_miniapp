@@ -191,7 +191,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 uppercase tracking-wider">
                  BUY A LAMBO
                </h1>
-               <p className="text-pink-300 text-sm font-medium">GTA Vice City Style Lottery • One Winner Takes All!</p>
+               <p className="text-pink-300 text-sm font-medium">One Winner Takes All!</p>
             </div>
           </div>
           <button
