@@ -492,17 +492,7 @@ export default function Home() {
                </div>
              </button>
              
-             <Link href="/lottery-admin" className="flex-1">
-               <button
-                 className="w-full py-3 text-center font-sans tracking-wide bg-gray-800 text-gray-300 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 uppercase"
-                 style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
-               >
-                 <div className="flex flex-col items-center justify-center gap-1">
-                   <span className="text-lg">🎰</span>
-                   <span className="text-[8px] font-bold">ADMIN</span>
-                 </div>
-               </button>
-             </Link>
+
           </div>
         </nav>
       </div>
