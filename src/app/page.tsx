@@ -347,7 +347,7 @@ export default function Home() {
                 }
                 setShowLamboLottery(true);
               }}
-              className="flex items-center gap-3 px-12 py-4 text-xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-600 hover:from-pink-500 hover:via-purple-500 hover:to-cyan-500 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-pink-400/50 hover:border-pink-300/70"
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-600 hover:from-pink-500 hover:via-purple-500 hover:to-cyan-500 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-pink-400/50 hover:border-pink-300/70"
               style={{
                 boxShadow: '0 0 20px rgba(236, 72, 153, 0.3), 0 0 40px rgba(147, 51, 234, 0.2)',
                 animation: 'pulse 2s infinite'
