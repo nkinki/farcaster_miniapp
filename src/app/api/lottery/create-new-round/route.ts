@@ -29,8 +29,16 @@ export async function POST(request: NextRequest) {
         const lastRoundTickets = lastRound.total_tickets || 0;
         const ticketRevenue = lastRoundTickets * 20000; // 20,000 CHESS per ticket
         const carryOverAmount = Math.floor(ticketRevenue * 0.7);
+        const treasuryAmount = Math.floor(ticketRevenue * 0.3);
         
         newJackpot = 1000000 + carryOverAmount; // Base 1M + carryover
+        
+        // Update treasury balance in stats
+        await client.query(`
+          UPDATE lottery_stats 
+          SET total_jackpot = total_jackpot + $1
+          WHERE id = 1
+        `, [treasuryAmount]);
       }
 
       // Get next draw number
