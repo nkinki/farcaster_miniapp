@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
 
       // Step 1: Get current active round
       const roundResult = await client.query(`
-        SELECT * FROM lambo_lottery_rounds 
+        SELECT * FROM lottery_draws 
         WHERE status = 'active' 
-        ORDER BY round_number DESC 
+        ORDER BY draw_number DESC 
         LIMIT 1
       `);
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       const round = roundResult.rows[0];
 
       // Step 2: Check if draw time has arrived
-      if (new Date() < new Date(round.draw_date)) {
+      if (new Date() < new Date(round.end_time)) {
         await client.query('ROLLBACK');
         return NextResponse.json(
           { success: false, error: 'Draw time has not arrived yet' },
@@ -41,9 +41,9 @@ export async function POST(request: NextRequest) {
 
       // Step 3: Get all sold tickets for this round
       const ticketsResult = await client.query(`
-        SELECT * FROM lambo_lottery_tickets 
-        WHERE round_id = $1
-        ORDER BY ticket_number ASC
+        SELECT * FROM lottery_tickets 
+        WHERE draw_id = $1
+        ORDER BY number ASC
       `, [round.id]);
 
       let winnerFid: number | null = null;
@@ -54,69 +54,56 @@ export async function POST(request: NextRequest) {
         winningNumber = Math.floor(Math.random() * 100) + 1;
 
         // Find winner (if any ticket matches the winning number)
-        const winnerTicket = ticketsResult.rows.find(ticket => ticket.ticket_number === winningNumber);
+        const winnerTicket = ticketsResult.rows.find(ticket => ticket.number === winningNumber);
         
         if (winnerTicket) {
-          winnerFid = winnerTicket.fid;
+          winnerFid = winnerTicket.player_fid;
         }
       }
 
       // Step 4: Complete current round
       await client.query(`
-        UPDATE lambo_lottery_rounds 
+        UPDATE lottery_draws 
         SET status = 'completed', 
-            winner_fid = $1, 
-            winner_number = $2, 
-            updated_at = NOW()
-        WHERE id = $3
-      `, [winnerFid, winningNumber, round.id]);
+            winning_number = $1
+        WHERE id = $2
+      `, [winningNumber, round.id]);
 
       // Step 5: Update lottery stats
-      if (winnerFid) {
-        await client.query(`
-          UPDATE lambo_lottery_stats 
-          SET total_rounds = total_rounds + 1,
-              total_prize_distributed = total_prize_distributed + $1,
-              updated_at = NOW()
-          WHERE id = 1
-        `, [round.prize_pool]);
-      } else {
-        await client.query(`
-          UPDATE lambo_lottery_stats 
-          SET total_rounds = total_rounds + 1,
-              updated_at = NOW()
-          WHERE id = 1
-        `);
-      }
+      await client.query(`
+        UPDATE lottery_stats 
+        SET last_draw_number = last_draw_number + 1,
+            total_tickets = total_tickets + $1,
+            active_tickets = active_tickets - $1
+        WHERE id = 1
+      `, [ticketsResult.rows.length]);
 
-      // Step 6: Calculate new prize pool for next round
-      let newPrizePool = 1000000; // Default 1M CHESS tokens
+      // Step 6: Calculate new jackpot for next round
+      let newJackpot = 1000000; // Default 1M CHESS tokens
       
       if (ticketsResult.rows.length > 0) {
-        // 70% of ticket sales go to next round's prize pool
+        // 70% of ticket sales go to next round's jackpot
         const ticketRevenue = ticketsResult.rows.length * 20000; // 20,000 CHESS per ticket
         const carryOverAmount = Math.floor(ticketRevenue * 0.7);
-        newPrizePool = 1000000 + carryOverAmount;
+        newJackpot = 1000000 + carryOverAmount;
       }
 
       // Step 7: Create new round
-      const nextRoundNumber = round.round_number + 1;
+      const nextDrawNumber = round.draw_number + 1;
       const now = new Date();
-      const startDate = new Date(now);
-      const endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 day
-      const drawDate = new Date(endDate.getTime() + 60 * 60 * 1000); // +1 hour after end
+      const startTime = new Date(now);
+      const endTime = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 day
 
       const newRoundResult = await client.query(`
-        INSERT INTO lambo_lottery_rounds (
-          round_number, 
-          start_date, 
-          end_date, 
-          draw_date, 
-          prize_pool, 
+        INSERT INTO lottery_draws (
+          draw_number, 
+          start_time, 
+          end_time, 
+          jackpot, 
           status
-        ) VALUES ($1, $2, $3, $4, $5, 'active')
+        ) VALUES ($1, $2, $3, $4, 'active')
         RETURNING *
-      `, [nextRoundNumber, startDate, endDate, drawDate, newPrizePool]);
+      `, [nextDrawNumber, startTime, endTime, newJackpot]);
 
       await client.query('COMMIT');
 
@@ -125,13 +112,19 @@ export async function POST(request: NextRequest) {
         message: 'Lottery cycle completed successfully',
         completed_round: {
           id: round.id,
-          round_number: round.round_number,
+          draw_number: round.draw_number,
           winner_fid: winnerFid,
           winning_number: winningNumber,
-          prize_pool: round.prize_pool,
+          jackpot: round.jackpot,
           tickets_sold: ticketsResult.rows.length
         },
-        new_round: newRoundResult.rows[0]
+        new_round: {
+          id: newRoundResult.rows[0].id,
+          draw_number: newRoundResult.rows[0].draw_number,
+          jackpot: newRoundResult.rows[0].jackpot,
+          start_time: newRoundResult.rows[0].start_time,
+          end_time: newRoundResult.rows[0].end_time
+        }
       });
     } catch (error) {
       await client.query('ROLLBACK');

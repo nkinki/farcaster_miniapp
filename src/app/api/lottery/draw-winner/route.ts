@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
 
       // Get current active round
       const roundResult = await client.query(`
-        SELECT * FROM lambo_lottery_rounds 
+        SELECT * FROM lottery_draws 
         WHERE status = 'active' 
-        ORDER BY round_number DESC 
+        ORDER BY draw_number DESC 
         LIMIT 1
       `);
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       const round = roundResult.rows[0];
 
       // Check if draw time has arrived
-      if (new Date() < new Date(round.draw_date)) {
+      if (new Date() < new Date(round.end_time)) {
         await client.query('ROLLBACK');
         return NextResponse.json(
           { success: false, error: 'Draw time has not arrived yet' },
@@ -41,16 +41,16 @@ export async function POST(request: NextRequest) {
 
       // Get all sold tickets for this round
       const ticketsResult = await client.query(`
-        SELECT * FROM lambo_lottery_tickets 
-        WHERE round_id = $1
-        ORDER BY ticket_number ASC
+        SELECT * FROM lottery_tickets 
+        WHERE draw_id = $1
+        ORDER BY number ASC
       `, [round.id]);
 
       if (ticketsResult.rows.length === 0) {
         // No tickets sold, mark round as completed with no winner
         await client.query(`
-          UPDATE lambo_lottery_rounds 
-          SET status = 'completed', updated_at = NOW()
+          UPDATE lottery_draws 
+          SET status = 'completed'
           WHERE id = $1
         `, [round.id]);
 
@@ -66,27 +66,25 @@ export async function POST(request: NextRequest) {
       const winningNumber = Math.floor(Math.random() * 100) + 1;
 
       // Find winner (if any ticket matches the winning number)
-      const winnerTicket = ticketsResult.rows.find(ticket => ticket.ticket_number === winningNumber);
+      const winnerTicket = ticketsResult.rows.find(ticket => ticket.number === winningNumber);
 
       if (winnerTicket) {
         // Update round with winner
         await client.query(`
-          UPDATE lambo_lottery_rounds 
+          UPDATE lottery_draws 
           SET status = 'completed', 
-              winner_fid = $1, 
-              winner_number = $2, 
-              updated_at = NOW()
-          WHERE id = $3
-        `, [winnerTicket.fid, winningNumber, round.id]);
+              winning_number = $1
+          WHERE id = $2
+        `, [winningNumber, round.id]);
 
         // Update lottery stats
         await client.query(`
-          UPDATE lambo_lottery_stats 
-          SET total_rounds = total_rounds + 1,
-              total_prize_distributed = total_prize_distributed + $1,
-              updated_at = NOW()
+          UPDATE lottery_stats 
+          SET last_draw_number = last_draw_number + 1,
+              total_tickets = total_tickets + $1,
+              active_tickets = active_tickets - $1
           WHERE id = 1
-        `, [round.prize_pool]);
+        `, [ticketsResult.rows.length]);
 
         await client.query('COMMIT');
 
@@ -94,25 +92,27 @@ export async function POST(request: NextRequest) {
           success: true, 
           message: 'Winner selected successfully',
           round_id: round.id,
-          winner_fid: winnerTicket.fid,
+          winner_fid: winnerTicket.player_fid,
           winning_number: winningNumber,
-          prize_pool: round.prize_pool
+          jackpot: round.jackpot
         });
       } else {
         // No winner found, mark round as completed
         await client.query(`
-          UPDATE lambo_lottery_rounds 
-          SET status = 'completed', updated_at = NOW()
-          WHERE id = $1
-        `, [round.id]);
+          UPDATE lottery_draws 
+          SET status = 'completed', 
+              winning_number = $1
+          WHERE id = $2
+        `, [winningNumber, round.id]);
 
         // Update lottery stats
         await client.query(`
-          UPDATE lambo_lottery_stats 
-          SET total_rounds = total_rounds + 1,
-              updated_at = NOW()
+          UPDATE lottery_stats 
+          SET last_draw_number = last_draw_number + 1,
+              total_tickets = total_tickets + $1,
+              active_tickets = active_tickets - $1
           WHERE id = 1
-        `);
+        `, [ticketsResult.rows.length]);
 
         await client.query('COMMIT');
 
