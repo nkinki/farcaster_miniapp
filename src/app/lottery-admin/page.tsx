@@ -80,11 +80,17 @@ export default function LotteryAdminPage() {
     }
   };
 
-  const formatTime = (timeString: string) => {
-    return new Date(timeString).toLocaleString();
+  const formatTime = (timeString: string | undefined | null) => {
+    if (!timeString) return 'N/A';
+    try {
+      return new Date(timeString).toLocaleString();
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | undefined | null) => {
+    if (num === undefined || num === null) return '0';
     return num.toLocaleString();
   };
 
