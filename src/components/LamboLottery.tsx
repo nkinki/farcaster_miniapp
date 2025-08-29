@@ -178,25 +178,22 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-pink-900 via-purple-900 to-cyan-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border-4 border-pink-500/50 relative overflow-hidden">
-        
-        {/* Neon glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-2xl blur-xl"></div>
+      <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden">
         
         {/* Header */}
         <div className="relative z-10 flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <div className="text-4xl">🏎️</div>
             <div>
-                             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 uppercase tracking-wider">
-                 BUY A LAMBO
-               </h1>
-               <p className="text-pink-300 text-sm font-medium">One Winner Takes All!</p>
+                                           <h1 className="text-3xl font-bold text-white uppercase tracking-wider">
+                BUY A LAMBO
+              </h1>
+              <p className="text-purple-200 text-sm font-medium">One Winner Takes All!</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-red-600/80 hover:bg-red-500 text-white transition-all duration-300 hover:scale-110"
+            className="p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"
           >
             <FiX size={24} />
           </button>
@@ -204,20 +201,20 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-pink-400 text-2xl font-bold animate-pulse">Loading lottery...</div>
+            <div className="text-cyan-400 text-2xl font-bold animate-pulse">Loading lottery...</div>
           </div>
         ) : (
           <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
             
             {/* Current Round Info */}
             {currentRound && (
-              <div className="bg-black/40 rounded-xl p-4 border border-pink-500/30">
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-pink-400">
+                    <div className="text-2xl font-bold text-cyan-400">
                       {formatChessTokens(currentRound.prize_pool)}
                     </div>
-                    <div className="text-pink-300 text-sm">Prize Pool</div>
+                    <div className="text-cyan-300 text-sm">Prize Pool</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-cyan-400">
@@ -226,10 +223,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                     <div className="text-cyan-300 text-sm">Tickets Sold</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-400">
+                    <div className="text-2xl font-bold text-cyan-400">
                       Round #{currentRound.round_number}
                     </div>
-                    <div className="text-purple-300 text-sm">Current Round</div>
+                    <div className="text-cyan-300 text-sm">Current Round</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-yellow-400">
@@ -242,7 +239,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 {/* Progress bar */}
                 <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
                   <div 
-                    className="bg-gradient-to-r from-pink-500 to-cyan-500 h-3 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-cyan-500 to-purple-500 h-3 rounded-full transition-all duration-500"
                     style={{ width: `${(currentRound.total_tickets_sold / 100) * 100}%` }}
                   ></div>
                 </div>
@@ -253,8 +250,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             )}
 
             {/* Number Selection Grid */}
-            <div className="bg-black/40 rounded-xl p-4 border border-purple-500/30">
-              <h3 className="text-xl font-bold text-purple-400 mb-4 flex items-center gap-2">
+            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+              <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
                 <FiZap /> Select Your Lucky Numbers (1-100)
               </h3>
               <div className="grid grid-cols-10 gap-2 mb-4">
@@ -272,7 +269,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                         ${isTaken 
                           ? 'bg-red-600/50 text-red-300 cursor-not-allowed' 
                           : isSelected
-                            ? 'bg-gradient-to-r from-pink-500 to-cyan-500 text-white scale-110 shadow-lg'
+                            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110 shadow-lg'
                             : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105'
                         }
                       `}
@@ -291,7 +288,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                     {selectedNumbers.map((number) => (
                       <span
                         key={number}
-                        className="px-3 py-1 bg-gradient-to-r from-pink-500 to-cyan-500 text-white rounded-full text-sm font-bold"
+                        className="px-3 py-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full text-sm font-bold"
                       >
                         {number}
                       </span>
@@ -312,7 +309,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   className={`
                     px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300
                     ${selectedNumbers.length > 0 && !purchasing
-                      ? 'bg-gradient-to-r from-pink-600 to-cyan-600 hover:from-pink-500 hover:to-cyan-500 text-white shadow-lg hover:scale-105'
+                      ? 'bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white shadow-lg hover:scale-105'
                       : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                     }
                   `}
@@ -324,7 +321,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
             {/* User's Tickets */}
             {userTickets.length > 0 && (
-              <div className="bg-black/40 rounded-xl p-4 border border-cyan-500/30">
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
                   <FiUsers /> Your Tickets ({userTickets.length})
                 </h3>
@@ -343,7 +340,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
             {/* Stats */}
             {stats && (
-              <div className="bg-black/40 rounded-xl p-4 border border-yellow-500/30">
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                 <h3 className="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
                   <FiTrendingUp /> Lottery Statistics
                 </h3>
@@ -369,7 +366,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             )}
 
                          {/* Rules */}
-             <div className="bg-black/40 rounded-xl p-4 border border-gray-500/30">
+             <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
                <ul className="text-sm text-gray-400 space-y-1">
                  <li>• Choose 1-10 numbers between 1-100</li>
