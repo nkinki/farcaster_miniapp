@@ -334,22 +334,7 @@ export default function Home() {
               </span>
             </Link>
             
-            <Link href="/lottery-admin" className="inline-block">
-              <span 
-                className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-[#23283a] border border-[#8b5a3c] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-                onClick={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('medium');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
-                  }
-                }}
-              >
-                🎰 Lottery Admin
-              </span>
-            </Link>
+
             
             <button
               onClick={async () => {
@@ -487,25 +472,37 @@ export default function Home() {
                 </button>
               );
             })}
-             <button
-              onClick={async () => {
-                if (hapticsSupported) {
-                  try {
-                    await sdk.haptics.notificationOccurred('success');
-                  } catch (error) {
-                    console.log('Haptics error:', error);
-                  }
-                }
-                sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
-              }}
-              className="flex-1 py-6 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
-              style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
-            >
-              <div className="flex flex-col items-center justify-center gap-1">
-                <FiGift size={16} />
-                <span className="text-[10px] font-bold animate-chessneon">Claim $CHESS</span>
-              </div>
-            </button>
+                          <button
+               onClick={async () => {
+                 if (hapticsSupported) {
+                   try {
+                     await sdk.haptics.notificationOccurred('success');
+                   } catch (error) {
+                     console.log('Haptics error:', error);
+                   }
+                 }
+                 sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
+               }}
+               className="flex-1 py-6 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
+               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
+             >
+               <div className="flex flex-col items-center justify-center gap-1">
+                 <FiGift size={16} />
+                 <span className="text-[10px] font-bold animate-chessneon">Claim $CHESS</span>
+               </div>
+             </button>
+             
+             <Link href="/lottery-admin" className="flex-1">
+               <button
+                 className="w-full py-3 text-center font-sans tracking-wide bg-gray-800 text-gray-300 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 uppercase"
+                 style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
+               >
+                 <div className="flex flex-col items-center justify-center gap-1">
+                   <span className="text-lg">🎰</span>
+                   <span className="text-[8px] font-bold">ADMIN</span>
+                 </div>
+               </button>
+             </Link>
           </div>
         </nav>
       </div>
