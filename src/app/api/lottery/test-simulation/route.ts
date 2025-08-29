@@ -23,13 +23,20 @@ export async function POST(request: NextRequest) {
           VALUES (0, 0, 1000000, NOW() + INTERVAL '1 day', 0)
         `);
         
-        await client.query(`
-          INSERT INTO lottery_draws (
-            draw_number, start_time, end_time, jackpot, status
-          ) VALUES (
-            1, NOW(), NOW() + INTERVAL '1 day', 1000000, 'active'
-          )
+        // Check if draw number 1 already exists
+        const existingDraw = await client.query(`
+          SELECT id FROM lottery_draws WHERE draw_number = 1
         `);
+        
+        if (existingDraw.rows.length === 0) {
+          await client.query(`
+            INSERT INTO lottery_draws (
+              draw_number, start_time, end_time, jackpot, status
+            ) VALUES (
+              1, NOW(), NOW() + INTERVAL '1 day', 1000000, 'active'
+            )
+          `);
+        }
         
         return NextResponse.json({ 
           success: true, 
@@ -114,8 +121,7 @@ export async function POST(request: NextRequest) {
         await client.query(`
           UPDATE lottery_draws 
           SET status = 'completed', 
-              winning_number = $1, 
-              updated_at = NOW()
+              winning_number = $1
           WHERE id = $2
         `, [winningNumber, round.id]);
         
@@ -159,18 +165,30 @@ export async function POST(request: NextRequest) {
         const startTime = new Date(now);
         const endTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         
-        const newRoundResult = await client.query(`
-          INSERT INTO lottery_draws (
-            draw_number, start_time, end_time, jackpot, status
-          ) VALUES ($1, $2, $3, $4, 'active')
-          RETURNING *
-        `, [nextDrawNumber, startTime, endTime, newJackpot]);
+        // Check if this draw number already exists
+        const existingDraw = await client.query(`
+          SELECT id FROM lottery_draws WHERE draw_number = $1
+        `, [nextDrawNumber]);
         
-        return NextResponse.json({ 
-          success: true, 
-          message: 'New round created successfully',
-          new_round: newRoundResult.rows[0]
-        });
+        if (existingDraw.rows.length === 0) {
+          const newRoundResult = await client.query(`
+            INSERT INTO lottery_draws (
+              draw_number, start_time, end_time, jackpot, status
+            ) VALUES ($1, $2, $3, $4, 'active')
+            RETURNING *
+          `, [nextDrawNumber, startTime, endTime, newJackpot]);
+          
+          return NextResponse.json({ 
+            success: true, 
+            message: 'New round created successfully',
+            new_round: newRoundResult.rows[0]
+          });
+        } else {
+          return NextResponse.json({ 
+            success: false, 
+            error: `Draw number ${nextDrawNumber} already exists`
+          });
+        }
       }
       
       return NextResponse.json({ 
