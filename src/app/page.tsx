@@ -334,6 +334,23 @@ export default function Home() {
               </span>
             </Link>
             
+            <Link href="/lottery-admin" className="inline-block">
+              <span 
+                className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-[#23283a] border border-[#8b5a3c] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                onClick={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.impactOccurred('medium');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
+                    }
+                  }
+                }}
+              >
+                🎰 Lottery Admin
+              </span>
+            </Link>
+            
             <button
               onClick={async () => {
                 if (hapticsSupported) {
