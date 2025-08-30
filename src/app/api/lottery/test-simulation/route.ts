@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
           const lastRound = lastRoundResult.rows[0];
           // Calculate new jackpot: 70% of ticket sales from last round
           const lastRoundTickets = lastRound.total_tickets || 0;
-          const ticketRevenue = lastRoundTickets * 20000; // 20,000 CHESS per ticket
+          const ticketRevenue = lastRoundTickets * 100000; // 100,000 CHESS per ticket
           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
           const treasuryAmount = Math.floor(ticketRevenue * 0.3);
           

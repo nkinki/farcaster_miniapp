@@ -261,44 +261,44 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         ) : (
           <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
             
-            {/* Current Round Info */}
-            {currentRound && (
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-cyan-400">
-                      {formatChessTokens(currentRound.prize_pool)}
-                    </div>
-                    <div className="text-cyan-300 text-sm">Prize Pool</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-cyan-400">
-                      {currentRound.total_tickets_sold}/100
-                    </div>
-                    <div className="text-cyan-300 text-sm">Tickets Sold</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-cyan-400">
-                      Round #{currentRound.round_number}
-                    </div>
-                    <div className="text-cyan-300 text-sm">Current Round</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-400">
-                      {timeRemaining}
-                    </div>
-                    <div className="text-yellow-300 text-sm">Time Left</div>
-                  </div>
-                </div>
+                         {/* Current Round Info */}
+             {currentRound && (
+               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                   <div className="text-center">
+                     <div className="text-3xl font-bold text-cyan-400">
+                       {formatChessTokens(currentRound.prize_pool)}
+                     </div>
+                     <div className="text-cyan-300 text-xs opacity-80">Prize Pool</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-3xl font-bold text-cyan-400">
+                       {currentRound.total_tickets_sold}/100
+                     </div>
+                     <div className="text-cyan-300 text-xs opacity-80">Tickets Sold</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-3xl font-bold text-cyan-400">
+                       #{currentRound.round_number}
+                     </div>
+                     <div className="text-cyan-300 text-xs opacity-80">Round</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-3xl font-bold text-yellow-400">
+                       {timeRemaining}
+                     </div>
+                     <div className="text-yellow-300 text-xs opacity-80">Time Left</div>
+                   </div>
+                 </div>
                 
-                {/* Progress bar */}
-                <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
-                  <div 
-                    className="bg-gradient-to-r from-cyan-500 to-purple-500 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${(currentRound.total_tickets_sold / 100) * 100}%` }}
-                  ></div>
-                </div>
-                                 <div className="text-center text-sm text-gray-300">
+                                 {/* Progress bar */}
+                 <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
+                   <div 
+                     className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                     style={{ width: `${(currentRound.total_tickets_sold / 100) * 100}%` }}
+                   ></div>
+                 </div>
+                 <div className="text-center text-xs text-gray-400 opacity-70">
                    {100 - currentRound.total_tickets_sold} tickets remaining
                  </div>
                  
@@ -439,32 +439,32 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
             )}
 
-            {/* Stats */}
-            {stats && (
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-                <h3 className="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
-                  <FiTrendingUp /> Lottery Statistics
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">{stats.total_rounds}</div>
-                    <div className="text-gray-300 text-sm">Total Rounds</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">{stats.total_tickets_sold}</div>
-                    <div className="text-gray-300 text-sm">Tickets Sold</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">{formatChessTokens(stats.total_prize_distributed)}</div>
-                    <div className="text-gray-300 text-sm">Prizes Won</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">{formatChessTokens(stats.treasury_balance)}</div>
-                    <div className="text-gray-300 text-sm">Treasury</div>
-                  </div>
-                </div>
-              </div>
-            )}
+                         {/* Stats */}
+             {stats && (
+               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79]">
+                 <h3 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2 opacity-80">
+                   <FiTrendingUp className="text-xs" /> Statistics
+                 </h3>
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                   <div className="text-center">
+                     <div className="text-lg font-bold text-white">{stats.total_rounds}</div>
+                     <div className="text-gray-400 text-xs opacity-70">Rounds</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-lg font-bold text-white">{stats.total_tickets_sold}</div>
+                     <div className="text-gray-400 text-xs opacity-70">Tickets</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-lg font-bold text-white">{formatChessTokens(stats.total_prize_distributed)}</div>
+                     <div className="text-gray-400 text-xs opacity-70">Won</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-lg font-bold text-white">{formatChessTokens(stats.treasury_balance)}</div>
+                     <div className="text-gray-400 text-xs opacity-70">Treasury</div>
+                   </div>
+                 </div>
+               </div>
+             )}
 
                                       {/* Draw Result */}
              {drawResult && (
