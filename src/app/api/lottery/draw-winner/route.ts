@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
        const totalTickets = ticketsResult.rows.length || 0;
        const totalRevenue = totalTickets * 100000; // 100,000 CHESS per ticket
        
-                      // Next round jackpot: current jackpot + 70% of new revenue (ACCUMULATES infinitely)
+                      // Next round jackpot: ONLY 70% of new revenue (NO accumulation of previous jackpot)
        const currentJackpot = round.jackpot || 0;
-       const nextRoundJackpot = currentJackpot + Math.floor(totalRevenue * 0.7);
+       const nextRoundJackpot = Math.floor(totalRevenue * 0.7);
        const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
 
              // Update current round as completed
