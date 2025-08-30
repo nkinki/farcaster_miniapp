@@ -258,11 +258,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  {/* Header */}
          <div className="relative z-10 flex flex-col items-center mb-6">
            <div className="w-full flex justify-between items-center mb-2">
-             <div className="text-center flex-1">
-                               <h1 className="text-2xl font-bold text-white uppercase tracking-[0.05em]">
-                  B U Y &nbsp;A&nbsp; L A M B O
-                </h1>
-               <p className="text-purple-200 text-xs font-medium mt-1">One Winner Takes All!</p>
+             <div className="text-center flex-1 flex items-center justify-center gap-3">
+               <FiDollarSign size={32} className="text-yellow-300" />
+               <div>
+                 <h1 className="text-2xl font-bold text-white uppercase tracking-[0.05em]">
+                   B U Y A L A M B O
+                 </h1>
+                 <p className="text-purple-200 text-xs font-medium mt-1">One Winner Takes All!</p>
+               </div>
              </div>
            </div>
            <button
