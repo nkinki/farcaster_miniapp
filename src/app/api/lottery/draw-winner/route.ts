@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
        const totalTickets = ticketsResult.rows.length || 0;
        const totalRevenue = totalTickets * 100000; // 100,000 CHESS per ticket
        
-                      // Next round jackpot: ONLY 70% of new revenue (NO accumulation)
+                      // Next round jackpot: current jackpot + 70% of new revenue (ACCUMULATES infinitely)
        const currentJackpot = round.jackpot || 0;
-       const nextRoundJackpot = Math.floor(totalRevenue * 0.7);
+       const nextRoundJackpot = currentJackpot + Math.floor(totalRevenue * 0.7);
        const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
 
              // Update current round as completed
@@ -96,7 +96,8 @@ export async function POST(request: NextRequest) {
          WHERE id = $3
        `, [winningNumber, totalTickets, round.id]);
 
-      // Create new round with increased jackpot
+      // Create new round with jackpot (0 if winner, accumulated if no winner)
+      const newRoundJackpot = winner ? 0 : nextRoundJackpot;
       const newRoundResult = await client.query(`
         INSERT INTO lottery_draws (
           draw_number, 
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
           'active'
         )
         RETURNING *
-      `, [round.draw_number, nextRoundJackpot]);
+      `, [round.draw_number, newRoundJackpot]);
 
              // Update lottery stats
        await client.query(`
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
            next_draw_time = NOW() + INTERVAL '1 day',
            updated_at = NOW()
          WHERE id = 1
-       `, [totalTickets, nextRoundJackpot, round.draw_number]);
+       `, [totalTickets, newRoundJackpot, round.draw_number]);
 
       await client.query('COMMIT');
 
@@ -151,7 +152,8 @@ export async function POST(request: NextRequest) {
             id: newRoundResult.rows[0].id,
             draw_number: newRoundResult.rows[0].draw_number,
             jackpot: newRoundResult.rows[0].jackpot
-          }
+          },
+          message: "Winner found! Jackpot reset to 0 for next round."
         });
       } else {
         // No winner - jackpot increases
@@ -189,29 +191,30 @@ export async function POST(request: NextRequest) {
     // Fallback to mock data for local development
     if (process.env.NODE_ENV === 'development') {
       console.log('Using mock draw result for local development');
-             const mockResult = {
-         success: true,
-         hasWinner: true,
-         winner: {
-           fid: 12345,
-           number: 42,
-           player_name: "Test Winner",
-           player_address: "0x1234...5678"
-         },
-         round: {
-           id: 1,
-           draw_number: 1,
-           total_tickets: 15,
-           total_revenue: 1500000,
-           next_round_jackpot: 1050000, // 1.5M carryover (no base)
-           treasury_amount: 450000
-         },
-         new_round: {
-           id: 2,
-           draw_number: 2,
-           jackpot: 1050000
-         }
-       };
+                     const mockResult = {
+          success: true,
+          hasWinner: true,
+          winner: {
+            fid: 12345,
+            number: 42,
+            player_name: "Test Winner",
+            player_address: "0x1234...5678"
+          },
+          round: {
+            id: 1,
+            draw_number: 1,
+            total_tickets: 15,
+            total_revenue: 1500000,
+            next_round_jackpot: 1050000, // 1.5M carryover (no base)
+            treasury_amount: 450000
+          },
+          new_round: {
+            id: 2,
+            draw_number: 2,
+            jackpot: 0 // Reset to 0 when winner found
+          },
+          message: "Winner found! Jackpot reset to 0 for next round."
+        };
       
       return NextResponse.json(mockResult);
     }

@@ -161,8 +161,8 @@ export async function POST(request: NextRequest) {
           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
           const treasuryAmount = Math.floor(ticketRevenue * 0.3);
           
-                     // Next round jackpot: ONLY 70% carryover (NO accumulation)
-           newJackpot = carryOverAmount;
+                     // Next round jackpot: current jackpot + 70% carryover (ACCUMULATES infinitely)
+           newJackpot = (lastRound.jackpot || 0) + carryOverAmount;
           
           // Update treasury balance in stats
           await client.query(`
