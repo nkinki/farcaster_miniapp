@@ -183,10 +183,30 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   };
 
   const formatChessTokens = (amount: number) => {
-    return (amount / 1000000).toLocaleString('en-US', { 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 2 
-    }) + 'M';
+    if (!amount || amount === 0) return '$0';
+    
+    if (amount >= 1000000000) {
+      // Billions: 1,000,000,000 → $1B
+      return '$' + (amount / 1000000000).toLocaleString('en-US', { 
+        minimumFractionDigits: 0, 
+        maximumFractionDigits: 2 
+      }) + 'B';
+    } else if (amount >= 1000000) {
+      // Millions: 1,000,000 → $1M
+      return '$' + (amount / 1000000).toLocaleString('en-US', { 
+        minimumFractionDigits: 0, 
+        maximumFractionDigits: 2 
+      }) + 'M';
+    } else if (amount >= 1000) {
+      // Thousands: 1,000 → $1K
+      return '$' + (amount / 1000).toLocaleString('en-US', { 
+        minimumFractionDigits: 0, 
+        maximumFractionDigits: 0 
+      }) + 'K';
+    } else {
+      // Small amounts: 999 → $999
+      return '$' + amount.toLocaleString('en-US');
+    }
   };
 
   const isNumberTaken = (number: number) => {
