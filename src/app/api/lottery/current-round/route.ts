@@ -29,12 +29,12 @@ export async function GET() {
           ORDER BY draw_number DESC LIMIT 1
         `);
         
-        if (lastCompletedRound.rows.length > 0) {
-          const lastRound = lastCompletedRound.rows[0];
-          const ticketRevenue = (lastRound.total_tickets || 0) * 100000; // 100,000 CHESS per ticket
-          const carryOverAmount = Math.floor(ticketRevenue * 0.7);
-          newJackpot = carryOverAmount; // Only carryover, no base
-        }
+                 if (lastCompletedRound.rows.length > 0) {
+           const lastRound = lastCompletedRound.rows[0];
+           const ticketRevenue = (lastRound.total_tickets || 0) * 100000; // 100,000 CHESS per ticket
+           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
+           newJackpot = carryOverAmount; // Only 70% of last round's revenue
+         }
         
         const newRoundResult = await client.query(`
           INSERT INTO lottery_draws (
