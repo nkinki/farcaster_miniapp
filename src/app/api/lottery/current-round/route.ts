@@ -19,7 +19,23 @@ export async function GET() {
       `);
 
       if (result.rows.length === 0) {
-        // Create new round if none exists
+        // Create new round if none exists - check for carryover from previous rounds
+        let newJackpot = 1000000; // Base jackpot
+        
+        // Check if there are completed rounds to get carryover
+        const lastCompletedRound = await client.query(`
+          SELECT jackpot, total_tickets FROM lottery_draws 
+          WHERE status = 'completed' 
+          ORDER BY draw_number DESC LIMIT 1
+        `);
+        
+        if (lastCompletedRound.rows.length > 0) {
+          const lastRound = lastCompletedRound.rows[0];
+          const ticketRevenue = (lastRound.total_tickets || 0) * 100000; // 100,000 CHESS per ticket
+          const carryOverAmount = Math.floor(ticketRevenue * 0.7);
+          newJackpot = 1000000 + carryOverAmount; // Base + carryover
+        }
+        
         const newRoundResult = await client.query(`
           INSERT INTO lottery_draws (
             draw_number, 
@@ -31,11 +47,11 @@ export async function GET() {
             COALESCE((SELECT MAX(draw_number) FROM lottery_draws), 0) + 1,
             NOW(),
             NOW() + INTERVAL '1 day',
-            1000000,
+            $1,
             'active'
           )
           RETURNING *
-        `);
+        `, [newJackpot]);
         
         return NextResponse.json({ 
           success: true, 
@@ -84,7 +100,7 @@ export async function GET() {
         start_date: new Date().toISOString(),
         end_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         draw_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        prize_pool: 1000000,
+        prize_pool: 1700000, // 1M base + 700k carryover example
         status: 'active',
         winner_fid: null,
         winner_number: null,
