@@ -64,12 +64,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Generate random winning number from sold tickets
-      const soldNumbers = ticketsResult.rows.map(ticket => ticket.number);
-      const randomIndex = Math.floor(Math.random() * soldNumbers.length);
-      const winningNumber = soldNumbers[randomIndex];
+      // Generate random winning number from 1-100 (not from sold tickets)
+      const winningNumber = Math.floor(Math.random() * 100) + 1;
 
-      // Find the winner
+      // Find the winner (if any ticket matches the winning number)
       const winnerResult = await client.query(`
         SELECT * FROM lottery_tickets 
         WHERE draw_id = $1 AND number = $2
@@ -126,28 +124,53 @@ export async function POST(request: NextRequest) {
 
       await client.query('COMMIT');
 
-      return NextResponse.json({
-        success: true,
-        winner: {
-          fid: winner.player_fid,
-          number: winningNumber,
-          player_name: winner.player_name,
-          player_address: winner.player_address
-        },
-        round: {
-          id: round.id,
-          draw_number: round.draw_number,
-          total_tickets: ticketsResult.rows.length,
-          total_revenue: totalRevenue,
-          next_round_jackpot: nextRoundJackpot,
-          treasury_amount: treasuryAmount
-        },
-        new_round: {
-          id: newRoundResult.rows[0].id,
-          draw_number: newRoundResult.rows[0].draw_number,
-          jackpot: newRoundResult.rows[0].jackpot
-        }
-      });
+      // Check if there's a winner
+      if (winner) {
+        return NextResponse.json({
+          success: true,
+          hasWinner: true,
+          winner: {
+            fid: winner.player_fid,
+            number: winningNumber,
+            player_name: winner.player_name,
+            player_address: winner.player_address
+          },
+          round: {
+            id: round.id,
+            draw_number: round.draw_number,
+            total_tickets: ticketsResult.rows.length,
+            total_revenue: totalRevenue,
+            next_round_jackpot: nextRoundJackpot,
+            treasury_amount: treasuryAmount
+          },
+          new_round: {
+            id: newRoundResult.rows[0].id,
+            draw_number: newRoundResult.rows[0].draw_number,
+            jackpot: newRoundResult.rows[0].jackpot
+          }
+        });
+      } else {
+        // No winner - jackpot increases
+        return NextResponse.json({
+          success: true,
+          hasWinner: false,
+          winning_number: winningNumber,
+          message: "No winner found - jackpot increases to next round",
+          round: {
+            id: round.id,
+            draw_number: round.draw_number,
+            total_tickets: ticketsResult.rows.length,
+            total_revenue: totalRevenue,
+            next_round_jackpot: nextRoundJackpot,
+            treasury_amount: treasuryAmount
+          },
+          new_round: {
+            id: newRoundResult.rows[0].id,
+            draw_number: newRoundResult.rows[0].draw_number,
+            jackpot: newRoundResult.rows[0].jackpot
+          }
+        });
+      }
 
     } catch (error) {
       await client.query('ROLLBACK');
@@ -164,6 +187,7 @@ export async function POST(request: NextRequest) {
       console.log('Using mock draw result for local development');
       const mockResult = {
         success: true,
+        hasWinner: true,
         winner: {
           fid: 12345,
           number: 42,

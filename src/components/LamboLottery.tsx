@@ -469,31 +469,53 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                                       {/* Draw Result */}
              {drawResult && (
                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-                 <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
-                   🏆 WINNER ANNOUNCED! 🏆
-                 </h3>
+                 {drawResult.hasWinner ? (
+                   // Winner found
+                   <>
+                     <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
+                       🏆 WINNER ANNOUNCED! 🏆
+                     </h3>
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                       <div className="text-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                         <div className="text-2xl font-bold text-green-400 mb-2">
+                           🎯 Winning Number: {drawResult.winner.number}
+                         </div>
+                         <div className="text-green-300 text-sm">
+                           Winner: {drawResult.winner.player_name} (FID: {drawResult.winner.fid})
+                         </div>
+                       </div>
+                       
+                       <div className="text-center p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                         <div className="text-2xl font-bold text-blue-400 mb-2">
+                           💰 Jackpot Won: {formatChessTokens(drawResult.round.total_revenue)}
+                         </div>
+                         <div className="text-blue-300 text-sm">
+                           Total Tickets: {drawResult.round.total_tickets}
+                         </div>
+                       </div>
+                     </div>
+                   </>
+                 ) : (
+                   // No winner
+                   <>
+                     <h3 className="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
+                       🎲 DRAW COMPLETED - NO WINNER 🎲
+                     </h3>
+                     
+                     <div className="text-center p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mb-4">
+                       <div className="text-2xl font-bold text-yellow-400 mb-2">
+                         🎯 Winning Number: {drawResult.winning_number}
+                       </div>
+                       <div className="text-yellow-300 text-sm">
+                         No tickets matched this number
+                       </div>
+                     </div>
+                   </>
+                 )}
                  
+                 {/* Common info for both cases */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                   <div className="text-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
-                     <div className="text-2xl font-bold text-green-400 mb-2">
-                       🎯 Winning Number: {drawResult.winner.number}
-                     </div>
-                     <div className="text-green-300 text-sm">
-                       Winner: {drawResult.winner.player_name} (FID: {drawResult.winner.fid})
-                     </div>
-                   </div>
-                   
-                   <div className="text-center p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                     <div className="text-2xl font-bold text-blue-400 mb-2">
-                       💰 Jackpot Won: {formatChessTokens(drawResult.round.total_revenue)}
-                     </div>
-                     <div className="text-blue-300 text-sm">
-                       Total Tickets: {drawResult.round.total_tickets}
-                     </div>
-                   </div>
-                 </div>
-                 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    <div className="text-center p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
                      <div className="text-lg font-bold text-purple-400">
                        🆕 Next Round Jackpot: {formatChessTokens(drawResult.round.next_round_jackpot)}
