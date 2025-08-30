@@ -2,135 +2,192 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || process.env.NEON_DB_URL || 'postgresql://test:test@localhost:5432/test',
 });
 
 export async function POST(request: NextRequest) {
   try {
+    const body = await request.json();
+    const { round_id } = body;
+
     const client = await pool.connect();
     
     try {
       await client.query('BEGIN');
 
       // Get current active round
-      const roundResult = await client.query(`
-        SELECT * FROM lottery_draws 
-        WHERE status = 'active' 
-        ORDER BY draw_number DESC 
-        LIMIT 1
-      `);
+      let round;
+      if (round_id) {
+        const roundResult = await client.query(`
+          SELECT * FROM lottery_draws 
+          WHERE id = $1 AND status = 'active'
+        `, [round_id]);
+        
+        if (roundResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            { success: false, error: 'Invalid or inactive round ID' },
+            { status: 400 }
+          );
+        }
+        round = roundResult.rows[0];
+      } else {
+        const roundResult = await client.query(`
+          SELECT * FROM lottery_draws 
+          WHERE status = 'active' 
+          ORDER BY draw_number DESC 
+          LIMIT 1
+        `);
 
-      if (roundResult.rows.length === 0) {
-        await client.query('ROLLBACK');
-        return NextResponse.json(
-          { success: false, error: 'No active round found' },
-          { status: 400 }
-        );
-      }
-
-      const round = roundResult.rows[0];
-
-      // Check if draw time has arrived
-      if (new Date() < new Date(round.end_time)) {
-        await client.query('ROLLBACK');
-        return NextResponse.json(
-          { success: false, error: 'Draw time has not arrived yet' },
-          { status: 400 }
-        );
+        if (roundResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            { success: false, error: 'No active round found' },
+            { status: 400 }
+          );
+        }
+        round = roundResult.rows[0];
       }
 
       // Get all sold tickets for this round
       const ticketsResult = await client.query(`
         SELECT * FROM lottery_tickets 
         WHERE draw_id = $1
-        ORDER BY number ASC
+        ORDER BY number
       `, [round.id]);
 
       if (ticketsResult.rows.length === 0) {
-        // No tickets sold, mark round as completed with no winner
-        await client.query(`
-          UPDATE lottery_draws 
-          SET status = 'completed'
-          WHERE id = $1
-        `, [round.id]);
-
-        await client.query('COMMIT');
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Round completed with no tickets sold',
-          round_id: round.id
-        });
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { success: false, error: 'No tickets sold in this round' },
+          { status: 400 }
+        );
       }
 
-      // Generate random winning number (1-100)
-      const winningNumber = Math.floor(Math.random() * 100) + 1;
+      // Generate random winning number from sold tickets
+      const soldNumbers = ticketsResult.rows.map(ticket => ticket.number);
+      const randomIndex = Math.floor(Math.random() * soldNumbers.length);
+      const winningNumber = soldNumbers[randomIndex];
 
-      // Find winner (if any ticket matches the winning number)
-      const winnerTicket = ticketsResult.rows.find(ticket => ticket.number === winningNumber);
+      // Find the winner
+      const winnerResult = await client.query(`
+        SELECT * FROM lottery_tickets 
+        WHERE draw_id = $1 AND number = $2
+        LIMIT 1
+      `, [round.id, winningNumber]);
 
-      if (winnerTicket) {
-        // Update round with winner
-        await client.query(`
-          UPDATE lottery_draws 
-          SET status = 'completed', 
-              winning_number = $1
-          WHERE id = $2
-        `, [winningNumber, round.id]);
+      const winner = winnerResult.rows[0];
 
-        // Update lottery stats
-        await client.query(`
-          UPDATE lottery_stats 
-          SET last_draw_number = last_draw_number + 1,
-              total_tickets = total_tickets + $1,
-              active_tickets = active_tickets - $1
-          WHERE id = 1
-        `, [ticketsResult.rows.length]);
+      // Calculate revenue and new jackpot (70-30 split)
+      const totalRevenue = ticketsResult.rows.length * 100000; // 100,000 CHESS per ticket
+      const nextRoundJackpot = Math.floor(totalRevenue * 0.7); // 70% to next round
+      const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
 
-        await client.query('COMMIT');
+      // Update current round as completed
+      await client.query(`
+        UPDATE lottery_draws 
+        SET 
+          status = 'completed',
+          winning_number = $1,
+          total_tickets = $2,
+          end_time = NOW()
+        WHERE id = $3
+      `, [winningNumber, ticketsResult.rows.length, round.id]);
 
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Winner selected successfully',
-          round_id: round.id,
-          winner_fid: winnerTicket.player_fid,
-          winning_number: winningNumber,
-          jackpot: round.jackpot
-        });
-      } else {
-        // No winner found, mark round as completed
-        await client.query(`
-          UPDATE lottery_draws 
-          SET status = 'completed', 
-              winning_number = $1
-          WHERE id = $2
-        `, [winningNumber, round.id]);
+      // Create new round with increased jackpot
+      const newRoundResult = await client.query(`
+        INSERT INTO lottery_draws (
+          draw_number, 
+          start_time, 
+          end_time, 
+          jackpot, 
+          status
+        ) VALUES (
+          $1 + 1,
+          NOW(),
+          NOW() + INTERVAL '1 day',
+          $2,
+          'active'
+        )
+        RETURNING *
+      `, [round.draw_number, nextRoundJackpot]);
 
-        // Update lottery stats
-        await client.query(`
-          UPDATE lottery_stats 
-          SET last_draw_number = last_draw_number + 1,
-              total_tickets = total_tickets + $1,
-              active_tickets = active_tickets - $1
-          WHERE id = 1
-        `, [ticketsResult.rows.length]);
+      // Update lottery stats
+      await client.query(`
+        UPDATE lottery_stats 
+        SET 
+          total_tickets = total_tickets + $1,
+          total_jackpot = $2,
+          last_draw_number = $3,
+          next_draw_time = NOW() + INTERVAL '1 day',
+          updated_at = NOW()
+        WHERE id = 1
+      `, [ticketsResult.rows.length, nextRoundJackpot, round.draw_number]);
 
-        await client.query('COMMIT');
+      await client.query('COMMIT');
 
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Round completed with no winner',
-          round_id: round.id,
-          winning_number: winningNumber
-        });
-      }
+      return NextResponse.json({
+        success: true,
+        winner: {
+          fid: winner.player_fid,
+          number: winningNumber,
+          player_name: winner.player_name,
+          player_address: winner.player_address
+        },
+        round: {
+          id: round.id,
+          draw_number: round.draw_number,
+          total_tickets: ticketsResult.rows.length,
+          total_revenue: totalRevenue,
+          next_round_jackpot: nextRoundJackpot,
+          treasury_amount: treasuryAmount
+        },
+        new_round: {
+          id: newRoundResult.rows[0].id,
+          draw_number: newRoundResult.rows[0].draw_number,
+          jackpot: newRoundResult.rows[0].jackpot
+        }
+      });
+
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {
       client.release();
     }
+
   } catch (error) {
     console.error('Error drawing winner:', error);
+    
+    // Fallback to mock data for local development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Using mock draw result for local development');
+      const mockResult = {
+        success: true,
+        winner: {
+          fid: 12345,
+          number: 42,
+          player_name: "Test Winner",
+          player_address: "0x1234...5678"
+        },
+        round: {
+          id: 1,
+          draw_number: 1,
+          total_tickets: 15,
+          total_revenue: 1500000,
+          next_round_jackpot: 1050000,
+          treasury_amount: 450000
+        },
+        new_round: {
+          id: 2,
+          draw_number: 2,
+          jackpot: 1050000
+        }
+      };
+      
+      return NextResponse.json(mockResult);
+    }
+    
     return NextResponse.json(
       { success: false, error: 'Failed to draw winner' },
       { status: 500 }

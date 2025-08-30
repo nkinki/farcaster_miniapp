@@ -48,6 +48,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [takenNumbers, setTakenNumbers] = useState<number[]>([]);
+  const [drawing, setDrawing] = useState(false);
+  const [drawResult, setDrawResult] = useState<any>(null);
 
   const fetchLotteryData = useCallback(async () => {
     try {
@@ -191,6 +193,42 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     return takenNumbers.includes(number);
   };
 
+  const handleDrawWinner = async () => {
+    if (!currentRound) return;
+
+    try {
+      setDrawing(true);
+      
+      const response = await fetch('/api/lottery/draw-winner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          round_id: currentRound.id,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Draw result:', result);
+        setDrawResult(result);
+        
+        // Refresh data after draw
+        await fetchLotteryData();
+      } else {
+        const error = await response.json();
+        console.error('Failed to draw winner:', error);
+        alert(`Failed to draw winner: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error drawing winner:', error);
+      alert('Failed to draw winner. Please try again.');
+    } finally {
+      setDrawing(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -260,11 +298,28 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                     style={{ width: `${(currentRound.total_tickets_sold / 100) * 100}%` }}
                   ></div>
                 </div>
-                <div className="text-center text-sm text-gray-300">
-                  {100 - currentRound.total_tickets_sold} tickets remaining
-                </div>
-              </div>
-            )}
+                                 <div className="text-center text-sm text-gray-300">
+                   {100 - currentRound.total_tickets_sold} tickets remaining
+                 </div>
+                 
+                 {/* Draw Winner Button */}
+                 <div className="mt-4 text-center">
+                   <button
+                     onClick={handleDrawWinner}
+                     disabled={drawing || currentRound.total_tickets_sold === 0}
+                     className={`
+                       px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300
+                       ${currentRound.total_tickets_sold > 0 && !drawing
+                         ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-lg hover:scale-105'
+                         : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                       }
+                     `}
+                   >
+                     {drawing ? 'Drawing...' : '🎲 DRAW WINNER 🎲'}
+                   </button>
+                 </div>
+               </div>
+             )}
 
             {/* Number Selection Grid */}
             <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
@@ -411,17 +466,71 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
             )}
 
-                         {/* Rules */}
-             <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-                               <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
-                                 <ul className="text-sm text-gray-400 space-y-1">
-                   <li>• Choose 1-10 numbers between 1-100</li>
-                   <li>• Maximum 10 numbers per user per round</li>
-                   <li>• Each ticket costs 100,000 CHESS tokens</li>
-                   <li>• Daily draw at 8 PM UTC</li>
-                   <li>• Winner takes the entire prize pool (All In!)</li>
-                 </ul>
-             </div>
+                                      {/* Draw Result */}
+             {drawResult && (
+               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+                 <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
+                   🏆 WINNER ANNOUNCED! 🏆
+                 </h3>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                   <div className="text-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                     <div className="text-2xl font-bold text-green-400 mb-2">
+                       🎯 Winning Number: {drawResult.winner.number}
+                     </div>
+                     <div className="text-green-300 text-sm">
+                       Winner: {drawResult.winner.player_name} (FID: {drawResult.winner.fid})
+                     </div>
+                   </div>
+                   
+                   <div className="text-center p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                     <div className="text-2xl font-bold text-blue-400 mb-2">
+                       💰 Jackpot Won: {formatChessTokens(drawResult.round.total_revenue)}
+                     </div>
+                     <div className="text-blue-300 text-sm">
+                       Total Tickets: {drawResult.round.total_tickets}
+                     </div>
+                   </div>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="text-center p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                     <div className="text-lg font-bold text-purple-400">
+                       🆕 Next Round Jackpot: {formatChessTokens(drawResult.round.next_round_jackpot)}
+                     </div>
+                     <div className="text-purple-300 text-xs">70% of revenue</div>
+                   </div>
+                   
+                   <div className="text-center p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
+                     <div className="text-lg font-bold text-orange-400">
+                       🏛️ Treasury: {formatChessTokens(drawResult.round.treasury_amount)}
+                     </div>
+                     <div className="text-orange-300 text-xs">30% of revenue</div>
+                   </div>
+                 </div>
+                 
+                 <div className="mt-4 text-center">
+                   <button
+                     onClick={() => setDrawResult(null)}
+                     className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-300"
+                   >
+                     Close Result
+                   </button>
+                 </div>
+               </div>
+             )}
+
+             {/* Rules */}
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+                                <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
+                                  <ul className="text-sm text-gray-400 space-y-1">
+                    <li>• Choose 1-10 numbers between 1-100</li>
+                    <li>• Maximum 10 numbers per user per round</li>
+                    <li>• Each ticket costs 100,000 CHESS tokens</li>
+                    <li>• Daily draw at 8 PM UTC</li>
+                    <li>• Winner takes the entire prize pool (All In!)</li>
+                  </ul>
+              </div>
           </div>
         )}
       </div>
