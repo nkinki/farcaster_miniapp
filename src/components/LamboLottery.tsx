@@ -510,7 +510,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   </>
                 )}
                 
-                {/* Common info for both cases */}
+                {/* Common info for both cases - DISABLED */}
+                {/*
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="text-center p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
                     <div className="text-lg font-bold text-purple-400">
@@ -526,6 +527,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                     <div className="text-orange-300 text-xs">30% of revenue</div>
                   </div>
                 </div>
+                */}
                 
                 <div className="mt-4 text-center">
                   <button
