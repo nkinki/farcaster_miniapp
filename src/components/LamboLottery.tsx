@@ -259,15 +259,117 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             <div className="text-cyan-400 text-2xl font-bold animate-pulse">Loading lottery...</div>
           </div>
         ) : (
-          <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
-            
-                         {/* Current Round Info */}
+                     <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
+             
+             {/* Number Selection Grid - FELÜL */}
+             <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+               <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                 <FiZap /> Select Numbers (1-100)
+               </h3>
+               
+               <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                 <p className="text-sm text-blue-300">
+                   <span className="font-semibold">Important:</span> Maximum 10 numbers per user per round. Each ticket costs $100,000. 
+                   {userTickets.length > 0 && (
+                     <span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets in this round.</span>
+                   )}
+                   Choose wisely!
+                 </p>
+               </div>
+               
+               {takenNumbers.length > 0 && (
+                 <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                   <p className="text-sm text-red-300">
+                     <span className="font-semibold">{takenNumbers.length}</span> numbers are already taken and cannot be selected.
+                   </p>
+                 </div>
+               )}
+               
+               <div className="grid grid-cols-10 gap-2 mb-4">
+                 {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => {
+                   const isSelected = selectedNumbers.includes(number);
+                   const isTaken = isNumberTaken(number);
+                   
+                   return (
+                     <button
+                       key={number}
+                       onClick={() => !isTaken && handleNumberSelect(number)}
+                       disabled={isTaken}
+                       className={`
+                         w-10 h-10 rounded text-sm font-bold transition-all duration-200
+                         ${isTaken 
+                           ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' 
+                           : isSelected
+                             ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110 shadow-lg'
+                             : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105'
+                         }
+                       `}
+                       title={isTaken ? `Number ${number} is already taken` : `Select number ${number}`}
+                     >
+                       {number}
+                     </button>
+                   );
+                 })}
+               </div>
+               
+               {/* Selected numbers display */}
+               {selectedNumbers.length > 0 && (
+                 <div className="mb-4">
+                   <div className="flex items-center justify-between mb-2">
+                     <p className="text-sm text-gray-300">Selected numbers:</p>
+                     <p className="text-sm text-blue-300">
+                       {selectedNumbers.length}/{10 - userTickets.length} selected
+                     </p>
+                   </div>
+                   <div className="flex flex-wrap gap-2">
+                     {selectedNumbers.map((number) => (
+                       <span
+                         key={number}
+                         className="px-3 py-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full text-sm font-bold"
+                       >
+                         {number}
+                       </span>
+                     ))}
+                   </div>
+                   {selectedNumbers.length === (10 - userTickets.length) && (
+                     <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                       <p className="text-sm text-yellow-300">
+                         <span className="font-semibold">Maximum reached:</span> You have selected the maximum {10 - userTickets.length} numbers allowed for this round.
+                       </p>
+                     </div>
+                   )}
+                 </div>
+               )}
+
+               {/* Purchase button */}
+               <div className="flex items-center justify-between">
+                 <div className="text-sm text-gray-300">
+                   <div>Price per ticket: <span className="text-yellow-400 font-bold">$100,000</span></div>
+                   <div>Total cost: <span className="text-yellow-400 font-bold">${(selectedNumbers.length * 100000).toLocaleString()}</span></div>
+                 </div>
+                 <button
+                   onClick={handlePurchaseTickets}
+                   disabled={selectedNumbers.length === 0 || purchasing}
+                   className={`
+                     px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300
+                     ${selectedNumbers.length > 0 && !purchasing
+                       ? 'bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white shadow-lg hover:scale-105'
+                       : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                     }
+                   `}
+                 >
+                   {purchasing ? 'Purchasing...' : `Buy ${selectedNumbers.length} Ticket${selectedNumbers.length !== 1 ? 's' : ''} (${selectedNumbers.length}/${10 - userTickets.length})`}
+                 </button>
+               </div>
+             </div>
+
+             {/* Current Round Info - ALATTA */}
              {currentRound && (
                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                    <div className="text-center">
                      <div className="text-3xl font-bold text-cyan-400">
-                       {formatChessTokens(currentRound.prize_pool)}
+                       ${formatChessTokens(currentRound.prize_pool)}
                      </div>
                      <div className="text-cyan-300 text-xs opacity-80">Prize Pool</div>
                    </div>
@@ -290,8 +392,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                      <div className="text-yellow-300 text-xs opacity-80">Time Left</div>
                    </div>
                  </div>
-                
-                                 {/* Progress bar */}
+                 
+                 {/* Progress bar */}
                  <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
                    <div 
                      className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-500"
@@ -320,8 +422,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  </div>
                </div>
              )}
-
-            {/* Number Selection Grid */}
             <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                              <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
                  <FiZap /> Select Numbers (1-100)
@@ -439,32 +539,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
             )}
 
-                         {/* Stats */}
-             {stats && (
-               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79]">
-                 <h3 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2 opacity-80">
-                   <FiTrendingUp className="text-xs" /> Statistics
-                 </h3>
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-white">{stats.total_rounds}</div>
-                     <div className="text-gray-400 text-xs opacity-70">Rounds</div>
-                   </div>
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-white">{stats.total_tickets_sold}</div>
-                     <div className="text-gray-400 text-xs opacity-70">Tickets</div>
-                   </div>
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-white">{formatChessTokens(stats.total_prize_distributed)}</div>
-                     <div className="text-gray-400 text-xs opacity-70">Won</div>
-                   </div>
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-white">{formatChessTokens(stats.treasury_balance)}</div>
-                     <div className="text-gray-400 text-xs opacity-70">Treasury</div>
-                   </div>
-                 </div>
-               </div>
-             )}
+                         {/* Stats - KIKAPCSOLVA */}
 
                                       {/* Draw Result */}
              {drawResult && (
@@ -486,14 +561,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                          </div>
                        </div>
                        
-                       <div className="text-center p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                         <div className="text-2xl font-bold text-blue-400 mb-2">
-                           💰 Jackpot Won: {formatChessTokens(drawResult.round.total_revenue)}
+                                                <div className="text-center p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                           <div className="text-2xl font-bold text-blue-400 mb-2">
+                             💰 Jackpot Won: ${formatChessTokens(drawResult.round.total_revenue)}
+                           </div>
+                           <div className="text-blue-300 text-sm">
+                             Total Tickets: {drawResult.round.total_tickets}
+                           </div>
                          </div>
-                         <div className="text-blue-300 text-sm">
-                           Total Tickets: {drawResult.round.total_tickets}
-                         </div>
-                       </div>
                      </div>
                    </>
                  ) : (
@@ -515,21 +590,21 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  )}
                  
                  {/* Common info for both cases */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                   <div className="text-center p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
-                     <div className="text-lg font-bold text-purple-400">
-                       🆕 Next Round Jackpot: {formatChessTokens(drawResult.round.next_round_jackpot)}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                     <div className="text-center p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                       <div className="text-lg font-bold text-purple-400">
+                         🆕 Next Round Jackpot: ${formatChessTokens(drawResult.round.next_round_jackpot)}
+                       </div>
+                       <div className="text-purple-300 text-xs">70% of revenue</div>
                      </div>
-                     <div className="text-purple-300 text-xs">70% of revenue</div>
-                   </div>
-                   
-                   <div className="text-center p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
-                     <div className="text-lg font-bold text-orange-400">
-                       🏛️ Treasury: {formatChessTokens(drawResult.round.treasury_amount)}
+                     
+                     <div className="text-center p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
+                       <div className="text-lg font-bold text-orange-400">
+                         🏛️ Treasury: ${formatChessTokens(drawResult.round.treasury_amount)}
+                       </div>
+                       <div className="text-orange-300 text-xs">30% of revenue</div>
+                       </div>
                      </div>
-                     <div className="text-orange-300 text-xs">30% of revenue</div>
-                   </div>
-                 </div>
                  
                  <div className="mt-4 text-center">
                    <button
@@ -545,13 +620,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
              {/* Rules */}
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                                 <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
-                                  <ul className="text-sm text-gray-400 space-y-1">
-                    <li>• Choose 1-10 numbers between 1-100</li>
-                    <li>• Maximum 10 numbers per user per round</li>
-                    <li>• Each ticket costs 100,000 CHESS tokens</li>
-                    <li>• Daily draw at 8 PM UTC</li>
-                    <li>• Winner takes the entire prize pool (All In!)</li>
-                  </ul>
+                                                     <ul className="text-sm text-gray-400 space-y-1">
+                     <li>• Choose 1-10 numbers between 1-100</li>
+                     <li>• Maximum 10 numbers per user per round</li>
+                     <li>• Each ticket costs $100,000</li>
+                     <li>• Daily draw at 8 PM UTC</li>
+                     <li>• Winner takes the entire prize pool (All In!)</li>
+                   </ul>
               </div>
           </div>
         )}
