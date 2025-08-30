@@ -255,24 +255,24 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden">
         
-        {/* Header */}
-        <div className="relative z-10 flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            <div className="text-4xl">💎</div>
-            <div>
-              <h1 className="text-2xl font-bold text-white uppercase tracking-wider">
-                BUY A LAMBO
-              </h1>
-              <p className="text-purple-200 text-xs font-medium">One Winner Takes All!</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"
-          >
-            <FiX size={24} />
-          </button>
-        </div>
+                 {/* Header */}
+         <div className="relative z-10 flex flex-col items-center mb-6">
+           <div className="flex items-center gap-4 mb-2">
+             <div className="text-4xl">💎</div>
+             <div className="text-center">
+               <h1 className="text-2xl font-bold text-white uppercase tracking-wider">
+                 BUY A LAMBO
+               </h1>
+               <p className="text-purple-200 text-xs font-medium">One Winner Takes All!</p>
+             </div>
+           </div>
+           <button
+             onClick={onClose}
+             className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"
+           >
+             <FiX size={24} />
+           </button>
+         </div>
 
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
