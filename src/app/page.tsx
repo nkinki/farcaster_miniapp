@@ -344,28 +344,25 @@ export default function Home() {
             
 
             
-                         <div className="relative">
-               <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/40 via-yellow-300/50 to-yellow-400/40 rounded-xl blur-lg animate-pulse"></div>
-               <button
-                 onClick={async () => {
-                   if (hapticsSupported) {
-                     try {
-                       await sdk.haptics.impactOccurred('medium');
-                     } catch (error) {
-                       console.log('Haptics error:', error);
-                     }
+                         <button
+               onClick={async () => {
+                 if (hapticsSupported) {
+                   try {
+                     await sdk.haptics.impactOccurred('medium');
+                   } catch (error) {
+                     console.log('Haptics error:', error);
                    }
-                   setShowLamboLottery(true);
-                 }}
-                 className="relative flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
-               >
-                 <span className="text-2xl">🏎️</span>
-                 BUY A LAMBO
-                 <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
-                   Under Development
-                 </span>
-               </button>
-             </div>
+                 }
+                 setShowLamboLottery(true);
+               }}
+               className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border-2 border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow shadow-[0_0_20px_rgba(255,255,0,0.5)] hover:shadow-[0_0_30px_rgba(255,255,0,0.7)]"
+             >
+               <span className="text-2xl">🏎️</span>
+               BUY A LAMBO
+               <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
+                 Under Development
+               </span>
+             </button>
           </div>
 
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
