@@ -167,14 +167,22 @@ export default function Home() {
     sdk.actions.addMiniApp();
 
     sdk.context.then((ctx) => {
-      const farcasterUser = ctx.user as { fid?: number; username?: string; displayName?: string; pfp?: string } | undefined
-      console.log('Farcaster user context:', farcasterUser)
-      if (farcasterUser?.fid) {
-        console.log('User authenticated:', farcasterUser)
-        setUserFid(farcasterUser.fid)
+      console.log('Farcaster context:', ctx)
+      if (ctx && ctx.user) {
+        const farcasterUser = ctx.user as { fid?: number; username?: string; displayName?: string; pfp?: string } | undefined
+        console.log('Farcaster user context:', farcasterUser)
+        if (farcasterUser?.fid) {
+          console.log('User authenticated:', farcasterUser)
+          setUserFid(farcasterUser.fid)
+        }
+      } else {
+        console.log('No user context available, using test FID')
+        setUserFid(12345) // Test FID for development
       }
     }).catch((error) => {
       console.error('Error getting Farcaster context:', error)
+      console.log('Using test FID for development')
+      setUserFid(12345) // Test FID for development
     })
   }, [])
   

@@ -74,6 +74,29 @@ export async function GET() {
     }
   } catch (error) {
     console.error('Error fetching current round:', error);
+    
+    // Fallback to mock data for local development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Using mock data for local development');
+      const mockRound = {
+        id: 1,
+        round_number: 1,
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        draw_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        prize_pool: 1000000,
+        status: 'active',
+        winner_fid: null,
+        winner_number: null,
+        total_tickets_sold: 0
+      };
+      
+      return NextResponse.json({ 
+        success: true, 
+        round: mockRound
+      });
+    }
+    
     return NextResponse.json(
       { success: false, error: 'Failed to fetch current round' },
       { status: 500 }

@@ -20,33 +20,58 @@ export async function GET(request: NextRequest) {
     const client = await pool.connect();
     
     try {
-      // Get user's tickets with draw information
       const result = await client.query(`
         SELECT 
-          t.id,
-          t.number,
-          t.created_at,
-          d.draw_number,
-          d.jackpot,
-          d.status as draw_status,
-          d.start_time,
-          d.end_time
-        FROM lottery_tickets t
-        JOIN lottery_draws d ON t.draw_id = d.id
-        WHERE t.player_fid = $1
-        ORDER BY t.created_at DESC
+          lt.id,
+          lt.draw_id as round_id,
+          lt.player_fid as fid,
+          lt.number as ticket_number,
+          20000 as purchase_price,
+          lt.created_at as purchased_at
+        FROM lottery_tickets lt
+        JOIN lottery_draws ld ON lt.draw_id = ld.id
+        WHERE lt.player_fid = $1 AND ld.status = 'active'
+        ORDER BY lt.created_at DESC
       `, [fid]);
 
       return NextResponse.json({ 
         success: true, 
-        tickets: result.rows,
-        total_tickets: result.rows.length
+        tickets: result.rows
       });
     } finally {
       client.release();
     }
   } catch (error) {
     console.error('Error fetching user tickets:', error);
+    
+    // Fallback to mock data for local development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Using mock user tickets for local development');
+      const mockTickets = [
+        {
+          id: 1,
+          round_id: 1,
+          fid: parseInt(request.nextUrl.searchParams.get('fid') || '12345'),
+          ticket_number: 7,
+          purchase_price: 20000,
+          purchased_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          round_id: 1,
+          fid: parseInt(request.nextUrl.searchParams.get('fid') || '12345'),
+          ticket_number: 13,
+          purchase_price: 20000,
+          purchased_at: new Date().toISOString()
+        }
+      ];
+      
+      return NextResponse.json({ 
+        success: true, 
+        tickets: mockTickets
+      });
+    }
+    
     return NextResponse.json(
       { success: false, error: 'Failed to fetch user tickets' },
       { status: 500 }

@@ -10,24 +10,20 @@ export async function GET() {
     const client = await pool.connect();
     
     try {
-      // Get lottery stats
       const result = await client.query(`
-        SELECT * FROM lottery_stats 
-        ORDER BY id DESC 
-        LIMIT 1
+        SELECT * FROM lottery_stats WHERE id = 1
       `);
 
       if (result.rows.length === 0) {
-        // Create initial stats if none exists
+        // Create initial stats if none exist
         const newStatsResult = await client.query(`
           INSERT INTO lottery_stats (
             total_tickets, 
             active_tickets, 
             total_jackpot, 
-            next_draw_time
-          ) VALUES (
-            0, 0, 1000000, NOW() + INTERVAL '1 day'
-          )
+            next_draw_time, 
+            last_draw_number
+          ) VALUES (0, 0, 1000000, NOW() + INTERVAL '1 day', 0)
           RETURNING *
         `);
         
@@ -42,15 +38,13 @@ export async function GET() {
         });
       }
 
-      const stats = result.rows[0];
-      
       return NextResponse.json({ 
         success: true, 
         stats: {
-          total_rounds: stats.last_draw_number,
-          total_tickets_sold: stats.total_tickets,
-          total_prize_distributed: 0, // Will be calculated from completed draws
-          treasury_balance: stats.total_jackpot
+          total_rounds: result.rows[0].last_draw_number,
+          total_tickets_sold: result.rows[0].total_tickets,
+          total_prize_distributed: 0,
+          treasury_balance: result.rows[0].total_jackpot
         }
       });
     } finally {
@@ -58,6 +52,23 @@ export async function GET() {
     }
   } catch (error) {
     console.error('Error fetching lottery stats:', error);
+    
+    // Fallback to mock data for local development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Using mock stats for local development');
+      const mockStats = {
+        total_rounds: 1,
+        total_tickets_sold: 0,
+        total_prize_distributed: 0,
+        treasury_balance: 1000000
+      };
+      
+      return NextResponse.json({ 
+        success: true, 
+        stats: mockStats
+      });
+    }
+    
     return NextResponse.json(
       { success: false, error: 'Failed to fetch lottery stats' },
       { status: 500 }
