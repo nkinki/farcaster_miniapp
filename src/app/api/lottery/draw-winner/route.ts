@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { success: false, error: `Failed to draw winner: ${error.message || error}` },
+      { success: false, error: `Failed to draw winner: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 }
     );
   }
