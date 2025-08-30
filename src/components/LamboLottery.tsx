@@ -389,7 +389,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-cyan-400">
-                      ${formatChessTokens(currentRound.prize_pool)}
+                      {formatChessTokens(currentRound.prize_pool)}
                     </div>
                     <div className="text-cyan-300 text-xs opacity-80">Prize Pool</div>
                   </div>
@@ -484,7 +484,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       
                       <div className="text-center p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                         <div className="text-2xl font-bold text-blue-400 mb-2">
-                          💰 Jackpot Won: ${formatChessTokens(drawResult.round.total_revenue)}
+                          💰 Jackpot Won: {formatChessTokens(drawResult.round.total_revenue)}
                         </div>
                         <div className="text-blue-300 text-sm">
                           Total Tickets: {drawResult.round.total_tickets}
@@ -514,14 +514,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="text-center p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg">
                     <div className="text-lg font-bold text-purple-400">
-                      🆕 Next Round Jackpot: ${formatChessTokens(drawResult.round.next_round_jackpot)}
+                      🆕 Next Round Jackpot: {formatChessTokens(drawResult.round.next_round_jackpot)}
                     </div>
                     <div className="text-purple-300 text-xs">70% of revenue</div>
                   </div>
                   
                   <div className="text-center p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
                     <div className="text-lg font-bold text-orange-400">
-                      🏛️ Treasury: ${formatChessTokens(drawResult.round.treasury_amount)}
+                      🏛️ Treasury: {formatChessTokens(drawResult.round.treasury_amount)}
                     </div>
                     <div className="text-orange-300 text-xs">30% of revenue</div>
                   </div>
