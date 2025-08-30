@@ -150,18 +150,19 @@ export async function POST(request: NextRequest) {
           ORDER BY draw_number DESC LIMIT 1
         `);
         
-        // Calculate new jackpot for next round - ALWAYS start with 1M base
-        let newJackpot = 1000000; // ALWAYS 1M CHESS tokens base
+        // Calculate new jackpot for next round - ACCUMULATE infinitely
+        let newJackpot = 1000000; // Start with 1M CHESS tokens base
         
         if (lastRoundResult.rows.length > 0) {
           const lastRound = lastRoundResult.rows[0];
-          // Calculate new jackpot: 70% of ticket sales from last round
+          // Calculate new jackpot: current jackpot + 70% of ticket sales (accumulates infinitely)
           const lastRoundTickets = lastRound.total_tickets || 0;
           const ticketRevenue = lastRoundTickets * 100000; // 100,000 CHESS per ticket
           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
           const treasuryAmount = Math.floor(ticketRevenue * 0.3);
           
-          newJackpot = 1000000 + carryOverAmount; // ALWAYS 1M base + carryover
+          // Accumulate jackpot: current jackpot + 70% carryover (grows infinitely)
+          newJackpot = (lastRound.jackpot || 1000000) + carryOverAmount;
           
           // Update treasury balance in stats
           await client.query(`

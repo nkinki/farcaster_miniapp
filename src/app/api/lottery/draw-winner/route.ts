@@ -76,10 +76,15 @@ export async function POST(request: NextRequest) {
 
       const winner = winnerResult.rows[0];
 
-      // Calculate revenue and new jackpot (70-30 split)
-      const totalRevenue = ticketsResult.rows.length * 100000; // 100,000 CHESS per ticket
-      const nextRoundJackpot = 1000000 + Math.floor(totalRevenue * 0.7); // ALWAYS 1M base + 70% carryover
-      const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
+             // Calculate revenue and new jackpot (70-30 split)
+       const totalRevenue = ticketsResult.rows.length * 100000; // 100,000 CHESS per ticket
+       
+       // Get current jackpot to add to next round (accumulate if no winner)
+       const currentJackpot = round.jackpot || 1000000;
+       
+       // Next round jackpot: current jackpot + 70% of new revenue (accumulates infinitely)
+       const nextRoundJackpot = currentJackpot + Math.floor(totalRevenue * 0.7);
+       const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
 
       // Update current round as completed
       await client.query(`
@@ -185,29 +190,29 @@ export async function POST(request: NextRequest) {
     // Fallback to mock data for local development
     if (process.env.NODE_ENV === 'development') {
       console.log('Using mock draw result for local development');
-      const mockResult = {
-        success: true,
-        hasWinner: true,
-        winner: {
-          fid: 12345,
-          number: 42,
-          player_name: "Test Winner",
-          player_address: "0x1234...5678"
-        },
-        round: {
-          id: 1,
-          draw_number: 1,
-          total_tickets: 15,
-          total_revenue: 1500000,
-          next_round_jackpot: 1050000,
-          treasury_amount: 450000
-        },
-        new_round: {
-          id: 2,
-          draw_number: 2,
-          jackpot: 1050000
-        }
-      };
+             const mockResult = {
+         success: true,
+         hasWinner: true,
+         winner: {
+           fid: 12345,
+           number: 42,
+           player_name: "Test Winner",
+           player_address: "0x1234...5678"
+         },
+         round: {
+           id: 1,
+           draw_number: 1,
+           total_tickets: 15,
+           total_revenue: 1500000,
+           next_round_jackpot: 2050000, // 1M base + 1.5M carryover
+           treasury_amount: 450000
+         },
+         new_round: {
+           id: 2,
+           draw_number: 2,
+           jackpot: 2050000
+         }
+       };
       
       return NextResponse.json(mockResult);
     }
