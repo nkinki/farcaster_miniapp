@@ -49,35 +49,36 @@ export async function POST(request: NextRequest) {
         round = roundResult.rows[0];
       }
 
-      // Get all sold tickets for this round
-      const ticketsResult = await client.query(`
-        SELECT * FROM lottery_tickets 
-        WHERE draw_id = $1
-        ORDER BY number
-      `, [round.id]);
+             // Get all sold tickets for this round
+       const ticketsResult = await client.query(`
+         SELECT * FROM lottery_tickets 
+         WHERE draw_id = $1
+         ORDER BY number
+       `, [round.id]);
 
-      if (ticketsResult.rows.length === 0) {
-        await client.query('ROLLBACK');
-        return NextResponse.json(
-          { success: false, error: 'No tickets sold in this round' },
-          { status: 400 }
-        );
-      }
+       if (!ticketsResult || !ticketsResult.rows || ticketsResult.rows.length === 0) {
+         await client.query('ROLLBACK');
+         return NextResponse.json(
+           { success: false, error: 'No tickets sold in this round' },
+           { status: 400 }
+         );
+       }
 
-      // Generate random winning number from 1-100 (not from sold tickets)
-      const winningNumber = Math.floor(Math.random() * 100) + 1;
+       // Generate random winning number from 1-100 (not from sold tickets)
+       const winningNumber = Math.floor(Math.random() * 100) + 1;
 
-      // Find the winner (if any ticket matches the winning number)
-      const winnerResult = await client.query(`
-        SELECT * FROM lottery_tickets 
-        WHERE draw_id = $1 AND number = $2
-        LIMIT 1
-      `, [round.id, winningNumber]);
+       // Find the winner (if any ticket matches the winning number)
+       const winnerResult = await client.query(`
+         SELECT * FROM lottery_tickets 
+         WHERE draw_id = $1 AND number = $2
+         LIMIT 1
+       `, [round.id, winningNumber]);
 
-      const winner = winnerResult.rows[0];
+       const winner = winnerResult.rows[0];
 
-             // Calculate revenue and new jackpot (70-30 split)
-       const totalRevenue = ticketsResult.rows.length * 100000; // 100,000 CHESS per ticket
+       // Calculate revenue and new jackpot (70-30 split) - safe calculation
+       const totalTickets = ticketsResult.rows.length || 0;
+       const totalRevenue = totalTickets * 100000; // 100,000 CHESS per ticket
        
        // Get current jackpot to add to next round (accumulate if no winner)
        const currentJackpot = round.jackpot || 1000000;
@@ -86,16 +87,16 @@ export async function POST(request: NextRequest) {
        const nextRoundJackpot = currentJackpot + Math.floor(totalRevenue * 0.7);
        const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
 
-      // Update current round as completed
-      await client.query(`
-        UPDATE lottery_draws 
-        SET 
-          status = 'completed',
-          winning_number = $1,
-          total_tickets = $2,
-          end_time = NOW()
-        WHERE id = $3
-      `, [winningNumber, ticketsResult.rows.length, round.id]);
+             // Update current round as completed
+       await client.query(`
+         UPDATE lottery_draws 
+         SET 
+           status = 'completed',
+           winning_number = $1,
+           total_tickets = $2,
+           end_time = NOW()
+         WHERE id = $3
+       `, [winningNumber, totalTickets, round.id]);
 
       // Create new round with increased jackpot
       const newRoundResult = await client.query(`
@@ -115,17 +116,17 @@ export async function POST(request: NextRequest) {
         RETURNING *
       `, [round.draw_number, nextRoundJackpot]);
 
-      // Update lottery stats
-      await client.query(`
-        UPDATE lottery_stats 
-        SET 
-          total_tickets = total_tickets + $1,
-          total_jackpot = $2,
-          last_draw_number = $3,
-          next_draw_time = NOW() + INTERVAL '1 day',
-          updated_at = NOW()
-        WHERE id = 1
-      `, [ticketsResult.rows.length, nextRoundJackpot, round.draw_number]);
+             // Update lottery stats
+       await client.query(`
+         UPDATE lottery_stats 
+         SET 
+           total_tickets = total_tickets + $1,
+           total_jackpot = $2,
+           last_draw_number = $3,
+           next_draw_time = NOW() + INTERVAL '1 day',
+           updated_at = NOW()
+         WHERE id = 1
+       `, [totalTickets, nextRoundJackpot, round.draw_number]);
 
       await client.query('COMMIT');
 
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
           round: {
             id: round.id,
             draw_number: round.draw_number,
-            total_tickets: ticketsResult.rows.length,
+            total_tickets: totalTickets,
             total_revenue: totalRevenue,
             next_round_jackpot: nextRoundJackpot,
             treasury_amount: treasuryAmount
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
           round: {
             id: round.id,
             draw_number: round.draw_number,
-            total_tickets: ticketsResult.rows.length,
+            total_tickets: totalTickets,
             total_revenue: totalRevenue,
             next_round_jackpot: nextRoundJackpot,
             treasury_amount: treasuryAmount
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { success: false, error: 'Failed to draw winner' },
+      { success: false, error: `Failed to draw winner: ${error.message || error}` },
       { status: 500 }
     );
   }
