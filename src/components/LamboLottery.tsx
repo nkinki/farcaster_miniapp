@@ -484,10 +484,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       
                       <div className="text-center p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                         <div className="text-2xl font-bold text-blue-400 mb-2">
-                          💰 Jackpot Won: {formatChessTokens(drawResult.round.total_revenue)}
+                          🎉 Congratulations! 🎉
                         </div>
                         <div className="text-blue-300 text-sm">
-                          Total Tickets: {drawResult.round.total_tickets}
+                          Winner takes all!
                         </div>
                       </div>
                     </div>
