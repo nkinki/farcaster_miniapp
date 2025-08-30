@@ -17,11 +17,11 @@ export async function POST(request: NextRequest) {
         await client.query('DELETE FROM lottery_draws');
         await client.query('DELETE FROM lottery_stats');
         
-        // Recreate initial data with 1M base jackpot
-        await client.query(`
-          INSERT INTO lottery_stats (total_tickets, active_tickets, total_jackpot, next_draw_time, last_draw_number)
-          VALUES (0, 0, 1000000, NOW() + INTERVAL '1 day', 0)
-        `);
+                 // Recreate initial data with 0 base jackpot
+         await client.query(`
+           INSERT INTO lottery_stats (total_tickets, active_tickets, total_jackpot, next_draw_time, last_draw_number)
+           VALUES (0, 0, 0, NOW() + INTERVAL '1 day', 0)
+         `);
         
         // Check if draw number 1 already exists
         const existingDraw = await client.query(`
@@ -29,13 +29,13 @@ export async function POST(request: NextRequest) {
         `);
         
         if (existingDraw.rows.length === 0) {
-          await client.query(`
-            INSERT INTO lottery_draws (
-              draw_number, start_time, end_time, jackpot, status
-            ) VALUES (
-              1, NOW(), NOW() + INTERVAL '1 day', 1000000, 'active'
-            )
-          `);
+                     await client.query(`
+             INSERT INTO lottery_draws (
+               draw_number, start_time, end_time, jackpot, status
+             ) VALUES (
+               1, NOW(), NOW() + INTERVAL '1 day', 0, 'active'
+             )
+           `);
         }
         
         return NextResponse.json({ 
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
         `);
         
         // Calculate new jackpot for next round - ACCUMULATE infinitely
-        let newJackpot = 1000000; // Start with 1M CHESS tokens base
+        let newJackpot = 0; // Start from 0
         
         if (lastRoundResult.rows.length > 0) {
           const lastRound = lastRoundResult.rows[0];
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
           const treasuryAmount = Math.floor(ticketRevenue * 0.3);
           
           // Accumulate jackpot: current jackpot + 70% carryover (grows infinitely)
-          newJackpot = (lastRound.jackpot || 1000000) + carryOverAmount;
+          newJackpot = (lastRound.jackpot || 0) + carryOverAmount;
           
           // Update treasury balance in stats
           await client.query(`

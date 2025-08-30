@@ -19,8 +19,8 @@ export async function GET() {
       `);
 
       if (result.rows.length === 0) {
-        // Create new round if none exists - check for carryover from previous rounds
-        let newJackpot = 1000000; // Base jackpot
+        // Create new round if none exists - jackpot starts from 0
+        let newJackpot = 0; // Start from 0
         
         // Check if there are completed rounds to get carryover
         const lastCompletedRound = await client.query(`
@@ -33,7 +33,7 @@ export async function GET() {
           const lastRound = lastCompletedRound.rows[0];
           const ticketRevenue = (lastRound.total_tickets || 0) * 100000; // 100,000 CHESS per ticket
           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
-          newJackpot = 1000000 + carryOverAmount; // Base + carryover
+          newJackpot = carryOverAmount; // Only carryover, no base
         }
         
         const newRoundResult = await client.query(`
@@ -100,7 +100,7 @@ export async function GET() {
         start_date: new Date().toISOString(),
         end_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         draw_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        prize_pool: 1700000, // 1M base + 700k carryover example
+        prize_pool: 700000, // 700k carryover example (no base)
         status: 'active',
         winner_fid: null,
         winner_number: null,

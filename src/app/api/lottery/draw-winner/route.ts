@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
        const totalTickets = ticketsResult.rows.length || 0;
        const totalRevenue = totalTickets * 100000; // 100,000 CHESS per ticket
        
-       // Get current jackpot to add to next round (accumulate if no winner)
-       const currentJackpot = round.jackpot || 1000000;
+               // Get current jackpot to add to next round (accumulate if no winner)
+        const currentJackpot = round.jackpot || 0;
        
        // Next round jackpot: current jackpot + 70% of new revenue (accumulates infinitely)
        const nextRoundJackpot = currentJackpot + Math.floor(totalRevenue * 0.7);
@@ -205,13 +205,13 @@ export async function POST(request: NextRequest) {
            draw_number: 1,
            total_tickets: 15,
            total_revenue: 1500000,
-           next_round_jackpot: 2050000, // 1M base + 1.5M carryover
+           next_round_jackpot: 1050000, // 1.5M carryover (no base)
            treasury_amount: 450000
          },
          new_round: {
            id: 2,
            draw_number: 2,
-           jackpot: 2050000
+           jackpot: 1050000
          }
        };
       
