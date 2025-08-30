@@ -124,7 +124,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const handleNumberSelect = (number: number) => {
     if (selectedNumbers.includes(number)) {
       setSelectedNumbers(selectedNumbers.filter(n => n !== number));
-    } else if (selectedNumbers.length < 10) { // Max 10 tickets per purchase
+    } else if (selectedNumbers.length < (10 - userTickets.length)) { // Max remaining tickets allowed
       setSelectedNumbers([...selectedNumbers, number]);
     }
   };
@@ -273,7 +273,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                </h3>
                                <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                   <p className="text-sm text-blue-300">
-                    <span className="font-semibold">Important:</span> Maximum 10 numbers per user per round. Each ticket costs 100,000 CHESS. Choose wisely!
+                    <span className="font-semibold">Important:</span> Maximum 10 numbers per user per round. Each ticket costs 100,000 CHESS. 
+                    {userTickets.length > 0 && (
+                      <span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets in this round.</span>
+                    )}
+                    Choose wisely!
                   </p>
                 </div>
                {takenNumbers.length > 0 && (
@@ -316,7 +320,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                    <div className="flex items-center justify-between mb-2">
                      <p className="text-sm text-gray-300">Selected numbers:</p>
                      <p className="text-sm text-blue-300">
-                       {selectedNumbers.length}/10 selected
+                       {selectedNumbers.length}/{10 - userTickets.length} selected
                      </p>
                    </div>
                    <div className="flex flex-wrap gap-2">
@@ -329,10 +333,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                        </span>
                      ))}
                    </div>
-                   {selectedNumbers.length === 10 && (
+                   {selectedNumbers.length === (10 - userTickets.length) && (
                      <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
                        <p className="text-sm text-yellow-300">
-                         <span className="font-semibold">Maximum reached:</span> You have selected the maximum 10 numbers allowed per round.
+                         <span className="font-semibold">Maximum reached:</span> You have selected the maximum {10 - userTickets.length} numbers allowed for this round.
                        </p>
                      </div>
                    )}
@@ -356,7 +360,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                      }
                    `}
                  >
-                   {purchasing ? 'Purchasing...' : `Buy ${selectedNumbers.length} Ticket${selectedNumbers.length !== 1 ? 's' : ''} (${selectedNumbers.length}/10)`}
+                                       {purchasing ? 'Purchasing...' : `Buy ${selectedNumbers.length} Ticket${selectedNumbers.length !== 1 ? 's' : ''} (${selectedNumbers.length}/${10 - userTickets.length})`}
                  </button>
               </div>
             </div>

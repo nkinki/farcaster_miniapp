@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user already has 10 tickets in this round
     const client = await pool.connect();
     
     try {
@@ -78,6 +79,22 @@ export async function POST(request: NextRequest) {
           );
         }
         round = roundResult.rows[0];
+      }
+
+      // Check how many tickets the user already has in this round
+      const userTicketsResult = await client.query(`
+        SELECT COUNT(*) as ticket_count FROM lottery_tickets 
+        WHERE draw_id = $1 AND player_fid = $2
+      `, [round.id, finalFid]);
+
+      const currentUserTickets = parseInt(userTicketsResult.rows[0].ticket_count);
+      
+      if (currentUserTickets + finalTicketNumbers.length > 10) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { success: false, error: `You already have ${currentUserTickets} tickets in this round. Maximum 10 tickets per user per round.` },
+          { status: 400 }
+        );
       }
 
       const currentTickets = round.total_tickets || 0;
