@@ -257,13 +257,12 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         
                  {/* Header */}
          <div className="relative z-10 flex flex-col items-center mb-6">
-           <div className="flex items-center gap-4 mb-2">
-             <div className="text-4xl">💎</div>
-             <div className="text-center">
-               <h1 className="text-2xl font-bold text-white uppercase tracking-wider">
-                 BUY A LAMBO
+           <div className="w-full flex justify-between items-center mb-2">
+             <div className="text-center flex-1">
+               <h1 className="text-2xl font-bold text-white uppercase tracking-[0.5em]">
+                 B U Y &nbsp; A &nbsp; L A M B O
                </h1>
-               <p className="text-purple-200 text-xs font-medium">One Winner Takes All!</p>
+               <p className="text-purple-200 text-xs font-medium mt-1">One Winner Takes All!</p>
              </div>
            </div>
            <button
@@ -287,15 +286,15 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 <FiZap /> Select Numbers (1-100)
               </h3>
               
-              <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                <p className="text-sm text-blue-300">
-                  <span className="font-semibold">Important:</span> Maximum 10 numbers per user per round. Each ticket costs $100,000. 
-                  {userTickets.length > 0 && (
-                    <span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets in this round.</span>
-                  )}
-                  Choose wisely!
-                </p>
-              </div>
+                             <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                 <p className="text-sm text-blue-300">
+                   Maximum 10 numbers per user per round. Each ticket costs $100,000. 
+                   {userTickets.length > 0 && (
+                     <span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets in this round.</span>
+                   )}
+                   Choose wisely!
+                 </p>
+               </div>
               
               {takenNumbers.length > 0 && (
                 <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
