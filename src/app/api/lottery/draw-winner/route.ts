@@ -1,9 +1,14 @@
+// /api/draw-winner/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.NEON_DB_URL || 'postgresql://test:test@localhost:5432/test',
 });
+
+// Definiáljuk a konstans alap főnyereményt
+const BASE_JACKPOT = 1000000;
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,55 +54,62 @@ export async function POST(request: NextRequest) {
         round = roundResult.rows[0];
       }
 
-             // Get all sold tickets for this round
-       const ticketsResult = await client.query(`
-         SELECT * FROM lottery_tickets 
-         WHERE draw_id = $1
-         ORDER BY number
-       `, [round.id]);
+      // Get all sold tickets for this round
+      const ticketsResult = await client.query(`
+        SELECT * FROM lottery_tickets 
+        WHERE draw_id = $1
+        ORDER BY number
+      `, [round.id]);
 
-       if (!ticketsResult || !ticketsResult.rows || ticketsResult.rows.length === 0) {
-         await client.query('ROLLBACK');
-         return NextResponse.json(
-           { success: false, error: 'No tickets sold in this round' },
-           { status: 400 }
-         );
-       }
+      if (!ticketsResult || !ticketsResult.rows || ticketsResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { success: false, error: 'No tickets sold in this round' },
+          { status: 400 }
+        );
+      }
 
-       // Generate random winning number from 1-100 (not from sold tickets)
-       const winningNumber = Math.floor(Math.random() * 100) + 1;
+      // Generate random winning number from 1-100
+      const winningNumber = Math.floor(Math.random() * 100) + 1;
 
-       // Find the winner (if any ticket matches the winning number)
-       const winnerResult = await client.query(`
-         SELECT * FROM lottery_tickets 
-         WHERE draw_id = $1 AND number = $2
-         LIMIT 1
-       `, [round.id, winningNumber]);
+      // Find the winner
+      const winnerResult = await client.query(`
+        SELECT * FROM lottery_tickets 
+        WHERE draw_id = $1 AND number = $2
+        LIMIT 1
+      `, [round.id, winningNumber]);
 
-       const winner = winnerResult.rows[0];
+      const winner = winnerResult.rows[0];
 
-       // Calculate revenue and new jackpot (70-30 split) - safe calculation
-       const totalTickets = ticketsResult.rows.length || 0;
-       const totalRevenue = totalTickets * 100000; // 100,000 CHESS per ticket
-       
-                      // Next round jackpot: ONLY 70% of new revenue (NO accumulation of previous jackpot)
-       const currentJackpot = round.jackpot || 0;
-       const nextRoundJackpot = Math.floor(totalRevenue * 0.7);
-       const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
+      // Calculate revenue and amounts
+      const totalTickets = ticketsResult.rows.length || 0;
+      const totalRevenue = totalTickets * 100000; // 100,000 CHESS per ticket
+      const carryOverAmount = Math.floor(totalRevenue * 0.7); // 70% for jackpot
+      const treasuryAmount = totalRevenue - carryOverAmount; // 30% for treasury
 
-             // Update current round as completed
-       await client.query(`
-         UPDATE lottery_draws 
-         SET 
-           status = 'completed',
-           winning_number = $1,
-           total_tickets = $2,
-           end_time = NOW()
-         WHERE id = $3
-       `, [winningNumber, totalTickets, round.id]);
+      // ### ÚJ LOGIKA A KÖVETKEZŐ KÖR FŐNYEREMÉNYÉNEK KISZÁMÍTÁSÁHOZ ###
+      let newRoundJackpot;
+      if (winner) {
+        // Ha van nyertes, a következő kör jackpotja visszaáll az alap 1M-ra.
+        newRoundJackpot = BASE_JACKPOT;
+      } else {
+        // Ha nincs nyertes, az aktuális kör jackpotja növekszik a bevétel 70%-ával.
+        // A 'round.jackpot' már tartalmazza az összes korábbi halmozódást.
+        newRoundJackpot = (round.jackpot || 0) + carryOverAmount;
+      }
+      
+      // Update current round as completed
+      await client.query(`
+        UPDATE lottery_draws 
+        SET 
+          status = 'completed',
+          winning_number = $1,
+          total_tickets = $2,
+          end_time = NOW()
+        WHERE id = $3
+      `, [winningNumber, totalTickets, round.id]);
 
-             // Create new round with jackpot (0 if winner, new carryover if no winner)
-       const newRoundJackpot = winner ? 0 : nextRoundJackpot;
+      // Create new round with the correctly calculated jackpot
       const newRoundResult = await client.query(`
         INSERT INTO lottery_draws (
           draw_number, 
@@ -115,21 +127,22 @@ export async function POST(request: NextRequest) {
         RETURNING *
       `, [round.draw_number, newRoundJackpot]);
 
-             // Update lottery stats
-       await client.query(`
-         UPDATE lottery_stats 
-         SET 
-           total_tickets = total_tickets + $1,
-           total_jackpot = $2,
-           last_draw_number = $3,
-           next_draw_time = NOW() + INTERVAL '1 day',
-           updated_at = NOW()
-         WHERE id = 1
-       `, [totalTickets, newRoundJackpot, round.draw_number]);
+      // Update lottery stats
+      // A total_jackpot itt a kincstárba kerülő összeget jelenti, vagy a következő kör jackpotját?
+      // A biztonság kedvéért a következő kör jackpotját írjuk be, ahogy az eredeti kódban is volt.
+      await client.query(`
+        UPDATE lottery_stats 
+        SET 
+          total_tickets = total_tickets + $1,
+          total_jackpot = $2,
+          last_draw_number = $3,
+          next_draw_time = NOW() + INTERVAL '1 day',
+          updated_at = NOW()
+        WHERE id = 1
+      `, [totalTickets, newRoundJackpot, round.draw_number]);
 
       await client.query('COMMIT');
 
-      // Check if there's a winner
       if (winner) {
         return NextResponse.json({
           success: true,
@@ -138,42 +151,42 @@ export async function POST(request: NextRequest) {
             fid: winner.player_fid,
             number: winningNumber,
             player_name: winner.player_name,
-            player_address: winner.player_address
+            player_address: winner.player_address,
+            // A nyertes a TELJES felhalmozódott jackpotot kapja, nem csak a bevételt
+            jackpot_won: round.jackpot 
           },
           round: {
             id: round.id,
             draw_number: round.draw_number,
             total_tickets: totalTickets,
             total_revenue: totalRevenue,
-            next_round_jackpot: nextRoundJackpot,
             treasury_amount: treasuryAmount
           },
           new_round: {
             id: newRoundResult.rows[0].id,
             draw_number: newRoundResult.rows[0].draw_number,
-            jackpot: newRoundResult.rows[0].jackpot
+            jackpot: newRoundResult.rows[0].jackpot // Ez 1,000,000 lesz
           },
-          message: "Winner found! Jackpot reset to 0 for next round."
+          message: "Winner found! Next round jackpot resets to 1,000,000."
         });
       } else {
-        // No winner - jackpot increases
         return NextResponse.json({
           success: true,
           hasWinner: false,
           winning_number: winningNumber,
-          message: "No winner found - jackpot increases to next round",
+          message: "No winner found - jackpot increases for the next round",
           round: {
             id: round.id,
             draw_number: round.draw_number,
             total_tickets: totalTickets,
             total_revenue: totalRevenue,
-            next_round_jackpot: nextRoundJackpot,
+            carry_over_to_jackpot: carryOverAmount,
             treasury_amount: treasuryAmount
           },
           new_round: {
             id: newRoundResult.rows[0].id,
             draw_number: newRoundResult.rows[0].draw_number,
-            jackpot: newRoundResult.rows[0].jackpot
+            jackpot: newRoundResult.rows[0].jackpot // Ez a (régi jackpot + carryOverAmount) lesz
           }
         });
       }
@@ -187,38 +200,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error drawing winner:', error);
-    
-    // Fallback to mock data for local development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Using mock draw result for local development');
-                     const mockResult = {
-          success: true,
-          hasWinner: true,
-          winner: {
-            fid: 12345,
-            number: 42,
-            player_name: "Test Winner",
-            player_address: "0x1234...5678"
-          },
-          round: {
-            id: 1,
-            draw_number: 1,
-            total_tickets: 15,
-            total_revenue: 1500000,
-            next_round_jackpot: 1050000, // 1.5M carryover (no base)
-            treasury_amount: 450000
-          },
-          new_round: {
-            id: 2,
-            draw_number: 2,
-            jackpot: 0 // Reset to 0 when winner found
-          },
-          message: "Winner found! Jackpot reset to 0 for next round."
-        };
-      
-      return NextResponse.json(mockResult);
-    }
-    
     return NextResponse.json(
       { success: false, error: `Failed to draw winner: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 }
