@@ -47,6 +47,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [purchasing, setPurchasing] = useState(false);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [takenNumbers, setTakenNumbers] = useState<number[]>([]);
 
   const fetchLotteryData = useCallback(async () => {
     try {
@@ -57,6 +58,15 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       if (roundResponse.ok) {
         const roundData = await roundResponse.json();
         setCurrentRound(roundData.round);
+        
+        // Fetch taken numbers for current round
+        if (roundData.round?.id) {
+          const takenResponse = await fetch(`/api/lottery/taken-numbers?round_id=${roundData.round.id}`);
+          if (takenResponse.ok) {
+            const takenData = await takenResponse.json();
+            setTakenNumbers(takenData.takenNumbers || []);
+          }
+        }
       }
 
       // Fetch user tickets
@@ -141,9 +151,18 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         const result = await response.json();
         console.log('Tickets purchased successfully:', result);
         
-        // Reset selection and refresh data
-        setSelectedNumbers([]);
-        await fetchLotteryData();
+                 // Reset selection and refresh data
+         setSelectedNumbers([]);
+         await fetchLotteryData();
+         
+         // Update taken numbers immediately
+         if (currentRound?.id) {
+           const takenResponse = await fetch(`/api/lottery/taken-numbers?round_id=${currentRound.id}`);
+           if (takenResponse.ok) {
+             const takenData = await takenResponse.json();
+             setTakenNumbers(takenData.takenNumbers || []);
+           }
+         }
         
         if (onPurchaseSuccess) {
           onPurchaseSuccess();
@@ -169,9 +188,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   };
 
   const isNumberTaken = (number: number) => {
-    return currentRound?.total_tickets_sold ? 
-      // This is a simplified check - in reality you'd need to fetch taken numbers
-      false : false;
+    return takenNumbers.includes(number);
   };
 
   if (!isOpen) return null;
@@ -251,34 +268,42 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
             {/* Number Selection Grid */}
             <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-              <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
-                <FiZap /> Select Your Lucky Numbers (1-100)
-              </h3>
-              <div className="grid grid-cols-10 gap-2 mb-4">
-                {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => {
-                  const isSelected = selectedNumbers.includes(number);
-                  const isTaken = isNumberTaken(number);
-                  
-                  return (
-                    <button
-                      key={number}
-                      onClick={() => !isTaken && handleNumberSelect(number)}
-                      disabled={isTaken}
-                      className={`
-                        w-8 h-8 rounded text-xs font-bold transition-all duration-200
-                        ${isTaken 
-                          ? 'bg-red-600/50 text-red-300 cursor-not-allowed' 
-                          : isSelected
-                            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110 shadow-lg'
-                            : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105'
-                        }
-                      `}
-                    >
-                      {number}
-                    </button>
-                  );
-                })}
-              </div>
+                             <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                 <FiZap /> Select Your Lucky Numbers (1-100)
+               </h3>
+               {takenNumbers.length > 0 && (
+                 <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                   <p className="text-sm text-red-300">
+                     <span className="font-semibold">{takenNumbers.length}</span> numbers are already taken and cannot be selected.
+                   </p>
+                 </div>
+               )}
+                             <div className="grid grid-cols-10 gap-2 mb-4">
+                 {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => {
+                   const isSelected = selectedNumbers.includes(number);
+                   const isTaken = isNumberTaken(number);
+                   
+                   return (
+                     <button
+                       key={number}
+                       onClick={() => !isTaken && handleNumberSelect(number)}
+                       disabled={isTaken}
+                       className={`
+                         w-8 h-8 rounded text-xs font-bold transition-all duration-200
+                         ${isTaken 
+                           ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' 
+                           : isSelected
+                             ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110 shadow-lg'
+                             : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105'
+                         }
+                       `}
+                       title={isTaken ? `Number ${number} is already taken` : `Select number ${number}`}
+                     >
+                       {number}
+                     </button>
+                   );
+                 })}
+               </div>
               
               {/* Selected numbers display */}
               {selectedNumbers.length > 0 && (

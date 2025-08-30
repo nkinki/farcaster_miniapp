@@ -368,7 +368,7 @@ export default function Home() {
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
             <form className="flex items-center" onSubmit={(e) => e.preventDefault()}>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs w-[110px]" />
-              <button type="submit" className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900" aria-label="Keresés">
+              <button type="submit" className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900" aria-label="Search">
                 <FiSearch size={14} />
               </button>
             </form>
