@@ -316,12 +316,12 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       onClick={() => !isTaken && handleNumberSelect(number)}
                       disabled={isTaken}
                       className={`
-                        w-10 h-10 rounded text-sm font-bold transition-all duration-200
+                        w-10 h-10 rounded text-sm font-bold transition-all duration-200 border-2
                         ${isTaken 
-                          ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' 
+                          ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60 border-red-500/50' 
                           : isSelected
-                            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110 shadow-lg'
-                            : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105'
+                            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110 shadow-lg border-[#a64d79]'
+                            : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-[#a64d79]/30 hover:border-[#a64d79]/60'
                         }
                       `}
                       title={isTaken ? `Number ${number} is already taken` : `Select number ${number}`}
