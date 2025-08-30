@@ -1,10 +1,10 @@
-name: Lambo Lottery Daily Draw
+name: Lambo Lottery Daily Draw (DISABLED)
 
 on:
-  schedule:
-    # Run every day at 8 PM UTC (20:00)
-    - cron: '0 20 * * *'
-  workflow_dispatch: # Allow manual trigger
+  # schedule:
+  #   # Run every day at 8 PM UTC (20:00) - DISABLED
+  #   - cron: '0 20 * * *'
+  workflow_dispatch: # Allow manual trigger only
 
 jobs:
   lottery-draw:
