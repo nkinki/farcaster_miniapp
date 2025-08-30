@@ -271,11 +271,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                              <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
                  <FiZap /> Select Numbers (1-100)
                </h3>
-               <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                 <p className="text-sm text-blue-300">
-                   <span className="font-semibold">Important:</span> Maximum 10 numbers per user per round. Choose wisely!
-                 </p>
-               </div>
+                               <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                  <p className="text-sm text-blue-300">
+                    <span className="font-semibold">Important:</span> Maximum 10 numbers per user per round. Each ticket costs 100,000 CHESS. Choose wisely!
+                  </p>
+                </div>
                {takenNumbers.length > 0 && (
                  <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
                    <p className="text-sm text-red-300">
@@ -341,10 +341,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
               {/* Purchase button */}
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-300">
-                  <div>Price per ticket: <span className="text-yellow-400 font-bold">20,000 CHESS</span></div>
-                  <div>Total cost: <span className="text-yellow-400 font-bold">{(selectedNumbers.length * 20000).toLocaleString()} CHESS</span></div>
-                </div>
+                                 <div className="text-sm text-gray-300">
+                   <div>Price per ticket: <span className="text-yellow-400 font-bold">100,000 CHESS</span></div>
+                   <div>Total cost: <span className="text-yellow-400 font-bold">{(selectedNumbers.length * 100000).toLocaleString()} CHESS</span></div>
+                 </div>
                                  <button
                    onClick={handlePurchaseTickets}
                    disabled={selectedNumbers.length === 0 || purchasing}
@@ -410,13 +410,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                          {/* Rules */}
              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
                                <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
-                <ul className="text-sm text-gray-400 space-y-1">
-                  <li>• Choose 1-10 numbers between 1-100</li>
-                  <li>• Maximum 10 numbers per user per round</li>
-                  <li>• Each ticket costs 20,000 CHESS tokens</li>
-                  <li>• Daily draw at 8 PM UTC</li>
-                  <li>• Winner takes the entire prize pool (All In!)</li>
-                </ul>
+                                 <ul className="text-sm text-gray-400 space-y-1">
+                   <li>• Choose 1-10 numbers between 1-100</li>
+                   <li>• Maximum 10 numbers per user per round</li>
+                   <li>• Each ticket costs 100,000 CHESS tokens</li>
+                   <li>• Daily draw at 8 PM UTC</li>
+                   <li>• Winner takes the entire prize pool (All In!)</li>
+                 </ul>
              </div>
           </div>
         )}
