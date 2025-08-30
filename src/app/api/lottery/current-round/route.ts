@@ -33,7 +33,7 @@ export async function GET() {
            const lastRound = lastCompletedRound.rows[0];
            const ticketRevenue = (lastRound.total_tickets || 0) * 100000; // 100,000 CHESS per ticket
            const carryOverAmount = Math.floor(ticketRevenue * 0.7);
-           newJackpot = carryOverAmount; // 70% of last round's revenue (will accumulate)
+           newJackpot = carryOverAmount; // 70% of last round's revenue (NO accumulation)
          }
         
         const newRoundResult = await client.query(`
@@ -100,7 +100,7 @@ export async function GET() {
         start_date: new Date().toISOString(),
         end_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         draw_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        prize_pool: 700000, // 700k carryover example (no base)
+        prize_pool: 70000, // 70k carryover example (no base)
         status: 'active',
         winner_fid: null,
         winner_number: null,
