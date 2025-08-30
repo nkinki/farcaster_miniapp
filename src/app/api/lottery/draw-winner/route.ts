@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
       // Calculate revenue and new jackpot (70-30 split)
       const totalRevenue = ticketsResult.rows.length * 100000; // 100,000 CHESS per ticket
-      const nextRoundJackpot = Math.floor(totalRevenue * 0.7); // 70% to next round
+      const nextRoundJackpot = 1000000 + Math.floor(totalRevenue * 0.7); // ALWAYS 1M base + 70% carryover
       const treasuryAmount = Math.floor(totalRevenue * 0.3); // 30% to treasury
 
       // Update current round as completed

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
         await client.query('DELETE FROM lottery_draws');
         await client.query('DELETE FROM lottery_stats');
         
-        // Recreate initial data
+        // Recreate initial data with 1M base jackpot
         await client.query(`
           INSERT INTO lottery_stats (total_tickets, active_tickets, total_jackpot, next_draw_time, last_draw_number)
           VALUES (0, 0, 1000000, NOW() + INTERVAL '1 day', 0)
@@ -150,8 +150,8 @@ export async function POST(request: NextRequest) {
           ORDER BY draw_number DESC LIMIT 1
         `);
         
-        // Calculate new jackpot for next round
-        let newJackpot = 1000000; // Default 1M CHESS tokens
+        // Calculate new jackpot for next round - ALWAYS start with 1M base
+        let newJackpot = 1000000; // ALWAYS 1M CHESS tokens base
         
         if (lastRoundResult.rows.length > 0) {
           const lastRound = lastRoundResult.rows[0];
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
           const treasuryAmount = Math.floor(ticketRevenue * 0.3);
           
-          newJackpot = 1000000 + carryOverAmount; // Base 1M + carryover
+          newJackpot = 1000000 + carryOverAmount; // ALWAYS 1M base + carryover
           
           // Update treasury balance in stats
           await client.query(`
