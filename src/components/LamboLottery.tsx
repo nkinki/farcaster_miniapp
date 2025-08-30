@@ -199,14 +199,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         
         {/* Header */}
         <div className="relative z-10 flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            <div className="text-4xl">🏎️</div>
-            <div>
-                                           <h1 className="text-3xl font-bold text-white uppercase tracking-wider">
-                BUY A LAMBO
-              </h1>
-              <p className="text-purple-200 text-sm font-medium">One Winner Takes All!</p>
-            </div>
+                     <div className="flex items-center gap-4">
+             <div className="text-4xl">💎</div>
+                          <div>
+               <h1 className="text-2xl font-bold text-white uppercase tracking-wider">
+                 BUY A LAMBO
+               </h1>
+               <p className="text-purple-200 text-xs font-medium">One Winner Takes All!</p>
+             </div>
           </div>
           <button
             onClick={onClose}
@@ -268,8 +268,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
             {/* Number Selection Grid */}
             <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-                             <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
-                 <FiZap /> Select Your Lucky Numbers (1-100)
+                             <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                 <FiZap /> Select Numbers (1-100)
                </h3>
                <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                  <p className="text-sm text-blue-300">

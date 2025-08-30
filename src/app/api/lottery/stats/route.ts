@@ -41,10 +41,10 @@ export async function GET() {
       return NextResponse.json({ 
         success: true, 
         stats: {
-          total_rounds: result.rows[0].last_draw_number,
-          total_tickets_sold: result.rows[0].total_tickets,
+          total_rounds: result.rows[0].last_draw_number || 0,
+          total_tickets_sold: result.rows[0].total_tickets || 0,
           total_prize_distributed: 0,
-          treasury_balance: result.rows[0].total_jackpot
+          treasury_balance: result.rows[0].total_jackpot || 1000000
         }
       });
     } finally {
