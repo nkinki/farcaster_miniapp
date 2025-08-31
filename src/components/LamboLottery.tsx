@@ -268,7 +268,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  </div>
                  <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
                  
-                 {/* Pulsing Jackpot Display with Countdown */}
+                 {/* Pulsing Jackpot Display with Countdown and Last Draw */}
                  {currentRound && (
                    <div className="mt-3 w-full p-3 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '4s' }}>
                      <div className="flex items-center justify-between">
@@ -286,6 +286,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                          </div>
                          <div className="text-lg font-bold text-yellow-400">
                            {timeRemaining}
+                         </div>
+                       </div>
+                       <div className="text-center border-l-2 border-yellow-400/30 pl-4">
+                         <div className="text-sm font-bold text-yellow-300 mb-0.5">
+                           🎯 LAST DRAW
+                         </div>
+                         <div className="text-lg font-bold text-yellow-400">
+                           {drawResult?.winning_number || 'N/A'}
                          </div>
                        </div>
                      </div>
