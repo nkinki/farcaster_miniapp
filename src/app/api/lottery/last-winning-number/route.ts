@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import pool from '../../../../../lib/db';
 
 export async function GET() {
   try {
     // Get the last completed round with a winning number
-    const result = await sql`
+    const query = `
       SELECT winning_number 
       FROM lottery_draws 
       WHERE status = 'completed' AND winning_number IS NOT NULL 
       ORDER BY created_at DESC 
       LIMIT 1
     `;
+    
+    const result = await pool.query(query);
 
     if (result.rows.length > 0) {
       return NextResponse.json({
