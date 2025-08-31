@@ -263,16 +263,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  <h1 className="text-4xl font-bold text-white uppercase tracking-[0.05em]">
                    BUY A LAMBO
                  </h1>
-                 <p className="text-purple-200 text-sm font-medium mt-1">One Winner Takes All!</p>
+                 <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
                  
                  {/* Pulsing Jackpot Display */}
                  {currentRound && (
-                   <div className="mt-3 p-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '3s' }}>
+                   <div className="mt-3 w-full p-4 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '3s' }}>
                      <div className="text-center">
-                       <div className="text-2xl font-bold text-yellow-300 mb-1">
+                       <div className="text-lg font-bold text-yellow-300 mb-1">
                          🎰 JACKPOT 🎰
                        </div>
-                       <div className="text-3xl font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '3s' }}>
+                       <div className="text-2xl font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '3s' }}>
                          {formatChessTokens(currentRound.prize_pool)}
                        </div>
                      </div>
