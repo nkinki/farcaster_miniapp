@@ -293,7 +293,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                            🎯 LAST DRAW
                          </div>
                          <div className="text-sm font-bold text-yellow-400">
-                           {drawResult?.winning_number || 'N/A'}
+                           {currentRound?.winner_number || drawResult?.winning_number || 'N/A'}
                          </div>
                        </div>
                      </div>
