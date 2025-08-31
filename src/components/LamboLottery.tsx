@@ -260,7 +260,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
            <div className="w-full flex justify-between items-start mb-2">
              <div className="flex items-center gap-4">
                <div>
-                 <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-2">
                    <FiDollarSign size={48} className="text-yellow-300" />
                    <h1 className="text-4xl font-bold text-white uppercase tracking-[0.02em]">
                      BUY A LAMBO
@@ -268,18 +268,25 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  </div>
                  <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
                  
-                 {/* Pulsing Jackpot Display */}
+                 {/* Pulsing Jackpot Display with Countdown */}
                  {currentRound && (
-                   <div className="mt-3 w-full p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '4s' }}>
-                     <div className="text-center">
-                       <div className="text-base font-bold text-yellow-300 mb-0.5">
-                         🎰 JACKPOT 🎰
+                   <div className="mt-3 w-full p-3 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '4s' }}>
+                     <div className="flex items-center justify-between">
+                       <div className="text-center flex-1">
+                         <div className="text-base font-bold text-yellow-300 mb-0.5">
+                           🎰 JACKPOT 🎰
+                         </div>
+                         <div className="text-xl font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '4s' }}>
+                           {formatChessTokens(currentRound.prize_pool)}
+                         </div>
                        </div>
-                       <div className="text-xl font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '4s' }}>
-                         {formatChessTokens(currentRound.prize_pool)}
-                       </div>
-                       <div className="text-sm text-yellow-200 mt-1">
-                         ⏰ {timeRemaining}
+                       <div className="text-center border-l-2 border-yellow-400/30 pl-4">
+                         <div className="text-sm font-bold text-yellow-300 mb-0.5">
+                           ⏰ TIME LEFT
+                         </div>
+                         <div className="text-lg font-bold text-yellow-400">
+                           {timeRemaining}
+                         </div>
                        </div>
                      </div>
                    </div>
