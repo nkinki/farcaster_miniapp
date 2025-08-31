@@ -260,20 +260,26 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
            <div className="w-full flex justify-between items-start mb-2">
              <div className="flex items-center gap-4">
                <div>
-                 <h1 className="text-4xl font-bold text-white uppercase tracking-[0.02em]">
-                   BUY A LAMBO
-                 </h1>
+                 <div className="flex items-center gap-3">
+                   <FiDollarSign size={48} className="text-yellow-300" />
+                   <h1 className="text-4xl font-bold text-white uppercase tracking-[0.02em]">
+                     BUY A LAMBO
+                   </h1>
+                 </div>
                  <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
                  
                  {/* Pulsing Jackpot Display */}
                  {currentRound && (
-                   <div className="mt-3 w-full p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '1.5s' }}>
+                   <div className="mt-3 w-full p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '4s' }}>
                      <div className="text-center">
                        <div className="text-base font-bold text-yellow-300 mb-0.5">
                          🎰 JACKPOT 🎰
                        </div>
-                       <div className="text-xl font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '1.5s' }}>
+                       <div className="text-xl font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '4s' }}>
                          {formatChessTokens(currentRound.prize_pool)}
+                       </div>
+                       <div className="text-sm text-yellow-200 mt-1">
+                         ⏰ {timeRemaining}
                        </div>
                      </div>
                    </div>
