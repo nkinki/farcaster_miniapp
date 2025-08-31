@@ -271,7 +271,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  {/* Pulsing Jackpot Display with Countdown and Last Draw */}
                  {currentRound && (
                    <div className="mt-3 w-full p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '4s' }}>
-                     <div className="flex items-center justify-center">
+                     <div className="flex items-center justify-between w-full">
                        <div className="text-center flex-1">
                          <div className="text-xs font-bold text-yellow-300 mb-0.5">
                            🎰 JACKPOT 🎰
@@ -280,7 +280,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                            {formatChessTokens(currentRound.prize_pool)}
                          </div>
                        </div>
-                       <div className="text-center border-l-2 border-yellow-400/30 pl-4">
+                       <div className="text-center border-l-2 border-yellow-400/30 pl-4 flex-1">
                          <div className="text-xs font-bold text-yellow-300 mb-0.5">
                            ⏰ TIME LEFT
                          </div>
@@ -288,7 +288,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                            {timeRemaining}
                          </div>
                        </div>
-                       <div className="text-center border-l-2 border-yellow-400/30 pl-4">
+                       <div className="text-center border-l-2 border-yellow-400/30 pl-4 flex-1">
                          <div className="text-xs font-bold text-yellow-300 mb-0.5">
                            🎯 LAST DRAW
                          </div>
