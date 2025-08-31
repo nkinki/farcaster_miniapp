@@ -261,8 +261,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
              <div className="flex items-center gap-4">
                <div>
                  <div className="flex items-center gap-2">
-                   <FiDollarSign size={48} className="text-yellow-300" />
-                   <h1 className="text-4xl font-bold text-white uppercase tracking-[0.02em]">
+                   <FiDollarSign size={38} className="text-yellow-300" />
+                   <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">
                      BUY A LAMBO
                    </h1>
                  </div>
