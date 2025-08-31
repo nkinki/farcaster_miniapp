@@ -256,8 +256,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden">
         
                  {/* Header */}
-         <div className="relative z-10 flex flex-col items-center mb-6">
-           <div className="w-full flex justify-between items-center mb-2">
+         <div className="relative z-10 flex flex-col items-start mb-6">
+           <div className="w-full flex justify-between items-start mb-2">
              <div className="flex items-center gap-4">
                <FiDollarSign size={48} className="text-yellow-300" />
                <div>
@@ -265,6 +265,23 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                    BUY A LAMBO
                  </h1>
                  <p className="text-purple-200 text-sm font-medium mt-1">One Winner Takes All!</p>
+                 
+                 {/* Pulsing Jackpot Display */}
+                 {currentRound && (
+                   <div className="mt-3 p-3 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse">
+                     <div className="text-center">
+                       <div className="text-2xl font-bold text-yellow-300 mb-1">
+                         🎰 JACKPOT 🎰
+                       </div>
+                       <div className="text-3xl font-bold text-yellow-400 animate-pulse">
+                         {formatChessTokens(currentRound.prize_pool)}
+                       </div>
+                       <div className="text-yellow-200 text-xs mt-1">
+                         Current Prize Pool
+                       </div>
+                     </div>
+                   </div>
+                 )}
                </div>
              </div>
            </div>
