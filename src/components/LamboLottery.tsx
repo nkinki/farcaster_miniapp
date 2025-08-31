@@ -50,6 +50,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [takenNumbers, setTakenNumbers] = useState<number[]>([]);
   const [drawing, setDrawing] = useState(false);
   const [drawResult, setDrawResult] = useState<any>(null);
+  const [lastWinningNumber, setLastWinningNumber] = useState<number | null>(null);
 
   const fetchLotteryData = useCallback(async () => {
     try {
@@ -80,12 +81,19 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         }
       }
 
-      // Fetch stats
-      const statsResponse = await fetch('/api/lottery/stats');
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
-        setStats(statsData.stats);
-      }
+             // Fetch stats
+       const statsResponse = await fetch('/api/lottery/stats');
+       if (statsResponse.ok) {
+         const statsData = await statsResponse.json();
+         setStats(statsData.stats);
+       }
+
+       // Fetch last winning number from database
+       const lastDrawResponse = await fetch('/api/lottery/last-winning-number');
+       if (lastDrawResponse.ok) {
+         const lastDrawData = await lastDrawResponse.json();
+         setLastWinningNumber(lastDrawData.winning_number);
+       }
     } catch (error) {
       console.error('Failed to fetch lottery data:', error);
     } finally {
@@ -293,7 +301,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                            🎯 LAST DRAW
                          </div>
                          <div className="text-sm font-bold text-yellow-400">
-                           {currentRound?.winner_number || drawResult?.winning_number || 'N/A'}
+                           {lastWinningNumber || currentRound?.winner_number || drawResult?.winning_number || 'N/A'}
                          </div>
                        </div>
                      </div>
