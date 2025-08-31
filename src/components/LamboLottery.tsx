@@ -270,29 +270,29 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  
                  {/* Pulsing Jackpot Display with Countdown and Last Draw */}
                  {currentRound && (
-                   <div className="mt-3 w-full p-3 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '4s' }}>
-                     <div className="flex items-center justify-between">
+                   <div className="mt-3 w-full p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse" style={{ animationDuration: '4s' }}>
+                     <div className="flex items-center justify-center">
                        <div className="text-center flex-1">
-                         <div className="text-base font-bold text-yellow-300 mb-0.5">
+                         <div className="text-xs font-bold text-yellow-300 mb-0.5">
                            🎰 JACKPOT 🎰
                          </div>
-                         <div className="text-xl font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '4s' }}>
+                         <div className="text-lg font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '4s' }}>
                            {formatChessTokens(currentRound.prize_pool)}
                          </div>
                        </div>
                        <div className="text-center border-l-2 border-yellow-400/30 pl-4">
-                         <div className="text-sm font-bold text-yellow-300 mb-0.5">
+                         <div className="text-xs font-bold text-yellow-300 mb-0.5">
                            ⏰ TIME LEFT
                          </div>
-                         <div className="text-lg font-bold text-yellow-400">
+                         <div className="text-sm font-bold text-yellow-400">
                            {timeRemaining}
                          </div>
                        </div>
                        <div className="text-center border-l-2 border-yellow-400/30 pl-4">
-                         <div className="text-sm font-bold text-yellow-300 mb-0.5">
+                         <div className="text-xs font-bold text-yellow-300 mb-0.5">
                            🎯 LAST DRAW
                          </div>
-                         <div className="text-lg font-bold text-yellow-400">
+                         <div className="text-sm font-bold text-yellow-400">
                            {drawResult?.winning_number || 'N/A'}
                          </div>
                        </div>
