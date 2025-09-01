@@ -260,8 +260,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   if (!isOpen) return null;
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-             <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden shadow-[0_0_30px_rgba(166,77,121,0.4)]">
+             <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
         
                  {/* Header */}
          <div className="relative z-10 flex flex-col items-start mb-6">
@@ -599,5 +600,26 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         )}
       </div>
     </div>
+    <style jsx>{`
+        @keyframes pulseGlow {
+          0% {
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
+          }
+          50% {
+            box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff;
+            filter: brightness(1.1) saturate(1.2);
+          }
+          100% {
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
+          }
+        }
+        .pulse-glow {
+          animation: pulseGlow 3.5s ease-in-out infinite;
+          border: 2px solid #a259ff;
+        }
+      `}</style>
+    </>
   );
 }
