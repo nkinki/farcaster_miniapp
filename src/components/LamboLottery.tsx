@@ -268,8 +268,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
          <div className="relative z-10 flex flex-col items-start mb-6">
            <div className="w-full flex justify-between items-start mb-2">
              <div className="flex items-center gap-4">
-               <div>
-                 <div className="flex items-center gap-2">
+               <div className="w-full">
+                 <div className="flex items-center gap-2 ml-[15%]">
                    <FiDollarSign size={38} className="text-yellow-300" />
                    <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">
                      BUY A LAMBO
@@ -283,7 +283,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                      <div className="flex items-center justify-between w-full gap-6">
                        <div className="text-center flex-1 min-w-0">
                          <div className="text-xs font-bold text-yellow-300 mb-1">
-                           ⏰ TIME LEFT
+                           TIME LEFT
                          </div>
                          <div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
                            {timeRemaining}
@@ -291,7 +291,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                        </div>
                        <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-6 flex-1 min-w-0">
                          <div className="text-xs font-bold text-yellow-300 mb-1">
-                           🎰 JACKPOT 🎰
+                           JACKPOT
                          </div>
                          <div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>
                            {formatChessTokens(currentRound.prize_pool)}
@@ -299,7 +299,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                        </div>
                        <div className="text-center flex-1 min-w-0">
                          <div className="text-xs font-bold text-yellow-300 mb-1">
-                           🎯 LAST DRAW
+                           LAST DRAW
                          </div>
                          <div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
                            {lastWinningNumber || currentRound?.winner_number || drawResult?.winning_number || 'N/A'}
