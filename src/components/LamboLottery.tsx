@@ -120,7 +120,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         const hours = Math.floor(difference / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+        setTimeRemaining(`${hours}h ${minutes}m`);
       } else {
         setTimeRemaining("Drawing in progress...");
       }
@@ -279,29 +279,29 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  
                  {/* Pulsing Jackpot Display with Countdown and Last Draw */}
                  {currentRound && (
-                   <div className="mt-3 w-full p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse shadow-[0_0_20px_rgba(255,255,0,0.3)]" style={{ animationDuration: '4s' }}>
+                   <div className="mt-3 w-full p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-lg animate-pulse shadow-[0_0_20px_rgba(255,255,0,0.3)] pulse-glow" style={{ animationDuration: '4s' }}>
                      <div className="flex items-center justify-center w-full gap-4">
                                                <div className="text-center flex-[0.8]">
-                          <div className="text-[10px] font-bold text-yellow-300 mb-0.5">
+                          <div className="text-[8px] font-bold text-yellow-300 mb-0.5">
                             ⏰ TIME LEFT
                           </div>
-                          <div className="text-sm font-bold text-yellow-400">
+                          <div className="text-xs font-bold text-yellow-400">
                             {timeRemaining}
                           </div>
                         </div>
                        <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-4 flex-[1.2]">
-                         <div className="text-xs font-bold text-yellow-300 mb-0.5">
+                         <div className="text-[8px] font-bold text-yellow-300 mb-0.5">
                            🎰 JACKPOT 🎰
                          </div>
-                         <div className="text-lg font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '4s' }}>
+                         <div className="text-sm font-bold text-yellow-400 animate-pulse" style={{ animationDuration: '4s' }}>
                            {formatChessTokens(currentRound.prize_pool)}
                          </div>
                        </div>
                        <div className="text-center flex-[0.8]">
-                         <div className="text-xs font-bold text-yellow-300 mb-0.5">
+                         <div className="text-[8px] font-bold text-yellow-300 mb-0.5">
                            🎯 LAST DRAW
                          </div>
-                         <div className="text-sm font-bold text-yellow-400">
+                         <div className="text-xs font-bold text-yellow-400">
                            {lastWinningNumber || currentRound?.winner_number || drawResult?.winning_number || 'N/A'}
                          </div>
                        </div>
