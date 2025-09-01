@@ -282,18 +282,27 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                    <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
                      <div className="flex items-center justify-between w-full gap-6">
                        <div className="text-center flex-1 min-w-0">
-                         <div className="text-xs font-bold text-yellow-300">
-                           ⏰ TIME LEFT: <span className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</span>
+                         <div className="text-xs font-bold text-yellow-300 mb-1">
+                           ⏰ TIME LEFT
+                         </div>
+                         <div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                           {timeRemaining}
                          </div>
                        </div>
                        <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-6 flex-1 min-w-0">
-                         <div className="text-xs font-bold text-yellow-300">
-                           🎰 JACKPOT 🎰: <span className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatChessTokens(currentRound.prize_pool)}</span>
+                         <div className="text-xs font-bold text-yellow-300 mb-1">
+                           🎰 JACKPOT 🎰
+                         </div>
+                         <div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>
+                           {formatChessTokens(currentRound.prize_pool)}
                          </div>
                        </div>
                        <div className="text-center flex-1 min-w-0">
-                         <div className="text-xs font-bold text-yellow-300">
-                           🎯 LAST DRAW: <span className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{lastWinningNumber || currentRound?.winner_number || drawResult?.winning_number || 'N/A'}</span>
+                         <div className="text-xs font-bold text-yellow-300 mb-1">
+                           🎯 LAST DRAW
+                         </div>
+                         <div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                           {lastWinningNumber || currentRound?.winner_number || drawResult?.winning_number || 'N/A'}
                          </div>
                        </div>
                      </div>
