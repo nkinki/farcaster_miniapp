@@ -468,23 +468,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 <div className="text-center text-xs text-gray-400 opacity-70">
                   {100 - currentRound.total_tickets_sold} tickets remaining
                 </div>
-                
-                {/* Draw Winner Button */}
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={handleDrawWinner}
-                    disabled={drawing || currentRound.total_tickets_sold === 0}
-                    className={`
-                      px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300
-                      ${currentRound.total_tickets_sold > 0 && !drawing
-                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-lg hover:scale-105'
-                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                      }
-                    `}
-                  >
-                    {drawing ? 'Drawing...' : '🎲 DRAW WINNER 🎲'}
-                  </button>
-                </div>
+
               </div>
             )}
 
