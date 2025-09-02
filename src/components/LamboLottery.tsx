@@ -298,10 +298,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                          </div>
                        </div>
                        <div className="text-center flex-1 min-w-0">
-                         <div className="text-xs font-bold text-yellow-300 mb-1">
+                         <div className="text-[10px] font-bold text-yellow-300 mb-1">
                            LAST DRAW
                          </div>
-                         <div className="text-sm font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                         <div className="text-xs font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
                            {lastWinningNumber || currentRound?.winner_number || drawResult?.winning_number || 'N/A'}
                          </div>
                        </div>
