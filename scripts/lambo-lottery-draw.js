@@ -106,7 +106,7 @@ async function performLotteryDraw() {
     `, [winningTicket.number, ticketsResult.rows.length, round.id]);
     
     // Calculate next round prize pool (70% of current sales + base 1M)
-    const ticketSales = ticketsResult.rows.length * 20000; // 20k per ticket
+    const ticketSales = ticketsResult.rows.length * 100000; // 100k per ticket
     const nextPrizePool = 1000000 + Math.floor(ticketSales * 0.7);
     
     // Create next round
