@@ -37,7 +37,7 @@ async function performLotteryDraw() {
     }
 
     // Get current active round which is due for drawing
-    const roundResult = await client.query(`
+    let roundResult = await client.query(`
       SELECT * FROM lambo_lottery_rounds 
       WHERE status = 'active' AND draw_date <= NOW()
       ORDER BY round_number DESC 
@@ -45,9 +45,44 @@ async function performLotteryDraw() {
     `);
     
     if (roundResult.rows.length === 0) {
-      console.log('ℹ️ No rounds ready for drawing');
-      await client.query('ROLLBACK');
-      return;
+      if (forceNow) {
+        console.log('⚙️ No due rounds after force; adjusting active round draw_date to NOW()...');
+        // Try update any active round to be due now
+        const upd = await client.query(`
+          UPDATE lambo_lottery_rounds
+          SET draw_date = NOW(), updated_at = NOW()
+          WHERE status = 'active'
+          RETURNING *;
+        `);
+        if (upd.rows.length === 0) {
+          console.log('🆕 Creating initial active round for immediate draw...');
+          // Create an active round if none exists
+          await client.query(`
+            INSERT INTO lambo_lottery_rounds (
+              round_number, start_date, end_date, draw_date, prize_pool, status
+            ) VALUES (
+              1,
+              NOW(),
+              NOW() + INTERVAL '1 day',
+              NOW(),
+              1000000,
+              'active'
+            ) ON CONFLICT (round_number) DO NOTHING;
+          `);
+        }
+        // Reselect after adjustment/creation
+        roundResult = await client.query(`
+          SELECT * FROM lambo_lottery_rounds 
+          WHERE status = 'active' AND draw_date <= NOW()
+          ORDER BY round_number DESC 
+          LIMIT 1
+        `);
+      }
+      if (roundResult.rows.length === 0) {
+        console.log('ℹ️ No rounds ready for drawing');
+        await client.query('ROLLBACK');
+        return;
+      }
     }
     
     const round = roundResult.rows[0];
