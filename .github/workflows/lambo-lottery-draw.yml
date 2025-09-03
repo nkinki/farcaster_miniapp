@@ -2,8 +2,8 @@ name: Lambo Lottery Daily Draw
 
 on:
   schedule:
-    # Trigger at 18:00 and 19:00 UTC; gate to 20:00 Europe/Budapest below (handles DST correctly)
-    - cron: '0 18,19 * * *'
+    # Run every hour to check for 20:00 Budapest time
+    - cron: '0 * * * *'
   workflow_dispatch: # Allow manual trigger as well
 
 jobs:
@@ -34,8 +34,10 @@ jobs:
         minute=$(TZ=Europe/Budapest date +%M)
         if [ "$hour" = "20" ] && [ "$minute" = "00" ]; then
           echo "run_draw=true" >> $GITHUB_OUTPUT
+          echo "✅ It's 20:00 in Budapest - running lottery draw"
         else
           echo "run_draw=false" >> $GITHUB_OUTPUT
+          echo "⏰ Not yet 20:00 in Budapest - skipping draw"
         fi
       
     - name: Run lottery draw
