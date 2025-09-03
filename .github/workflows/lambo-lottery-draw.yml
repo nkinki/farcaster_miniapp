@@ -2,11 +2,8 @@ name: Lambo Lottery Daily Draw
 
 on:
   schedule:
-    # Run daily at 20:00 Europe/Budapest local time (approximate DST handling)
-    # CET (UTC+1): Jan, Feb, Mar, Nov, Dec -> 19:00 UTC
-    - cron: '0 19 * 1,2,3,11,12 *'
-    # CEST (UTC+2): Apr–Oct -> 18:00 UTC
-    - cron: '0 18 * 4-10 *'
+    # Trigger at 18:00 and 19:00 UTC; gate to 20:00 Europe/Budapest below (handles DST correctly)
+    - cron: '0 18,19 * * *'
   workflow_dispatch: # Allow manual trigger as well
 
 jobs:
@@ -22,13 +19,27 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: Install dependencies
       run: npm ci
       
+    - name: Determine if it's 20:00 in Budapest
+      id: timecheck
+      shell: bash
+      run: |
+        echo "Now: $(TZ=Europe/Budapest date)"
+        hour=$(TZ=Europe/Budapest date +%H)
+        minute=$(TZ=Europe/Budapest date +%M)
+        if [ "$hour" = "20" ] && [ "$minute" = "00" ]; then
+          echo "run_draw=true" >> $GITHUB_OUTPUT
+        else
+          echo "run_draw=false" >> $GITHUB_OUTPUT
+        fi
+      
     - name: Run lottery draw
+      if: ${{ github.event_name == 'workflow_dispatch' || steps.timecheck.outputs.run_draw == 'true' }}
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         FORCE_DRAW_NOW: 'true'
