@@ -37,12 +37,8 @@ jobs:
           NODE_ENV: production
         run: node scripts/lambo-lottery-draw.js
 
-      - name: Success notification
-        if: ${{ success() }}
-        run: echo "🎰 New workflow: Lottery draw completed successfully!"
-
-      - name: Failure notification
-        if: ${{ failure() }}
-        run: echo "❌ New workflow: Lottery draw failed!"
+      - name: Completion notification
+        if: always()
+        run: echo "Workflow finished with status: ${{ job.status }}"
 
 
