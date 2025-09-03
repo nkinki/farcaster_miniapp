@@ -47,7 +47,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [purchasing, setPurchasing] = useState(false);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
-  const [budapestDrawTime, setBudapestDrawTime] = useState<string>("");
   const [takenNumbers, setTakenNumbers] = useState<number[]>([]);
   const [drawing, setDrawing] = useState(false);
   const [drawResult, setDrawResult] = useState<any>(null);
@@ -108,9 +107,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     }
   }, [isOpen, fetchLotteryData]);
 
-  // Budapest sorsolás countdown
+
+
+  // Update countdown timer - Budapest este 8 óra sorsolás
   useEffect(() => {
-    const updateBudapestDrawTime = () => {
+    const updateTimer = () => {
       const now = new Date();
       const budapestTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Budapest" }));
       
@@ -123,48 +124,22 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         drawTime.setDate(drawTime.getDate() + 1);
       }
       
-      const timeDiff = drawTime.getTime() - now.getTime();
-      
-      if (timeDiff > 0) {
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-        
-        setBudapestDrawTime(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      } else {
-        setBudapestDrawTime("00:00:00");
-      }
-    };
-
-    updateBudapestDrawTime();
-    const interval = setInterval(updateBudapestDrawTime, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Update countdown timer
-  useEffect(() => {
-    if (!currentRound) return;
-
-    const updateTimer = () => {
-      const now = new Date().getTime();
-      const drawTime = new Date(currentRound.draw_date).getTime();
-      const difference = drawTime - now;
+      const difference = drawTime.getTime() - now.getTime();
 
       if (difference > 0) {
         const hours = Math.floor(difference / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        setTimeRemaining(`${hours}h ${minutes}m`);
+        setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
       } else {
-        setTimeRemaining("Drawing in progress...");
+        setTimeRemaining("00:00:00");
       }
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [currentRound]);
+  }, []);
 
   const handleNumberSelect = (number: number) => {
     if (selectedNumbers.includes(number)) {
@@ -315,7 +290,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  {/* Pulsing Jackpot Display with Countdown and Last Draw */}
                  {currentRound && (
                    <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow mx-auto" style={{ animationDuration: '4s' }}>
-                     <div className="w-full grid grid-cols-4 items-center justify-items-center gap-4">
+                     <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
                        <div className="text-center min-w-0">
                          <div className="text-xs font-bold text-yellow-300 mb-1">
                            TIME LEFT
@@ -330,14 +305,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                          </div>
                          <div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>
                            {formatChessTokens(currentRound.prize_pool)}
-                         </div>
-                       </div>
-                       <div className="text-center min-w-0">
-                         <div className="text-xs font-bold text-yellow-300 mb-1">
-                           BUDAPEST DRAW
-                         </div>
-                         <div className="text-base font-bold text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]">
-                           {budapestDrawTime}
                          </div>
                        </div>
                        <div className="text-center min-w-0">
