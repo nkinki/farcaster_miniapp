@@ -78,7 +78,7 @@ async function performLotteryDraw() {
       // Mark round as completed without winner
       await client.query(`
         UPDATE lottery_draws 
-        SET status = 'completed', updated_at = NOW()
+        SET status = 'completed'
         WHERE id = $1
       `, [round.id]);
       
@@ -101,8 +101,7 @@ async function performLotteryDraw() {
       UPDATE lottery_draws 
       SET status = 'completed', 
           winning_number = $1,
-          total_tickets = $2,
-          updated_at = NOW()
+          total_tickets = $2
       WHERE id = $3
     `, [winningTicket.number, ticketsResult.rows.length, round.id]);
     
