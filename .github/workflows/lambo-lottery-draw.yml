@@ -2,13 +2,18 @@ name: Lambo Lottery Daily Draw
 
 on:
   schedule:
-    # Run every day at 8 PM UTC (20:00)
-    - cron: '0 20 * * *'
+    # Run daily at 20:00 Europe/Budapest local time (approximate DST handling)
+    # CET (UTC+1): Jan, Feb, Mar, Nov, Dec -> 19:00 UTC
+    - cron: '0 19 * 1,2,3,11,12 *'
+    # CEST (UTC+2): Apr–Oct -> 18:00 UTC
+    - cron: '0 18 * 4-10 *'
   workflow_dispatch: # Allow manual trigger as well
 
 jobs:
   lottery-draw:
     runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Budapest
     
     steps:
     - name: Checkout code
@@ -26,7 +31,7 @@ jobs:
     - name: Run lottery draw
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        FORCE_DRAW_NOW: true
+        FORCE_DRAW_NOW: 'true'
       run: node scripts/lambo-lottery-draw.js --force-now
       
     - name: Notify on success
