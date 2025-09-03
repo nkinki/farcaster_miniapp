@@ -11,6 +11,7 @@ async function performLotteryDraw() {
     await client.query('BEGIN');
     
     console.log('🎰 Starting lottery draw...');
+    const forceNow = process.env.FORCE_DRAW_NOW === 'true' || process.argv.includes('--force-now');
     
     // Check if tables exist, if not, run migration
     const tableCheck = await client.query(`
@@ -25,7 +26,17 @@ async function performLotteryDraw() {
       await runMigration(client);
     }
     
-    // Get current active round
+    // Optionally force the draw by setting draw_date to NOW() for active rounds
+    if (forceNow) {
+      console.log('⏱️ FORCE NOW enabled – setting draw_date to NOW() for active rounds...');
+      await client.query(`
+        UPDATE lambo_lottery_rounds
+        SET draw_date = NOW(), updated_at = NOW()
+        WHERE status = 'active';
+      `);
+    }
+
+    // Get current active round which is due for drawing
     const roundResult = await client.query(`
       SELECT * FROM lambo_lottery_rounds 
       WHERE status = 'active' AND draw_date <= NOW()

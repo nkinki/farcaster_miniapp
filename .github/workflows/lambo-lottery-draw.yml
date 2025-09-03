@@ -26,7 +26,8 @@ jobs:
     - name: Run lottery draw
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      run: node scripts/lambo-lottery-draw.js
+        FORCE_DRAW_NOW: true
+      run: node scripts/lambo-lottery-draw.js --force-now
       
     - name: Notify on success
       if: success()
