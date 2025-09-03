@@ -279,9 +279,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                  
                  {/* Pulsing Jackpot Display with Countdown and Last Draw */}
                  {currentRound && (
-                   <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
-                     <div className="flex items-center justify-between w-full gap-6">
-                       <div className="text-center flex-1 min-w-0">
+                   <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow mx-auto" style={{ animationDuration: '4s' }}>
+                     <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
+                       <div className="text-center min-w-0">
                          <div className="text-xs font-bold text-yellow-300 mb-1">
                            TIME LEFT
                          </div>
@@ -289,7 +289,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                            {timeRemaining}
                          </div>
                        </div>
-                       <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-6 flex-1 min-w-0">
+                       <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-4 min-w-0 w-full">
                          <div className="text-xs font-bold text-yellow-300 mb-1">
                            JACKPOT
                          </div>
@@ -297,7 +297,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                            {formatChessTokens(currentRound.prize_pool)}
                          </div>
                        </div>
-                       <div className="text-center flex-1 min-w-0">
+                       <div className="text-center min-w-0">
                          <div className="text-[10px] font-bold text-yellow-300 mb-1">
                            LAST DRAW
                          </div>
