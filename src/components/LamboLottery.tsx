@@ -32,6 +32,31 @@ interface LotteryStats {
   treasury_balance: number;
 }
 
+interface RecentRound {
+  id: number;
+  draw_number: number;
+  winning_number: number;
+  jackpot: number;
+  total_tickets: number;
+  status: string;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+}
+
+interface UserWinning {
+  id: number;
+  player_fid: number;
+  draw_id: number;
+  ticket_id: number;
+  amount_won: number;
+  claimed_at: string | null;
+  created_at: string;
+  draw_number: number;
+  winning_number: number;
+  ticket_number: number;
+}
+
 interface LamboLotteryProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,6 +76,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [drawing, setDrawing] = useState(false);
   const [drawResult, setDrawResult] = useState<any>(null);
   const [lastWinningNumber, setLastWinningNumber] = useState<number | null>(null);
+  const [recentRounds, setRecentRounds] = useState<RecentRound[]>([]);
+  const [userWinnings, setUserWinnings] = useState<UserWinning[]>([]);
 
   const fetchLotteryData = useCallback(async () => {
     try {
@@ -93,6 +120,22 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
        if (lastDrawResponse.ok) {
          const lastDrawData = await lastDrawResponse.json();
          setLastWinningNumber(lastDrawData.winning_number);
+       }
+
+       // Fetch recent rounds results
+       const recentRoundsResponse = await fetch('/api/lottery/recent-results');
+       if (recentRoundsResponse.ok) {
+         const recentRoundsData = await recentRoundsResponse.json();
+         setRecentRounds(recentRoundsData.rounds || []);
+       }
+
+       // Fetch user winnings
+       if (userFid) {
+         const userWinningsResponse = await fetch(`/api/lottery/user-winnings?fid=${userFid}`);
+         if (userWinningsResponse.ok) {
+           const userWinningsData = await userWinningsResponse.json();
+           setUserWinnings(userWinningsData.winnings || []);
+         }
        }
     } catch (error) {
       console.error('Failed to fetch lottery data:', error);
@@ -479,6 +522,72 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   {100 - currentRound.total_tickets_sold} tickets remaining
                 </div>
 
+              </div>
+            )}
+
+            {/* Recent Results - Last 5 Rounds */}
+            {recentRounds.length > 0 && (
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+                <h3 className="text-xl font-bold text-purple-400 mb-4 flex items-center gap-2">
+                  🏆 Recent Results (Last 5 Rounds)
+                </h3>
+                <div className="space-y-3">
+                  {recentRounds.map((round) => (
+                    <div key={round.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-600">
+                      <div className="flex items-center gap-3">
+                        <div className="text-lg font-bold text-cyan-400">#{round.draw_number}</div>
+                        <div className="text-sm text-gray-300">
+                          Winning: <span className="text-yellow-400 font-bold">{round.winning_number}</span>
+                        </div>
+                        <div className="text-sm text-gray-300">
+                          Tickets: <span className="text-green-400">{round.total_tickets}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-400">
+                          {formatChessTokens(round.jackpot)}
+                        </div>
+                        <div className="text-xs text-gray-400">Prize Pool</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* User's Winnings */}
+            {userWinnings.length > 0 && (
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+                <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
+                  🎉 Your Winnings ({userWinnings.length})
+                </h3>
+                <div className="space-y-3">
+                  {userWinnings.map((winning) => (
+                    <div key={winning.id} className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-lg font-bold text-green-400">
+                          Round #{winning.draw_number}
+                        </div>
+                        <div className="text-lg font-bold text-yellow-400">
+                          {formatChessTokens(winning.amount_won)}
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-300 mb-3">
+                        Winning Number: <span className="text-yellow-400 font-bold">{winning.winning_number}</span> | 
+                        Your Ticket: <span className="text-cyan-400 font-bold">{winning.ticket_number}</span>
+                      </div>
+                      {!winning.claimed_at ? (
+                        <button className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105">
+                          🎯 Claim Prize
+                        </button>
+                      ) : (
+                        <div className="text-center text-green-400 font-bold">
+                          ✅ Claimed on {new Date(winning.claimed_at).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
