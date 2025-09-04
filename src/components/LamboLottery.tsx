@@ -527,28 +527,24 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
             {/* Recent Results - Last 5 Rounds */}
             {recentRounds.length > 0 && (
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-                <h3 className="text-xl font-bold text-purple-400 mb-4 flex items-center gap-2">
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                <h3 className="text-xl font-bold text-purple-400 mb-4 flex items-center justify-center gap-2">
                   🏆 Recent Results (Last 5 Rounds)
                 </h3>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                   {recentRounds.map((round) => (
-                    <div key={round.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-600">
-                      <div className="flex items-center gap-3">
-                        <div className="text-lg font-bold text-cyan-400">#{round.draw_number}</div>
-                        <div className="text-sm text-gray-300">
-                          Winning: <span className="text-yellow-400 font-bold">{round.winning_number}</span>
-                        </div>
-                        <div className="text-sm text-gray-300">
-                          Tickets: <span className="text-green-400">{round.total_tickets}</span>
-                        </div>
+                    <div key={round.id} className="text-center p-3 bg-gray-800/50 rounded-lg border border-gray-600">
+                      <div className="text-lg font-bold text-cyan-400 mb-1">#{round.draw_number}</div>
+                      <div className="text-sm text-gray-300 mb-1">
+                        Winning: <span className="text-yellow-400 font-bold">{round.winning_number}</span>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-green-400">
-                          {formatChessTokens(round.jackpot)}
-                        </div>
-                        <div className="text-xs text-gray-400">Prize Pool</div>
+                      <div className="text-sm text-gray-300 mb-2">
+                        Tickets: <span className="text-green-400">{round.total_tickets}</span>
                       </div>
+                      <div className="text-lg font-bold text-green-400">
+                        {formatChessTokens(round.jackpot)}
+                      </div>
+                      <div className="text-xs text-gray-400">Prize Pool</div>
                     </div>
                   ))}
                 </div>
@@ -593,19 +589,21 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
             {/* User's Tickets */}
             {userTickets.length > 0 && (
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2">
                   <FiUsers /> Your Tickets ({userTickets.length})
                 </h3>
-                <div className="grid grid-cols-10 gap-2">
-                  {userTickets.map((ticket) => (
-                    <div
-                      key={ticket.id}
-                      className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-bold flex items-center justify-center"
-                    >
-                      {ticket.ticket_number}
-                    </div>
-                  ))}
+                <div className="flex justify-center">
+                  <div className="grid grid-cols-10 gap-2">
+                    {userTickets.map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-bold flex items-center justify-center"
+                      >
+                        {ticket.ticket_number}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
