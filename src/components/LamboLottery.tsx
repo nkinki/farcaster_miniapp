@@ -531,20 +531,24 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 <h3 className="text-xl font-bold text-purple-400 mb-4 flex items-center justify-center gap-2">
                   🏆 Recent Results (Last 5 Rounds)
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                <div className="space-y-3">
                   {recentRounds.map((round) => (
-                    <div key={round.id} className="text-center p-3 bg-gray-800/50 rounded-lg border border-gray-600">
-                      <div className="text-lg font-bold text-cyan-400 mb-1">#{round.draw_number}</div>
-                      <div className="text-sm text-gray-300 mb-1">
-                        Winning: <span className="text-yellow-400 font-bold">{round.winning_number}</span>
+                    <div key={round.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-600">
+                      <div className="flex items-center gap-3">
+                        <div className="text-lg font-bold text-cyan-400">#{round.draw_number}</div>
+                        <div className="text-sm text-gray-300">
+                          Winning: <span className="text-yellow-400 font-bold">{round.winning_number}</span>
+                        </div>
+                        <div className="text-sm text-gray-300">
+                          Tickets: <span className="text-green-400">{round.total_tickets}</span>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-300 mb-2">
-                        Tickets: <span className="text-green-400">{round.total_tickets}</span>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-400">
+                          {formatChessTokens(round.jackpot)}
+                        </div>
+                        <div className="text-xs text-gray-400">Prize Pool</div>
                       </div>
-                      <div className="text-lg font-bold text-green-400">
-                        {formatChessTokens(round.jackpot)}
-                      </div>
-                      <div className="text-xs text-gray-400">Prize Pool</div>
                     </div>
                   ))}
                 </div>
