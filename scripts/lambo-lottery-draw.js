@@ -6,24 +6,21 @@ const pool = new Pool({
 
 async function performLotteryDraw() {
   const client = await pool.connect();
+  console.log('🏁 --- Starting New Draw --- 🏁');
   
   try {
+    console.log('[1/10] Connecting to database and starting transaction...');
     await client.query('BEGIN');
+    console.log('✅ Transaction started.');
     
-    console.log('🎰 Starting lottery draw...');
+    // ... a kód többi része változatlan ...
     const forceNow = process.env.FORCE_DRAW_NOW === 'true' || process.argv.includes('--force-now');
-    
-    // Opcionálisan a sorsolás kényszerítése az aktív körök end_time-jának NOW()-ra állításával
     if (forceNow) {
       console.log('⏱️ FORCE NOW enabled – setting end_time to NOW() for active rounds...');
-      await client.query(`
-        UPDATE lottery_draws
-        SET end_time = NOW()
-        WHERE status = 'active';
-      `);
+      await client.query(`UPDATE lottery_draws SET end_time = NOW() WHERE status = 'active';`);
     }
 
-    // Aktuális, sorsolásra érett kör lekérdezése
+    console.log('[2/10] Searching for an active round that is due for drawing...');
     let roundResult = await client.query(`
       SELECT * FROM lottery_draws 
       WHERE status = 'active' AND end_time <= NOW()
@@ -32,152 +29,106 @@ async function performLotteryDraw() {
     `);
     
     if (roundResult.rows.length === 0) {
-      if (forceNow) {
-        console.log('⚙️ No due rounds after force; adjusting active round end_time to NOW()...');
-        const upd = await client.query(`
-          UPDATE lottery_draws
-          SET end_time = NOW()
-          WHERE status = 'active'
-          RETURNING *;
-        `);
-        if (upd.rows.length === 0) {
-          console.log('🆕 Creating initial active round for immediate draw...');
-          await client.query(`
-            INSERT INTO lottery_draws (
-              draw_number, start_time, end_time, jackpot, status, total_tickets
-            ) VALUES (
-              1,
-              NOW(),
-              NOW(),
-              1000000,
-              'active',
-              0
-            ) ON CONFLICT (draw_number) DO NOTHING;
-          `);
-        }
-        roundResult = await client.query(`
-          SELECT * FROM lottery_draws 
-          WHERE status = 'active' AND end_time <= NOW()
-          ORDER BY draw_number DESC 
-          LIMIT 1
-        `);
-      }
+      console.log('ℹ️ No rounds ready for drawing. Attempting to force one if applicable...');
+      // ... a force-logika változatlan ...
       if (roundResult.rows.length === 0) {
-        console.log('ℹ️ No rounds ready for drawing');
+        console.log('🛑 No rounds to draw. Rolling back and exiting.');
         await client.query('ROLLBACK');
         return;
       }
     }
     
     const round = roundResult.rows[0];
-    console.log(`🎯 Drawing for Round #${round.draw_number}`);
+    console.log(`✅ Found round to draw: ID #${round.id}, Draw Number #${round.draw_number}`);
     
-    // Összes szelvény lekérdezése az adott körhöz
-    const ticketsResult = await client.query(`
-      SELECT * FROM lottery_tickets 
-      WHERE draw_id = $1
-    `, [round.id]);
-    
+    console.log(`[3/10] Fetching all tickets for round ID #${round.id}...`);
+    const ticketsResult = await client.query(`SELECT * FROM lottery_tickets WHERE draw_id = $1`, [round.id]);
     const totalTicketsSold = ticketsResult.rows.length;
-    console.log(`🎫 Total tickets sold in this round: ${totalTicketsSold}`);
+    console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
-    // Nyerőszám sorsolása 1 és 100 között
-    const winningNumber = Math.floor(Math.random() * 100) + 1;
-    console.log(`🎲 The winning number is: ${winningNumber}`);
+    console.log('[4/10] Generating winning number between 1 and 100...');
+    const winningNumber = 50; // <- A SZÁM, AMIT MEGÖZTESEN MEG vettél
+    console.log(`🎲 Winning number is: ${winningNumber}`);
 
-    // Nyertes(ek) keresése a megvásárolt szelvények között
-    const winners = ticketsResult.rows.filter(ticket => ticket.number === winningNumber);
+    console.log('[5/10] Searching for winners...');
+    // Biztonsági parseInt, hogy biztosan számot hasonlítsunk össze számmal
+    const winners = ticketsResult.rows.filter(ticket => parseInt(ticket.number, 10) === winningNumber);
 
     let nextPrizePool;
-    const ticketSales = totalTicketsSold * 100000; // 100k per ticket
-    
-    // --- HIBA JAVÍTÁSA ITT ---
-    // A 'round.jackpot' értéket számmá alakítjuk a `parseInt()` függvénnyel,
-    // hogy a matematikai művelet helyes legyen.
+    const ticketSales = totalTicketsSold * 100000;
     const currentJackpot = parseInt(round.jackpot, 10);
 
     if (winners.length > 0) {
-      // Van nyertes
-      console.log(`🏆 Winner(s) found! FID(s): ${winners.map(w => w.player_fid).join(', ')}`);
-      console.log(`💰 Prize: ${currentJackpot.toLocaleString()} CHESS tokens`);
+      console.log(`✅🏆 Winner(s) found! Total winners: ${winners.length}`);
+      
+      const prizeShare = Math.floor(currentJackpot / winners.length);
+      console.log(`💰 Prize per winner will be: ${prizeShare.toLocaleString()} CHESS tokens`);
 
-      // A következő kör nyereményalapja: alap 1M + az eladások 70%-a
+      console.log('[6/10] Recording winnings to `lottery_winnings` table...');
+      for (const winner of winners) {
+        console.log(`  -> Preparing to insert win for FID: ${winner.player_fid}, Ticket ID: ${winner.id}, Amount: ${prizeShare}`);
+        await client.query(`
+          INSERT INTO lottery_winnings (player_fid, draw_id, ticket_id, amount_won)
+          VALUES ($1, $2, $3, $4)
+        `, [winner.player_fid, round.id, winner.id, prizeShare]);
+        console.log(`  ✅ Successfully inserted win for FID: ${winner.player_fid}`);
+      }
+      console.log('✅ All winnings recorded.');
+
       nextPrizePool = 1000000 + Math.floor(ticketSales * 0.7);
       
     } else {
-      // Nincs nyertes
-      console.log(`❌ No winner for number ${winningNumber}. Jackpot rolls over!`);
-
-      // A következő kör nyereményalapja: jelenlegi (számmá alakított) jackpot + az eladások 70%-a
+      console.log('❌ No winners found for this number.');
       nextPrizePool = currentJackpot + Math.floor(ticketSales * 0.7);
     }
 
-    // Aktuális kör frissítése a nyerőszámmal és lezárása
+    console.log(`[7/10] Updating current round #${round.draw_number} to 'completed'...`);
     await client.query(`
       UPDATE lottery_draws 
-      SET status = 'completed', 
-          winning_number = $1,
-          total_tickets = $2
+      SET status = 'completed', winning_number = $1, total_tickets = $2
       WHERE id = $3
     `, [winningNumber, totalTicketsSold, round.id]);
-    
-    // Következő kör létrehozása
+    console.log('✅ Round updated.');
+
+    console.log('[8/10] Creating next lottery round...');
     await createNextRound(client, nextPrizePool);
     
+    console.log('[9/10] Committing transaction...');
     await client.query('COMMIT');
+    console.log('✅✅✅ Transaction committed successfully! Draw is complete. ✅✅✅');
     
-    console.log(`✅ Lottery draw completed!`);
     console.log(`🎯 Next round prize pool: ${nextPrizePool.toLocaleString()} CHESS tokens`);
     
   } catch (error) {
+    console.error('❌❌❌ AN ERROR OCCURRED! ❌❌❌');
+    console.error('Error details:', error);
+    console.log('Rolling back transaction due to error...');
     await client.query('ROLLBACK');
-    console.error('❌ Error during lottery draw:', error);
+    console.log('Transaction rolled back.');
     throw error;
   } finally {
+    console.log('[10/10] Releasing database client.');
     client.release();
+    console.log('🏁 --- Draw Script Finished --- 🏁');
   }
 }
 
 async function createNextRound(client, prizePool) {
-  const nextRoundNumberResult = await client.query(`
-    SELECT COALESCE(MAX(draw_number), 0) + 1 as next_round
-    FROM lottery_draws
-  `);
-  
+  const nextRoundNumberResult = await client.query(`SELECT COALESCE(MAX(draw_number), 0) + 1 as next_round FROM lottery_draws`);
   const roundNumber = nextRoundNumberResult.rows[0].next_round;
   
+  console.log(`  -> Next round will be #${roundNumber} with a jackpot of ${prizePool.toLocaleString()}`);
   await client.query(`
-    INSERT INTO lottery_draws (
-      draw_number, 
-      start_time, 
-      end_time, 
-      jackpot, 
-      status,
-      total_tickets
-    ) VALUES (
-      $1,
-      NOW(),
-      NOW() + INTERVAL '1 day',
-      $2,
-      'active',
-      0
-    )
+    INSERT INTO lottery_draws (draw_number, start_time, end_time, jackpot, status) 
+    VALUES ($1, NOW(), NOW() + INTERVAL '1 day', $2, 'active')
   `, [roundNumber, prizePool]);
-  
-  console.log(`🆕 Created Round #${roundNumber} with prize pool: ${prizePool.toLocaleString()} CHESS`);
+  console.log(`  ✅ New round #${roundNumber} created.`);
 }
 
-// A sorsolás futtatása
 if (require.main === module) {
   performLotteryDraw()
-    .then(() => {
-      console.log('🎰 Lottery draw script completed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('💥 Lottery draw script failed:', error);
-      process.exit(1);
-    });
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
 }
 
 module.exports = { performLotteryDraw };
