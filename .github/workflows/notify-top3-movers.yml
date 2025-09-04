@@ -11,13 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-      - run: npm install
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - run: pnpm install --frozen-lockfile
+
       - name: Run notification script for top 3 movers
-        run: npx tsx scripts/sendNotifications.ts
+        run: pnpm exec tsx scripts/sendNotifications.ts
+        # Ha a tsx nincs devDependencies-ben:
+        # run: pnpm dlx tsx scripts/sendNotifications.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NOTIFICATION_TYPE: 'TOP_3_24H'
