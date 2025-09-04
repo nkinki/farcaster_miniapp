@@ -45,11 +45,10 @@ async function performLotteryDraw() {
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
-    // --- TESZTELÉS: FIX NYERŐSZÁM ---
-    console.log('[4/10] Using FIXED winning number for testing...');
-    const winningNumber = 50; 
-    console.log(`🎲 Winning number is fixed to: ${winningNumber}`);
-    // EREDETI KÓD: const winningNumber = Math.floor(Math.random() * 100) + 1;
+    // --- VÉLETLENSZERŰ SORSOLÁS ---
+    console.log('[4/10] Generating random winning number...');
+    const winningNumber = Math.floor(Math.random() * 100) + 1;
+    console.log(`🎲 Winning number is: ${winningNumber}`);
 
     console.log('[5/10] Searching for winners...');
     const winners = ticketsResult.rows.filter(ticket => parseInt(ticket.number, 10) === winningNumber);
