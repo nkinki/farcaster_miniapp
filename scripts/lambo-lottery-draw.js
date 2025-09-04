@@ -81,32 +81,35 @@ async function performLotteryDraw() {
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`🎫 Total tickets sold in this round: ${totalTicketsSold}`);
 
-    // --- JAVÍTOTT LOGIKA KEZDETE ---
-
-    // 1. Nyerőszám sorsolása 1 és 100 között
+    // Nyerőszám sorsolása 1 és 100 között
     const winningNumber = Math.floor(Math.random() * 100) + 1;
     console.log(`🎲 The winning number is: ${winningNumber}`);
 
-    // 2. Nyertes(ek) keresése a megvásárolt szelvények között
+    // Nyertes(ek) keresése a megvásárolt szelvények között
     const winners = ticketsResult.rows.filter(ticket => ticket.number === winningNumber);
 
     let nextPrizePool;
     const ticketSales = totalTicketsSold * 100000; // 100k per ticket
+    
+    // --- HIBA JAVÍTÁSA ITT ---
+    // A 'round.jackpot' értéket számmá alakítjuk a `parseInt()` függvénnyel,
+    // hogy a matematikai művelet helyes legyen.
+    const currentJackpot = parseInt(round.jackpot, 10);
 
     if (winners.length > 0) {
-      // 3. Van nyertes
+      // Van nyertes
       console.log(`🏆 Winner(s) found! FID(s): ${winners.map(w => w.player_fid).join(', ')}`);
-      console.log(`💰 Prize: ${round.jackpot.toLocaleString()} CHESS tokens`);
+      console.log(`💰 Prize: ${currentJackpot.toLocaleString()} CHESS tokens`);
 
       // A következő kör nyereményalapja: alap 1M + az eladások 70%-a
       nextPrizePool = 1000000 + Math.floor(ticketSales * 0.7);
       
     } else {
-      // 4. Nincs nyertes
+      // Nincs nyertes
       console.log(`❌ No winner for number ${winningNumber}. Jackpot rolls over!`);
 
-      // A következő kör nyereményalapja: jelenlegi jackpot + az eladások 70%-a
-      nextPrizePool = round.jackpot + Math.floor(ticketSales * 0.7);
+      // A következő kör nyereményalapja: jelenlegi (számmá alakított) jackpot + az eladások 70%-a
+      nextPrizePool = currentJackpot + Math.floor(ticketSales * 0.7);
     }
 
     // Aktuális kör frissítése a nyerőszámmal és lezárása
@@ -121,8 +124,6 @@ async function performLotteryDraw() {
     // Következő kör létrehozása
     await createNextRound(client, nextPrizePool);
     
-    // --- JAVÍTOTT LOGIKA VÉGE ---
-
     await client.query('COMMIT');
     
     console.log(`✅ Lottery draw completed!`);
