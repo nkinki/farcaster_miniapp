@@ -2,15 +2,15 @@ name: Lambo Lottery Daily Draw
 
 on:
   schedule:
-    # Run every hour to check for 20:00 Budapest time
-    - cron: '0 * * * *'
-  workflow_dispatch: # Allow manual trigger as well
+    # JAVÍTVA: Minden nap 21:10-kor fut le budapesti idő szerint.
+    # Figyelem: Ez 19:10 UTC időpontot jelent a nyári időszámítás (CEST) alatt.
+    # Téli időszámítás (CET) alatt ez 20:10 UTC lesz.
+    - cron: '10 19 * * *'
+  workflow_dispatch: # Engedélyezi a manuális indítást is.
 
 jobs:
   lottery-draw:
     runs-on: ubuntu-latest
-    env:
-      TZ: Europe/Budapest
     
     steps:
     - name: Checkout code
@@ -29,32 +29,23 @@ jobs:
     - name: Install dependencies
       run: pnpm install
       
-    - name: Determine if it's 20:00 in Budapest
-      id: timecheck
-      shell: bash
-      run: |
-        echo "Now: $(TZ=Europe/Budapest date)"
-        hour=$(TZ=Europe/Budapest date +%H)
-        minute=$(TZ=Europe/Budapest date +%M)
-        if [ "$hour" = "20" ] && [ "$minute" = "00" ]; then
-          echo "run_draw=true" >> $GITHUB_OUTPUT
-          echo "✅ It's 20:00 in Budapest - running lottery draw"
-        else
-          echo "run_draw=false" >> $GITHUB_OUTPUT
-          echo "⏰ Not yet 20:00 in Budapest - skipping draw"
-        fi
+    # A KÜLÖN IDŐELLENŐRZŐ LÉPÉS EL LETT TÁVOLÍTVA.
+    # A workflow most már csak a megadott időpontban fog elindulni, 
+    # így a belső ellenőrzés felesleges és hibalehetőséget rejt magában.
       
     - name: Run lottery draw
-      if: ${{ github.event_name == 'workflow_dispatch' || steps.timecheck.outputs.run_draw == 'true' }}
+      # Az "if" feltételt eltávolítottuk, mert ha a job elindul, akkor futnia kell.
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         FORCE_DRAW_NOW: 'true'
       run: node scripts/lambo-lottery-draw.js --force-now
       
     - name: Notify on success
+      # Csak akkor jelez sikert, ha a teljes job sikeres volt.
       if: success()
-      run: echo "🎰 Lottery draw completed successfully!"
+      run: echo "🎰 Lottery draw completed successfully at 21:10!"
       
     - name: Notify on failure
+      # Csak akkor jelez hibát, ha a job hibára futott.
       if: failure()
       run: echo "❌ Lottery draw failed!"
