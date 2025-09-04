@@ -13,6 +13,16 @@ async function performLotteryDraw() {
     console.log('🎰 Starting lottery draw...');
     const forceNow = process.env.FORCE_DRAW_NOW === 'true' || process.argv.includes('--force-now');
     
+    // Optionally force the draw by setting end_time to NOW() for active rounds
+    if (forceNow) {
+      console.log('⏱️ FORCE NOW enabled – setting end_time to NOW() for active rounds...');
+      await client.query(`
+        UPDATE lottery_draws
+        SET end_time = NOW()
+        WHERE status = 'active';
+      `);
+    }
+
     // Get current active round which is due for drawing
     let roundResult = await client.query(`
       SELECT * FROM lottery_draws 
@@ -105,9 +115,9 @@ async function performLotteryDraw() {
       WHERE id = $3
     `, [winningTicket.number, ticketsResult.rows.length, round.id]);
     
-    // Calculate next round prize pool (70% of current sales + previous jackpot)
+    // Calculate next round prize pool (70% of current sales + base 1M)
     const ticketSales = ticketsResult.rows.length * 100000; // 100k per ticket
-    const nextPrizePool = round.jackpot + Math.floor(ticketSales * 0.7);
+    const nextPrizePool = 1000000 + Math.floor(ticketSales * 0.7);
     
     // Create next round
     await createNextRound(client, nextPrizePool);
