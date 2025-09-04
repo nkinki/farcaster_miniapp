@@ -3,7 +3,7 @@ name: Lambo Lottery Daily Draw
 on:
   schedule:
     # JAVÍTVA: Minden nap 21:10-kor fut le budapesti idő szerint.
-    # Figyelem: Ez 19:10 UTC időpontot jelent a nyári időszámítás (CEST) alatt.
+    # Figyelem: Ez 22:52 UTC időpontot jelent a nyári időszámítás (CEST) alatt.
     # Téli időszámítás (CET) alatt ez 20:10 UTC lesz.
     - cron: '39 19 * * *'
   workflow_dispatch: # Engedélyezi a manuális indítást is.
