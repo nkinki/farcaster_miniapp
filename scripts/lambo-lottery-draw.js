@@ -6,14 +6,13 @@ const pool = new Pool({
 
 async function performLotteryDraw() {
   const client = await pool.connect();
-  console.log('🏁 --- Starting New Draw --- 🏁');
+  console.log('🏁 --- Starting New Draw (TEST MODE) --- 🏁');
   
   try {
     console.log('[1/10] Connecting to database and starting transaction...');
     await client.query('BEGIN');
     console.log('✅ Transaction started.');
     
-    // ... a kód többi része változatlan ...
     const forceNow = process.env.FORCE_DRAW_NOW === 'true' || process.argv.includes('--force-now');
     if (forceNow) {
       console.log('⏱️ FORCE NOW enabled – setting end_time to NOW() for active rounds...');
@@ -29,8 +28,8 @@ async function performLotteryDraw() {
     `);
     
     if (roundResult.rows.length === 0) {
-      console.log('ℹ️ No rounds ready for drawing. Attempting to force one if applicable...');
-      // ... a force-logika változatlan ...
+      console.log('ℹ️ No rounds ready for drawing.');
+      // A force-now logika itt fut le, ha szükséges...
       if (roundResult.rows.length === 0) {
         console.log('🛑 No rounds to draw. Rolling back and exiting.');
         await client.query('ROLLBACK');
@@ -46,12 +45,13 @@ async function performLotteryDraw() {
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
-    console.log('[4/10] Generating winning number between 1 and 100...');
-    const winningNumber = 50; // <- A SZÁM, AMIT MEGÖZTESEN MEG vettél
-    console.log(`🎲 Winning number is: ${winningNumber}`);
+    // --- TESZTELÉS: FIX NYERŐSZÁM ---
+    console.log('[4/10] Using FIXED winning number for testing...');
+    const winningNumber = 50; 
+    console.log(`🎲 Winning number is fixed to: ${winningNumber}`);
+    // EREDETI KÓD: const winningNumber = Math.floor(Math.random() * 100) + 1;
 
     console.log('[5/10] Searching for winners...');
-    // Biztonsági parseInt, hogy biztosan számot hasonlítsunk össze számmal
     const winners = ticketsResult.rows.filter(ticket => parseInt(ticket.number, 10) === winningNumber);
 
     let nextPrizePool;
@@ -75,10 +75,13 @@ async function performLotteryDraw() {
       }
       console.log('✅ All winnings recorded.');
 
-      nextPrizePool = 1000000 + Math.floor(ticketSales * 0.7);
+      // HELYES LOGIKA: Ha van nyertes, a következő kör jackpotja fixen 1,000,000.
+      nextPrizePool = 1000000;
+      console.log('-> Next prize pool set to 1,000,000 because there was a winner.');
       
     } else {
-      console.log('❌ No winners found for this number.');
+      console.log('❌ No winners found for the fixed number. Jackpot will roll over.');
+      // HELYES LOGIKA: Nincs nyertes, a jackpot halmozódik a jutalékkal.
       nextPrizePool = currentJackpot + Math.floor(ticketSales * 0.7);
     }
 
@@ -119,8 +122,11 @@ async function createNextRound(client, prizePool) {
   
   console.log(`  -> Next round will be #${roundNumber} with a jackpot of ${prizePool.toLocaleString()}`);
   await client.query(`
-    INSERT INTO lottery_draws (draw_number, start_time, end_time, jackpot, status) 
-    VALUES ($1, NOW(), NOW() + INTERVAL '1 day', $2, 'active')
+    INSERT INTO lottery_draws (
+      draw_number, start_time, end_time, jackpot, status, total_tickets
+    ) VALUES (
+      $1, NOW(), NOW() + INTERVAL '1 day', $2, 'active', 0
+    )
   `, [roundNumber, prizePool]);
   console.log(`  ✅ New round #${roundNumber} created.`);
 }
