@@ -528,7 +528,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             {/* Recent Results - Last 5 Rounds */}
             {recentRounds.length > 0 && (
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-purple-400 mb-4 flex items-center justify-center gap-2">
+                <h3 className="text-lg font-bold text-purple-400 mb-4 flex items-center justify-center gap-2">
                   🏆 Recent Results (Last 5 Rounds)
                 </h3>
                 <div className="space-y-3">
@@ -557,7 +557,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
             {/* User's Winnings */}
             {userWinnings.length > 0 && (
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
                   🎉 Your Winnings ({userWinnings.length})
                 </h3>
