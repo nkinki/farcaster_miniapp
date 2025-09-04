@@ -12,23 +12,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # JAVÍTÁS: A pnpm beállítása MEGELŐZI a Node.js beállítását.
+      # Ez a helyes sorrend, hogy a Node.js beállító lépés már tudja használni a pnpm-et a cachinghez.
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      # A Node.js beállítása most már a pnpm után következik.
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
+          # A cache-dependency-path-t a legtöbb esetben a setup-node automatikusan felismeri,
+          # de expliciten megadva is tökéletes.
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
-
+      # Most már garantáltan működni fog a pnpm parancs.
       - run: pnpm install --frozen-lockfile
 
       - name: Run notification script for top 3 movers
         run: pnpm exec tsx scripts/sendNotifications.ts
-        # Ha a tsx nincs devDependencies-ben:
-        # run: pnpm dlx tsx scripts/sendNotifications.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NOTIFICATION_TYPE: 'TOP_3_24H'
