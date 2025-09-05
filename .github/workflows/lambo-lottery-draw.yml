@@ -2,7 +2,7 @@ name: Lambo Lottery Daily Draw
 
 on:
   schedule:
-    - cron: '28 07 * * *'
+    - cron: '40 07 * * *'
   workflow_dispatch: # Engedélyezi a manuális indítást is.
 
 jobs:
