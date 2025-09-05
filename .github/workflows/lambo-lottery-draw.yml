@@ -2,8 +2,8 @@ name: Lambo Lottery Daily Draw
 
 on:
   schedule:
-    # A te időzítésed: 19:39 UTC
-    - cron: '21 06 * * *'
+    # Minden nap 06:21 UTC-kor fut, ami a nyári időszámítás alatt 08:21 Budapesten.
+    - cron: '37 06 * * *'
   workflow_dispatch: # Engedélyezi a manuális indítást is.
 
 jobs:
@@ -14,7 +14,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    # --- IDE LETT BEILLESZTVE AZ IDŐELLENŐRZŐ LÉPÉS ---
     - name: Check server time in different timezones
       run: |
         echo "--- Time Check ---"
@@ -24,7 +23,6 @@ jobs:
         echo "Budapest Time (Europe/Budapest):"
         TZ=Europe/Budapest date
         echo "------------------"
-    # ----------------------------------------------------
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
