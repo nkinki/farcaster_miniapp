@@ -3,7 +3,7 @@ name: Lambo Lottery Daily Draw
 on:
   schedule:
     # Minden nap 06:21 UTC-kor fut, ami a nyári időszámítás alatt 08:21 Budapesten.
-    - cron: '37 06 * * *'
+    - cron: '48 06 * * *'
   workflow_dispatch: # Engedélyezi a manuális indítást is.
 
 jobs:
