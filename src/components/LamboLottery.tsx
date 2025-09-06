@@ -113,16 +113,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const verifyAndRegister = async () => {
       setStep(PurchaseStep.Saving);
       try {
-        const response = await fetch('/api/lottery/verify-purchase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            txHash: purchaseTxHash,
-            fid: userFid,
-            round_id: currentRound!.id,
-            ticket_numbers: selectedNumbers,
-            playerAddress: address,
-          }),
+        const response = await fetch(`/api/lottery/verify-purchase?txHash=${purchaseTxHash}&fid=${userFid}&round_id=${currentRound!.id}&playerAddress=${address}&ticket_numbers=${selectedNumbers.join(',')}`, {
+          method: 'GET',
         });
         if (!response.ok) {
           const errorResult = await response.json();
@@ -197,12 +189,15 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       }
       
       // Vásároljuk meg az első jegyet
-      const hash = await writeContractAsync({
-          address: LOTTO_PAYMENT_ROUTER_ADDRESS,
-          abi: LOTTO_PAYMENT_ROUTER_ABI,
-          functionName: 'buyTicket',
-          args: [BigInt(selectedNumbers[0])],
-      });
+      let hash;
+      for (const number of selectedNumbers) {
+        hash = await writeContractAsync({
+            address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+            abi: LOTTO_PAYMENT_ROUTER_ABI,
+            functionName: 'buyTicket',
+            args: [BigInt(number)],
+        });
+      }
 
       if (hash) {
           setPurchaseTxHash(hash);
