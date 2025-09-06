@@ -200,7 +200,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       const hash = await writeContractAsync({
           address: LOTTO_PAYMENT_ROUTER_ADDRESS,
           abi: LOTTO_PAYMENT_ROUTER_ABI,
-          functionName: 'buyTickets',
+          functionName: 'buyTicket',
           args: [selectedNumbers.map(num => BigInt(num))],
       });
 
