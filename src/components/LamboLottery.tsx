@@ -198,7 +198,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       
       let finalHash: Hash | undefined;
       for (const ticketNumber of selectedNumbers) {
-        // A `buyTicket` hívásokat is a `writeContractAsync`-szal küldjük
         const hash = await writeContractAsync({
             address: LOTTO_PAYMENT_ROUTER_ADDRESS,
             abi: LOTTO_PAYMENT_ROUTER_ABI,
