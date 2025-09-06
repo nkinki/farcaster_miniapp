@@ -113,8 +113,19 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const verifyAndRegister = async () => {
       setStep(PurchaseStep.Saving);
       try {
-        const response = await fetch(`/api/lottery/verify-purchase?txHash=${purchaseTxHash}&fid=${userFid}&round_id=${currentRound!.id}&playerAddress=${address}&ticket_numbers=${selectedNumbers.join(',')}`, {
-          method: 'GET',
+        // Használjuk a user-tickets végpontot a jegyek regisztrálásához, mivel a verify-purchase végpont nem létezik
+        const response = await fetch(`/api/lottery/user-tickets`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            txHash: purchaseTxHash,
+            fid: userFid,
+            round_id: currentRound!.id,
+            playerAddress: address,
+            ticket_numbers: selectedNumbers
+          }),
         });
         if (!response.ok) {
           const errorResult = await response.json();
