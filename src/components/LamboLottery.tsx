@@ -196,12 +196,12 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           return;
       }
       
-      // Egyszerre vásároljuk meg az összes jegyet egy tranzakcióban
+      // Vásároljuk meg az első jegyet
       const hash = await writeContractAsync({
           address: LOTTO_PAYMENT_ROUTER_ADDRESS,
           abi: LOTTO_PAYMENT_ROUTER_ABI,
           functionName: 'buyTicket',
-          args: [selectedNumbers.map(num => BigInt(num))],
+          args: [BigInt(selectedNumbers[0])],
       });
 
       if (hash) {
