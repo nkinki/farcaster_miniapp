@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap } from "react-icons/fi";
-import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract, useSendCalls } from 'wagmi';
-import { encodeFunctionData, type Hash } from 'viem';
+import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
+import { type Hash } from 'viem';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '@/abis/LottoPaymentRouter';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 
-// --- Interface definícik ---
+// --- Interface definíciók ---
 interface LotteryRound { id: number; round_number: number; start_date: string; end_date: string; draw_date: string; prize_pool: number; status: string; winner_fid?: number; winner_number?: number; total_tickets_sold: number; }
 interface LotteryTicket { id: number; round_id: number; fid: number; ticket_number: number; purchase_price: number; purchased_at: string; }
 interface LotteryStats { total_rounds: number; total_tickets_sold: number; total_prize_distributed: number; treasury_balance: number; }
@@ -15,7 +15,7 @@ interface RecentRound { id: number; draw_number: number; winning_number: number;
 interface UserWinning { id: number; player_fid: number; draw_id: number; ticket_id: number; amount_won: number; claimed_at: string | null; created_at: string; draw_number: number; winning_number: number; ticket_number: number; }
 interface LamboLotteryProps { isOpen: boolean; onClose: () => void; userFid: number; onPurchaseSuccess?: () => void; }
 
-// Állapotgép a vásárlási folyamathoz
+// Állapotgép a vásárlási folyamathoz, pont mint a PaymentForm-ban
 enum PurchaseStep {
   Idle,
   Approving,
@@ -29,9 +29,8 @@ enum PurchaseStep {
 export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSuccess }: LamboLotteryProps) {
   const { address, isConnected } = useAccount();
 
-  // JAVÍTVA: A wagmi hook-ok helyes deklarációja
-  const { writeContractAsync, isPending: isWriteContractPending } = useWriteContract();
-  const { sendCalls, isPending: isSendCallsPending } = useSendCalls();
+  // Pontosan mint a PaymentForm.tsx-ben
+  const { writeContractAsync, isPending } = useWriteContract();
 
   // --- Állapotok ---
   const [currentRound, setCurrentRound] = useState<LotteryRound | null>(null);
@@ -166,13 +165,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     setErrorMessage(null);
     setStep(PurchaseStep.Approving);
     try {
-      const txHash = await writeContractAsync({
+      const hash = await writeContractAsync({
         address: CHESS_TOKEN_ADDRESS,
         abi: CHESS_TOKEN_ABI,
         functionName: 'approve',
         args: [LOTTO_PAYMENT_ROUTER_ADDRESS, totalCost],
       });
-      setApproveTxHash(txHash);
+      setApproveTxHash(hash);
       setStep(PurchaseStep.ApproveConfirming);
     } catch (err: any) {
       setErrorMessage(err.shortMessage || "Approval rejected.");
@@ -182,8 +181,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
   const handlePurchase = async () => {
     setErrorMessage(null);
+    setStep(PurchaseStep.Purchasing);
     try {
-      setStep(PurchaseStep.Purchasing);
       const takenRes = await fetch(`/api/lottery/taken-numbers?round_id=${currentRound!.id}`);
       if (!takenRes.ok) throw new Error("Could not verify ticket availability.");
       const takenData = await takenRes.json();
@@ -196,20 +195,28 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           setStep(PurchaseStep.Idle);
           return;
       }
-      const calls: { to: `0x${string}`; data: `0x${string}` }[] = [];
+      
+      // Mivel a `buyTicket` egyenként hívódik, egy ciklusban küldjük el a tranzakciókat.
+      // A felhasználónak mindegyiket külön kell jóváhagynia.
+      let finalHash: Hash | undefined;
       for (const ticketNumber of selectedNumbers) {
-          calls.push({ to: LOTTO_PAYMENT_ROUTER_ADDRESS, data: encodeFunctionData({ abi: LOTTO_PAYMENT_ROUTER_ABI, functionName: 'buyTicket', args: [BigInt(ticketNumber)] }) });
+        const hash = await writeContractAsync({
+            address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+            abi: LOTTO_PAYMENT_ROUTER_ABI,
+            functionName: 'buyTicket',
+            args: [BigInt(ticketNumber)],
+        });
+        finalHash = hash; // Az utolsó tranzakció hash-ét figyeljük a megerősítéshez
       }
-      const txHash = await new Promise<`0x${string}`>((resolve, reject) => {
-          sendCalls({ calls }, {
-              onSuccess: (data) => resolve(data.id as `0x${string}`),
-              onError: (error) => reject(error),
-          });
-      });
-      setPurchaseTxHash(txHash);
-      setStep(PurchaseStep.PurchaseConfirming);
+
+      if (finalHash) {
+          setPurchaseTxHash(finalHash);
+          setStep(PurchaseStep.PurchaseConfirming);
+      } else {
+          throw new Error("Purchase failed to return a transaction hash.");
+      }
     } catch (err: any) {
-      setErrorMessage(err.shortMessage || "Purchase rejected. This is likely because a ticket was just taken.");
+      setErrorMessage(err.shortMessage || "Purchase rejected or failed. A ticket might be taken.");
       setStep(PurchaseStep.ReadyToPurchase);
     }
   };
@@ -227,7 +234,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   };
   const isNumberTaken = (number: number) => takenNumbers.includes(number);
 
-  const isLoading = isWriteContractPending || isSendCallsPending || isApproveConfirming || isPurchaseConfirming || step === PurchaseStep.Saving;
+  const isLoading = isPending || isApproveConfirming || isPurchaseConfirming || step === PurchaseStep.Saving;
 
   if (!isOpen) return null;
 
@@ -300,11 +307,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   
                   {step < PurchaseStep.ReadyToPurchase ? (
                     <button onClick={handleApprove} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                      {isApproveConfirming ? 'Confirming...' : isWriteContractPending ? 'Check Wallet...' : '1. Approve Budget'}
+                      {isApproveConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : '1. Approve Budget'}
                     </button>
                   ) : (
                     <button onClick={handlePurchase} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-green-600 to-blue-600 text-white">
-                      {isPurchased && step !== PurchaseStep.Saving ? 'Success!' : isPurchaseConfirming ? 'Confirming...' : isSendCallsPending ? 'Check Wallet...' : `2. Buy ${selectedNumbers.length} Ticket(s)`}
+                      {isPurchased && step !== PurchaseStep.Saving ? 'Success!' : isPurchaseConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : `2. Buy ${selectedNumbers.length} Ticket(s)`}
                     </button>
                   )}
                 </div>
