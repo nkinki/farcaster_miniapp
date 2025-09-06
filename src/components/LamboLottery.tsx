@@ -29,7 +29,7 @@ enum PurchaseStep {
 export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSuccess }: LamboLotteryProps) {
   const { address, isConnected } = useAccount();
 
-  // Pontosan mint a PaymentForm.tsx-ben
+  // Pontosan mint a PaymentForm.tsx-ben, csak a useWriteContract-ot használjuk
   const { writeContractAsync, isPending } = useWriteContract();
 
   // --- Állapotok ---
@@ -113,9 +113,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const verifyAndRegister = async () => {
       setStep(PurchaseStep.Saving);
       try {
-        // Próbáljuk meg a regisztrációt a farc-nu.vercel.app API-val
-        const response = await fetch(`https://farc-nu.vercel.app/api/lottery/verify-purchase?txHash=${purchaseTxHash}&fid=${userFid}&round_id=${currentRound!.id}&playerAddress=${address}&ticket_numbers=${selectedNumbers.join(',')}`, {
-          method: 'GET',
+        const response = await fetch('/api/lottery/verify-purchase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            txHash: purchaseTxHash,
+            fid: userFid,
+            round_id: currentRound!.id,
+            ticket_numbers: selectedNumbers,
+            playerAddress: address,
+          }),
         });
         if (!response.ok) {
           const errorResult = await response.json();
@@ -189,19 +196,20 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           return;
       }
       
-      // Vásároljuk meg az első jegyet
-      let hash;
-      for (const number of selectedNumbers) {
-        hash = await writeContractAsync({
+      let finalHash: Hash | undefined;
+      for (const ticketNumber of selectedNumbers) {
+        // A `buyTicket` hívásokat is a `writeContractAsync`-szal küldjük
+        const hash = await writeContractAsync({
             address: LOTTO_PAYMENT_ROUTER_ADDRESS,
             abi: LOTTO_PAYMENT_ROUTER_ABI,
             functionName: 'buyTicket',
-            args: [BigInt(number)],
+            args: [BigInt(ticketNumber)],
         });
+        finalHash = hash;
       }
 
-      if (hash) {
-          setPurchaseTxHash(hash);
+      if (finalHash) {
+          setPurchaseTxHash(finalHash);
           setStep(PurchaseStep.PurchaseConfirming);
       } else {
           throw new Error("Purchase failed to return a transaction hash.");
