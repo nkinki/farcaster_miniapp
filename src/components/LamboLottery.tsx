@@ -15,7 +15,7 @@ interface RecentRound { id: number; draw_number: number; winning_number: number;
 interface UserWinning { id: number; player_fid: number; draw_id: number; ticket_id: number; amount_won: number; claimed_at: string | null; created_at: string; draw_number: number; winning_number: number; ticket_number: number; }
 interface LamboLotteryProps { isOpen: boolean; onClose: () => void; userFid: number; onPurchaseSuccess?: () => void; }
 
-// Állapotgép a vásárlási folyamathoz, a PaymentForm mintájára
+// Állapotgép a vásárlási folyamathoz
 enum PurchaseStep {
   Idle,
   Approving,
@@ -29,8 +29,8 @@ enum PurchaseStep {
 export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSuccess }: LamboLotteryProps) {
   const { address, isConnected } = useAccount();
 
-  // Közvetlenül használjuk a wagmi hook-okat, mint a PaymentForm-ban
-  const { writeContractAsync, isPending: isWriteContractPending } from useWriteContract();
+  // JAVÍTVA: A wagmi hook-ok helyes deklarációja
+  const { writeContractAsync, isPending: isWriteContractPending } = useWriteContract();
   const { sendCalls, isPending: isSendCallsPending } = useSendCalls();
 
   // --- Állapotok ---
@@ -45,11 +45,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [userWinnings, setUserWinnings] = useState<UserWinning[]>([]);
   const [stats, setStats] = useState<LotteryStats | null>(null);
   
-  // Állapotgép és tranzakciós állapotok, mint a PaymentForm-ban
   const [step, setStep] = useState<PurchaseStep>(PurchaseStep.Idle);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
   const [purchaseTxHash, setPurchaseTxHash] = useState<Hash | undefined>();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
   const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ hash: purchaseTxHash });
@@ -167,13 +166,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     setErrorMessage(null);
     setStep(PurchaseStep.Approving);
     try {
-      const hash = await writeContractAsync({
+      const txHash = await writeContractAsync({
         address: CHESS_TOKEN_ADDRESS,
         abi: CHESS_TOKEN_ABI,
         functionName: 'approve',
         args: [LOTTO_PAYMENT_ROUTER_ADDRESS, totalCost],
       });
-      setApproveTxHash(hash);
+      setApproveTxHash(txHash);
       setStep(PurchaseStep.ApproveConfirming);
     } catch (err: any) {
       setErrorMessage(err.shortMessage || "Approval rejected.");
