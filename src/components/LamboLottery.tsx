@@ -196,21 +196,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           return;
       }
       
-      // Mivel a `buyTicket` egyenként hívódik, egy ciklusban küldjük el a tranzakciókat.
-      // A felhasználónak mindegyiket külön kell jóváhagynia.
-      let finalHash: Hash | undefined;
-      for (const ticketNumber of selectedNumbers) {
-        const hash = await writeContractAsync({
-            address: LOTTO_PAYMENT_ROUTER_ADDRESS,
-            abi: LOTTO_PAYMENT_ROUTER_ABI,
-            functionName: 'buyTicket',
-            args: [BigInt(ticketNumber)],
-        });
-        finalHash = hash; // Az utolsó tranzakció hash-ét figyeljük a megerősítéshez
-      }
+      // Egyszerre vásároljuk meg az összes jegyet egy tranzakcióban
+      const hash = await writeContractAsync({
+          address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+          abi: LOTTO_PAYMENT_ROUTER_ABI,
+          functionName: 'buyTickets',
+          args: [selectedNumbers.map(num => BigInt(num))],
+      });
 
-      if (finalHash) {
-          setPurchaseTxHash(finalHash);
+      if (hash) {
+          setPurchaseTxHash(hash);
           setStep(PurchaseStep.PurchaseConfirming);
       } else {
           throw new Error("Purchase failed to return a transaction hash.");
