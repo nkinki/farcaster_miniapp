@@ -115,16 +115,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       try {
         // Mivel a buyTicket mindig csak egy jegyet vásárol, az utolsó ticketNumber lesz a tranzakcióban
         const lastTicketNumber = selectedNumbers[selectedNumbers.length - 1];
-        const response = await fetch('/api/lottery/verify-purchase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            txHash: purchaseTxHash,
-            fid: userFid,
-            round_id: currentRound!.id,
-            ticket_number: lastTicketNumber,
-            playerAddress: address,
-          }),
+        const response = await fetch(`https://farc-nu.vercel.app/api/lottery/verify-purchase?txHash=${purchaseTxHash}&fid=${userFid}&round_id=${currentRound!.id}&playerAddress=${address}&ticket_number=${lastTicketNumber}`, {
+          method: 'GET',
         });
         if (!response.ok) {
           const errorResult = await response.json();
