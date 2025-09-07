@@ -4,10 +4,36 @@
 import { parseUnits } from 'viem';
 
 // --- Új Okosszerződés Cím ---
-export const LOTTO_CONTRACT_ADDRESS = "0xb5a27b8d52282e497052f9562a212bc3d2425f7a" as const;
+export const LOTTO_CONTRACT_ADDRESS = "0xe61029124a9a432e09ec47c999140c0d5e9d4df4" as const;
 
 // --- Új Okosszerződés ABI ---
 export const LOTTO_CONTRACT_ABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "_ticketNumbers",
+				"type": "uint256[]"
+			}
+		],
+		"name": "buyTicketsBatch",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_roundId",
+				"type": "uint256"
+			}
+		],
+		"name": "drawWinner",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [
 			{
@@ -101,6 +127,13 @@ export const LOTTO_CONTRACT_ABI = [
 		"type": "event"
 	},
 	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -118,6 +151,32 @@ export const LOTTO_CONTRACT_ABI = [
 		],
 		"name": "RoundStarted",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_newWallet",
+				"type": "address"
+			}
+		],
+		"name": "setTreasuryWallet",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_duration",
+				"type": "uint256"
+			}
+		],
+		"name": "startNewRound",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -143,6 +202,19 @@ export const LOTTO_CONTRACT_ABI = [
 		],
 		"name": "TicketsPurchased",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -190,58 +262,6 @@ export const LOTTO_CONTRACT_ABI = [
 	},
 	{
 		"inputs": [],
-		"name": "MAX_TICKET_NUMBER",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "MIN_TICKET_NUMBER",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "TICKET_PRICE",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "_ticketNumbers",
-				"type": "uint256[]"
-			}
-		],
-		"name": "buyTicketsBatch",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "chessToken",
 		"outputs": [
 			{
@@ -272,19 +292,6 @@ export const LOTTO_CONTRACT_ABI = [
 				"internalType": "uint256",
 				"name": "_roundId",
 				"type": "uint256"
-			}
-		],
-		"name": "drawWinner",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_roundId",
-				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
@@ -305,6 +312,32 @@ export const LOTTO_CONTRACT_ABI = [
 	},
 	{
 		"inputs": [],
+		"name": "MAX_TICKET_NUMBER",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MIN_TICKET_NUMBER",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "owner",
 		"outputs": [
 			{
@@ -314,13 +347,6 @@ export const LOTTO_CONTRACT_ABI = [
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -368,29 +394,16 @@ export const LOTTO_CONTRACT_ABI = [
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_newWallet",
-				"type": "address"
-			}
-		],
-		"name": "setTreasuryWallet",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+		"inputs": [],
+		"name": "TICKET_PRICE",
+		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "_duration",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "startNewRound",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -415,19 +428,6 @@ export const LOTTO_CONTRACT_ABI = [
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
