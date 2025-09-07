@@ -1,30 +1,13 @@
-[
-	{
-		"inputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "_ticketNumbers",
-				"type": "uint256[]"
-			}
-		],
-		"name": "buyTicketsBatch",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_roundId",
-				"type": "uint256"
-			}
-		],
-		"name": "drawWinner",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
+// FÁJL: src/abis/LottoContract.ts
+// CÉL: Az új, továbbfejlesztett lottó okosszerződés ABI-ját és a kapcsolódó konstansokat tartalmazza.
+
+import { parseUnits } from 'viem';
+
+// --- Új Okosszerződés Cím ---
+export const LOTTO_CONTRACT_ADDRESS = "0xb5a27b8d52282e497052f9562a212bc3d2425f7a" as const;
+
+// --- Új Okosszerződés ABI ---
+export const LOTTO_CONTRACT_ABI = [
 	{
 		"inputs": [
 			{
@@ -118,13 +101,6 @@
 		"type": "event"
 	},
 	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -142,32 +118,6 @@
 		],
 		"name": "RoundStarted",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_newWallet",
-				"type": "address"
-			}
-		],
-		"name": "setTreasuryWallet",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_duration",
-				"type": "uint256"
-			}
-		],
-		"name": "startNewRound",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -193,19 +143,6 @@
 		],
 		"name": "TicketsPurchased",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -253,6 +190,58 @@
 	},
 	{
 		"inputs": [],
+		"name": "MAX_TICKET_NUMBER",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MIN_TICKET_NUMBER",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "TICKET_PRICE",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "_ticketNumbers",
+				"type": "uint256[]"
+			}
+		],
+		"name": "buyTicketsBatch",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "chessToken",
 		"outputs": [
 			{
@@ -283,6 +272,19 @@
 				"internalType": "uint256",
 				"name": "_roundId",
 				"type": "uint256"
+			}
+		],
+		"name": "drawWinner",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_roundId",
+				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
@@ -303,32 +305,6 @@
 	},
 	{
 		"inputs": [],
-		"name": "MAX_TICKET_NUMBER",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "MIN_TICKET_NUMBER",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "owner",
 		"outputs": [
 			{
@@ -338,6 +314,13 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -385,16 +368,29 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "TICKET_PRICE",
-		"outputs": [
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_newWallet",
+				"type": "address"
+			}
+		],
+		"name": "setTreasuryWallet",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "",
+				"name": "_duration",
 				"type": "uint256"
 			}
 		],
-		"stateMutability": "view",
+		"name": "startNewRound",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -419,6 +415,19 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
