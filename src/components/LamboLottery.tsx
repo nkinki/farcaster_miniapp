@@ -113,20 +113,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const verifyAndRegister = async () => {
       setStep(PurchaseStep.Saving);
       try {
-        // Mivel a buyTicket mindig csak egy jegyet vásárol, az utolsó ticketNumber lesz a tranzakcióban
-        const lastTicketNumber = selectedNumbers[selectedNumbers.length - 1];
-        const response = await fetch(`https://farc-nu.vercel.app/api/lottery/verify-purchase`, {
+        const response = await fetch('/api/lottery/verify-purchase', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             txHash: purchaseTxHash,
             fid: userFid,
             round_id: currentRound!.id,
+            ticket_numbers: selectedNumbers,
             playerAddress: address,
-            ticket_number: lastTicketNumber
-          })
+          }),
         });
         if (!response.ok) {
           const errorResult = await response.json();
@@ -215,7 +211,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           setPurchaseTxHash(finalHash);
           setStep(PurchaseStep.PurchaseConfirming);
       } else {
-          throw new Error("Purchase failed to return a transaction hash.");
+          throw new Error("No tickets were selected to purchase.");
       }
     } catch (err: any) {
       setErrorMessage(err.shortMessage || "Purchase rejected or failed. A ticket might be taken.");
@@ -389,6 +385,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         @keyframes pulseGlow {
           0% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
           50% { box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff; }
+          100% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
+        }
+        .pulse-glow { animation: pulseGlow 3.5s ease-in-out infinite; border: 2px solid #a259ff; }
+      `}</style>
+    </>
+  );
+}ff; }
           100% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
         }
         .pulse-glow { animation: pulseGlow 3.5s ease-in-out infinite; border: 2px solid #a259ff; }

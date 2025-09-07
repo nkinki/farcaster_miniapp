@@ -18,21 +18,34 @@ const publicClient = createPublicClient({
   transport: http(process.env.BASE_RPC_URL),
 });
 
-// Mivel a `body`-t használjuk, a POST metódus a helyes
 export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
+    const body = await request.json();
     const { 
       txHash, 
       fid, 
       round_id, 
       ticket_numbers, 
       playerAddress 
-    } = await request.json();
+    } = body;
 
-    if (!txHash || !fid || !round_id || !Array.isArray(ticket_numbers) || !playerAddress) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    // Részletes paraméter-ellenőrzés
+    const missingParams = [];
+    if (!txHash) missingParams.push('txHash');
+    if (!fid) missingParams.push('fid');
+    if (!round_id) missingParams.push('round_id');
+    if (!ticket_numbers) missingParams.push('ticket_numbers');
+    if (!Array.isArray(ticket_numbers)) missingParams.push('ticket_numbers (must be an array)');
+    if (ticket_numbers && ticket_numbers.length === 0) missingParams.push('ticket_numbers (cannot be empty)');
+    if (!playerAddress) missingParams.push('playerAddress');
+
+    if (missingParams.length > 0) {
+      console.error('Bad Request: Missing parameters', { missing: missingParams, received_body: body });
+      return NextResponse.json({ 
+        error: `Missing or invalid required parameters: ${missingParams.join(', ')}` 
+      }, { status: 400 });
     }
 
     // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS ---
@@ -57,17 +70,16 @@ export async function POST(request: NextRequest) {
     // --- 2. ADATBÁZISBA ÍRÁS ---
     await client.query('BEGIN');
 
-    // Ellenőrizzük, hogy ezt a tranzakciót nem dolgoztuk-e már fel (duplikáció elkerülése)
     const existingTx = await client.query('SELECT id FROM lottery_tickets WHERE transaction_hash = $1', [txHash]);
     if (existingTx.rows.length > 0) {
       await client.query('ROLLBACK');
       console.log(`[Verifier] Transaction ${txHash} already processed.`);
-      // Sikeres választ adunk, mert a jegyek már rögzítve vannak
       return NextResponse.json({ success: true, message: 'Purchase was already registered.' });
     }
 
     console.log(`[Verifier] Registering ${ticket_numbers.length} tickets for round ${round_id}`);
     for (const number of ticket_numbers) {
+      // Az oszlopnév a Neon adatbázisodban "ticket_number", nem "number"
       await client.query(
         `INSERT INTO lottery_tickets (draw_id, player_fid, ticket_number, transaction_hash, player_address, purchased_at, purchase_price)
          VALUES ($1, $2, $3, $4, $5, NOW(), 100000)`,
@@ -81,7 +93,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, message: 'Tickets successfully verified and registered.' });
 
   } catch (error: any) {
-    await client.query('ROLLBACK');
+    await client.query('ROLLBACK').catch(rollbackError => console.error('Rollback failed:', rollbackError));
     console.error('[Verifier] API Error:', error);
     return NextResponse.json({ error: 'Internal server error during transaction verification.', details: error.message }, { status: 500 });
   } finally {
