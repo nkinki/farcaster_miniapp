@@ -113,6 +113,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const verifyAndRegister = async () => {
       setStep(PurchaseStep.Saving);
       try {
+        // Mivel a buyTicket mindig csak egy jegyet vásárol, az utolsó ticketNumber lesz a tranzakcióban
+        const lastTicketNumber = selectedNumbers[selectedNumbers.length - 1];
         const response = await fetch('/api/lottery/verify-purchase', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -120,7 +122,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             txHash: purchaseTxHash,
             fid: userFid,
             round_id: currentRound!.id,
-            ticket_numbers: selectedNumbers,
+            ticket_number: lastTicketNumber,
             playerAddress: address,
           }),
         });
