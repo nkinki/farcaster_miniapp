@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
-// JAVÍTVA: Az új, továbbfejlesztett szerződés ABI-jának és címének importálása
-import { LOTTO_CONTRACT_ADDRESS, LOTTO_CONTRACT_ABI, TICKET_PRICE } from '@/abis/LottoContract';
+import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '@/abis/LottoPaymentRouter';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 
 // --- Interface definíciók ---
@@ -16,7 +15,7 @@ interface RecentRound { id: number; draw_number: number; winning_number: number;
 interface UserWinning { id: number; player_fid: number; draw_id: number; ticket_id: number; amount_won: number; claimed_at: string | null; created_at: string; draw_number: number; winning_number: number; ticket_number: number; }
 interface LamboLotteryProps { isOpen: boolean; onClose: () => void; userFid: number; onPurchaseSuccess?: () => void; }
 
-// Állapotgép a vásárlási folyamathoz, a PaymentForm mintájára
+// Állapotgép a vásárlási folyamathoz, pont mint a PaymentForm-ban
 enum PurchaseStep {
   Idle,
   Approving,
@@ -30,7 +29,6 @@ enum PurchaseStep {
 export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSuccess }: LamboLotteryProps) {
   const { address, isConnected } = useAccount();
 
-  // A PaymentForm.tsx mintájára, csak a useWriteContract-ot használjuk
   const { writeContractAsync, isPending } = useWriteContract();
 
   // --- Állapotok ---
@@ -59,7 +57,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     address: CHESS_TOKEN_ADDRESS,
     abi: CHESS_TOKEN_ABI,
     functionName: 'allowance',
-    args: address ? [address, LOTTO_CONTRACT_ADDRESS] : undefined,
+    args: address ? [address, LOTTO_PAYMENT_ROUTER_ADDRESS] : undefined,
     query: { enabled: !!address }
   });
 
@@ -170,7 +168,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         address: CHESS_TOKEN_ADDRESS,
         abi: CHESS_TOKEN_ABI,
         functionName: 'approve',
-        args: [LOTTO_CONTRACT_ADDRESS, totalCost],
+        args: [LOTTO_PAYMENT_ROUTER_ADDRESS, totalCost],
       });
       setApproveTxHash(hash);
       setStep(PurchaseStep.ApproveConfirming);
@@ -197,23 +195,25 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           return;
       }
       
-      const hash = await writeContractAsync({
-          address: LOTTO_CONTRACT_ADDRESS,
-          abi: LOTTO_CONTRACT_ABI,
-          functionName: 'buyTicketsBatch',
-          args: [selectedNumbers.map(n => BigInt(n))],
-      });
-
-      setPurchaseTxHash(hash);
-      setStep(PurchaseStep.PurchaseConfirming);
-      
-    } catch (err: any) {
-      const message = err instanceof Error ? err.message : "An unknown error occurred.";
-      if (message.includes("TicketAlreadySold")) {
-        setErrorMessage("Purchase failed: One of the selected tickets was just taken. Please refresh and try again.");
-      } else {
-        setErrorMessage(err.shortMessage || "Purchase rejected or failed.");
+      let finalHash: Hash | undefined;
+      for (const ticketNumber of selectedNumbers) {
+        const hash = await writeContractAsync({
+            address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+            abi: LOTTO_PAYMENT_ROUTER_ABI,
+            functionName: 'buyTicket',
+            args: [BigInt(ticketNumber)],
+        });
+        finalHash = hash;
       }
+
+      if (finalHash) {
+          setPurchaseTxHash(finalHash);
+          setStep(PurchaseStep.PurchaseConfirming);
+      } else {
+          throw new Error("No tickets were selected to purchase.");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.shortMessage || "Purchase rejected or failed. A ticket might be taken.");
       setStep(PurchaseStep.ReadyToPurchase);
     }
   };
