@@ -79,9 +79,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Verifier] Registering ${ticket_numbers.length} tickets for round ${round_id}`);
     for (const number of ticket_numbers) {
-      // Az oszlopnév a Neon adatbázisodban "ticket_number", nem "number"
+      // JAVÍTVA: Az oszlop neve "number"-re cserélve (és idézőjelek közé téve)
       await client.query(
-        `INSERT INTO lottery_tickets (draw_id, player_fid, ticket_number, transaction_hash, player_address, purchased_at, purchase_price)
+        `INSERT INTO lottery_tickets (draw_id, player_fid, "number", transaction_hash, player_address, purchased_at, purchase_price)
          VALUES ($1, $2, $3, $4, $5, NOW(), 100000)`,
         [round_id, fid, number, txHash, playerAddress]
       );
