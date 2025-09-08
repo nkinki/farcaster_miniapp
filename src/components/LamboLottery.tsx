@@ -360,7 +360,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 
                 <div className="mb-4 flex justify-center">
                   <div className="grid grid-cols-10 gap-1 min-h-[400px] p-3 border-2 border-purple-500/30 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] bg-gradient-to-br from-purple-900/10 to-transparent pulse-glow">
-                    {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`aspect-square min-w-[32px] min-h-[32px] rounded text-sm font-bold transition-all duration-200 border-2 flex items-center justify-center ${isNumberTaken(number) ? 'bg-gray-300/40 text-gray-400 cursor-not-allowed border-gray-400/50' : selectedNumbers.includes(number) ? 'bg-cyan-500 text-white border-cyan-400 shadow-lg shadow-cyan-500/50' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500'}`}>{number}</button>))}
+                    {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`aspect-square min-w-[40px] min-h-[40px] rounded text-base font-bold transition-all duration-200 border-2 flex items-center justify-center ${isNumberTaken(number) ? 'bg-gray-300/40 text-gray-400 cursor-not-allowed border-gray-400/50' : selectedNumbers.includes(number) ? 'bg-cyan-500 text-white border-cyan-400 shadow-lg shadow-cyan-500/50' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500'}`}>{number}</button>))}
                   </div>
                 </div>
                 
