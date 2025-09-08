@@ -236,9 +236,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           const maxNum = Number(maxTicketNumber);
           
           if (minNum === 1 && maxNum === 10 && ticketNumber > 10) {
-            // Map 11-100 to 1-10 using modulo
-            contractTicketNumber = BigInt(((ticketNumber - 1) % 10) + 1);
-            console.log(`Mapping ticket ${ticketNumber} to contract number ${contractTicketNumber}`);
+            // BIZTONSÁGOS MAPPING: Egyedi algoritmus
+            if (ticketNumber >= 11 && ticketNumber <= 100) {
+              contractTicketNumber = BigInt(((ticketNumber - 11) % 10) + 1);
+              console.log(`Mapping ticket ${ticketNumber} to contract number ${contractTicketNumber}`);
+            } else {
+              throw new Error(`Invalid ticket number range: ${ticketNumber}. Must be 1-100.`);
+            }
           }
         }
         

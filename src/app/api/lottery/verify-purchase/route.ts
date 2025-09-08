@@ -48,6 +48,22 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // BIZTONSÁGI VALIDÁCIÓ: Ticket number range check
+    if (!ticket_numbers.every(num => Number.isInteger(num) && num >= 1 && num <= 100)) {
+      console.error('Security: Invalid ticket number range', { ticket_numbers });
+      return NextResponse.json({ 
+        error: 'Invalid ticket number range. Must be integers between 1-100.' 
+      }, { status: 400 });
+    }
+
+    // BIZTONSÁGI VALIDÁCIÓ: Maximum 10 tickets per user
+    if (ticket_numbers.length > 10) {
+      console.error('Security: Too many tickets', { count: ticket_numbers.length });
+      return NextResponse.json({ 
+        error: 'Maximum 10 tickets per user per round.' 
+      }, { status: 400 });
+    }
+
     // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS ---
     console.log(`[Verifier] Verifying txHash: ${txHash}`);
     const receipt = await publicClient.getTransactionReceipt({ hash: txHash as `0x${string}` });
