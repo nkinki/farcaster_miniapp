@@ -144,7 +144,18 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         setSelectedNumbers([]);
         await fetchLotteryData();
         if (onPurchaseSuccess) onPurchaseSuccess();
+        
+        // Show success message and refresh
+        setErrorMessage(null);
         setStep(PurchaseStep.Idle);
+        
+        // Show success message
+        alert(`✅ Successfully purchased ${selectedNumbers.length} ticket(s)! Refreshing app...`);
+        
+        // Force refresh the entire app to show updated data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000); // Wait 1 second to show success message
       } catch (error: any) {
         setErrorMessage(`CRITICAL ERROR: Purchase successful, but registration failed. Contact support with TxHash: ${purchaseTxHash}.`);
         setStep(PurchaseStep.ReadyToPurchase);
