@@ -60,7 +60,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     functionName: 'TICKET_PRICE',
   });
   
-  const totalCost = ticketPrice ? ticketPrice * BigInt(selectedNumbers.length) : BigInt(0);
+  const totalCost = ticketPrice ? BigInt(ticketPrice.toString()) * BigInt(selectedNumbers.length) : BigInt(0);
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: CHESS_TOKEN_ADDRESS,
