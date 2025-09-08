@@ -311,7 +311,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
+                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
                 
                 <div className="mb-4">
                   <div className="grid grid-cols-10 gap-2 w-full min-h-[400px]">
