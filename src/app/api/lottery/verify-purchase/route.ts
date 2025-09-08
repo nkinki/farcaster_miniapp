@@ -5,6 +5,7 @@ import { createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
 import { Pool } from 'pg';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS } from '@/abis/LottoPaymentRouter';
+import { LOTTO_CONTRACT_ADDRESS } from '@/abis/LottoContract';
 
 // Adatbázis kapcsolat inicializálása
 const pool = new Pool({
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     if (receipt.status !== 'success') {
       return NextResponse.json({ error: 'On-chain transaction failed.', details: `Status: ${receipt.status}` }, { status: 400 });
     }
-    if (receipt.to?.toLowerCase() !== LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase()) {
+    if (receipt.to?.toLowerCase() !== LOTTO_CONTRACT_ADDRESS.toLowerCase()) {
       return NextResponse.json({ error: 'Transaction was sent to the wrong contract address.' }, { status: 400 });
     }
     if (receipt.from?.toLowerCase() !== playerAddress.toLowerCase()) {

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
-import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '@/abis/LottoPaymentRouter';
+import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI } from '@/abis/LottoPaymentRouter';
+import { LOTTO_CONTRACT_ADDRESS, LOTTO_CONTRACT_ABI } from '@/abis/LottoContract';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 
 // --- Interface definíciók ---
@@ -52,13 +53,20 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
   const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ hash: purchaseTxHash });
 
-  const totalCost = TICKET_PRICE * BigInt(selectedNumbers.length);
+  // Read ticket price from the new contract
+  const { data: ticketPrice } = useReadContract({
+    address: LOTTO_CONTRACT_ADDRESS,
+    abi: LOTTO_CONTRACT_ABI,
+    functionName: 'TICKET_PRICE',
+  });
+  
+  const totalCost = ticketPrice ? ticketPrice * BigInt(selectedNumbers.length) : BigInt(0);
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: CHESS_TOKEN_ADDRESS,
     abi: CHESS_TOKEN_ABI,
     functionName: 'allowance',
-    args: address ? [address, LOTTO_PAYMENT_ROUTER_ADDRESS] : undefined,
+    args: address ? [address, LOTTO_CONTRACT_ADDRESS] : undefined,
     query: { enabled: !!address }
   });
 
@@ -169,7 +177,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         address: CHESS_TOKEN_ADDRESS,
         abi: CHESS_TOKEN_ABI,
         functionName: 'approve',
-        args: [LOTTO_PAYMENT_ROUTER_ADDRESS, totalCost],
+        args: [LOTTO_CONTRACT_ADDRESS, totalCost],
       });
       setApproveTxHash(hash);
       setStep(PurchaseStep.ApproveConfirming);
@@ -197,15 +205,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       }
       
       let finalHash: Hash | undefined;
-      for (const ticketNumber of selectedNumbers) {
-        const hash = await writeContractAsync({
-            address: LOTTO_PAYMENT_ROUTER_ADDRESS,
-            abi: LOTTO_PAYMENT_ROUTER_ABI,
-            functionName: 'buyTicket',
-            args: [BigInt(ticketNumber)],
-        });
-        finalHash = hash;
-      }
+      // Use the new contract with batch purchase
+      const hash = await writeContractAsync({
+          address: LOTTO_CONTRACT_ADDRESS,
+          abi: LOTTO_CONTRACT_ABI,
+          functionName: 'buyTicketsBatch',
+          args: [selectedNumbers.map(num => BigInt(num))],
+      });
+      finalHash = hash;
 
       if (finalHash) {
           setPurchaseTxHash(finalHash);
@@ -287,7 +294,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
                 <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                  <p className="text-sm text-blue-300">Maximum 10 tickets per user per round.{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
+                  <p className="text-sm text-blue-300">Maximum 10 tickets per user per round. Numbers are grouped in tens (1-10, 11-20, etc.).{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
                 </div>
                 
                 <div className="grid grid-cols-10 gap-2 mb-4">
@@ -372,7 +379,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
                 <ul className="text-sm text-gray-400 space-y-1">
-                  <li>• Choose up to 10 numbers between 1-100.</li>
+                  <li>• Choose up to 10 numbers between 1-100. Numbers are grouped in tens for the lottery draw.</li>
                   <li>• Each ticket costs 100,000 CHESS tokens.</li>
                   <li>• Daily draw at 8 PM UTC.</li>
                   <li>• One winner takes the entire prize pool!</li>
