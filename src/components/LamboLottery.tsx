@@ -328,12 +328,12 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   </div>
                 </div>
                 
-                <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                  <p className="text-sm text-green-300">Maximum 10 tickets per user per round. Numbers are grouped in tens (1-10, 11-20, etc.).{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
+                <div className="grid grid-cols-10 gap-2 mb-4 p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-10 h-10 rounded text-sm font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110' : 'bg-purple-700 hover:bg-purple-600 text-purple-200 hover:scale-105'}`}>{number}</button>))}
                 </div>
                 
-                <div className="grid grid-cols-10 gap-2 mb-4">
-                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-10 h-10 rounded text-sm font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105'}`}>{number}</button>))}
+                <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                  <p className="text-sm text-green-300">Maximum 10 tickets per user per round. Numbers are grouped in tens (1-10, 11-20, etc.).{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
                 </div>
                 
                 {errorMessage && (
