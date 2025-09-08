@@ -6,7 +6,7 @@ const pool = new Pool({
 
 async function performLotteryDraw() {
   const client = await pool.connect();
-  console.log('🏁 --- Starting New Draw (TEST MODE - 50 WINS) --- 🏁');
+  console.log('🏁 --- Starting New Draw (RANDOM MODE) --- 🏁');
   
   try {
     console.log('[1/10] Connecting to database and starting transaction...');
@@ -44,10 +44,10 @@ async function performLotteryDraw() {
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
-    // --- TESZT SORSOLÁS (50-es szám nyer) ---
-    console.log('[4/10] Generating TEST winning number...');
-    const winningNumber = 50; // TESZT: 50-es szám nyer
-    console.log(`🎲 TEST Winning number is: ${winningNumber}`);
+    // --- VÉLETLENSZERŰ SORSOLÁS ---
+    console.log('[4/10] Generating random winning number...');
+    const winningNumber = Math.floor(Math.random() * 100) + 1; // Véletlenszerű szám 1-100 között
+    console.log(`🎲 Random winning number is: ${winningNumber}`);
 
     console.log('[5/10] Searching for winners...');
     const winners = ticketsResult.rows.filter(ticket => parseInt(ticket.number, 10) === winningNumber);
