@@ -62,6 +62,19 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     query: { enabled: !!address }
   });
 
+  // Read contract limits
+  const { data: minTicketNumber } = useReadContract({
+    address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+    abi: LOTTO_PAYMENT_ROUTER_ABI,
+    functionName: 'MIN_TICKET_NUMBER',
+  });
+
+  const { data: maxTicketNumber } = useReadContract({
+    address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+    abi: LOTTO_PAYMENT_ROUTER_ABI,
+    functionName: 'MAX_TICKET_NUMBER',
+  });
+
   const fetchLotteryData = useCallback(async () => {
     try {
       setLoading(true);
@@ -199,12 +212,26 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       
       let finalHash: Hash | undefined;
       for (const ticketNumber of selectedNumbers) {
-        // Direct purchase - no mapping needed, contract supports 1-100
+        // Check if we need to map the number based on contract limits
+        let contractTicketNumber = BigInt(ticketNumber);
+        
+        // If contract only supports 1-10, map 11-100 to 1-10
+        if (minTicketNumber && maxTicketNumber) {
+          const minNum = Number(minTicketNumber);
+          const maxNum = Number(maxTicketNumber);
+          
+          if (minNum === 1 && maxNum === 10 && ticketNumber > 10) {
+            // Map 11-100 to 1-10 using modulo
+            contractTicketNumber = BigInt(((ticketNumber - 1) % 10) + 1);
+            console.log(`Mapping ticket ${ticketNumber} to contract number ${contractTicketNumber}`);
+          }
+        }
+        
         const hash = await writeContractAsync({
             address: LOTTO_PAYMENT_ROUTER_ADDRESS,
             abi: LOTTO_PAYMENT_ROUTER_ABI,
             functionName: 'buyTicket',
-            args: [BigInt(ticketNumber)],
+            args: [contractTicketNumber],
             gas: BigInt(200000), // Standard gas limit for single ticket purchase
         });
         finalHash = hash;
