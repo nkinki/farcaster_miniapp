@@ -451,7 +451,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                           <button 
                             onClick={() => handleClaimWinning(winning.id)}
                             disabled={claimingWinning === winning.id}
-                            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all duration-300 hover:scale-105 pulse-glow"
+                            className={`w-full px-4 py-2 font-bold rounded-lg transition-all duration-300 hover:scale-105 ${
+                              claimingWinning === winning.id 
+                                ? 'bg-green-500 text-white animate-pulse shadow-lg shadow-green-500/50 border-2 border-green-400' 
+                                : 'bg-green-600 hover:bg-green-700 text-white pulse-glow'
+                            } disabled:cursor-not-allowed`}
                           >
                             {claimingWinning === winning.id ? '⏳ Claiming...' : '🎯 Claim Prize'}
                           </button>
