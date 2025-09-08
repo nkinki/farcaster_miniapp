@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
-import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI } from '@/abis/LottoPaymentRouter';
-import { LOTTO_CONTRACT_ADDRESS, LOTTO_CONTRACT_ABI } from '@/abis/LottoContract';
+import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '@/abis/LottoPaymentRouter';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 
 // --- Interface definíciók ---
@@ -53,20 +52,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
   const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ hash: purchaseTxHash });
 
-  // Read ticket price from the new contract
-  const { data: ticketPrice } = useReadContract({
-    address: LOTTO_CONTRACT_ADDRESS,
-    abi: LOTTO_CONTRACT_ABI,
-    functionName: 'TICKET_PRICE',
-  });
-  
-  const totalCost = ticketPrice ? BigInt(ticketPrice.toString()) * BigInt(selectedNumbers.length) : BigInt(0);
+  const totalCost = TICKET_PRICE * BigInt(selectedNumbers.length);
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: CHESS_TOKEN_ADDRESS,
     abi: CHESS_TOKEN_ABI,
     functionName: 'allowance',
-    args: address ? [address, LOTTO_CONTRACT_ADDRESS] : undefined,
+    args: address ? [address, LOTTO_PAYMENT_ROUTER_ADDRESS] : undefined,
     query: { enabled: !!address }
   });
 
@@ -177,7 +169,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         address: CHESS_TOKEN_ADDRESS,
         abi: CHESS_TOKEN_ABI,
         functionName: 'approve',
-        args: [LOTTO_CONTRACT_ADDRESS, totalCost],
+        args: [LOTTO_PAYMENT_ROUTER_ADDRESS, totalCost],
         gas: BigInt(100000), // Standard gas limit for approve
       });
       setApproveTxHash(hash);
@@ -206,15 +198,17 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       }
       
       let finalHash: Hash | undefined;
-      // Use the new contract with batch purchase
-      const hash = await writeContractAsync({
-          address: LOTTO_CONTRACT_ADDRESS,
-          abi: LOTTO_CONTRACT_ABI,
-          functionName: 'buyTicketsBatch',
-          args: [selectedNumbers.map(num => BigInt(num))],
-          gas: BigInt(500000), // Increased gas limit for batch operations
-      });
-      finalHash = hash;
+      for (const ticketNumber of selectedNumbers) {
+        // Direct purchase - no mapping needed, contract supports 1-100
+        const hash = await writeContractAsync({
+            address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+            abi: LOTTO_PAYMENT_ROUTER_ABI,
+            functionName: 'buyTicket',
+            args: [BigInt(ticketNumber)],
+            gas: BigInt(200000), // Standard gas limit for single ticket purchase
+        });
+        finalHash = hash;
+      }
 
       if (finalHash) {
           setPurchaseTxHash(finalHash);
