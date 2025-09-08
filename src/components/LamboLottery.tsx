@@ -331,11 +331,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   )}
                   
                   {step < PurchaseStep.ReadyToPurchase ? (
-                    <button onClick={handleApprove} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-8 py-4 rounded-xl font-bold text-xl transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:scale-105 shadow-lg">
+                    <button onClick={handleApprove} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-8 py-4 rounded-xl font-bold text-xl transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:scale-105 shadow-lg shadow-purple-500/50">
                       {isApproveConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : 'Approve & Buy Tickets'}
                     </button>
                   ) : (
-                    <button onClick={handlePurchase} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-8 py-4 rounded-xl font-bold text-xl transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-green-600 to-blue-600 text-white hover:scale-105 shadow-lg">
+                    <button onClick={handlePurchase} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-8 py-4 rounded-xl font-bold text-xl transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-green-600 to-blue-600 text-white hover:scale-105 shadow-lg shadow-purple-500/50">
                       {isPurchased && step !== PurchaseStep.Saving ? 'Success!' : isPurchaseConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : `Buy ${selectedNumbers.length} Ticket(s)`}
                     </button>
                   )}
