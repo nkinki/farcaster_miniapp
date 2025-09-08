@@ -315,7 +315,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 
                 <div className="mb-4 flex justify-center">
                   <div className="grid grid-cols-10 gap-2 min-h-[400px] p-2">
-                    {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`aspect-square min-w-[32px] min-h-[32px] rounded text-sm font-bold transition-all duration-200 border-2 flex items-center justify-center ${isNumberTaken(number) ? 'bg-red-500/20 text-red-200 cursor-not-allowed border-red-400/60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white border-purple-400 shadow-lg' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500'}`}>{number}</button>))}
+                    {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`aspect-square min-w-[32px] min-h-[32px] rounded text-sm font-bold transition-all duration-200 border-2 flex items-center justify-center ${isNumberTaken(number) ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed border-gray-500/50' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white border-purple-400 shadow-lg' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500'}`}>{number}</button>))}
                   </div>
                 </div>
                 
