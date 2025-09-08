@@ -80,6 +80,13 @@ export async function POST(request: NextRequest) {
       const winning = lotteryWinning[0];
       const amountToClaim = Number(winning.amount_won);
 
+      // Check if amount is valid
+      if (amountToClaim <= 0) {
+        throw new Error(`Invalid winning amount: ${amountToClaim}. Please contact support.`);
+      }
+
+      console.log(`Claiming lottery winning: FID ${fid}, Amount: ${amountToClaim} CHESS`);
+
       // Get user's wallet address
       const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
         headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }

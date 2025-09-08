@@ -102,8 +102,8 @@ export async function GET(request: NextRequest) {
       totalWinners: 0,
       currentJackpot: 0,
       avgTicketsPerRound: 0,
-      mostPopularNumbers: [],
-      topWinners: []
+      mostPopularNumbers: [] as { number: number; count: number }[],
+      topWinners: [] as { player_fid: number; total_winnings: number }[]
     };
 
     try {

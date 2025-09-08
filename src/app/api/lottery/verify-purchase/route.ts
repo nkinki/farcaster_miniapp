@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // BIZTONSÁGI VALIDÁCIÓ: Ticket number range check
-    if (!ticket_numbers.every(num => Number.isInteger(num) && num >= 1 && num <= 100)) {
+    if (!ticket_numbers.every((num: any) => Number.isInteger(num) && num >= 1 && num <= 100)) {
       console.error('Security: Invalid ticket number range', { ticket_numbers });
       return NextResponse.json({ 
         error: 'Invalid ticket number range. Must be integers between 1-100.' 
