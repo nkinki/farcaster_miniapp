@@ -319,30 +319,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   </div>
                 </div>
                 
-                {/* Wallet Status */}
-                <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className="text-sm text-blue-300">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span>
-                    </div>
-                    {isConnected && address && <span className="text-xs text-gray-400 font-mono">{address.slice(0, 6)}...{address.slice(-4)}</span>}
-                  </div>
-                  <div className="mt-2 text-sm text-yellow-300">
-                    <span className="font-bold">Price per ticket:</span> 100,000 CHESS
-                    {selectedNumbers.length > 0 && <span className="ml-4"><span className="font-bold">Total:</span> {(Number(totalCost)/1e18).toLocaleString()} CHESS</span>}
-                  </div>
-                </div>
-                
-                <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                  <p className="text-sm text-green-300">Maximum 10 tickets per user per round. Numbers are grouped in tens (1-10, 11-20, etc.).{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
-                </div>
-                
                 {errorMessage && (
                   <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-300 text-sm text-center">{errorMessage}</div>
                 )}
                 
-                <div className="flex flex-col items-center gap-4 mt-6">
+                <div className="flex flex-col items-center gap-4 mb-4">
                   {!isConnected && (
                     <div className="text-red-400 text-sm text-center p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
                       ⚠️ Please connect your wallet to purchase tickets
@@ -365,6 +346,24 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       <div className="text-sm text-gray-400">for {selectedNumbers.length} ticket(s)</div>
                     </div>
                   )}
+                </div>
+                
+                {/* Wallet Status */}
+                <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span className="text-sm text-blue-300">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span>
+                    </div>
+                    {isConnected && address && <span className="text-xs text-gray-400 font-mono">{address.slice(0, 6)}...{address.slice(-4)}</span>}
+                  </div>
+                  <div className="mt-2 text-sm text-yellow-300">
+                    <span className="font-bold">Price per ticket:</span> 100,000 CHESS
+                  </div>
+                </div>
+                
+                <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                  <p className="text-sm text-green-300">Maximum 10 tickets per user per round. Numbers are grouped in tens (1-10, 11-20, etc.).{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
                 </div>
               </div>
 
