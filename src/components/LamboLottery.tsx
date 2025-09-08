@@ -47,6 +47,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [step, setStep] = useState<PurchaseStep>(PurchaseStep.Idle);
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
   const [purchaseTxHash, setPurchaseTxHash] = useState<Hash | undefined>();
+  
+  // Claim states
+  const [claimingWinning, setClaimingWinning] = useState<number | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
@@ -262,8 +266,45 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   };
 
   const handleNumberSelect = (number: number) => {
-    if (selectedNumbers.includes(number)) { setSelectedNumbers(selectedNumbers.filter(n => n !== number)); } 
+    if (selectedNumbers.includes(number)) { setSelectedNumbers(selectedNumbers.filter(n => n !== number)); }
     else if (userTickets.length + selectedNumbers.length < 10) { setSelectedNumbers([...selectedNumbers, number]); }
+  };
+
+  const handleClaimWinning = async (winningId: number) => {
+    if (!userFid) {
+      setClaimError("User not found");
+      return;
+    }
+
+    setClaimingWinning(winningId);
+    setClaimError(null);
+
+    try {
+      const response = await fetch("/api/claim-rewards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          fid: userFid,
+          winningId: winningId 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Claim failed");
+      }
+
+      // Success - refresh data
+      await fetchLotteryData();
+      alert(`Successfully claimed your prize! 🎉`);
+      
+    } catch (error: any) {
+      console.error("Claim error:", error);
+      setClaimError(error.message || "Failed to claim prize");
+    } finally {
+      setClaimingWinning(null);
+    }
   };
   const formatChessTokens = (amount: number) => {
     if (amount === undefined || amount === null) return '$0';
@@ -390,6 +431,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               {userWinnings.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                   <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">🎉 Your Winnings ({userWinnings.length})</h3>
+                  
+                  {claimError && (
+                    <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-300 text-sm text-center">{claimError}</div>
+                  )}
                   <div className="space-y-3">
                     {userWinnings.map((winning) => (
                       <div key={winning.id} className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
@@ -399,7 +444,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                         </div>
                         <div className="text-sm text-gray-300 mb-3">Winning Number: <span className="text-yellow-400 font-bold">{winning.winning_number}</span> | Your Ticket: <span className="text-cyan-400 font-bold">{winning.ticket_number}</span></div>
                         {!winning.claimed_at ? (
-                          <button className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105">🎯 Claim Prize</button>
+                          <button 
+                            onClick={() => handleClaimWinning(winning.id)}
+                            disabled={claimingWinning === winning.id}
+                            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all duration-300 hover:scale-105 pulse-glow"
+                          >
+                            {claimingWinning === winning.id ? '⏳ Claiming...' : '🎯 Claim Prize'}
+                          </button>
                         ) : (
                           <div className="text-center text-green-400 font-bold">✅ Claimed on {new Date(winning.claimed_at).toLocaleDateString()}</div>
                         )}

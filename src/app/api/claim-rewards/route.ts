@@ -32,6 +32,20 @@ async function setupDatabase() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    // Create lottery_winnings table if it doesn't exist
+    await sql`
+      CREATE TABLE IF NOT EXISTS lottery_winnings (
+        id SERIAL PRIMARY KEY,
+        player_fid INTEGER NOT NULL,
+        draw_id INTEGER NOT NULL,
+        ticket_id INTEGER NOT NULL,
+        amount_won BIGINT NOT NULL,
+        claimed_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
     // Add reward_claimed column to shares table if it doesn't exist
     try {
         await sql`ALTER TABLE shares ADD COLUMN IF NOT EXISTS reward_claimed BOOLEAN DEFAULT FALSE`;
@@ -42,7 +56,7 @@ async function setupDatabase() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { fid } = body;
+  const { fid, winningId } = body;
 
   if (!fid) {
     return NextResponse.json({ error: 'FID is required' }, { status: 400 });
@@ -51,7 +65,68 @@ export async function POST(request: NextRequest) {
   try {
     await setupDatabase();
 
-    // Get all unclaimed rewards
+    // If winningId is provided, claim specific lottery winning
+    if (winningId) {
+      const lotteryWinning = await sql`
+        SELECT id, player_fid, amount_won, claimed_at
+        FROM lottery_winnings 
+        WHERE id = ${winningId} AND player_fid = ${fid} AND claimed_at IS NULL
+      `;
+
+      if (lotteryWinning.length === 0) {
+        throw new Error('No lottery winning found or already claimed.');
+      }
+
+      const winning = lotteryWinning[0];
+      const amountToClaim = Number(winning.amount_won);
+
+      // Get user's wallet address
+      const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
+        headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
+      });
+      if (!neynarResponse.ok) throw new Error('Failed to fetch user data from Neynar.');
+      
+      const neynarData = await neynarResponse.json();
+      const recipientAddress = neynarData.users[0]?.verified_addresses?.eth_addresses[0];
+
+      if (!recipientAddress || !isAddress(recipientAddress)) {
+        throw new Error(`Could not find a valid wallet for FID ${fid}.`);
+      }
+
+      console.log(`Sending lottery winning ${amountToClaim} CHESS to ${recipientAddress} for FID ${fid}`);
+      const amountInWei = parseUnits(amountToClaim.toString(), 18);
+
+      const { request: transferRequest } = await publicClient.simulateContract({
+        account: treasuryAccount,
+        address: CHESS_TOKEN_ADDRESS,
+        abi: CHESS_TOKEN_ABI,
+        functionName: 'transfer',
+        args: [recipientAddress as `0x${string}`, amountInWei],
+      });
+
+      const txHash = await walletClient.writeContract(transferRequest);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+      if (receipt.status === 'reverted') {
+        throw new Error('On-chain transfer transaction failed.');
+      }
+
+      // Mark lottery winning as claimed
+      await sql`
+        UPDATE lottery_winnings 
+        SET claimed_at = NOW()
+        WHERE id = ${winningId}
+      `;
+
+      return NextResponse.json({ 
+        success: true, 
+        transactionHash: txHash,
+        claimedAmount: amountToClaim,
+        type: 'lottery_winning'
+      }, { status: 200 });
+    }
+
+    // Original shares claim logic
     const userShares = await sql`
         SELECT id, reward_amount 
         FROM shares 
