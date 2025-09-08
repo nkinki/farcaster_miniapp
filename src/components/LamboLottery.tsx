@@ -313,9 +313,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
                 
-                <div className="mb-4">
-                  <div className="grid grid-cols-10 gap-2 w-full min-h-[400px]">
-                    {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`aspect-square min-w-[32px] min-h-[32px] rounded text-sm font-bold transition-all duration-200 border-2 flex items-center justify-center ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60 border-red-500' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white border-purple-400 shadow-lg' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500'}`}>{number}</button>))}
+                <div className="mb-4 flex justify-center">
+                  <div className="grid grid-cols-10 gap-2 min-h-[400px] p-2 border-2 border-purple-500/30 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] bg-gradient-to-br from-purple-900/10 to-transparent">
+                    {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`aspect-square min-w-[32px] min-h-[32px] rounded text-sm font-bold transition-all duration-200 border-2 flex items-center justify-center ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60 border-red-500' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white border-purple-400 shadow-lg shadow-purple-500/50' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500 hover:shadow-[0_0_10px_rgba(168,85,247,0.3)]'}`}>{number}</button>))}
                   </div>
                 </div>
                 
