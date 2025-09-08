@@ -39,6 +39,19 @@ interface AdminStats {
     totalGamesPlayed: number;
     totalGamesWon: number;
   };
+  lottery: {
+    totalRounds: number;
+    activeRounds: number;
+    completedRounds: number;
+    totalTicketsSold: number;
+    totalRevenue: number;
+    totalPrizesDistributed: number;
+    totalWinners: number;
+    currentJackpot: number;
+    avgTicketsPerRound: number;
+    mostPopularNumbers: Array<{number: number, count: number}>;
+    topWinners: Array<{player_fid: number, total_winnings: number}>;
+  };
 }
 
 interface ShareablePromo {
@@ -253,6 +266,104 @@ export default function AdminPage() {
                 <div className="text-sm text-gray-300">Avg Reward/Share</div>
               </div>
             </div>
+
+            {/* Lottery Statisztikák */}
+            {stats.lottery && (
+              <>
+                <div className="mt-8">
+                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                    🎰 Lottery Statistics
+                  </h2>
+                </div>
+
+                {/* Lottery fő statisztikák */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-400">{stats.lottery.totalRounds}</div>
+                    <div className="text-sm text-gray-300">Total Rounds</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-green-400">{stats.lottery.activeRounds}</div>
+                    <div className="text-sm text-gray-300">Active Rounds</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-400">{stats.lottery.totalTicketsSold}</div>
+                    <div className="text-sm text-gray-300">Tickets Sold</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-yellow-400">{stats.lottery.totalRevenue.toLocaleString()}</div>
+                    <div className="text-sm text-gray-300">Total Revenue (CHESS)</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-pink-400">{stats.lottery.currentJackpot.toLocaleString()}</div>
+                    <div className="text-sm text-gray-300">Current Jackpot</div>
+                  </div>
+                </div>
+
+                {/* Lottery részletes statisztikák */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-red-400">{stats.lottery.totalWinners}</div>
+                    <div className="text-sm text-gray-300">Total Winners</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-orange-400">{stats.lottery.totalPrizesDistributed.toLocaleString()}</div>
+                    <div className="text-sm text-gray-300">Prizes Distributed</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{stats.lottery.avgTicketsPerRound.toFixed(1)}</div>
+                    <div className="text-sm text-gray-300">Avg Tickets/Round</div>
+                  </div>
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-indigo-400">{stats.lottery.completedRounds}</div>
+                    <div className="text-sm text-gray-300">Completed Rounds</div>
+                  </div>
+                </div>
+
+                {/* Legnépszerűbb számok */}
+                {stats.lottery.mostPopularNumbers && stats.lottery.mostPopularNumbers.length > 0 && (
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-white mb-4">🔥 Most Popular Numbers</h3>
+                    <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+                      {stats.lottery.mostPopularNumbers.slice(0, 10).map((item, index) => (
+                        <div key={item.number} className="text-center">
+                          <div className="bg-purple-600 text-white rounded-lg p-2 font-bold text-lg">
+                            {item.number}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">{item.count} tickets</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Top nyertesek */}
+                {stats.lottery.topWinners && stats.lottery.topWinners.length > 0 && (
+                  <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-white mb-4">🏆 Top Winners</h3>
+                    <div className="space-y-2">
+                      {stats.lottery.topWinners.slice(0, 5).map((winner, index) => (
+                        <div key={winner.player_fid} className="flex justify-between items-center bg-gray-800/50 rounded-lg p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="text-2xl">
+                              {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅'}
+                            </div>
+                            <div>
+                              <div className="font-bold text-white">FID: {winner.player_fid}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-yellow-400">
+                              {winner.total_winnings.toLocaleString()} CHESS
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* FarChess statisztikák */}
             {stats.farChess && (

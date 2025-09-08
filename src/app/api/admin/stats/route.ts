@@ -91,6 +91,89 @@ export async function GET(request: NextRequest) {
       totalGamesWon: 0
     };
 
+    // Lottery statisztikák alapértelmezett értékekkel
+    let lotteryStats = {
+      totalRounds: 0,
+      activeRounds: 0,
+      completedRounds: 0,
+      totalTicketsSold: 0,
+      totalRevenue: 0,
+      totalPrizesDistributed: 0,
+      totalWinners: 0,
+      currentJackpot: 0,
+      avgTicketsPerRound: 0,
+      mostPopularNumbers: [],
+      topWinners: []
+    };
+
+    try {
+      // Lottery round stats
+      const totalRoundsResult = await sql`SELECT COUNT(*) as count FROM lottery_draws`;
+      const activeRoundsResult = await sql`SELECT COUNT(*) as count FROM lottery_draws WHERE status = 'active'`;
+      const completedRoundsResult = await sql`SELECT COUNT(*) as count FROM lottery_draws WHERE status = 'completed'`;
+      
+      // Ticket stats
+      const totalTicketsResult = await sql`SELECT COUNT(*) as count FROM lottery_tickets`;
+      const totalRevenueResult = await sql`SELECT COALESCE(SUM(purchase_price), 0) as total FROM lottery_tickets`;
+      
+      // Winner stats
+      const totalWinnersResult = await sql`SELECT COUNT(*) as count FROM lottery_winnings`;
+      const totalPrizesResult = await sql`SELECT COALESCE(SUM(amount_won), 0) as total FROM lottery_winnings`;
+      
+      // Current jackpot (from active round)
+      const currentJackpotResult = await sql`SELECT COALESCE(jackpot, 0) as jackpot FROM lottery_draws WHERE status = 'active' ORDER BY draw_number DESC LIMIT 1`;
+      
+      // Average tickets per round
+      const avgTicketsResult = await sql`
+        SELECT COALESCE(AVG(ticket_count), 0) as avg_tickets 
+        FROM (
+          SELECT draw_id, COUNT(*) as ticket_count 
+          FROM lottery_tickets 
+          GROUP BY draw_id
+        ) as round_tickets
+      `;
+      
+      // Most popular numbers
+      const popularNumbersResult = await sql`
+        SELECT number, COUNT(*) as count 
+        FROM lottery_tickets 
+        GROUP BY number 
+        ORDER BY count DESC 
+        LIMIT 10
+      `;
+      
+      // Top winners
+      const topWinnersResult = await sql`
+        SELECT player_fid, SUM(amount_won) as total_winnings 
+        FROM lottery_winnings 
+        GROUP BY player_fid 
+        ORDER BY total_winnings DESC 
+        LIMIT 5
+      `;
+
+      lotteryStats = {
+        totalRounds: Number(totalRoundsResult[0]?.count || 0),
+        activeRounds: Number(activeRoundsResult[0]?.count || 0),
+        completedRounds: Number(completedRoundsResult[0]?.count || 0),
+        totalTicketsSold: Number(totalTicketsResult[0]?.count || 0),
+        totalRevenue: Number(totalRevenueResult[0]?.total || 0),
+        totalPrizesDistributed: Number(totalPrizesResult[0]?.total || 0),
+        totalWinners: Number(totalWinnersResult[0]?.count || 0),
+        currentJackpot: Number(currentJackpotResult[0]?.jackpot || 0),
+        avgTicketsPerRound: Number(avgTicketsResult[0]?.avg_tickets || 0),
+        mostPopularNumbers: popularNumbersResult.map(row => ({
+          number: row.number,
+          count: Number(row.count)
+        })),
+        topWinners: topWinnersResult.map(row => ({
+          player_fid: row.player_fid,
+          total_winnings: Number(row.total_winnings)
+        }))
+      };
+    } catch (e) {
+      console.log('Lottery tables might not exist:', e);
+    }
+
     const stats = {
       totalPromotions: Number(totalPromotions.count) || 0,
       activePromotions: Number(activePromotions.count) || 0,
@@ -104,6 +187,8 @@ export async function GET(request: NextRequest) {
       avgReward: Number(avgReward.avg).toFixed(2) || '0.00',
       // FarChess statisztikák
       farChess: farChessStats,
+      // Lottery statisztikák
+      lottery: lotteryStats,
     };
 
     console.log('Admin stats result:', stats);
