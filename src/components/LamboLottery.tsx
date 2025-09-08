@@ -178,6 +178,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         abi: CHESS_TOKEN_ABI,
         functionName: 'approve',
         args: [LOTTO_CONTRACT_ADDRESS, totalCost],
+        gas: BigInt(100000), // Standard gas limit for approve
       });
       setApproveTxHash(hash);
       setStep(PurchaseStep.ApproveConfirming);
@@ -211,6 +212,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           abi: LOTTO_CONTRACT_ABI,
           functionName: 'buyTicketsBatch',
           args: [selectedNumbers.map(num => BigInt(num))],
+          gas: BigInt(500000), // Increased gas limit for batch operations
       });
       finalHash = hash;
 
