@@ -369,7 +369,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                           key={number} 
                           onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} 
                           disabled={isNumberTaken(number)} 
-                          className={`w-9 h-9 rounded text-sm font-bold transition-all duration-200 border-2 flex items-center justify-center ${
+                          className={`w-10 h-10 rounded text-base font-bold transition-all duration-200 border-2 flex items-center justify-center ${
                             isNumberTaken(number) 
                               ? 'bg-gray-300/40 text-gray-400 cursor-not-allowed border-gray-400/50' 
                               : selectedNumbers.includes(number) 
