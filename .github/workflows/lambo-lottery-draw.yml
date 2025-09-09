@@ -2,7 +2,7 @@ name: Lambo Lottery Daily Draw
 
 on:
   schedule:
-    - cron: '40 07 * * *'
+    - cron: '0 19 * * *'
   workflow_dispatch: # Engedélyezi a manuális indítást is.
 
 jobs:
@@ -21,6 +21,7 @@ jobs:
         echo ""
         echo "Budapest Time (Europe/Budapest):"
         TZ=Europe/Budapest date
+        echo "Lottery draw scheduled for 19:00 UTC (21:00 Budapest)"
         echo "------------------"
       
     - name: Setup Node.js

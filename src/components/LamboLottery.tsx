@@ -504,7 +504,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 <ul className="text-sm text-gray-400 space-y-1">
                   <li>• Choose up to 10 numbers between 1-100. Numbers are grouped in tens for the lottery draw.</li>
                   <li>• Each ticket costs 100,000 CHESS tokens.</li>
-                  <li>• Daily draw at 8 PM UTC.</li>
+                  <li>• Daily draw at 9 PM Budapest time (7 PM UTC).</li>
                   <li>• One winner takes the entire prize pool!</li>
                 </ul>
               </div>

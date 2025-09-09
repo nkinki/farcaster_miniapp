@@ -7,7 +7,7 @@ A teljes BUY A LAMBO lottó rendszer implementálva van a Farcaster miniappban!
 - **1 millió CHESS token** alapnyeremény
 - **1-100 sorsjegy** vásárlása, 20,000 CHESS áron
 - **Több sorsjegy** is vásárolható egyszerre (max 10)
-- **Napi húzás** este 8-kor UTC
+- **Napi húzás** este 21:00-kor Budapest időben (19:00 UTC)
 - **70%** a következő napra, **30%** a kincstárba
 - **Egy nyertes visz mindent** (All In!)
 
