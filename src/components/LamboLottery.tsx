@@ -122,6 +122,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     if (isApproved && step === PurchaseStep.ApproveConfirming) {
       setStep(PurchaseStep.ReadyToPurchase);
       refetchAllowance();
+      // Reset approve transaction hash to clear pending state
+      setApproveTxHash(undefined);
     }
   }, [isApproved, step, refetchAllowance]);
   
