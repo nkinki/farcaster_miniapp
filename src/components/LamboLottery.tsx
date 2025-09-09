@@ -360,25 +360,27 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center"><FiZap className="inline mr-2" /> Select Numbers (1-100)</h3>
                 
-                {/* 10x10 Grid - Teljesen újra tervezve */}
-                <div className="flex justify-center mb-4">
-                  <div className="inline-grid grid-cols-10 gap-2 p-4 border-2 border-purple-500/30 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] bg-gradient-to-br from-purple-900/10 to-transparent pulse-glow">
-                    {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (
-                      <button 
-                        key={number} 
-                        onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} 
-                        disabled={isNumberTaken(number)} 
-                        className={`w-10 h-10 rounded text-base font-bold transition-all duration-200 border-2 flex items-center justify-center ${
-                          isNumberTaken(number) 
-                            ? 'bg-gray-300/40 text-gray-400 cursor-not-allowed border-gray-400/50' 
-                            : selectedNumbers.includes(number) 
-                            ? 'bg-cyan-500 text-white border-cyan-400 shadow-lg shadow-cyan-500/50' 
-                            : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500'
-                        }`}
-                      >
-                        {number}
-                      </button>
-                    ))}
+                {/* 10x10 Grid - DRASZTIKUS ÚJRATERVEZÉS - Flexbox alapú */}
+                <div className="mb-4 flex justify-center">
+                  <div className="border-2 border-purple-500/30 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] bg-gradient-to-br from-purple-900/10 to-transparent pulse-glow p-4">
+                    <div className="flex flex-wrap justify-center gap-1" style={{ width: '420px' }}>
+                      {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (
+                        <button 
+                          key={number} 
+                          onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} 
+                          disabled={isNumberTaken(number)} 
+                          className={`w-10 h-10 rounded text-base font-bold transition-all duration-200 border-2 flex items-center justify-center ${
+                            isNumberTaken(number) 
+                              ? 'bg-gray-300/40 text-gray-400 cursor-not-allowed border-gray-400/50' 
+                              : selectedNumbers.includes(number) 
+                              ? 'bg-cyan-500 text-white border-cyan-400 shadow-lg shadow-cyan-500/50' 
+                              : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105 border-purple-500'
+                          }`}
+                        >
+                          {number}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 
