@@ -353,7 +353,7 @@ export default function Home() {
                 }
                 setShowLamboLottery(true);
               }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border-2 border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow shadow-[0_0_20px_rgba(255,255,0,0.5)] hover:shadow-[0_0_30px_rgba(255,255,0,0.7)] w-full sm:w-auto"
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
             >
               <FiDollarSign size={28} className="text-yellow-300" />
               BUY A LAMBO
@@ -370,7 +370,7 @@ export default function Home() {
                 }
                 sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
               }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow shadow-[0_0_20px_rgba(93,106,255,0.5)] hover:shadow-[0_0_30px_rgba(93,106,255,0.7)] w-full sm:w-auto"
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
             >
               <FiGift size={28} className="text-[#5D6AFF]" />
               <span className="animate-chessneon">Claim $CHESS</span>
