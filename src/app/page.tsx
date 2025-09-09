@@ -326,7 +326,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
             <Link href="/promote" className="inline-block">
               <span 
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
                 onClick={async () => {
                   if (hapticsSupported) {
                     try {
@@ -342,27 +342,42 @@ export default function Home() {
               </span>
             </Link>
             
-
-            
-                                       <button
-                onClick={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('medium');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
+            <button
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.impactOccurred('medium');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
                   }
-                  setShowLamboLottery(true);
-                }}
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border-2 border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow shadow-[0_0_20px_rgba(255,255,0,0.5)] hover:shadow-[0_0_30px_rgba(255,255,0,0.7)]"
-              >
-                <FiDollarSign size={28} className="text-yellow-300" />
-                BUY A LAMBO
-                <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
-                  Under Development
-                </span>
-              </button>
+                }
+                setShowLamboLottery(true);
+              }}
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border-2 border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow shadow-[0_0_20px_rgba(255,255,0,0.5)] hover:shadow-[0_0_30px_rgba(255,255,0,0.7)] w-full sm:w-auto"
+            >
+              <FiDollarSign size={28} className="text-yellow-300" />
+              BUY A LAMBO
+              <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
+                Under Development
+              </span>
+            </button>
+
+            <button
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.notificationOccurred('success');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
+                  }
+                }
+                sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
+              }}
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow shadow-[0_0_20px_rgba(93,106,255,0.5)] hover:shadow-[0_0_30px_rgba(93,106,255,0.7)] w-full sm:w-auto"
+            >
+              <FiGift size={28} className="text-[#5D6AFF]" />
+              <span className="animate-chessneon">Claim $CHESS</span>
+            </button>
           </div>
 
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
