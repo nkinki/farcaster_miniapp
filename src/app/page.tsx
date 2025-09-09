@@ -342,39 +342,43 @@ export default function Home() {
               </span>
             </Link>
             
-            <button
-              onClick={async () => {
-                if (hapticsSupported) {
-                  try {
-                    await sdk.haptics.impactOccurred('medium');
-                  } catch (error) {
-                    console.log('Haptics error:', error);
+            <div className="inline-block">
+              <button
+                onClick={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.impactOccurred('medium');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
+                    }
                   }
-                }
-                setShowLamboLottery(true);
-              }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
-            >
-              <FiDollarSign size={28} className="text-yellow-300" />
-              BUY A LAMBO
-            </button>
+                  setShowLamboLottery(true);
+                }}
+                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+              >
+                <FiDollarSign size={28} className="text-yellow-300" />
+                BUY A LAMBO
+              </button>
+            </div>
 
-            <button
-              onClick={async () => {
-                if (hapticsSupported) {
-                  try {
-                    await sdk.haptics.notificationOccurred('success');
-                  } catch (error) {
-                    console.log('Haptics error:', error);
+            <div className="inline-block">
+              <button
+                onClick={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.notificationOccurred('success');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
+                    }
                   }
-                }
-                sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
-              }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
-            >
-              <FiGift size={28} className="text-[#5D6AFF]" />
-              <span className="animate-chessneon">Claim $CHESS</span>
-            </button>
+                  sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
+                }}
+                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+              >
+                <FiGift size={28} className="text-[#5D6AFF]" />
+                <span className="animate-chessneon">Claim $CHESS</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
