@@ -357,9 +357,6 @@ export default function Home() {
             >
               <FiDollarSign size={28} className="text-yellow-300" />
               BUY A LAMBO
-              <span className="text-xs bg-yellow-500 px-2 py-1 rounded-full animate-pulse">
-                Under Development
-              </span>
             </button>
 
             <button
