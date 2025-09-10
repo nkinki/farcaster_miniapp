@@ -1,58 +1,85 @@
 name: 'Lotto: Daily Notifications'
 
+# A munkafolyamat indítói:
 on:
-  workflow_dispatch: # A manuális indítás engedélyezése
+  # 1. Lehetővé teszi a manuális indítást a GitHub Actions felületéről.
+  workflow_dispatch:
+  # 2. Időzített indítások listája.
   schedule:
+    # Reggeli értesítés (8:00 UTC)
     - cron: '0 8 * * *'
+    # Déli értesítés (12:00 UTC)
     - cron: '0 12 * * *'
+    # Sorsolás előtti értesítés (18:00 UTC)
     - cron: '0 18 * * *'
 
 jobs:
+  # 1. FELADAT: REGGELI ÉRTESÍTÉS
   notify-morning:
-    # Most már a manuális indításra is lefut
+    # Feltétel: Fusson le, HA a '0 8 * * *' időzítő indította, VAGY HA manuálisan indították.
     if: github.event.schedule == '0 8 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm install
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Run notification script for Lotto Morning Update
         run: npx tsx scripts/sendLottoNotifications.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NOTIFICATION_TYPE: 'LOTTO_MORNING'
 
+  # 2. FELADAT: DÉLI ÉRTESÍTÉS
   notify-midday:
-    # Most már a manuális indításra is lefut
+    # Feltétel: Fusson le, HA a '0 12 * * *' időzítő indította, VAGY HA manuálisan indították.
     if: github.event.schedule == '0 12 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm install
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Run notification script for Lotto Midday Update
         run: npx tsx scripts/sendLottoNotifications.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NOTIFICATION_TYPE: 'LOTTO_MIDDAY'
 
+  # 3. FELADAT: SORSOLÁS ELŐTTI ÉRTESÍTÉS
   notify-pre-draw:
-    # Most már a manuális indításra is lefut
+    # Feltétel: Fusson le, HA a '0 18 * * *' időzítő indította, VAGY HA manuálisan indították.
     if: github.event.schedule == '0 18 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm install
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Run notification script for Lotto Pre-Draw Alert
         run: npx tsx scripts/sendLottoNotifications.ts
         env:
