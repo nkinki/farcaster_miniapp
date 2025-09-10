@@ -176,7 +176,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const updateTimer = () => {
       const now = new Date();
       const drawTime = new Date();
-      drawTime.setUTCHours(20, 0, 0, 0);
+      drawTime.setUTCHours(19, 0, 0, 0);
       if (now.getTime() > drawTime.getTime()) { drawTime.setDate(drawTime.getDate() + 1); }
       const difference = drawTime.getTime() - now.getTime();
       if (difference > 0) {
