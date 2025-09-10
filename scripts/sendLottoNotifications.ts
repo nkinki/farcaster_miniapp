@@ -1,7 +1,13 @@
+// Fájl: scripts/sendLottoNotifications.ts
+
 import { Pool } from 'pg';
 import fetch from 'node-fetch';
 
-// Fő funkció
+/**
+ * A fő funkció, ami lefut, amikor a szkript elindul.
+ * Kezeli az adatbázis-kapcsolatot, lekérdezi a szükséges adatokat,
+ * összeállítja az értesítést, és elindítja a küldést.
+ */
 async function main() {
   const notificationType = process.env.NOTIFICATION_TYPE;
   console.log(`Lotto script started for notification type: ${notificationType}`);
@@ -16,7 +22,7 @@ async function main() {
   });
 
   try {
-    // 1. Felhasználói tokenek lekérdezése
+    // 1. Felhasználói tokenek lekérdezése az értesítésekhez
     console.log("Querying notification tokens from the database...");
     const { rows: tokenRows } = await pool.query('SELECT token, url FROM notification_tokens');
     if (!tokenRows.length) {
@@ -28,17 +34,18 @@ async function main() {
     let notificationTitle = '';
     let notificationBody = '';
 
-    // 2. Lottó adatainak lekérdezése és üzenet összeállítása
+    // 2. Az aktuális, aktív lottó forduló adatainak lekérdezése
     console.log(`Executing Lottery logic for: ${notificationType}`);
+    // A kép alapján a helyes táblanév: lottery_draws, oszlopnév: jackpot
     const result = await pool.query(
-      `SELECT prize_pool FROM lottery_rounds WHERE status = 'active' ORDER BY id DESC LIMIT 1`
+      `SELECT jackpot FROM lottery_draws WHERE status = 'active' ORDER BY id DESC LIMIT 1`
     );
 
     if (result.rows.length > 0) {
       const round = result.rows[0];
-      const prizePoolRaw = Number(round.prize_pool);
+      const prizePoolRaw = Number(round.jackpot);
       
-      // A nyeremény formázása (pl. 1,500,000 -> 1.5M)
+      // Segédfüggvény a nyeremény formázásához (pl. 1,500,000 -> 1.5M)
       const formattedPrize = (amount: number) => {
           if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
           if (amount >= 1000) return `${Math.floor(amount / 1000)}K`;
@@ -46,28 +53,27 @@ async function main() {
       };
       const prizePool = formattedPrize(prizePoolRaw);
       
-      // Üzenet kiválasztása a típus alapján
+      // 3. Üzenet összeállítása az értesítés típusa alapján (angolul, UTC idővel)
       if (notificationType === 'LOTTO_MORNING') {
           notificationTitle = `☀️ Good Morning! The Lambo Lottery jackpot is at ${prizePool} CHESS!`;
-          notificationBody = `The draw is tonight at 21:00 (Budapest). Will you be the one to win it all? 🏎️`;
+          notificationBody = `The draw is tonight at 19:00 UTC. Will you be the one to win it all? 🏎️`;
       } else if (notificationType === 'LOTTO_MIDDAY') {
-          notificationTitle = ` lunchtime! The jackpot has grown to ${prizePool} CHESS!`;
-          notificationBody = `Still time to get your lucky numbers for tonight's draw. One winner takes all! 💰`;
+          notificationTitle = `⏰ Midday update! The jackpot has grown to ${prizePool} CHESS!`;
+          notificationBody = `Still time to get your lucky numbers for tonight's 19:00 UTC draw. One winner takes all! 💰`;
       } else if (notificationType === 'LOTTO_PRE_DRAW') {
-          // Kiszámoljuk a hátralévő időt a 19:00 UTC sorsolásig
           const now = new Date();
           const drawTime = new Date();
-          drawTime.setUTCHours(19, 0, 0, 0);
+          drawTime.setUTCHours(19, 0, 0, 0); // Sorsolás időpontja: 19:00 UTC
           const hoursLeft = Math.round((drawTime.getTime() - now.getTime()) / (1000 * 60 * 60));
 
           notificationTitle = `🚨 Final hours! The jackpot is ${prizePool} CHESS!`;
-          notificationBody = `Only ${hoursLeft > 0 ? hoursLeft : 1} hour(s) left! Get your tickets now and win the Lambo! 🚀`;
+          notificationBody = `Only ${hoursLeft > 0 ? hoursLeft : 1} hour(s) left until the 19:00 UTC draw! Get your tickets now and win the Lambo! 🚀`;
       }
     } else {
         console.log("No active lottery round found. No notification will be sent.");
     }
 
-    // 3. Értesítés küldése, ha van üzenet
+    // 4. Értesítés elküldése, ha sikeresen összeállt az üzenet
     if (notificationTitle) {
       console.log(`Composed Message -> Title: "${notificationTitle}", Body: "${notificationBody}"`);
       await sendNotification(tokenRows, notificationTitle, notificationBody, notificationType);
@@ -83,7 +89,14 @@ async function main() {
   }
 }
 
-// Segédfüggvény az értesítés küldéséhez (változatlanul átvéve)
+/**
+ * Segédfüggvény, ami elküldi a push értesítést.
+ * Csoportosítja a tokeneket URL szerint, és 100-as adagokban küldi el őket.
+ * @param tokenRows - Az adatbázisból lekérdezett tokenek és URL-ek.
+ * @param title - Az értesítés címe.
+ * @param body - Az értesítés szövege.
+ * @param notificationType - Az értesítés típusa az egyedi azonosítóhoz.
+ */
 async function sendNotification(tokenRows: any[], title: string, body: string, notificationType: string) {
     const urlMap: { [url: string]: string[] } = {};
     for (const row of tokenRows) {
@@ -98,11 +111,11 @@ async function sendNotification(tokenRows: any[], title: string, body: string, n
                 notificationId: `apprank-lotto-report-${notificationType}-${new Date().toISOString().slice(0, 10)}`,
                 title,
                 body,
-                targetUrl: 'https://farc-nu.vercel.app', // Ezt a linket módosítsd, ha a lottóra kell mutatnia
+                targetUrl: 'https://farc-nu.vercel.app', // Ez a link jelenik meg, ha a felhasználó rákattint
                 tokens: batch
             };
             
-            console.log(`Sending Lotto notification with ID: ${notificationPayload.notificationId}`);
+            console.log(`Sending Lotto notification with ID: ${notificationPayload.notificationId} to ${url}`);
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -113,5 +126,5 @@ async function sendNotification(tokenRows: any[], title: string, body: string, n
     }
 }
 
-// Fő funkció futtatása
+// A fő funkció futtatása
 main();
