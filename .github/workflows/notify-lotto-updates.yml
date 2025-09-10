@@ -1,0 +1,66 @@
+name: 'Lotto: Daily Notifications'
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 1. Reggeli értesítés időzítője (8:00 UTC)
+    - cron: '0 8 * * *'
+    # 2. Déli értesítés időzítője (12:00 UTC)
+    - cron: '0 12 * * *'
+    # 3. Sorsolás előtti értesítés időzítője (18:00 UTC)
+    - cron: '0 18 * * *'
+
+jobs:
+  # 1. FELADAT: CSAK A REGGELI IDŐZÍTŐRE FUT LE
+  notify-morning:
+    if: github.event.schedule == '0 8 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm install
+      - name: Run notification script for Lotto Morning Update
+        # EZ A SOR VÁLTOZOTT
+        run: npx tsx scripts/sendLottoNotifications.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NOTIFICATION_TYPE: 'LOTTO_MORNING'
+
+  # 2. FELADAT: CSAK A DÉLI IDŐZÍTŐRE FUT LE
+  notify-midday:
+    if: github.event.schedule == '0 12 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm install
+      - name: Run notification script for Lotto Midday Update
+        # EZ A SOR VÁLTOZOTT
+        run: npx tsx scripts/sendLottoNotifications.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NOTIFICATION_TYPE: 'LOTTO_MIDDAY'
+
+  # 3. FELADAT: CSAK AZ ESTI IDŐZÍTŐRE FUT LE
+  notify-pre-draw:
+    if: github.event.schedule == '0 18 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm install
+      - name: Run notification script for Lotto Pre-Draw Alert
+        # EZ A SOR VÁLTOZOTT
+        run: npx tsx scripts/sendLottoNotifications.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NOTIFICATION_TYPE: 'LOTTO_PRE_DRAW'
