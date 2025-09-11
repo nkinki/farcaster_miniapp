@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
-import { type Hash } from 'viem';
+import { type Hash, parseUnits } from 'viem';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
+import { treasuryDepositAddress, treasuryDepositABI } from '@/abis/treasuryDeposit';
 import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap, FiMessageSquare } from 'react-icons/fi';
 
 // --- Interface definíciók ---
@@ -101,13 +102,12 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
     setStep(CreationStep.Approving);
 
     try {
-      const totalCost = BigInt(totalBudget);
+      const totalBudgetInWei = parseUnits(totalBudget, 18);
       const hash = await writeContractAsync({
         address: CHESS_TOKEN_ADDRESS,
         abi: CHESS_TOKEN_ABI,
         functionName: 'approve',
-        args: [address, totalCost], // Self-approve for promotion creation
-        gas: BigInt(100000),
+        args: [treasuryDepositAddress, totalBudgetInWei],
       });
       setApproveTxHash(hash);
       setStep(CreationStep.ApproveConfirming);
@@ -166,6 +166,30 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
     }
   };
 
+  const handleCreateAndDeposit = async () => {
+    setErrorMessage(null);
+    if (!castUrl || Number(rewardPerShare) > Number(totalBudget)) {
+      setErrorMessage("Please fill all fields correctly. Reward cannot be greater than budget.");
+      return;
+    }
+
+    setStep(CreationStep.Creating);
+    try {
+        const totalBudgetInWei = parseUnits(totalBudget, 18);
+        const hash = await writeContractAsync({
+            address: treasuryDepositAddress,
+            abi: treasuryDepositABI,
+            functionName: 'depositFunds',
+            args: [totalBudgetInWei],
+        });
+        setCreateTxHash(hash);
+        setStep(CreationStep.CreateConfirming);
+    } catch (err: any) {
+        setErrorMessage(err.shortMessage || "Deposit transaction failed.");
+        setStep(CreationStep.ReadyToCreate);
+    }
+  };
+
   // Approve állapot figyelése
   useEffect(() => {
     if (isApproved && step === CreationStep.ApproveConfirming) {
@@ -173,6 +197,54 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
       setApproveTxHash(undefined);
     }
   }, [isApproved, step]);
+
+  // Deposit és mentés kezelése
+  useEffect(() => {
+    const saveToDb = async () => {
+      if (isCreated && step === CreationStep.CreateConfirming) {
+        setStep(CreationStep.Saving);
+        try {
+          const promotionData = {
+            fid: user.fid,
+            username: user.username,
+            displayName: user.displayName,
+            castUrl,
+            shareText: Number(totalBudget) >= 5000000 ? shareText : (shareText ? `${shareText}` : ''),
+            rewardPerShare: parseInt(rewardPerShare),
+            totalBudget: parseInt(totalBudget),
+            blockchainHash: createTxHash,
+            status: 'active',
+            actionType: selectedAction,
+            // Comment functionality (only sent if comment action is selected)
+            ...(selectedAction === 'comment' && {
+              commentTemplates: selectedTemplates,
+              customComment: customComment,
+              allowCustomComments: allowCustomComments
+            })
+          };
+
+          const response = await fetch('/api/promotions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(promotionData)
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save promotion to database');
+          }
+
+          const result = await response.json();
+          setStep(CreationStep.Success);
+          onSuccess(result.promotion);
+        } catch (err: any) {
+          setErrorMessage("On-chain deposit was successful, but saving failed. Please contact support.");
+          setStep(CreationStep.ReadyToCreate);
+        }
+      }
+    };
+    saveToDb();
+  }, [isCreated, step, user, castUrl, shareText, rewardPerShare, totalBudget, createTxHash, onSuccess, selectedAction, selectedTemplates, customComment, allowCustomComments]);
 
   const isLoading = isPending || isApproveConfirming || isCreateConfirming || step === CreationStep.Saving;
 
@@ -392,7 +464,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
           </button>
         ) : (
           <button
-            onClick={handleCreatePromotion}
+            onClick={handleCreateAndDeposit}
             disabled={isLoading}
             className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
           >
