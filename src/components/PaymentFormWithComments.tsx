@@ -55,7 +55,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
   const [shareText, setShareText] = useState('');
   const [rewardPerShare, setRewardPerShare] = useState('1000');
   const [totalBudget, setTotalBudget] = useState('10000');
-  const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast'>('quote');
+  const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast' | 'comment'>('quote');
   
   // Új comment állapotok
   const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
@@ -138,10 +138,12 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         rewardPerShare: parseInt(rewardPerShare),
         totalBudget: parseInt(totalBudget),
         actionType: selectedAction,
-        // Új comment mezők
-        commentTemplates: selectedTemplates,
-        customComment,
-        allowCustomComments
+        // Új comment mezők - csak akkor küldjük, ha comment action van kiválasztva
+        ...(selectedAction === 'comment' && {
+          commentTemplates: selectedTemplates,
+          customComment,
+          allowCustomComments
+        })
       };
 
       const response = await fetch('/api/promotions-with-comments', {
@@ -204,6 +206,18 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         >
           👍 Like & Recast
         </button>
+        <button
+          type="button"
+          onClick={() => setSelectedAction('comment')}
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+            selectedAction === 'comment'
+              ? 'bg-green-600 text-white border border-green-500'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+          }`}
+          disabled={step >= CreationStep.ReadyToCreate}
+        >
+          💬 Comment
+        </button>
       </div>
       
       <div>
@@ -211,12 +225,13 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" disabled={step >= CreationStep.ReadyToCreate} />
       </div>
 
-      {/* ÚJ: Comment Templates Section */}
-      <div>
-        <label className="block text-sm font-medium text-purple-300 mb-2">
-          <FiMessageSquare className="inline mr-1" />
-          Comment Templates (Select up to 3)
-        </label>
+      {/* Comment Templates Section - Only shown when comment action is selected */}
+      {selectedAction === 'comment' && (
+        <div>
+          <label className="block text-sm font-medium text-purple-300 mb-2">
+            <FiMessageSquare className="inline mr-1" />
+            Comment Templates (Select up to 3)
+          </label>
         <div className="grid grid-cols-2 gap-2 mb-3">
           {COMMENT_TEMPLATES.map((template, index) => (
             <button
@@ -234,13 +249,15 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
             </button>
           ))}
         </div>
-        <p className="text-xs text-gray-400">
-          Selected: {selectedTemplates.length}/3 templates
-        </p>
-      </div>
+          <p className="text-xs text-gray-400">
+            Selected: {selectedTemplates.length}/3 templates
+          </p>
+        </div>
+      )}
 
-      {/* ÚJ: Custom Comment Section */}
-      <div>
+      {/* Custom Comment Section - Only shown when comment action is selected */}
+      {selectedAction === 'comment' && (
+        <div>
         <label htmlFor="customComment" className="block text-sm font-medium text-purple-300 mb-1">
           Custom Comment Text (Optional)
         </label>
@@ -280,10 +297,11 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
             Allow users to add custom comments
           </label>
         </div>
-        <p className="text-xs text-gray-400 mt-1">
-          {customComment.length}/280 characters
-        </p>
-      </div>
+          <p className="text-xs text-gray-400 mt-1">
+            {customComment.length}/280 characters
+          </p>
+        </div>
+      )}
 
       {/* Meglévő Share Text (opcionális) */}
       <div>
