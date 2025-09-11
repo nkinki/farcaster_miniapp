@@ -1,8 +1,10 @@
 // FÁJL: /src/app/api/promotions/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '../../../../lib/db';
+import { neon } from '@neondatabase/serverless';
 import { FEATURES } from '@/config/features';
+
+const sql = neon(process.env.DATABASE_URL!);
 
 // Promóciók listázása (ez a rész változatlan)
 export async function GET(request: NextRequest) {
@@ -12,11 +14,9 @@ export async function GET(request: NextRequest) {
 
     let promotions;
     if (status === 'all') {
-      const result = await pool.query('SELECT * FROM promotions ORDER BY created_at DESC');
-      promotions = result.rows;
+      promotions = await sql`SELECT * FROM promotions ORDER BY created_at DESC`;
     } else {
-      const result = await pool.query('SELECT * FROM promotions WHERE status = $1 ORDER BY created_at DESC', [status]);
-      promotions = result.rows;
+      promotions = await sql`SELECT * FROM promotions WHERE status = ${status} ORDER BY created_at DESC`;
     }
     
     return NextResponse.json({ promotions }, { status: 200 });
@@ -41,48 +41,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // JAVÍTÁS: Pool query használata Neon helyett
     // Check if comments feature is enabled and we have comment data
     const hasCommentData = FEATURES.ENABLE_COMMENTS && (commentTemplates || customComment !== undefined);
     
-    let query, values;
+    let newPromotion;
     
     if (hasCommentData) {
       // Insert with comment data
-      query = `
+      const result = await sql`
         INSERT INTO promotions (
           fid, username, display_name, cast_url, share_text,
           reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type,
           comment_templates, custom_comment, allow_custom_comments
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10, $11, $12, $13
+          ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
+          ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'},
+          ${commentTemplates ? JSON.stringify(commentTemplates) : '[]'},
+          ${customComment || null},
+          ${allowCustomComments !== false}
         )
-        RETURNING id, cast_url, created_at, comment_templates, custom_comment, allow_custom_comments;
+        RETURNING id, cast_url, created_at, comment_templates, custom_comment, allow_custom_comments
       `;
-      values = [
-        fid, username, displayName || null, castUrl, shareText || null, 
-        rewardPerShare, totalBudget, totalBudget, blockchainHash, actionType || 'quote',
-        commentTemplates ? JSON.stringify(commentTemplates) : '[]',
-        customComment || null,
-        allowCustomComments !== false
-      ];
+      newPromotion = result[0];
     } else {
       // Insert without comment data (backward compatibility)
-      query = `
+      const result = await sql`
         INSERT INTO promotions (
           fid, username, display_name, cast_url, share_text,
           reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10
+          ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
+          ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
         )
-        RETURNING id, cast_url, created_at;
+        RETURNING id, cast_url, created_at
       `;
-      values = [fid, username, displayName || null, castUrl, shareText || null, rewardPerShare, totalBudget, totalBudget, blockchainHash, actionType || 'quote'];
+      newPromotion = result[0];
     }
-    
-    const result = await pool.query(query, values);
-
-    const newPromotion = result.rows[0];
 
     // Automatikus értesítések trigger (nem blokkoló)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
