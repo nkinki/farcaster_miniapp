@@ -52,6 +52,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [claimingWinning, setClaimingWinning] = useState<number | null>(null);
   const [claimError, setClaimError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentInfoIndex, setCurrentInfoIndex] = useState(0);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
   const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ hash: purchaseTxHash });
@@ -171,6 +172,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   }, [isPurchased, purchaseTxHash, step, userFid, currentRound, selectedNumbers, address, fetchLotteryData, onPurchaseSuccess]);
 
   useEffect(() => { if (isOpen) { fetchLotteryData(); } }, [isOpen, fetchLotteryData]);
+
+  // Info message rotation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentInfoIndex(prev => (prev + 1) % 6);
+    }, 4000); // Change every 4 seconds
+    return () => clearInterval(interval);
+  }, []);
   
   useEffect(() => {
     const updateTimer = () => {
@@ -319,6 +328,31 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     if (amount >= 1_000) return `$${(amount / 1_000).toLocaleString('en-US', { maximumFractionDigits: 0 })}K`;
     return `$${amount.toLocaleString('en-US')}`;
   };
+
+  // Rotating info messages with real data
+  const getInfoMessage = () => {
+    const messages = [
+      // Message 1: Basic rules + user tickets
+      `Maximum 10 tickets per user per round. Numbers are grouped in tens (1-10, 11-20, etc.).${userTickets.length > 0 ? ` You already have ${userTickets.length}/10 tickets.` : ''}`,
+      
+      // Message 2: Current round stats
+      `Current round: ${currentRound?.total_tickets_sold || 0} tickets sold • Jackpot: ${formatChessTokens(currentRound?.prize_pool || 0)} CHESS • Your chance: ${userTickets.length > 0 ? Math.round((userTickets.length / Math.max(currentRound?.total_tickets_sold || 1, 1)) * 100) : 0}% to win!`,
+      
+      // Message 3: Recent results motivation
+      `Last winner: Round #${recentRounds[0]?.draw_number || 'N/A'} • Winning number: ${recentRounds[0]?.winning_number || 'N/A'} • Prize: ${formatChessTokens(recentRounds[0]?.jackpot || 0)} CHESS`,
+      
+      // Message 4: Buy a Lambo motivation
+      `🚗 Buy a Lambo with your winnings! • Each ticket = 1% chance to win the entire pot! • ROI potential: Win 1000x your investment!`,
+      
+      // Message 5: Statistics motivation
+      `📊 Average tickets per round: ${stats ? Math.round(stats.total_tickets_sold / Math.max(stats.total_rounds, 1)) : 0} • Total prizes distributed: ${formatChessTokens(stats?.total_prize_distributed || 0)} CHESS`,
+      
+      // Message 6: Time pressure
+      `⏰ Time left: ${timeRemaining} • Don't miss your chance! • More tickets = higher win probability!`
+    ];
+    
+    return messages[currentInfoIndex] || messages[0];
+  };
   const isNumberTaken = (number: number) => takenNumbers.includes(number);
 
   const isLoading = isPending || isApproveConfirming || isPurchaseConfirming || step === PurchaseStep.Saving;
@@ -428,7 +462,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 </div>
                 
                 <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                  <p className="text-sm text-green-300">Maximum 10 tickets per user per round. Numbers are grouped in tens (1-10, 11-20, etc.).{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
+                  <p className="text-sm text-green-300 transition-all duration-500 ease-in-out">{getInfoMessage()}</p>
                 </div>
               </div>
 
