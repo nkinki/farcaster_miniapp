@@ -47,7 +47,9 @@ const COMMENT_TEMPLATES = [
   "⚡ This hits different!",
   "🌟 Absolutely brilliant!",
   "🚀 Love this energy!",
-  "💪 This is the way!"
+  "💪 This is the way!",
+  "🎉 Amazing work!",
+  "⭐ Perfect!"
 ];
 
 const formatNumber = (num: number): string => {
