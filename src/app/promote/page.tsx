@@ -143,7 +143,7 @@ export default function PromotePage() {
   const [isLuckyBoxPreview, setIsLuckyBoxPreview] = useState(false);
   
   // Filter state for promotion types
-  const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast'>('all');
+  const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast' | 'comment'>('all');
   
   // Track completed actions for each promotion
   const [completedActions, setCompletedActions] = useState<Record<string, boolean>>({});
@@ -685,6 +685,7 @@ export default function PromotePage() {
       
       if (promotionFilter === 'quote' && promoActionType !== 'quote') return false;
       if (promotionFilter === 'like_recast' && promoActionType !== 'like_recast') return false;
+      if (promotionFilter === 'comment' && promoActionType !== 'comment') return false;
     }
     
     return true;
@@ -822,6 +823,16 @@ export default function PromotePage() {
                       }`}
                     >
                       👍 Like & Recast
+                    </button>
+                    <button
+                      onClick={() => setPromotionFilter('comment')}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+                        promotionFilter === 'comment'
+                          ? 'bg-green-600 text-white border border-green-500'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+                      }`}
+                    >
+                      💬 Comment
                     </button>
                   </div>
                   {sortedAvailablePromos.length === 0 ? (
