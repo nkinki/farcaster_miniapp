@@ -432,6 +432,19 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 </div>
               </div>
 
+              {userTickets.length > 0 && (
+                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
+                  <div className="flex justify-center">
+                    <div className="grid grid-cols-10 gap-2">
+                      {userTickets.map((ticket) => (
+                        <div key={ticket.id} className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-bold flex items-center justify-center">{ticket.ticket_number}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {recentRounds.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                   <h3 className="text-lg font-bold text-purple-400 mb-4 flex items-center justify-center gap-2">🏆 Recent Results</h3>
@@ -484,18 +497,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                         )}
                       </div>
                     ))}
-                  </div>
-                </div>
-              )}
-              {userTickets.length > 0 && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
-                  <div className="flex justify-center">
-                    <div className="grid grid-cols-10 gap-2">
-                      {userTickets.map((ticket) => (
-                        <div key={ticket.id} className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-bold flex items-center justify-center">{ticket.ticket_number}</div>
-                      ))}
-                    </div>
                   </div>
                 </div>
               )}
