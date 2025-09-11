@@ -49,6 +49,10 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
 
+  // Reward opciók - előre definiálva
+  const rewardOptions = [1000, 2000, 5000, 10000, 20000];
+  const budgetOptions = [10000, 100000, 500000, 1000000, 5000000];
+
   // --- Állapotok ---
   const [step, setStep] = useState<CreationStep>(CreationStep.Idle);
   const [castUrl, setCastUrl] = useState('');
@@ -68,10 +72,6 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
   const { isLoading: isCreateConfirming, isSuccess: isCreated } = useWaitForTransactionReceipt({ hash: createTxHash });
-
-  // Reward opciók
-  const rewardOptions = [1000, 2000, 5000, 10000, 20000];
-  const budgetOptions = [10000, 100000, 500000, 1000000, 5000000];
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
