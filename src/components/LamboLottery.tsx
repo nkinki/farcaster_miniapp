@@ -345,7 +345,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       `🚗 Buy a Lambo with your winnings! • Each ticket = 1% chance to win the entire pot! • ROI potential: Win 1000x your investment!`,
       
       // Message 5: Statistics motivation
-      `📊 Average tickets per round: ${stats ? Math.round(stats.total_tickets_sold / Math.max(stats.total_rounds, 1)) : 0} • Total prizes distributed: ${formatChessTokens(stats?.total_prize_distributed || 0)} CHESS`,
+      `📊 Biggest prize: ${formatChessTokens(recentRounds.reduce((max, round) => Math.max(max, round.jackpot), 0))} CHESS • Average prize: ${formatChessTokens(stats ? Math.round(stats.total_prize_distributed / Math.max(stats.total_rounds, 1)) : 0)} CHESS`,
       
       // Message 6: Time pressure
       `⏰ Time left: ${timeRemaining} • Don't miss your chance! • More tickets = higher win probability!`
