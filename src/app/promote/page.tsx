@@ -5,7 +5,7 @@ import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
-import PaymentForm from "../../components/PaymentForm";
+import PaymentFormWithComments from "../../components/PaymentFormWithComments";
 import CampaignManager from "../../components/CampaignManager";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import LuckyBox from "@/components/LuckyBox";
@@ -779,7 +779,7 @@ export default function PromotePage() {
             <button className="absolute top-3 right-3 text-gray-400 hover:text-white" onClick={handleCreateCancel}>
               <FiX size={24} />
             </button> 
-            <PaymentForm user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} /> 
+            <PaymentFormWithComments user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} /> 
           </div>
         )}
 
