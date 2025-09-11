@@ -53,8 +53,8 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
   const [step, setStep] = useState<CreationStep>(CreationStep.Idle);
   const [castUrl, setCastUrl] = useState('');
   const [shareText, setShareText] = useState('');
-  const [rewardPerShare, setRewardPerShare] = useState('1000');
-  const [totalBudget, setTotalBudget] = useState('10000');
+  const [rewardPerShare, setRewardPerShare] = useState(rewardOptions[0].toString());
+  const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
   const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast' | 'comment'>('quote');
   
   // Új comment állapotok
@@ -71,7 +71,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
 
   // Reward opciók
   const rewardOptions = [1000, 2000, 5000, 10000, 20000];
-  const budgetOptions = [10000, 25000, 50000, 100000, 250000, 500000, 1000000, 5000000];
+  const budgetOptions = [10000, 100000, 500000, 1000000, 5000000];
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -350,13 +350,19 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
 
       <div>
         <label className="block text-sm font-medium text-purple-300 mb-1">Total Budget ($CHESS)*</label>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 gap-2">
           {budgetOptions.map((amount) => (
-            <button key={amount} onClick={() => setTotalBudget(amount.toString())} disabled={step >= CreationStep.ReadyToCreate} className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${totalBudget === amount.toString() ? "bg-blue-600 text-white shadow-lg" : "bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:bg-gray-800"}`}>
+            <button key={amount} onClick={() => setTotalBudget(amount.toString())} disabled={step >= CreationStep.ReadyToCreate} className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm relative ${totalBudget === amount.toString() ? "bg-blue-600 text-white shadow-lg" : "bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:bg-gray-800"}`}>
               {formatNumber(amount)}
+              {amount >= 5000000 && (
+                <span className="absolute -top-1 -right-1 text-xs bg-yellow-500 text-black px-1 rounded-full font-bold">👑</span>
+              )}
             </button>
           ))}
         </div>
+        <p className="text-xs text-gray-400 mt-1">
+          👑 5M+ $CHESS = Premium (no promotional messages)
+        </p>
       </div>
 
       {/* Error Message */}
