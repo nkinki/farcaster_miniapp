@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits, type Hash } from "viem";
-import { FiX } from "react-icons/fi";
+import { FiX, FiMessageSquare } from "react-icons/fi";
+import { FEATURES } from "@/config/features";
 
 // JAVÍTÁS: Pontos import útvonalak a képernyőfotód alapján
 import { treasuryDepositAddress, treasuryDepositABI } from "@/abis/treasuryDeposit";
@@ -34,6 +35,20 @@ enum CreationStep {
 
 const budgetOptions = [10000, 100000, 500000, 1000000, 5000000];
 const rewardOptions = [1000, 2000, 5000, 10000, 20000];
+
+// Comment templates - only used if ENABLE_COMMENTS is true
+const COMMENT_TEMPLATES = [
+  "🚀 This is amazing!",
+  "💯 Totally agree with this!",
+  "🔥 This is fire!",
+  "💎 Great content!",
+  "💎 Diamond hands!",
+  "🎯 Spot on!",
+  "⚡ This hits different!",
+  "🌟 Absolutely brilliant!",
+  "🚀 Love this energy!",
+  "💪 This is the way!"
+];
 
 const formatNumber = (num: number): string => {
   if (num >= 1000000) return `${num / 1000000}M`;
@@ -73,6 +88,11 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
   // Action selection state
   const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast'>('quote');
   
+  // Comment functionality state (only used if ENABLE_COMMENTS is true)
+  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
+  const [customComment, setCustomComment] = useState('');
+  const [allowCustomComments, setAllowCustomComments] = useState(true);
+  
   const [step, setStep] = useState<CreationStep>(CreationStep.Idle);
   const [error, setError] = useState<string | null>(null);
   
@@ -105,6 +125,12 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
               blockchainHash: createTxHash, // A befizetési tranzakció hash-ét mentjük
               status: 'active',
               actionType: selectedAction, // 'quote' vagy 'like_recast'
+              // Comment functionality (only sent if ENABLE_COMMENTS is true)
+              ...(FEATURES.ENABLE_COMMENTS && {
+                commentTemplates: selectedTemplates,
+                customComment: customComment,
+                allowCustomComments: allowCustomComments
+              })
             }),
           });
           if (!response.ok) throw new Error('Failed to save promotion to the database.');
@@ -118,6 +144,19 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
     };
     saveToDb();
   }, [isCreated, step, user, castUrl, shareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
+
+  // Template kiválasztás kezelése (only used if ENABLE_COMMENTS is true)
+  const handleTemplateSelect = (template: string) => {
+    if (!FEATURES.ENABLE_COMMENTS) return;
+    
+    setSelectedTemplates(prev => {
+      if (prev.includes(template)) {
+        return prev.filter(t => t !== template);
+      } else {
+        return [...prev, template];
+      }
+    });
+  };
 
   const handleApprove = async () => {
     setError(null);
@@ -205,6 +244,85 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <label htmlFor="castUrl" className="block text-xs font-medium text-slate-400 mb-1">Cast URL*</label>
         <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" disabled={step >= CreationStep.ReadyToCreate} />
       </div>
+
+      {/* Comment Templates Section - Only shown if ENABLE_COMMENTS is true */}
+      {FEATURES.ENABLE_COMMENTS && (
+        <div>
+          <label className="block text-sm font-medium text-purple-300 mb-2">
+            <FiMessageSquare className="inline mr-1" />
+            Comment Templates (Select up to 3)
+          </label>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {COMMENT_TEMPLATES.map((template, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => handleTemplateSelect(template)}
+                disabled={step >= CreationStep.ReadyToCreate || (selectedTemplates.length >= 3 && !selectedTemplates.includes(template))}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedTemplates.includes(template)
+                    ? 'bg-green-600 text-white border border-green-500'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+                } disabled:bg-gray-800 disabled:cursor-not-allowed`}
+              >
+                {template}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400">
+            Selected: {selectedTemplates.length}/3 templates
+          </p>
+        </div>
+      )}
+
+      {/* Custom Comment Section - Only shown if ENABLE_COMMENTS is true */}
+      {FEATURES.ENABLE_COMMENTS && (
+        <div>
+          <label htmlFor="customComment" className="block text-sm font-medium text-purple-300 mb-1">
+            Custom Comment Text (Optional)
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              id="customComment"
+              value={customComment}
+              onChange={(e) => setCustomComment(e.target.value)}
+              placeholder="Add your custom comment here..."
+              className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white pr-10"
+              disabled={step >= CreationStep.ReadyToCreate || !allowCustomComments}
+              maxLength={280}
+            />
+            {customComment && (
+              <button
+                type="button"
+                onClick={() => setCustomComment("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                tabIndex={-1}
+                aria-label="Clear custom comment"
+              >
+                <FiX size={18} />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="checkbox"
+              id="allowCustomComments"
+              checked={allowCustomComments}
+              onChange={(e) => setAllowCustomComments(e.target.checked)}
+              className="rounded"
+              disabled={step >= CreationStep.ReadyToCreate}
+            />
+            <label htmlFor="allowCustomComments" className="text-xs text-gray-400">
+              Allow users to add custom comments
+            </label>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            {customComment.length}/280 characters
+          </p>
+        </div>
+      )}
+
       <div>
         <label htmlFor="shareText" className="block text-sm font-medium text-purple-300 mb-1">Additional Share Text (Optional)</label>
         <div className="relative">

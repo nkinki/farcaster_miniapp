@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '../../../../lib/db';
+import { FEATURES } from '@/config/features';
 
 // Promóciók listázása (ez a rész változatlan)
 export async function GET(request: NextRequest) {
@@ -31,7 +32,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       fid, username, displayName, castUrl, shareText, 
-      rewardPerShare, totalBudget, blockchainHash, actionType 
+      rewardPerShare, totalBudget, blockchainHash, actionType,
+      // Comment functionality (only used if ENABLE_COMMENTS is true)
+      commentTemplates, customComment, allowCustomComments
     } = body;
 
     if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget || !blockchainHash) {
@@ -39,15 +42,45 @@ export async function POST(request: NextRequest) {
     }
     
     // JAVÍTÁS: Pool query használata Neon helyett
-    const result = await pool.query(`
-      INSERT INTO promotions (
-        fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10
-      )
-      RETURNING id, cast_url, created_at;
-    `, [fid, username, displayName || null, castUrl, shareText || null, rewardPerShare, totalBudget, totalBudget, blockchainHash, actionType || 'quote']);
+    // Check if comments feature is enabled and we have comment data
+    const hasCommentData = FEATURES.ENABLE_COMMENTS && (commentTemplates || customComment !== undefined);
+    
+    let query, values;
+    
+    if (hasCommentData) {
+      // Insert with comment data
+      query = `
+        INSERT INTO promotions (
+          fid, username, display_name, cast_url, share_text,
+          reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type,
+          comment_templates, custom_comment, allow_custom_comments
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10, $11, $12, $13
+        )
+        RETURNING id, cast_url, created_at, comment_templates, custom_comment, allow_custom_comments;
+      `;
+      values = [
+        fid, username, displayName || null, castUrl, shareText || null, 
+        rewardPerShare, totalBudget, totalBudget, blockchainHash, actionType || 'quote',
+        commentTemplates ? JSON.stringify(commentTemplates) : '[]',
+        customComment || null,
+        allowCustomComments !== false
+      ];
+    } else {
+      // Insert without comment data (backward compatibility)
+      query = `
+        INSERT INTO promotions (
+          fid, username, display_name, cast_url, share_text,
+          reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10
+        )
+        RETURNING id, cast_url, created_at;
+      `;
+      values = [fid, username, displayName || null, castUrl, shareText || null, rewardPerShare, totalBudget, totalBudget, blockchainHash, actionType || 'quote'];
+    }
+    
+    const result = await pool.query(query, values);
 
     const newPromotion = result.rows[0];
 
