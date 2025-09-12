@@ -615,9 +615,21 @@ export default function PromotePage() {
       
       // Cast elküldése
       await (miniAppSdk as any).actions.composeCast(castOptions);
-      console.log('✅ Comment cast sent successfully');
+      console.log('✅ Comment cast composed successfully');
       
-      // Submit to backend for reward verification
+      // Show instruction message
+      setShareError('📱 Comment composed! Please post it in the opened window, then wait for verification...');
+      
+      // Close modal first
+      setShowCommentModal(false);
+      setSelectedCommentPromo(null);
+      setSelectedCommentTemplate('');
+      
+      // Wait 10 seconds for user to complete the post
+      console.log('⏳ Waiting 10 seconds for user to complete comment...');
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      
+      // Now submit to backend for reward verification
       console.log('💰 Submitting comment action for reward...');
       const response = await fetch('/api/comment-actions', {
         method: 'POST',
@@ -651,10 +663,7 @@ export default function PromotePage() {
       // Show success message
       setShareError('🎉 Comment completed! Reward will be credited soon.');
       
-      // Close modal and refresh data
-      setShowCommentModal(false);
-      setSelectedCommentPromo(null);
-      setSelectedCommentTemplate('');
+      // Refresh data
       await refreshAllData();
       
     } catch (error: any) {
