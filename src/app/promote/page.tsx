@@ -574,20 +574,21 @@ export default function PromotePage() {
       
       console.log('🔍 Using cast hash:', castHash);
       
-      // Combine template and custom text
-      const finalCommentText = customCommentText.trim() 
+      // Combine template, custom text, and original cast URL
+      const baseCommentText = customCommentText.trim() 
         ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
         : selectedCommentTemplate || '';
+      
+      const finalCommentText = `${baseCommentText}\n\n${selectedCommentPromo.castUrl}`;
 
       // Open the cast and compose comment with selected template
       console.log('📱 Opening cast and composing comment...');
       console.log('📝 Final comment text:', finalCommentText);
       
       try {
-        // Try to compose comment with the original cast as embed
+        // Try to compose comment with the original cast URL in the text
         await (miniAppSdk as any).actions.composeCast({
-          text: finalCommentText,
-          embeds: [{ url: selectedCommentPromo.castUrl }]
+          text: finalCommentText
         });
         console.log('✅ Comment composed successfully');
       } catch (composeError) {
@@ -1445,14 +1446,16 @@ export default function PromotePage() {
               </p>
             </div>
 
-            {(selectedCommentTemplate || customCommentText.trim()) && (
+            {(selectedCommentTemplate || customCommentText.trim()) && selectedCommentPromo && (
               <div className="mb-4 p-3 bg-slate-700 rounded-lg">
                 <p className="text-xs text-gray-400 mb-1">Final comment preview:</p>
                 <p className="text-sm text-white">
-                  {customCommentText.trim() 
-                    ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
-                    : selectedCommentTemplate || ''
-                  }
+                  {(() => {
+                    const baseText = customCommentText.trim() 
+                      ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
+                      : selectedCommentTemplate || '';
+                    return `${baseText}\n\n${selectedCommentPromo.castUrl}`;
+                  })()}
                 </p>
               </div>
             )}
