@@ -586,12 +586,12 @@ export default function PromotePage() {
       console.log('📝 Final comment text:', finalCommentText);
       
       try {
-        // Try to compose comment as a reply to the original cast
+        // Try to compose comment as a reply using parentUrl (correct Farcaster API)
         await (miniAppSdk as any).actions.composeCast({
           text: finalCommentText,
-          parent: castHash
+          parentUrl: selectedCommentPromo.castUrl
         });
-        console.log('✅ Comment composed successfully as reply');
+        console.log('✅ Comment composed successfully as reply using parentUrl');
       } catch (composeError) {
         console.log('⚠️ Could not compose comment as reply, trying with embed...');
         try {
