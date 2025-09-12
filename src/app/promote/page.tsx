@@ -613,8 +613,39 @@ export default function PromotePage() {
       
       console.log('🚀 Final cast options:', castOptions);
       
-      // Don't open new window, stay in modal and show comment input
-      setShareError(`📝 Comment ready! Copy this text and paste it as a comment on the post above: "${selectedCommentTemplate}"`);
+      // Create comment cast using composeCast with parent reference
+      try {
+        await (miniAppSdk as any).actions.composeCast({
+          text: selectedCommentTemplate,
+          parent: castHash || shortHash
+        });
+        console.log('✅ Comment cast composed successfully');
+      } catch (composeError) {
+        console.log('⚠️ Could not compose comment, trying with embed...');
+        try {
+          await (miniAppSdk as any).actions.composeCast({
+            text: selectedCommentTemplate,
+            embeds: [{ url: selectedCommentPromo.castUrl }]
+          });
+          console.log('✅ Comment cast composed with embed');
+        } catch (embedError) {
+          console.log('⚠️ Could not compose comment, trying viewCast...');
+          try {
+            await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
+            console.log('✅ Cast opened for manual comment');
+          } catch (viewError) {
+            console.log('⚠️ Could not open cast');
+          }
+        }
+      }
+      
+      // Show instruction message
+      setShareError('📱 Comment composed! Please post it, then wait for verification...');
+      
+      // Close modal first
+      setShowCommentModal(false);
+      setSelectedCommentPromo(null);
+      setSelectedCommentTemplate('');
       
       // Wait 10 seconds for user to complete the comment
       console.log('⏳ Waiting 10 seconds for user to complete comment...');
@@ -1552,25 +1583,6 @@ export default function PromotePage() {
               </div>
             )}
 
-            {/* Comment Input */}
-            {selectedCommentTemplate && (
-              <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-                <p className="text-sm text-gray-300 mb-2">💬 Add your comment to the post above:</p>
-                <div className="bg-slate-600 p-3 rounded border-l-4 border-blue-500">
-                  <p className="text-blue-300 text-sm mb-2">
-                    Copy this text and paste it as a comment:
-                  </p>
-                  <div className="bg-slate-800 p-2 rounded border">
-                    <p className="text-white text-sm break-words select-all">
-                      {selectedCommentTemplate}
-                    </p>
-                  </div>
-                  <p className="text-gray-400 text-xs mt-2">
-                    Click on the post above to comment, then paste this text
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* Action Buttons */}
             <div className="flex gap-3">
