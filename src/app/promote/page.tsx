@@ -151,6 +151,10 @@ export default function PromotePage() {
   // 10-second countdown timer for share/like buttons
   const [buttonCountdowns, setButtonCountdowns] = useState<Record<string, number>>({});
   
+  // Comment modal state
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
+  const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
 
   // Comment templates - same as in PaymentForm
   const COMMENT_TEMPLATES = [
@@ -541,15 +545,23 @@ export default function PromotePage() {
       return;
     }
     
+    // Open comment frame instead of direct action
+    setSelectedCommentPromo(promo);
+    setShowCommentModal(true);
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!selectedCommentPromo || !selectedCommentTemplate) {
+      setShareError("Please select a comment template first.");
+      return;
+    }
+
     setShareError(null);
-    setSharingPromoId(promo.id.toString());
+    setSharingPromoId(selectedCommentPromo.id.toString());
     
     try {
-      // Random comment template selection
-      const randomCommentText = COMMENT_TEMPLATES[Math.floor(Math.random() * COMMENT_TEMPLATES.length)];
-      
-      // Combine with original cast URL
-      const finalText = `${randomCommentText}\n\n${promo.castUrl}`;
+      // Combine selected template with original cast URL
+      const finalText = `${selectedCommentTemplate}\n\n${selectedCommentPromo.castUrl}`;
       
       console.log('📝 Final comment text:', finalText);
       
@@ -559,10 +571,10 @@ export default function PromotePage() {
       };
       
       // URL típus ellenőrzése és cast hash kinyerése
-      const shortHash = promo.castUrl.split('/').pop();
-      const isWarpcastUrl = promo.castUrl.includes('warpcast.com');
-      const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
-      const isConversationUrl = promo.castUrl.includes('/conversations/');
+      const shortHash = selectedCommentPromo.castUrl.split('/').pop();
+      const isWarpcastUrl = selectedCommentPromo.castUrl.includes('warpcast.com');
+      const isFarcasterUrl = selectedCommentPromo.castUrl.includes('farcaster.xyz');
+      const isConversationUrl = selectedCommentPromo.castUrl.includes('/conversations/');
       
       // Teljes cast hash lekérése API-ból (ha rövid hash)
       let castHash: string | undefined = shortHash;
@@ -573,7 +585,7 @@ export default function PromotePage() {
       hasValidCastHash = Boolean(castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42));
       
       console.log(`🔍 URL Analysis:`, {
-        originalUrl: promo.castUrl,
+        originalUrl: selectedCommentPromo.castUrl,
         shortHash,
         isWarpcastUrl,
         isFarcasterUrl,
@@ -588,8 +600,8 @@ export default function PromotePage() {
         castOptions.parent = castHash;
       } else {
         // Embed alapú quote (biztonságosabb)
-        console.log(`📤 Using embed for comment: ${promo.castUrl}`);
-        castOptions.embeds = [{ url: promo.castUrl }];
+        console.log(`📤 Using embed for comment: ${selectedCommentPromo.castUrl}`);
+        castOptions.embeds = [{ url: selectedCommentPromo.castUrl }];
       }
       
       // Véletlenszerű csatorna kiválasztása
@@ -611,13 +623,13 @@ export default function PromotePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          promotionId: promo.id,
+          promotionId: selectedCommentPromo.id,
           userFid: currentUser.fid,
           username: currentUser.username,
           actionType: 'comment',
           castHash: castHash || shortHash,
-          rewardAmount: promo.rewardPerShare,
-          proofUrl: promo.castUrl
+          rewardAmount: selectedCommentPromo.rewardPerShare,
+          proofUrl: selectedCommentPromo.castUrl
         })
       });
 
@@ -633,13 +645,16 @@ export default function PromotePage() {
       // Mark this promotion as completed
       setCompletedActions(prev => ({
         ...prev,
-        [promo.id]: true
+        [selectedCommentPromo.id]: true
       }));
       
       // Show success message
       setShareError('🎉 Comment completed! Reward will be credited soon.');
       
-      // Refresh data
+      // Close modal and refresh data
+      setShowCommentModal(false);
+      setSelectedCommentPromo(null);
+      setSelectedCommentTemplate('');
       await refreshAllData();
       
     } catch (error: any) {
@@ -649,7 +664,6 @@ export default function PromotePage() {
       setSharingPromoId(null);
     }
   };
-
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) {
@@ -1377,6 +1391,167 @@ export default function PromotePage() {
         />
       )}
 
+      {/* Comment Modal */}
+      {showCommentModal && selectedCommentPromo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Choose Comment Template</h3>
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setSelectedCommentPromo(null);
+                  setSelectedCommentTemplate('');
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Original Post Preview */}
+            <div className="mb-4 p-3 bg-slate-700 rounded-lg">
+              <p className="text-xs text-gray-400 mb-1">Original Post:</p>
+              <p className="text-sm text-white break-all">{selectedCommentPromo.castUrl}</p>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-300 mb-2">
+                Select a comment template to use:
+              </p>
+              <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
+                {COMMENT_TEMPLATES.map((template, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedCommentTemplate(template)}
+                    className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
+                      selectedCommentTemplate === template
+                        ? 'bg-green-600 text-white border border-green-500'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                    }`}
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {selectedCommentTemplate && (
+              <div className="mb-4 p-3 bg-slate-700 rounded-lg">
+                <p className="text-xs text-gray-400 mb-1">Selected template:</p>
+                <p className="text-sm text-white">{selectedCommentTemplate}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setSelectedCommentPromo(null);
+                  setSelectedCommentTemplate('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCommentSubmit}
+                disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+              >
+                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Posting...' : 'Post Comment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Comment Modal */}
+      {showCommentModal && selectedCommentPromo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Comment on Post</h3>
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setSelectedCommentPromo(null);
+                  setSelectedCommentTemplate('');
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Original Post Display */}
+            <div className="mb-6 p-4 bg-slate-700 rounded-lg">
+              <p className="text-sm text-gray-300 mb-2">Original Post:</p>
+              <div className="bg-slate-600 p-3 rounded border-l-4 border-blue-500">
+                <p className="text-white text-sm break-words">
+                  {selectedCommentPromo.castUrl}
+                </p>
+              </div>
+            </div>
+
+            {/* Comment Templates */}
+            <div className="mb-6">
+              <p className="text-sm text-gray-300 mb-3">Choose a comment template:</p>
+              <div className="grid grid-cols-1 gap-2">
+                {COMMENT_TEMPLATES.slice(0, 3).map((template, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedCommentTemplate(template)}
+                    className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
+                      selectedCommentTemplate === template
+                        ? 'bg-green-600 text-white border border-green-500'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                    }`}
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview */}
+            {selectedCommentTemplate && (
+              <div className="mb-6 p-4 bg-slate-700 rounded-lg">
+                <p className="text-sm text-gray-300 mb-2">Comment Preview:</p>
+                <div className="bg-slate-600 p-3 rounded border-l-4 border-green-500">
+                  <p className="text-white text-sm break-words">
+                    {selectedCommentTemplate}
+                  </p>
+                  <p className="text-gray-400 text-xs mt-2">
+                    + Original post will be included
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setSelectedCommentPromo(null);
+                  setSelectedCommentTemplate('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCommentSubmit}
+                disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+              >
+                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Sharing...' : 'Share Comment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Admin Access Button */}
       <div className="mt-12 pt-8 border-t border-gray-700">
