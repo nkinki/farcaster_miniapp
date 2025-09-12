@@ -56,10 +56,9 @@ export async function POST(request: NextRequest) {
     // Record the comment action in shares table instead (temporary solution)
     const result = await sql`
       INSERT INTO shares (
-        promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, shared_at
+        promotion_id, sharer_fid, sharer_username, reward_amount
       ) VALUES (
-        ${promotionId}, ${userFid}, ${username}, ${castHash}, 
-        ${rewardAmount}, NOW()
+        ${promotionId}, ${userFid}, ${username}, ${rewardAmount}
       )
       RETURNING id
     `;
