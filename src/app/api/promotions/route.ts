@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Insert with comment data if available
+    const commentTemplatesJson = commentTemplates ? JSON.stringify(commentTemplates) : '[]';
     const result = await sql`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
         ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'},
-        ${commentTemplates ? JSON.stringify(commentTemplates) : '[]'::jsonb}, 
+        ${commentTemplatesJson}::jsonb, 
         ${customComment || null}, 
         ${allowCustomComments !== undefined ? allowCustomComments : true}
       )
