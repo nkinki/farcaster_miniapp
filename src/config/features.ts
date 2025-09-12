@@ -3,16 +3,16 @@
 
 export const FEATURES = {
   // Comment functionality for promotions
-  ENABLE_COMMENTS: process.env.ENABLE_COMMENTS === 'true' || false,
+  ENABLE_COMMENTS: process.env.NEXT_PUBLIC_ENABLE_COMMENTS === 'true' || process.env.ENABLE_COMMENTS === 'true' || false,
   
   // Enhanced promotion system
-  ENABLE_ENHANCED_PROMOTIONS: process.env.ENABLE_ENHANCED_PROMOTIONS === 'true' || false,
+  ENABLE_ENHANCED_PROMOTIONS: process.env.NEXT_PUBLIC_ENABLE_ENHANCED_PROMOTIONS === 'true' || process.env.ENABLE_ENHANCED_PROMOTIONS === 'true' || false,
   
   // Analytics and tracking
-  ENABLE_COMMENT_ANALYTICS: process.env.ENABLE_COMMENT_ANALYTICS === 'true' || false,
+  ENABLE_COMMENT_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_COMMENT_ANALYTICS === 'true' || process.env.ENABLE_COMMENT_ANALYTICS === 'true' || false,
   
   // Debug mode
-  DEBUG_MODE: process.env.DEBUG_MODE === 'true' || false,
+  DEBUG_MODE: process.env.NEXT_PUBLIC_DEBUG_MODE === 'true' || process.env.DEBUG_MODE === 'true' || false,
 } as const;
 
 // Helper function to check if a feature is enabled
@@ -34,14 +34,21 @@ export const getFeatureStatus = () => {
 /*
 To enable features, set these environment variables:
 
+For frontend (NEXT_PUBLIC_ prefix required):
+NEXT_PUBLIC_ENABLE_COMMENTS=true                    # Enable comment functionality
+NEXT_PUBLIC_ENABLE_ENHANCED_PROMOTIONS=true        # Enable enhanced promotion system
+NEXT_PUBLIC_ENABLE_COMMENT_ANALYTICS=true          # Enable comment analytics
+NEXT_PUBLIC_DEBUG_MODE=true                        # Enable debug mode
+
+For backend (optional, fallback):
 ENABLE_COMMENTS=true                    # Enable comment functionality
 ENABLE_ENHANCED_PROMOTIONS=true        # Enable enhanced promotion system
 ENABLE_COMMENT_ANALYTICS=true          # Enable comment analytics
 DEBUG_MODE=true                        # Enable debug mode
 
 Example .env.local:
-ENABLE_COMMENTS=true
-ENABLE_ENHANCED_PROMOTIONS=true
-ENABLE_COMMENT_ANALYTICS=false
-DEBUG_MODE=false
+NEXT_PUBLIC_ENABLE_COMMENTS=true
+NEXT_PUBLIC_ENABLE_ENHANCED_PROMOTIONS=true
+NEXT_PUBLIC_ENABLE_COMMENT_ANALYTICS=false
+NEXT_PUBLIC_DEBUG_MODE=false
 */
