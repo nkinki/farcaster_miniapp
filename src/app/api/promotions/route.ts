@@ -41,19 +41,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // Insert with comment data if available
-    const commentTemplatesJson = commentTemplates ? JSON.stringify(commentTemplates) : '[]';
+    // Insert without comment data for now (until migration is fixed)
+    // TODO: Re-enable comment columns after database migration is applied
     const result = await sql`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type,
-        comment_templates, custom_comment, allow_custom_comments
+        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'},
-        ${commentTemplatesJson}::jsonb, 
-        ${customComment || null}, 
-        ${allowCustomComments !== undefined ? allowCustomComments : true}
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
       )
       RETURNING id, cast_url, created_at
     `;
