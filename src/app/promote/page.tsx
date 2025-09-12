@@ -613,12 +613,16 @@ export default function PromotePage() {
       
       console.log('🚀 Final cast options:', castOptions);
       
-      // Cast elküldése
-      await (miniAppSdk as any).actions.composeCast(castOptions);
-      console.log('✅ Comment cast composed successfully');
+      // Just open the cast for user to comment manually
+      try {
+        await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
+        console.log('✅ Cast opened successfully');
+      } catch (viewError) {
+        console.log('⚠️ Could not open cast, continuing...');
+      }
       
-      // Show instruction message
-      setShareError('📱 Comment composed! Please post it in the opened window, then wait for verification...');
+      // Show instruction message with the comment text
+      setShareError(`📱 Cast opened! Please comment with this text: "${selectedCommentTemplate}"`);
       
       // Close modal first
       setShowCommentModal(false);
