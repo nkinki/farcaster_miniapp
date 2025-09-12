@@ -150,7 +150,27 @@ export default function PromotePage() {
   
   // 10-second countdown timer for share/like buttons
   const [buttonCountdowns, setButtonCountdowns] = useState<Record<string, number>>({});
+  
+  // Comment modal state
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
+  const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
 
+  // Comment templates - same as in PaymentForm
+  const COMMENT_TEMPLATES = [
+    "🚀 This is amazing!",
+    "💯 Totally agree with this!",
+    "🔥 This is fire!",
+    "💎 Great content!",
+    "💎 Diamond hands!",
+    "🎯 Spot on!",
+    "⚡ This hits different!",
+    "🌟 Absolutely brilliant!",
+    "🚀 Love this energy!",
+    "💪 This is the way!",
+    "🎉 Amazing work!",
+    "⭐ Perfect!"
+  ];
 
   const {
     promotions: allPromotions,
@@ -525,14 +545,26 @@ export default function PromotePage() {
       return;
     }
     
+    // Open comment modal instead of directly opening cast
+    setSelectedCommentPromo(promo);
+    setShowCommentModal(true);
+    setSelectedCommentTemplate('');
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!selectedCommentPromo || !selectedCommentTemplate) {
+      setShareError("Please select a comment template first.");
+      return;
+    }
+
     setShareError(null);
-    setSharingPromoId(promo.id.toString());
+    setSharingPromoId(selectedCommentPromo.id.toString());
     
     try {
-      console.log('🚀 Starting comment action for promo:', promo.id);
+      console.log('🚀 Starting comment action for promo:', selectedCommentPromo.id);
       
       // Extract cast hash from URL
-      const castHash = promo.castUrl.split('/').pop() || '';
+      const castHash = selectedCommentPromo.castUrl.split('/').pop() || '';
       
       if (!castHash || !castHash.startsWith('0x')) {
         throw new Error('Invalid cast hash. Please check the cast URL.');
@@ -540,17 +572,26 @@ export default function PromotePage() {
       
       console.log('🔍 Using cast hash:', castHash);
       
-      // First, open the cast so user can see it
-      console.log('📱 Opening cast for user to view...');
+      // Open the cast and compose comment with selected template
+      console.log('📱 Opening cast and composing comment...');
       try {
-        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-        console.log('✅ Cast opened successfully');
-      } catch (viewError) {
-        console.log('⚠️ Could not open cast, continuing with comment...');
+        await (miniAppSdk as any).actions.composeCast({
+          text: selectedCommentTemplate,
+          embeds: [{ url: selectedCommentPromo.castUrl }]
+        });
+        console.log('✅ Comment composed successfully');
+      } catch (composeError) {
+        console.log('⚠️ Could not compose comment, trying to open cast...');
+        try {
+          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+          console.log('✅ Cast opened successfully');
+        } catch (viewError) {
+          console.log('⚠️ Could not open cast, continuing...');
+        }
       }
       
       // Show instruction message
-      setShareError('📱 Cast opened! Please comment on it, then wait for verification...');
+      setShareError('📱 Comment composed! Please post it, then wait for verification...');
       
       // Wait 5 seconds for user to complete actions
       console.log('⏳ Waiting 5 seconds for user to complete comment...');
@@ -562,13 +603,13 @@ export default function PromotePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          promotionId: promo.id,
+          promotionId: selectedCommentPromo.id,
           userFid: currentUser.fid,
           username: currentUser.username,
           actionType: 'comment',
           castHash,
-          rewardAmount: promo.rewardPerShare,
-          proofUrl: promo.castUrl
+          rewardAmount: selectedCommentPromo.rewardPerShare,
+          proofUrl: selectedCommentPromo.castUrl
         })
       });
 
@@ -584,13 +625,16 @@ export default function PromotePage() {
       // Mark this promotion as completed
       setCompletedActions(prev => ({
         ...prev,
-        [promo.id]: true
+        [selectedCommentPromo.id]: true
       }));
       
       // Show success message
       setShareError('🎉 Comment completed! Reward will be credited soon.');
       
-      // Refresh data
+      // Close modal and refresh data
+      setShowCommentModal(false);
+      setSelectedCommentPromo(null);
+      setSelectedCommentTemplate('');
       await refreshAllData();
       
     } catch (error: any) {
@@ -600,7 +644,6 @@ export default function PromotePage() {
       setSharingPromoId(null);
     }
   };
-
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) {
@@ -1326,6 +1369,75 @@ export default function PromotePage() {
           onClaim={handleLuckyBoxClaim}
           isPreview={isLuckyBoxPreview}
         />
+      )}
+
+      {/* Comment Modal */}
+      {showCommentModal && selectedCommentPromo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Choose Comment Template</h3>
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setSelectedCommentPromo(null);
+                  setSelectedCommentTemplate('');
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-300 mb-2">
+                Select a comment template to use:
+              </p>
+              <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
+                {COMMENT_TEMPLATES.map((template, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedCommentTemplate(template)}
+                    className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
+                      selectedCommentTemplate === template
+                        ? 'bg-green-600 text-white border border-green-500'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                    }`}
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {selectedCommentTemplate && (
+              <div className="mb-4 p-3 bg-slate-700 rounded-lg">
+                <p className="text-xs text-gray-400 mb-1">Selected template:</p>
+                <p className="text-sm text-white">{selectedCommentTemplate}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setSelectedCommentPromo(null);
+                  setSelectedCommentTemplate('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCommentSubmit}
+                disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+              >
+                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Posting...' : 'Post Comment'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Admin Access Button */}
