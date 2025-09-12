@@ -3,7 +3,7 @@
 
 export const FEATURES = {
   // Comment functionality for promotions
-  ENABLE_COMMENTS: process.env.NEXT_PUBLIC_ENABLE_COMMENTS === 'true' || process.env.ENABLE_COMMENTS === 'true' || false,
+  ENABLE_COMMENTS: process.env.NEXT_PUBLIC_ENABLE_COMMENTS === 'true' || process.env.ENABLE_COMMENTS === 'true' || true, // Temporarily hardcoded to true
   
   // Enhanced promotion system
   ENABLE_ENHANCED_PROMOTIONS: process.env.NEXT_PUBLIC_ENABLE_ENHANCED_PROMOTIONS === 'true' || process.env.ENABLE_ENHANCED_PROMOTIONS === 'true' || false,
