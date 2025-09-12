@@ -155,6 +155,7 @@ export default function PromotePage() {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
+  const [customCommentText, setCustomCommentText] = useState<string>('');
 
   // Comment templates - same as in PaymentForm
   const COMMENT_TEMPLATES = [
@@ -549,11 +550,12 @@ export default function PromotePage() {
     setSelectedCommentPromo(promo);
     setShowCommentModal(true);
     setSelectedCommentTemplate('');
+    setCustomCommentText('');
   };
 
   const handleCommentSubmit = async () => {
-    if (!selectedCommentPromo || !selectedCommentTemplate) {
-      setShareError("Please select a comment template first.");
+    if (!selectedCommentPromo || (!selectedCommentTemplate && !customCommentText.trim())) {
+      setShareError("Please select a comment template or write custom text first.");
       return;
     }
 
@@ -572,22 +574,35 @@ export default function PromotePage() {
       
       console.log('🔍 Using cast hash:', castHash);
       
+      // Combine template and custom text
+      const finalCommentText = customCommentText.trim() 
+        ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
+        : selectedCommentTemplate || '';
+
       // Open the cast and compose comment with selected template
       console.log('📱 Opening cast and composing comment...');
+      console.log('📝 Final comment text:', finalCommentText);
+      
       try {
-        await (miniAppSdk as any).actions.composeCast({
-          text: selectedCommentTemplate,
-          embeds: [{ url: selectedCommentPromo.castUrl }]
-        });
-        console.log('✅ Comment composed successfully');
-      } catch (composeError) {
-        console.log('⚠️ Could not compose comment, trying to open cast...');
+        // Try to open the cast first
+        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+        console.log('✅ Cast opened successfully');
+        
+        // Wait a moment then try to compose
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Try to compose comment (this might not work in all environments)
         try {
-          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-          console.log('✅ Cast opened successfully');
-        } catch (viewError) {
-          console.log('⚠️ Could not open cast, continuing...');
+          await (miniAppSdk as any).actions.composeCast({
+            text: finalCommentText,
+            embeds: [{ url: selectedCommentPromo.castUrl }]
+          });
+          console.log('✅ Comment composed successfully');
+        } catch (composeError) {
+          console.log('⚠️ Could not compose comment, user will need to comment manually');
         }
+      } catch (viewError) {
+        console.log('⚠️ Could not open cast, continuing...');
       }
       
       // Show instruction message
@@ -635,6 +650,7 @@ export default function PromotePage() {
       setShowCommentModal(false);
       setSelectedCommentPromo(null);
       setSelectedCommentTemplate('');
+      setCustomCommentText('');
       await refreshAllData();
       
     } catch (error: any) {
@@ -1417,12 +1433,42 @@ export default function PromotePage() {
               </div>
             )}
 
+            <div className="mb-4">
+              <label className="block text-sm text-gray-300 mb-2">
+                Add your own text (optional):
+              </label>
+              <textarea
+                value={customCommentText}
+                onChange={(e) => setCustomCommentText(e.target.value)}
+                placeholder="Write your additional comment here..."
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none resize-none"
+                rows={3}
+                maxLength={280}
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {customCommentText.length}/280 characters
+              </p>
+            </div>
+
+            {(selectedCommentTemplate || customCommentText.trim()) && (
+              <div className="mb-4 p-3 bg-slate-700 rounded-lg">
+                <p className="text-xs text-gray-400 mb-1">Final comment preview:</p>
+                <p className="text-sm text-white">
+                  {customCommentText.trim() 
+                    ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
+                    : selectedCommentTemplate || ''
+                  }
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowCommentModal(false);
                   setSelectedCommentPromo(null);
                   setSelectedCommentTemplate('');
+                  setCustomCommentText('');
                 }}
                 className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
@@ -1430,7 +1476,7 @@ export default function PromotePage() {
               </button>
               <button
                 onClick={handleCommentSubmit}
-                disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
+                disabled={(!selectedCommentTemplate && !customCommentText.trim()) || sharingPromoId === selectedCommentPromo.id.toString()}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 {sharingPromoId === selectedCommentPromo.id.toString() ? 'Posting...' : 'Post Comment'}
