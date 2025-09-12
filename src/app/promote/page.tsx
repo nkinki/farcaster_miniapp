@@ -586,28 +586,38 @@ export default function PromotePage() {
       console.log('📝 Final comment text:', finalCommentText);
       
       try {
-        // Try to compose comment as a reply using parentUrl (correct Farcaster API)
+        // Try to compose comment as a reply using parent hash
         await (miniAppSdk as any).actions.composeCast({
           text: finalCommentText,
-          parentUrl: selectedCommentPromo.castUrl
+          parent: castHash
         });
-        console.log('✅ Comment composed successfully as reply using parentUrl');
+        console.log('✅ Comment composed successfully as reply using parent hash');
       } catch (composeError) {
-        console.log('⚠️ Could not compose comment as reply, trying with embed...');
+        console.log('⚠️ Could not compose comment as reply, trying with parentUrl...');
         try {
-          // Fallback: try with embed
+          // Fallback: try with parentUrl
           await (miniAppSdk as any).actions.composeCast({
             text: finalCommentText,
-            embeds: [{ url: selectedCommentPromo.castUrl }]
+            parentUrl: selectedCommentPromo.castUrl
           });
-          console.log('✅ Comment composed successfully with embed');
-        } catch (embedError) {
-          console.log('⚠️ Could not compose comment, trying to open cast...');
+          console.log('✅ Comment composed successfully with parentUrl');
+        } catch (parentUrlError) {
+          console.log('⚠️ Could not compose comment, trying with embed...');
           try {
-            await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-            console.log('✅ Cast opened successfully');
-          } catch (viewError) {
-            console.log('⚠️ Could not open cast, continuing...');
+            // Fallback: try with embed
+            await (miniAppSdk as any).actions.composeCast({
+              text: finalCommentText,
+              embeds: [{ url: selectedCommentPromo.castUrl }]
+            });
+            console.log('✅ Comment composed successfully with embed');
+          } catch (embedError) {
+            console.log('⚠️ Could not compose comment, trying to open cast...');
+            try {
+              await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+              console.log('✅ Cast opened successfully');
+            } catch (viewError) {
+              console.log('⚠️ Could not open cast, continuing...');
+            }
           }
         }
       }
