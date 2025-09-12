@@ -76,11 +76,11 @@ export async function POST(request: NextRequest) {
 
     // Update user earnings
     await sql`
-      INSERT INTO users (fid, username, total_earnings, pending_rewards, total_shares, updated_at)
-      VALUES (${userFid}, ${username}, 0, ${rewardAmount}, 1, NOW())
+      INSERT INTO users (fid, username, total_earnings, total_shares, updated_at)
+      VALUES (${userFid}, ${username}, 0, 1, NOW())
       ON CONFLICT (fid) 
       DO UPDATE SET 
-        pending_rewards = users.pending_rewards + ${rewardAmount},
+        total_earnings = users.total_earnings + ${rewardAmount},
         total_shares = users.total_shares + 1,
         updated_at = NOW()
     `;
