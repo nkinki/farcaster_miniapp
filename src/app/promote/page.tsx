@@ -1493,13 +1493,33 @@ export default function PromotePage() {
               </button>
             </div>
             
-            {/* Original Post Display */}
+            {/* Original Post Preview */}
             <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-              <p className="text-sm text-gray-300 mb-2">Original Post:</p>
-              <div className="bg-slate-600 p-3 rounded border-l-4 border-blue-500">
-                <p className="text-white text-sm break-words">
-                  {selectedCommentPromo.castUrl}
-                </p>
+              <p className="text-sm text-gray-300 mb-2">📱 Post Preview:</p>
+              <div className="bg-white rounded overflow-hidden h-48 relative">
+                {/* Loading Skeleton */}
+                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                  <div className="text-gray-500 text-sm">Loading post...</div>
+                </div>
+                <iframe 
+                  src={selectedCommentPromo.castUrl} 
+                  className="w-full h-full border-0 relative z-10" 
+                  title={`Preview of post #${selectedCommentPromo.id}`}
+                  loading="lazy"
+                  sandbox="allow-scripts allow-same-origin"
+                  onLoad={(e) => {
+                    // Hide loading skeleton when iframe loads
+                    const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                    if (skeleton) skeleton.style.display = 'none';
+                  }}
+                  onError={(e) => {
+                    // Show error message if iframe fails to load
+                    const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                    if (skeleton) {
+                      skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Post preview unavailable</div>';
+                    }
+                  }}
+                />
               </div>
             </div>
 
