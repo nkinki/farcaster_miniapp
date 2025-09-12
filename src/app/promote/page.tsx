@@ -579,20 +579,29 @@ export default function PromotePage() {
         ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
         : selectedCommentTemplate || '';
 
-      // Open the cast for user to comment
-      console.log('📱 Opening cast for user to comment...');
-      console.log('📝 Suggested comment text:', finalCommentText);
+      // Open the cast and compose comment with selected template
+      console.log('📱 Opening cast and composing comment...');
+      console.log('📝 Final comment text:', finalCommentText);
       
       try {
-        // Open the cast
-        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-        console.log('✅ Cast opened successfully');
-      } catch (viewError) {
-        console.log('⚠️ Could not open cast, continuing...');
+        // Try to compose comment with the original cast as embed
+        await (miniAppSdk as any).actions.composeCast({
+          text: finalCommentText,
+          embeds: [{ url: selectedCommentPromo.castUrl }]
+        });
+        console.log('✅ Comment composed successfully');
+      } catch (composeError) {
+        console.log('⚠️ Could not compose comment, trying to open cast...');
+        try {
+          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+          console.log('✅ Cast opened successfully');
+        } catch (viewError) {
+          console.log('⚠️ Could not open cast, continuing...');
+        }
       }
       
-      // Show instruction message with the suggested text
-      setShareError(`📱 Cast opened! Please comment with this text: "${finalCommentText}"`);
+      // Show instruction message
+      setShareError('📱 Comment composed! Please post it, then wait for verification...');
       
       // Wait 5 seconds for user to complete actions
       console.log('⏳ Waiting 5 seconds for user to complete comment...');
@@ -1448,15 +1457,6 @@ export default function PromotePage() {
               </div>
             )}
 
-            <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/30 rounded-lg">
-              <p className="text-xs text-blue-300 mb-1">📝 Instructions:</p>
-              <p className="text-sm text-blue-200">
-                1. Click "Open Cast & Comment"<br/>
-                2. Copy the suggested text below<br/>
-                3. Paste it as a comment on the cast<br/>
-                4. Wait for verification
-              </p>
-            </div>
 
             <div className="flex gap-3">
               <button
@@ -1475,7 +1475,7 @@ export default function PromotePage() {
                 disabled={(!selectedCommentTemplate && !customCommentText.trim()) || sharingPromoId === selectedCommentPromo.id.toString()}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
-                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : 'Open Cast & Comment'}
+                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Posting...' : 'Post Comment'}
               </button>
             </div>
           </div>
