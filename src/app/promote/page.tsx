@@ -613,15 +613,21 @@ export default function PromotePage() {
       
       console.log('🚀 Final cast options:', castOptions);
       
-      // Create comment cast using composeCast with parent reference
+      // Create comment cast using composeCast with proper parent object
       try {
+        // Extract FID from the cast URL if possible, or use a default
+        const parentFid = selectedCommentPromo.fid || 1; // Default FID if not available
+        
         await (miniAppSdk as any).actions.composeCast({
           text: selectedCommentTemplate,
-          parent: castHash || shortHash
+          parent: {
+            fid: parentFid,
+            hash: castHash || shortHash
+          }
         });
-        console.log('✅ Comment cast composed successfully');
+        console.log('✅ Comment cast composed successfully with parent object');
       } catch (composeError) {
-        console.log('⚠️ Could not compose comment, trying with embed...');
+        console.log('⚠️ Could not compose comment with parent, trying with embed...');
         try {
           await (miniAppSdk as any).actions.composeCast({
             text: selectedCommentTemplate,
@@ -1518,7 +1524,7 @@ export default function PromotePage() {
               </button>
             </div>
             
-            {/* Original Post Preview */}
+            {/* Original Post Preview with Comment Integration */}
             <div className="mb-6 p-4 bg-slate-700 rounded-lg">
               <p className="text-sm text-gray-300 mb-2">📱 Post Preview:</p>
               <div className="bg-white rounded overflow-hidden h-48 relative">
@@ -1546,6 +1552,21 @@ export default function PromotePage() {
                   }}
                 />
               </div>
+              
+              {/* Comment Input Overlay - appears when template is selected */}
+              {selectedCommentTemplate && (
+                <div className="mt-4 p-3 bg-slate-600 rounded-lg border-l-4 border-blue-500">
+                  <p className="text-blue-300 text-sm mb-2">💬 Your comment will be:</p>
+                  <div className="bg-slate-800 p-2 rounded border">
+                    <p className="text-white text-sm break-words">
+                      {selectedCommentTemplate}
+                    </p>
+                  </div>
+                  <p className="text-gray-400 text-xs mt-2">
+                    This will be posted as a reply to the post above
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Comment Templates */}
@@ -1568,20 +1589,6 @@ export default function PromotePage() {
               </div>
             </div>
 
-            {/* Preview */}
-            {selectedCommentTemplate && (
-              <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-                <p className="text-sm text-gray-300 mb-2">Comment Preview:</p>
-                <div className="bg-slate-600 p-3 rounded border-l-4 border-green-500">
-                  <p className="text-white text-sm break-words">
-                    {selectedCommentTemplate}
-                  </p>
-                  <p className="text-gray-400 text-xs mt-2">
-                    + Original post will be included
-                  </p>
-                </div>
-              </div>
-            )}
 
 
             {/* Action Buttons */}
