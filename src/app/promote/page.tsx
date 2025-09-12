@@ -581,49 +581,20 @@ export default function PromotePage() {
       
       const finalCommentText = `${baseCommentText}\n\n${selectedCommentPromo.castUrl}`;
 
-      // Open the cast and compose comment with selected template
-      console.log('📱 Opening cast and composing comment...');
-      console.log('📝 Final comment text:', finalCommentText);
+      // Open the cast for user to comment manually
+      console.log('📱 Opening cast for manual comment...');
+      console.log('📝 Suggested comment text:', finalCommentText);
       
       try {
-        // Try to compose comment as a reply using parent hash
-        await (miniAppSdk as any).actions.composeCast({
-          text: finalCommentText,
-          parent: castHash
-        });
-        console.log('✅ Comment composed successfully as reply using parent hash');
-      } catch (composeError) {
-        console.log('⚠️ Could not compose comment as reply, trying with parentUrl...');
-        try {
-          // Fallback: try with parentUrl
-          await (miniAppSdk as any).actions.composeCast({
-            text: finalCommentText,
-            parentUrl: selectedCommentPromo.castUrl
-          });
-          console.log('✅ Comment composed successfully with parentUrl');
-        } catch (parentUrlError) {
-          console.log('⚠️ Could not compose comment, trying with embed...');
-          try {
-            // Fallback: try with embed
-            await (miniAppSdk as any).actions.composeCast({
-              text: finalCommentText,
-              embeds: [{ url: selectedCommentPromo.castUrl }]
-            });
-            console.log('✅ Comment composed successfully with embed');
-          } catch (embedError) {
-            console.log('⚠️ Could not compose comment, trying to open cast...');
-            try {
-              await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-              console.log('✅ Cast opened successfully');
-            } catch (viewError) {
-              console.log('⚠️ Could not open cast, continuing...');
-            }
-          }
-        }
+        // Just open the cast - user will comment manually
+        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+        console.log('✅ Cast opened successfully');
+      } catch (viewError) {
+        console.log('⚠️ Could not open cast, continuing...');
       }
       
-      // Show instruction message
-      setShareError('📱 Comment composed! Please post it, then wait for verification...');
+      // Show instruction message with suggested text
+      setShareError(`📱 Cast opened! Please comment with this text: "${finalCommentText}"`);
       
       // Wait 5 seconds for user to complete actions
       console.log('⏳ Waiting 5 seconds for user to complete comment...');
@@ -1481,6 +1452,15 @@ export default function PromotePage() {
               </div>
             )}
 
+            <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/30 rounded-lg">
+              <p className="text-xs text-blue-300 mb-1">📝 Instructions:</p>
+              <p className="text-sm text-blue-200">
+                1. Click "Open Cast & Comment"<br/>
+                2. Copy the suggested text from below<br/>
+                3. Paste it as a comment on the cast<br/>
+                4. Wait for verification
+              </p>
+            </div>
 
             <div className="flex gap-3">
               <button
