@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
 
     // Check if user already completed this action
     const existingAction = await sql`
-      SELECT id FROM like_recast_actions 
-      WHERE promotion_id = ${promotionId} AND user_fid = ${userFid} AND action_type = 'comment'
+      SELECT id FROM shares 
+      WHERE promotion_id = ${promotionId} AND sharer_fid = ${userFid}
     `;
 
     if (existingAction.length > 0) {
@@ -53,14 +53,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'This promotion is not for comment actions' }, { status: 400 });
     }
 
-    // Record the comment action
+    // Record the comment action in shares table instead (temporary solution)
     const result = await sql`
-      INSERT INTO like_recast_actions (
-        promotion_id, user_fid, username, action_type, cast_hash, 
-        reward_amount, proof_url, status, created_at
+      INSERT INTO shares (
+        promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, shared_at
       ) VALUES (
-        ${promotionId}, ${userFid}, ${username}, 'comment', ${castHash}, 
-        ${rewardAmount}, ${proofUrl || null}, 'pending', NOW()
+        ${promotionId}, ${userFid}, ${username}, ${castHash}, 
+        ${rewardAmount}, NOW()
       )
       RETURNING id
     `;
