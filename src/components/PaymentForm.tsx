@@ -127,8 +127,8 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
               blockchainHash: createTxHash, // A befizetési tranzakció hash-ét mentjük
               status: 'active',
               actionType: selectedAction, // 'quote' vagy 'like_recast'
-              // Comment functionality (only sent if ENABLE_COMMENTS is true AND comment action is selected)
-              ...(FEATURES.ENABLE_COMMENTS && selectedAction === 'comment' && {
+              // Comment functionality (only sent if comment action is selected)
+              ...(selectedAction === 'comment' && {
                 commentTemplates: selectedTemplates,
                 customComment: customComment,
                 allowCustomComments: allowCustomComments
@@ -147,9 +147,8 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
     saveToDb();
   }, [isCreated, step, user, castUrl, shareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
 
-  // Template kiválasztás kezelése (only used if ENABLE_COMMENTS is true)
+  // Template kiválasztás kezelése
   const handleTemplateSelect = (template: string) => {
-    if (!FEATURES.ENABLE_COMMENTS) return;
     
     setSelectedTemplates(prev => {
       if (prev.includes(template)) {
@@ -259,8 +258,8 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" disabled={step >= CreationStep.ReadyToCreate} />
       </div>
 
-      {/* Comment Templates Section - Only shown if ENABLE_COMMENTS is true AND comment action is selected */}
-      {FEATURES.ENABLE_COMMENTS && selectedAction === 'comment' && (
+      {/* Comment Templates Section - Only shown when comment action is selected */}
+      {selectedAction === 'comment' && (
         <div>
           <label className="block text-sm font-medium text-purple-300 mb-2">
             <FiMessageSquare className="inline mr-1" />
@@ -289,8 +288,8 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         </div>
       )}
 
-      {/* Custom Comment Section - Only shown if ENABLE_COMMENTS is true AND comment action is selected */}
-      {FEATURES.ENABLE_COMMENTS && selectedAction === 'comment' && (
+      {/* Custom Comment Section - Only shown when comment action is selected */}
+      {selectedAction === 'comment' && (
         <div>
           <label htmlFor="customComment" className="block text-sm font-medium text-purple-300 mb-1">
             Custom Comment Text (Optional)
