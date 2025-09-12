@@ -586,18 +586,29 @@ export default function PromotePage() {
       console.log('📝 Final comment text:', finalCommentText);
       
       try {
-        // Try to compose comment with the original cast URL in the text
+        // Try to compose comment as a reply to the original cast
         await (miniAppSdk as any).actions.composeCast({
-          text: finalCommentText
+          text: finalCommentText,
+          parent: castHash
         });
-        console.log('✅ Comment composed successfully');
+        console.log('✅ Comment composed successfully as reply');
       } catch (composeError) {
-        console.log('⚠️ Could not compose comment, trying to open cast...');
+        console.log('⚠️ Could not compose comment as reply, trying with embed...');
         try {
-          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-          console.log('✅ Cast opened successfully');
-        } catch (viewError) {
-          console.log('⚠️ Could not open cast, continuing...');
+          // Fallback: try with embed
+          await (miniAppSdk as any).actions.composeCast({
+            text: finalCommentText,
+            embeds: [{ url: selectedCommentPromo.castUrl }]
+          });
+          console.log('✅ Comment composed successfully with embed');
+        } catch (embedError) {
+          console.log('⚠️ Could not compose comment, trying to open cast...');
+          try {
+            await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+            console.log('✅ Cast opened successfully');
+          } catch (viewError) {
+            console.log('⚠️ Could not open cast, continuing...');
+          }
         }
       }
       
