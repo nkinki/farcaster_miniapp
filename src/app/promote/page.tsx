@@ -151,11 +151,6 @@ export default function PromotePage() {
   // 10-second countdown timer for share/like buttons
   const [buttonCountdowns, setButtonCountdowns] = useState<Record<string, number>>({});
   
-  // Comment modal state
-  const [showCommentModal, setShowCommentModal] = useState(false);
-  const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
-  const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
-  const [customCommentText, setCustomCommentText] = useState<string>('');
 
   // Comment templates - same as in PaymentForm
   const COMMENT_TEMPLATES = [
@@ -546,73 +541,83 @@ export default function PromotePage() {
       return;
     }
     
-    // Open comment modal instead of directly opening cast
-    setSelectedCommentPromo(promo);
-    setShowCommentModal(true);
-    setSelectedCommentTemplate('');
-    setCustomCommentText('');
-  };
-
-  const handleCommentSubmit = async () => {
-    if (!selectedCommentPromo || (!selectedCommentTemplate && !customCommentText.trim())) {
-      setShareError("Please select a comment template or write custom text first.");
-      return;
-    }
-
     setShareError(null);
-    setSharingPromoId(selectedCommentPromo.id.toString());
+    setSharingPromoId(promo.id.toString());
     
     try {
-      console.log('🚀 Starting comment action for promo:', selectedCommentPromo.id);
+      // Random comment template selection
+      const randomCommentText = COMMENT_TEMPLATES[Math.floor(Math.random() * COMMENT_TEMPLATES.length)];
       
-      // Extract cast hash from URL
-      const castHash = selectedCommentPromo.castUrl.split('/').pop() || '';
+      // Combine with original cast URL
+      const finalText = `${randomCommentText}\n\n${promo.castUrl}`;
       
-      if (!castHash || !castHash.startsWith('0x')) {
-        throw new Error('Invalid cast hash. Please check the cast URL.');
+      console.log('📝 Final comment text:', finalText);
+      
+      // Use same logic as quote sharing
+      const castOptions: any = { 
+        text: finalText
+      };
+      
+      // URL típus ellenőrzése és cast hash kinyerése
+      const shortHash = promo.castUrl.split('/').pop();
+      const isWarpcastUrl = promo.castUrl.includes('warpcast.com');
+      const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
+      const isConversationUrl = promo.castUrl.includes('/conversations/');
+      
+      // Teljes cast hash lekérése API-ból (ha rövid hash)
+      let castHash: string | undefined = shortHash;
+      let hasValidCastHash: boolean = false;
+      
+      // Farcaster cast hash validáció: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
+      // VAGY 42 karakteres hash is elfogadható (gyakori formátum)
+      hasValidCastHash = Boolean(castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42));
+      
+      console.log(`🔍 URL Analysis:`, {
+        originalUrl: promo.castUrl,
+        shortHash,
+        isWarpcastUrl,
+        isFarcasterUrl,
+        isConversationUrl,
+        hasValidCastHash,
+        castHash
+      });
+      
+      // Cast hash alapú quote (ha van érvényes hash)
+      if (hasValidCastHash && castHash) {
+        console.log(`📤 Using cast hash for comment: ${castHash}`);
+        castOptions.parent = castHash;
+      } else {
+        // Embed alapú quote (biztonságosabb)
+        console.log(`📤 Using embed for comment: ${promo.castUrl}`);
+        castOptions.embeds = [{ url: promo.castUrl }];
       }
       
-      console.log('🔍 Using cast hash:', castHash);
-      
-      // Combine template, custom text, and original cast URL
-      const baseCommentText = customCommentText.trim() 
-        ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
-        : selectedCommentTemplate || '';
-      
-      const finalCommentText = `${baseCommentText}\n\n${selectedCommentPromo.castUrl}`;
-
-      // Open the cast for user to comment manually
-      console.log('📱 Opening cast for manual comment...');
-      console.log('📝 Suggested comment text:', finalCommentText);
-      
-      try {
-        // Just open the cast - user will comment manually
-        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-        console.log('✅ Cast opened successfully');
-      } catch (viewError) {
-        console.log('⚠️ Could not open cast, continuing...');
+      // Véletlenszerű csatorna kiválasztása
+      const randomChannel = getRandomChannel();
+      if (randomChannel) {
+        castOptions.channel = randomChannel;
+        console.log(`📺 Using random channel: ${randomChannel}`);
       }
       
-      // Show instruction message with suggested text
-      setShareError(`📱 Cast opened! Please comment with this text: "${finalCommentText}"`);
+      console.log('🚀 Final cast options:', castOptions);
       
-      // Wait 5 seconds for user to complete actions
-      console.log('⏳ Waiting 5 seconds for user to complete comment...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Cast elküldése
+      await (miniAppSdk as any).actions.composeCast(castOptions);
+      console.log('✅ Comment cast sent successfully');
       
-      // Now submit to our backend for reward verification
+      // Submit to backend for reward verification
       console.log('💰 Submitting comment action for reward...');
       const response = await fetch('/api/comment-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          promotionId: selectedCommentPromo.id,
+          promotionId: promo.id,
           userFid: currentUser.fid,
           username: currentUser.username,
           actionType: 'comment',
-          castHash,
-          rewardAmount: selectedCommentPromo.rewardPerShare,
-          proofUrl: selectedCommentPromo.castUrl
+          castHash: castHash || shortHash,
+          rewardAmount: promo.rewardPerShare,
+          proofUrl: promo.castUrl
         })
       });
 
@@ -628,17 +633,13 @@ export default function PromotePage() {
       // Mark this promotion as completed
       setCompletedActions(prev => ({
         ...prev,
-        [selectedCommentPromo.id]: true
+        [promo.id]: true
       }));
       
       // Show success message
       setShareError('🎉 Comment completed! Reward will be credited soon.');
       
-      // Close modal and refresh data
-      setShowCommentModal(false);
-      setSelectedCommentPromo(null);
-      setSelectedCommentTemplate('');
-      setCustomCommentText('');
+      // Refresh data
       await refreshAllData();
       
     } catch (error: any) {
@@ -648,6 +649,7 @@ export default function PromotePage() {
       setSharingPromoId(null);
     }
   };
+
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) {
@@ -1375,116 +1377,6 @@ export default function PromotePage() {
         />
       )}
 
-      {/* Comment Modal */}
-      {showCommentModal && selectedCommentPromo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-white">Choose Comment Template</h3>
-              <button
-                onClick={() => {
-                  setShowCommentModal(false);
-                  setSelectedCommentPromo(null);
-                  setSelectedCommentTemplate('');
-                }}
-                className="text-gray-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <p className="text-sm text-gray-300 mb-2">
-                Select a comment template to use:
-              </p>
-              <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
-                {COMMENT_TEMPLATES.map((template, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedCommentTemplate(template)}
-                    className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
-                      selectedCommentTemplate === template
-                        ? 'bg-green-600 text-white border border-green-500'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
-                    }`}
-                  >
-                    {template}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {selectedCommentTemplate && (
-              <div className="mb-4 p-3 bg-slate-700 rounded-lg">
-                <p className="text-xs text-gray-400 mb-1">Selected template:</p>
-                <p className="text-sm text-white">{selectedCommentTemplate}</p>
-              </div>
-            )}
-
-            <div className="mb-4">
-              <label className="block text-sm text-gray-300 mb-2">
-                Add your own text (optional):
-              </label>
-              <textarea
-                value={customCommentText}
-                onChange={(e) => setCustomCommentText(e.target.value)}
-                placeholder="Write your additional comment here..."
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none resize-none"
-                rows={3}
-                maxLength={280}
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                {customCommentText.length}/280 characters
-              </p>
-            </div>
-
-            {(selectedCommentTemplate || customCommentText.trim()) && selectedCommentPromo && (
-              <div className="mb-4 p-3 bg-slate-700 rounded-lg">
-                <p className="text-xs text-gray-400 mb-1">Final comment preview:</p>
-                <p className="text-sm text-white">
-                  {(() => {
-                    const baseText = customCommentText.trim() 
-                      ? `${selectedCommentTemplate || ''} ${customCommentText.trim()}`.trim()
-                      : selectedCommentTemplate || '';
-                    return `${baseText}\n\n${selectedCommentPromo.castUrl}`;
-                  })()}
-                </p>
-              </div>
-            )}
-
-            <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/30 rounded-lg">
-              <p className="text-xs text-blue-300 mb-1">📝 Instructions:</p>
-              <p className="text-sm text-blue-200">
-                1. Click "Open Cast & Comment"<br/>
-                2. Copy the suggested text from below<br/>
-                3. Paste it as a comment on the cast<br/>
-                4. Wait for verification
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowCommentModal(false);
-                  setSelectedCommentPromo(null);
-                  setSelectedCommentTemplate('');
-                  setCustomCommentText('');
-                }}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCommentSubmit}
-                disabled={(!selectedCommentTemplate && !customCommentText.trim()) || sharingPromoId === selectedCommentPromo.id.toString()}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-              >
-                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Posting...' : 'Post Comment'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Admin Access Button */}
       <div className="mt-12 pt-8 border-t border-gray-700">
