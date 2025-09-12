@@ -613,23 +613,10 @@ export default function PromotePage() {
       
       console.log('🚀 Final cast options:', castOptions);
       
-      // Just open the cast for user to comment manually
-      try {
-        await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
-        console.log('✅ Cast opened successfully');
-      } catch (viewError) {
-        console.log('⚠️ Could not open cast, continuing...');
-      }
+      // Don't open new window, stay in modal and show comment input
+      setShareError(`📝 Comment ready! Copy this text and paste it as a comment on the post above: "${selectedCommentTemplate}"`);
       
-      // Show instruction message with the comment text
-      setShareError(`📱 Cast opened! Please comment with this text: "${selectedCommentTemplate}"`);
-      
-      // Close modal first
-      setShowCommentModal(false);
-      setSelectedCommentPromo(null);
-      setSelectedCommentTemplate('');
-      
-      // Wait 10 seconds for user to complete the post
+      // Wait 10 seconds for user to complete the comment
       console.log('⏳ Waiting 10 seconds for user to complete comment...');
       await new Promise(resolve => setTimeout(resolve, 10000));
       
@@ -667,7 +654,10 @@ export default function PromotePage() {
       // Show success message
       setShareError('🎉 Comment completed! Reward will be credited soon.');
       
-      // Refresh data
+      // Close modal and refresh data
+      setShowCommentModal(false);
+      setSelectedCommentPromo(null);
+      setSelectedCommentTemplate('');
       await refreshAllData();
       
     } catch (error: any) {
@@ -1557,6 +1547,26 @@ export default function PromotePage() {
                   </p>
                   <p className="text-gray-400 text-xs mt-2">
                     + Original post will be included
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Comment Input */}
+            {selectedCommentTemplate && (
+              <div className="mb-6 p-4 bg-slate-700 rounded-lg">
+                <p className="text-sm text-gray-300 mb-2">💬 Add your comment to the post above:</p>
+                <div className="bg-slate-600 p-3 rounded border-l-4 border-blue-500">
+                  <p className="text-blue-300 text-sm mb-2">
+                    Copy this text and paste it as a comment:
+                  </p>
+                  <div className="bg-slate-800 p-2 rounded border">
+                    <p className="text-white text-sm break-words select-all">
+                      {selectedCommentTemplate}
+                    </p>
+                  </div>
+                  <p className="text-gray-400 text-xs mt-2">
+                    Click on the post above to comment, then paste this text
                   </p>
                 </div>
               </div>
