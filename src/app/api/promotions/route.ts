@@ -41,15 +41,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // Always insert without comment data for now (backward compatibility)
-    // TODO: Add comment columns to promotions table later
+    // Insert with comment data if available
     const result = await sql`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
+        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type,
+        comment_templates, custom_comment, allow_custom_comments
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'},
+        ${commentTemplates ? JSON.stringify(commentTemplates) : '[]'::jsonb}, 
+        ${customComment || null}, 
+        ${allowCustomComments !== undefined ? allowCustomComments : true}
       )
       RETURNING id, cast_url, created_at
     `;

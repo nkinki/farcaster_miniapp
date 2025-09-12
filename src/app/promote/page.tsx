@@ -413,99 +413,193 @@ export default function PromotePage() {
   };
 
            // Like & Recast combined action with timer and verification
-    const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
-      console.log('🚀 handleLikeRecastBoth called!');
-      console.log('📊 Promo:', promo);
-      console.log('📱 Event:', e);
+  const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
+    console.log('🚀 handleLikeRecastBoth called!');
+    console.log('📊 Promo:', promo);
+    console.log('📱 Event:', e);
+    
+    // Prevent default behavior to avoid page reload
+    if (e) {
+      console.log('🛑 Preventing default behavior...');
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('✅ Default behavior prevented');
+    }
+    
+    if (!isAuthenticated || !currentUser.fid) {
+      setShareError("Please connect your Farcaster account first.");
+      return;
+    }
+    
+    setShareError(null);
+    setSharingPromoId(promo.id.toString());
+    
+    try {
+      console.log('🚀 Starting like & recast actions for promo:', promo.id);
       
-      // Prevent default behavior to avoid page reload
-      if (e) {
-        console.log('🛑 Preventing default behavior...');
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('✅ Default behavior prevented');
+      // Extract cast hash from URL
+      const castHash = promo.castUrl.split('/').pop() || '';
+      
+      if (!castHash || !castHash.startsWith('0x')) {
+        throw new Error('Invalid cast hash. Please check the cast URL.');
       }
       
-      if (!isAuthenticated || !currentUser.fid) {
-        setShareError("Please connect your Farcaster account first.");
-        return;
-      }
+      console.log('🔍 Using cast hash:', castHash);
       
-      setShareError(null);
-      setSharingPromoId(promo.id.toString());
-      
+      // First, open the cast so user can see it
+      console.log('📱 Opening cast for user to view...');
       try {
-        console.log('🚀 Starting like & recast actions for promo:', promo.id);
-        
-        // Extract cast hash from URL
-        const castHash = promo.castUrl.split('/').pop() || '';
-        
-        if (!castHash || !castHash.startsWith('0x')) {
-          throw new Error('Invalid cast hash. Please check the cast URL.');
-        }
-        
-        console.log('🔍 Using cast hash:', castHash);
-        
-        // First, open the cast so user can see it
-        console.log('📱 Opening cast for user to view...');
-        try {
-          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-          console.log('✅ Cast opened successfully');
-        } catch (viewError) {
-          console.log('⚠️ Could not open cast, continuing with like/recast...');
-        }
-        
-        // Show instruction message
-        setShareError('📱 Cast opened! Please like & recast it, then wait for verification...');
-        
-        // Wait 5 seconds for user to complete actions
-        console.log('⏳ Waiting 5 seconds for user to complete like/recast...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
-        // Now submit to our backend for reward verification
-        console.log('💰 Submitting actions for reward...');
-        const response = await fetch('/api/like-recast-actions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            promotionId: promo.id,
-            userFid: currentUser.fid,
-            username: currentUser.username,
-            actionType: 'both',
-            castHash,
-            rewardAmount: promo.rewardPerShare,
-            proofUrl: promo.castUrl
-          })
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to submit actions for reward');
-        }
-
-        console.log('✅ Like & recast actions completed successfully');
-        setShareError(null);
-        
-        // Mark this promotion as completed
-        setCompletedActions(prev => ({
-          ...prev,
-          [promo.id]: true
-        }));
-        
-        // Show success message
-        setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
-        
-        // Refresh data
-        await refreshAllData();
-        
-      } catch (error: any) {
-        console.error('❌ Like & recast actions failed:', error);
-        setShareError(error.message || 'Failed to complete like & recast actions');
-      } finally {
-        setSharingPromoId(null);
+        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+        console.log('✅ Cast opened successfully');
+      } catch (viewError) {
+        console.log('⚠️ Could not open cast, continuing with like/recast...');
       }
-    };
+      
+      // Show instruction message
+      setShareError('📱 Cast opened! Please like & recast it, then wait for verification...');
+      
+      // Wait 5 seconds for user to complete actions
+      console.log('⏳ Waiting 5 seconds for user to complete like/recast...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Now submit to our backend for reward verification
+      console.log('💰 Submitting actions for reward...');
+      const response = await fetch('/api/like-recast-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promotionId: promo.id,
+          userFid: currentUser.fid,
+          username: currentUser.username,
+          actionType: 'both',
+          castHash,
+          rewardAmount: promo.rewardPerShare,
+          proofUrl: promo.castUrl
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit actions for reward');
+      }
+
+      console.log('✅ Like & recast actions completed successfully');
+      setShareError(null);
+      
+      // Mark this promotion as completed
+      setCompletedActions(prev => ({
+        ...prev,
+        [promo.id]: true
+      }));
+      
+      // Show success message
+      setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
+      
+      // Refresh data
+      await refreshAllData();
+      
+    } catch (error: any) {
+      console.error('❌ Like & recast actions failed:', error);
+      setShareError(error.message || 'Failed to complete like & recast actions');
+    } finally {
+      setSharingPromoId(null);
+    }
+  };
+
+  const handleCommentAction = async (promo: PromoCast, e?: React.MouseEvent) => {
+    console.log('🚀 handleCommentAction called!');
+    console.log('📊 Promo:', promo);
+    console.log('📱 Event:', e);
+    
+    // Prevent default behavior to avoid page reload
+    if (e) {
+      console.log('🛑 Preventing default behavior...');
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('✅ Default behavior prevented');
+    }
+    
+    if (!isAuthenticated || !currentUser.fid) {
+      setShareError("Please connect your Farcaster account first.");
+      return;
+    }
+    
+    setShareError(null);
+    setSharingPromoId(promo.id.toString());
+    
+    try {
+      console.log('🚀 Starting comment action for promo:', promo.id);
+      
+      // Extract cast hash from URL
+      const castHash = promo.castUrl.split('/').pop() || '';
+      
+      if (!castHash || !castHash.startsWith('0x')) {
+        throw new Error('Invalid cast hash. Please check the cast URL.');
+      }
+      
+      console.log('🔍 Using cast hash:', castHash);
+      
+      // First, open the cast so user can see it
+      console.log('📱 Opening cast for user to view...');
+      try {
+        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+        console.log('✅ Cast opened successfully');
+      } catch (viewError) {
+        console.log('⚠️ Could not open cast, continuing with comment...');
+      }
+      
+      // Show instruction message
+      setShareError('📱 Cast opened! Please comment on it, then wait for verification...');
+      
+      // Wait 5 seconds for user to complete actions
+      console.log('⏳ Waiting 5 seconds for user to complete comment...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Now submit to our backend for reward verification
+      console.log('💰 Submitting comment action for reward...');
+      const response = await fetch('/api/comment-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promotionId: promo.id,
+          userFid: currentUser.fid,
+          username: currentUser.username,
+          actionType: 'comment',
+          castHash,
+          rewardAmount: promo.rewardPerShare,
+          proofUrl: promo.castUrl
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit comment action for reward');
+      }
+
+      console.log('✅ Comment action completed successfully');
+      setShareError(null);
+      
+      // Mark this promotion as completed
+      setCompletedActions(prev => ({
+        ...prev,
+        [promo.id]: true
+      }));
+      
+      // Show success message
+      setShareError('🎉 Comment completed! Reward will be credited soon.');
+      
+      // Refresh data
+      await refreshAllData();
+      
+    } catch (error: any) {
+      console.error('❌ Comment action failed:', error);
+      setShareError(error.message || 'Failed to complete comment action');
+    } finally {
+      setSharingPromoId(null);
+    }
+  };
 
 
   const handleSharePromo = async (promo: PromoCast) => {
@@ -996,6 +1090,50 @@ export default function PromotePage() {
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Like & Recast` 
                                         : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`
+                                    }
+                                  </button>
+                                );
+                              } else if (promo.actionType === 'comment') {
+                                // Check if user already completed this action
+                                const isCompleted = completedActions[promo.id];
+                                
+                                if (isCompleted) {
+                                  return (
+                                    <div className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg shadow-sm">
+                                      <span>✅</span>
+                                      <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
+                                    </div>
+                                  );
+                                }
+                                
+                                const countdown = buttonCountdowns[promo.id.toString()];
+                                const isCountingDown = countdown > 0;
+                                const isDisabled = sharingPromoId === promo.id.toString() || !canShare || isCountingDown;
+                                
+                                return (
+                                  <button 
+                                    onClick={(e) => {
+                                      if (!isCountingDown) {
+                                        console.log('🔘 Comment button clicked!');
+                                        startButtonCountdown(promo.id.toString());
+                                        setTimeout(() => handleCommentAction(promo, e), 10000);
+                                      }
+                                    }} 
+                                    disabled={isDisabled} 
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                  >
+                                    {sharingPromoId === promo.id.toString() ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    ) : isCountingDown ? (
+                                      <FiClock size={14} />
+                                    ) : (
+                                      '💬'
+                                    )}
+                                    {sharingPromoId === promo.id.toString() 
+                                      ? 'Processing...' 
+                                      : isCountingDown 
+                                        ? `⏳ Wait ${countdown}s to Comment` 
+                                        : `Comment & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
