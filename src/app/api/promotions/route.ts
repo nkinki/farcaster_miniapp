@@ -41,42 +41,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // Check if comments feature is enabled and we have comment data
-    const hasCommentData = FEATURES.ENABLE_COMMENTS && (commentTemplates || customComment !== undefined);
-    
-    let newPromotion;
-    
-    if (hasCommentData) {
-      // Insert with comment data
-      const result = await sql`
-        INSERT INTO promotions (
-          fid, username, display_name, cast_url, share_text,
-          reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type,
-          comment_templates, custom_comment, allow_custom_comments
-        ) VALUES (
-          ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
-          ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'},
-          ${commentTemplates ? JSON.stringify(commentTemplates) : '[]'},
-          ${customComment || null},
-          ${allowCustomComments !== false}
-        )
-        RETURNING id, cast_url, created_at, comment_templates, custom_comment, allow_custom_comments
-      `;
-      newPromotion = result[0];
-    } else {
-      // Insert without comment data (backward compatibility)
-      const result = await sql`
-        INSERT INTO promotions (
-          fid, username, display_name, cast_url, share_text,
-          reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
-        ) VALUES (
-          ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
-          ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
-        )
-        RETURNING id, cast_url, created_at
-      `;
-      newPromotion = result[0];
-    }
+    // Always insert without comment data for now (backward compatibility)
+    // TODO: Add comment columns to promotions table later
+    const result = await sql`
+      INSERT INTO promotions (
+        fid, username, display_name, cast_url, share_text,
+        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
+      ) VALUES (
+        ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
+      )
+      RETURNING id, cast_url, created_at
+    `;
+    const newPromotion = result[0];
 
     // Automatikus értesítések trigger (nem blokkoló)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
