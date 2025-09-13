@@ -1231,7 +1231,7 @@ export default function PromotePage() {
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1244,7 +1244,7 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Comment` 
-                                        : `Comment & Earn ${promo.rewardPerShare} $CHESS`
+                                        : `🚧 Comment & Earn ${promo.rewardPerShare} $CHESS (Under Development)`
                                     }
                                   </button>
                                 );
@@ -1597,6 +1597,17 @@ export default function PromotePage() {
               </div>
             </div>
 
+            {/* Development Notice */}
+            <div className="mb-6 p-4 bg-yellow-900 border border-yellow-600 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-yellow-400">⚠️</span>
+                <p className="text-yellow-300 font-medium">Under Development</p>
+              </div>
+              <p className="text-yellow-200 text-sm">
+                Comment functionality is currently under development. The comment will be posted as a reply to the original post above.
+              </p>
+            </div>
+
 
 
             {/* Action Buttons */}
@@ -1614,9 +1625,9 @@ export default function PromotePage() {
               <button
                 onClick={handleCommentSubmit}
                 disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
-                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Sharing...' : 'Share Comment'}
+                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Sharing...' : '🚧 Share Comment (Under Development)'}
               </button>
             </div>
           </div>

@@ -244,12 +244,12 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
           onClick={() => setSelectedAction('comment')}
           className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
             selectedAction === 'comment'
-              ? 'bg-green-600 text-white border border-green-500'
+              ? 'bg-yellow-600 text-white border border-yellow-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
           }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
-          💬 Comment
+          🚧 Comment (Under Development)
         </button>
       </div>
       
