@@ -613,34 +613,42 @@ export default function PromotePage() {
       
       console.log('🚀 Final cast options:', castOptions);
       
-      // Create comment cast using composeCast with proper parent object
+      // Create comment cast using composeCast with proper parent hash
       try {
-        // Extract FID from the cast URL if possible, or use a default
-        const parentFid = selectedCommentPromo.fid || 1; // Default FID if not available
+        // Try different parent formats for reply
+        console.log('🔍 Attempting comment with parent hash:', castHash || shortHash);
         
         await (miniAppSdk as any).actions.composeCast({
           text: selectedCommentTemplate,
-          parent: {
-            fid: parentFid,
-            hash: castHash || shortHash
-          }
+          parent: castHash || shortHash  // Just the hash, not an object
         });
-        console.log('✅ Comment cast composed successfully with parent object');
+        console.log('✅ Comment cast composed successfully with parent hash');
       } catch (composeError) {
-        console.log('⚠️ Could not compose comment with parent, trying with embed...');
+        console.log('⚠️ Could not compose comment with parent hash, trying parent object...');
         try {
           await (miniAppSdk as any).actions.composeCast({
             text: selectedCommentTemplate,
-            embeds: [{ url: selectedCommentPromo.castUrl }]
+            parent: {
+              hash: castHash || shortHash
+            }
           });
-          console.log('✅ Comment cast composed with embed');
-        } catch (embedError) {
-          console.log('⚠️ Could not compose comment, trying viewCast...');
+          console.log('✅ Comment cast composed successfully with parent object');
+        } catch (parentObjectError) {
+          console.log('⚠️ Could not compose comment with parent object, trying embed...');
           try {
-            await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
-            console.log('✅ Cast opened for manual comment');
-          } catch (viewError) {
-            console.log('⚠️ Could not open cast');
+            await (miniAppSdk as any).actions.composeCast({
+              text: selectedCommentTemplate,
+              embeds: [{ url: selectedCommentPromo.castUrl }]
+            });
+            console.log('✅ Comment cast composed with embed');
+          } catch (embedError) {
+            console.log('⚠️ Could not compose comment, trying viewCast...');
+            try {
+              await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
+              console.log('✅ Cast opened for manual comment');
+            } catch (viewError) {
+              console.log('⚠️ Could not open cast');
+            }
           }
         }
       }
