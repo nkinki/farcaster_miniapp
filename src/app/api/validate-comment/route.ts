@@ -16,10 +16,12 @@ export async function POST(request: NextRequest) {
 
     const neynarApiKey = process.env.NEYNAR_API_KEY;
     
-    if (!neynarApiKey) {
-      console.log('🧪 Mock mode: Neynar API key not configured');
+    // Check if we have a valid Neynar API key (not just placeholder)
+    if (!neynarApiKey || neynarApiKey === 'your-neynar-api-key-here' || neynarApiKey === 'NEYNAR_API_DOCS') {
+      console.log('🧪 Mock mode: Neynar API key not configured or is placeholder');
       
-      // Mock validation for testing
+      // Mock validation for testing - always returns true for now
+      // In production, you might want to implement alternative validation
       return NextResponse.json({
         success: true,
         validated: true,
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
           author: { fid: userFid },
           parent: { hash: parentCastHash }
         },
-        message: 'Mock comment validation successful',
+        message: 'Mock comment validation successful (Neynar API not configured)',
         mock: true
       }, { status: 200 });
     }

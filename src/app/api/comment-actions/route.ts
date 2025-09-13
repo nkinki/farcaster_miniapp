@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'This promotion is not for comment actions' }, { status: 400 });
     }
 
-    // Validate comment exists on Farcaster before recording
-    console.log('🔍 Validating comment on Farcaster...');
+    // Validate comment using simple validation (no Neynar API dependency)
+    console.log('🔍 Validating comment with simple validation...');
     
-    const validationResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/validate-comment`, {
+    const validationResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/validate-comment-simple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
