@@ -1544,7 +1544,7 @@ export default function PromotePage() {
                     {selectedCommentPromo.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{selectedCommentPromo.display_name || selectedCommentPromo.username}</p>
+                    <p className="font-semibold text-gray-900">{selectedCommentPromo.displayName || selectedCommentPromo.username}</p>
                     <p className="text-sm text-gray-500">@{selectedCommentPromo.username}</p>
                   </div>
                 </div>
