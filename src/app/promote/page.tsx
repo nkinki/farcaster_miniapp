@@ -669,7 +669,7 @@ export default function PromotePage() {
           actionType: 'comment',
           castHash: castHash || shortHash,
           rewardAmount: selectedCommentPromo.rewardPerShare,
-          proofUrl: selectedCommentPromo.castUrl
+          proofUrl: selectedCommentTemplate // Send the actual comment text for validation
         })
       });
 

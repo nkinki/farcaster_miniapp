@@ -53,7 +53,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'This promotion is not for comment actions' }, { status: 400 });
     }
 
-    // Record the comment action in shares table instead (temporary solution)
+    // Validate comment exists on Farcaster before recording
+    console.log('🔍 Validating comment on Farcaster...');
+    
+    const validationResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/validate-comment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parentCastHash: castHash,
+        userFid: userFid,
+        commentText: proofUrl, // Using proofUrl as comment text for now
+        promotionId: promotionId
+      })
+    });
+
+    if (!validationResponse.ok) {
+      const validationError = await validationResponse.json();
+      console.log('❌ Comment validation failed:', validationError);
+      return NextResponse.json({ 
+        error: 'Comment validation failed. Please make sure you posted the comment.',
+        details: validationError.message
+      }, { status: 400 });
+    }
+
+    const validationData = await validationResponse.json();
+    
+    if (!validationData.validated) {
+      console.log('❌ Comment not found on Farcaster');
+      return NextResponse.json({ 
+        error: 'Comment not found. Please make sure you posted the comment and try again.',
+        details: validationData.message
+      }, { status: 404 });
+    }
+
+    console.log('✅ Comment validation successful:', validationData.comment?.hash);
+
+    // Record the comment action in shares table
     const result = await sql`
       INSERT INTO shares (
         promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount
@@ -88,7 +123,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       actionId,
-      message: 'Comment action recorded successfully. Reward will be credited after verification.' 
+      validatedComment: validationData.comment,
+      message: 'Comment validated and reward credited successfully!' 
     }, { status: 201 });
 
   } catch (error: any) {
