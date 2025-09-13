@@ -613,48 +613,13 @@ export default function PromotePage() {
       
       console.log('🚀 Final cast options:', castOptions);
       
-      // Create comment cast using composeCast with proper parent hash
-      try {
-        // Try different parent formats for reply
-        console.log('🔍 Attempting comment with parent hash:', castHash || shortHash);
-        
-        await (miniAppSdk as any).actions.composeCast({
-          text: selectedCommentTemplate,
-          parent: castHash || shortHash  // Just the hash, not an object
-        });
-        console.log('✅ Comment cast composed successfully with parent hash');
-      } catch (composeError) {
-        console.log('⚠️ Could not compose comment with parent hash, trying parent object...');
-        try {
-          await (miniAppSdk as any).actions.composeCast({
-            text: selectedCommentTemplate,
-            parent: {
-              hash: castHash || shortHash
-            }
-          });
-          console.log('✅ Comment cast composed successfully with parent object');
-        } catch (parentObjectError) {
-          console.log('⚠️ Could not compose comment with parent object, trying embed...');
-          try {
-            await (miniAppSdk as any).actions.composeCast({
-              text: selectedCommentTemplate,
-              embeds: [{ url: selectedCommentPromo.castUrl }]
-            });
-            console.log('✅ Comment cast composed with embed');
-          } catch (embedError) {
-            console.log('⚠️ Could not compose comment, trying viewCast...');
-            try {
-              await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
-              console.log('✅ Cast opened for manual comment');
-            } catch (viewError) {
-              console.log('⚠️ Could not open cast');
-            }
-          }
-        }
-      }
+      // Don't use composeCast - it opens new windows
+      // Instead, just show instruction and wait for user to comment manually
+      console.log('📝 Comment template selected:', selectedCommentTemplate);
+      console.log('🔗 Original post URL:', selectedCommentPromo.castUrl);
       
       // Show instruction message
-      setShareError('📱 Comment composed! Please post it, then wait for verification...');
+      setShareError('📱 Please comment on the original post above, then wait for verification...');
       
       // Close modal first
       setShowCommentModal(false);
@@ -1569,9 +1534,17 @@ export default function PromotePage() {
                   </button>
                   
                   <button 
-                    onClick={() => {
+                    onClick={async () => {
                       console.log('🔘 Comment button clicked in preview!');
-                      // This will enable comment template selection
+                      try {
+                        // Open the original post in Farcaster to enable commenting
+                        await (miniAppSdk as any).actions.viewCast({ 
+                          hash: selectedCommentPromo.castUrl.split('/').pop() || '' 
+                        });
+                        console.log('✅ Original post opened for commenting');
+                      } catch (error) {
+                        console.log('⚠️ Could not open original post:', error);
+                      }
                     }}
                     className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors"
                   >
