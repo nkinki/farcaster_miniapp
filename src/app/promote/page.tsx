@@ -1532,39 +1532,59 @@ export default function PromotePage() {
               </button>
             </div>
             
-            {/* Original Post Preview with Comment Integration */}
+            {/* Interactive Post Preview with Clickable Comment Button */}
             <div className="mb-6 p-4 bg-slate-700 rounded-lg">
               <p className="text-sm text-gray-300 mb-2">📱 Post Preview:</p>
-              <div className="bg-white rounded overflow-hidden h-48 relative">
-                {/* Loading Skeleton */}
-                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                  <div className="text-gray-500 text-sm">Loading post...</div>
+              
+              {/* Mock Farcaster Post */}
+              <div className="bg-white rounded-lg p-4 shadow-lg">
+                {/* Post Header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                    {selectedCommentPromo.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{selectedCommentPromo.display_name || selectedCommentPromo.username}</p>
+                    <p className="text-sm text-gray-500">@{selectedCommentPromo.username}</p>
+                  </div>
                 </div>
-                <iframe 
-                  src={selectedCommentPromo.castUrl} 
-                  className="w-full h-full border-0 relative z-10" 
-                  title={`Preview of post #${selectedCommentPromo.id}`}
-                  loading="lazy"
-                  sandbox="allow-scripts allow-same-origin"
-                  onLoad={(e) => {
-                    // Hide loading skeleton when iframe loads
-                    const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
-                    if (skeleton) skeleton.style.display = 'none';
-                  }}
-                  onError={(e) => {
-                    // Show error message if iframe fails to load
-                    const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
-                    if (skeleton) {
-                      skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Post preview unavailable</div>';
-                    }
-                  }}
-                />
+                
+                {/* Post Content */}
+                <div className="mb-4">
+                  <p className="text-gray-900 text-sm leading-relaxed">
+                    This is a preview of the original post. Click the comment button below to add your comment.
+                  </p>
+                </div>
+                
+                {/* Post Actions - Like, Recast, Comment */}
+                <div className="flex items-center gap-6 pt-3 border-t border-gray-200">
+                  <button className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors">
+                    <span>👍</span>
+                    <span className="text-sm">Like</span>
+                  </button>
+                  
+                  <button className="flex items-center gap-2 text-gray-500 hover:text-green-500 transition-colors">
+                    <span>🔄</span>
+                    <span className="text-sm">Recast</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      console.log('🔘 Comment button clicked in preview!');
+                      // This will enable comment template selection
+                    }}
+                    className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors"
+                  >
+                    <span>💬</span>
+                    <span className="text-sm">Comment</span>
+                  </button>
+                </div>
               </div>
               
               {/* Comment Input Overlay - appears when template is selected */}
               {selectedCommentTemplate && (
-                <div className="mt-4 p-3 bg-slate-600 rounded-lg border-l-4 border-blue-500">
-                  <p className="text-blue-300 text-sm mb-2">💬 Your comment will be:</p>
+                <div className="mt-4 p-3 bg-slate-600 rounded-lg border-l-4 border-green-500">
+                  <p className="text-green-300 text-sm mb-2">💬 Your comment will be:</p>
                   <div className="bg-slate-800 p-2 rounded border">
                     <p className="text-white text-sm break-words">
                       {selectedCommentTemplate}
