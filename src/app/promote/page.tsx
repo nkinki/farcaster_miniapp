@@ -1522,7 +1522,6 @@ export default function PromotePage() {
                   </div>
                 )}
               </div>
-            )}
 
 
 
