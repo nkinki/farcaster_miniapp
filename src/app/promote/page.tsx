@@ -1484,18 +1484,15 @@ export default function PromotePage() {
               </div>
               
               {/* Instruction */}
-              {!showCommentTemplates && (
-                <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
-                  <p className="text-blue-300 text-sm">
-                    👆 <strong>Click the Comment button in the post above</strong> to add your comment
-                  </p>
-                </div>
-              )}
+              <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
+                <p className="text-blue-300 text-sm">
+                  👇 <strong>Choose a comment template below</strong> to add your comment to this post
+                </p>
+              </div>
             </div>
 
-            {/* Comment Templates - only show when comment button was clicked */}
-            {showCommentTemplates && (
-              <div className="mb-6">
+            {/* Comment Templates - always show */}
+            <div className="mb-6">
                 <p className="text-sm text-gray-300 mb-3">Choose a comment template:</p>
                 <div className="grid grid-cols-1 gap-2">
                   {COMMENT_TEMPLATES.slice(0, 3).map((template, index) => (
@@ -1536,7 +1533,6 @@ export default function PromotePage() {
                   setShowCommentModal(false);
                   setSelectedCommentPromo(null);
                   setSelectedCommentTemplate('');
-                  setShowCommentTemplates(false);
                 }}
                 className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
@@ -1582,7 +1578,6 @@ export default function PromotePage() {
                         setShowCommentModal(false);
                         setSelectedCommentPromo(null);
                         setSelectedCommentTemplate('');
-                        setShowCommentTemplates(false);
                         setShareError(null);
                       }, 2000);
                       
