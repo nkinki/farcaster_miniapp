@@ -326,7 +326,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
             <Link href="/promote" className="inline-block">
               <span 
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+                className="flex items-center gap-3 px-6 py-3 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
                 onClick={async () => {
                   if (hapticsSupported) {
                     try {
@@ -337,7 +337,7 @@ export default function Home() {
                   }
                 }}
               >
-                <FiDollarSign size={28} className="text-green-300" />
+                <FiDollarSign size={24} className="text-green-300" />
                 Share & Earn
               </span>
             </Link>
@@ -357,7 +357,7 @@ export default function Home() {
                 className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
               >
                 <FiDollarSign size={28} className="text-yellow-300" />
-                BUY A LAMBO
+                <span className="text-yellow-300">BUY A LAMBO</span>
               </button>
             </div>
 
