@@ -324,23 +324,25 @@ export default function Home() {
            </header>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
-            <Link href="/promote" className="inline-block">
-              <span 
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
-                onClick={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('medium');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
+            <div className="inline-block">
+              <Link href="/promote">
+                <button
+                  className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+                  onClick={async () => {
+                    if (hapticsSupported) {
+                      try {
+                        await sdk.haptics.impactOccurred('medium');
+                      } catch (error) {
+                        console.log('Haptics error:', error);
+                      }
                     }
-                  }
-                }}
-              >
-                <FiDollarSign size={28} className="text-green-300" />
-                <span>Share & Earn</span>
-              </span>
-            </Link>
+                  }}
+                >
+                  <FiDollarSign size={28} className="text-green-300" />
+                  <span>Share & Earn</span>
+                </button>
+              </Link>
+            </div>
             
             <div className="inline-block">
               <button
