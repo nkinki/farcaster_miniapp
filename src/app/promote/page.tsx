@@ -613,62 +613,20 @@ export default function PromotePage() {
       
       console.log('🚀 Final cast options:', castOptions);
       
-      // Don't use composeCast - it opens new windows
-      // Instead, just show instruction and wait for user to comment manually
+      // Keep modal open and show comment input interface
       console.log('📝 Comment template selected:', selectedCommentTemplate);
       console.log('🔗 Original post URL:', selectedCommentPromo.castUrl);
       
       // Show instruction message
-      setShareError('📱 Please comment on the original post above, then wait for verification...');
+      setShareError('📱 Comment ready! Please post it in the Farcaster app, then click "Verify Comment" below.');
       
-      // Close modal first
-      setShowCommentModal(false);
-      setSelectedCommentPromo(null);
-      setSelectedCommentTemplate('');
+      // Don't close modal - keep it open for comment verification
+      // setShowCommentModal(false);
+      // setSelectedCommentPromo(null);
+      // setSelectedCommentTemplate('');
       
-      // Wait 10 seconds for user to complete the comment
-      console.log('⏳ Waiting 10 seconds for user to complete comment...');
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      
-      // Now submit to backend for reward verification
-      console.log('💰 Submitting comment action for reward...');
-      const response = await fetch('/api/comment-actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          promotionId: selectedCommentPromo.id,
-          userFid: currentUser.fid,
-          username: currentUser.username,
-          actionType: 'comment',
-          castHash: castHash || shortHash,
-          rewardAmount: selectedCommentPromo.rewardPerShare,
-          proofUrl: selectedCommentTemplate // Send the actual comment text for validation
-        })
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit comment action for reward');
-      }
-
-      console.log('✅ Comment action completed successfully');
-      setShareError(null);
-      
-      // Mark this promotion as completed
-      setCompletedActions(prev => ({
-        ...prev,
-        [selectedCommentPromo.id]: true
-      }));
-      
-      // Show success message
-      setShareError('🎉 Comment completed! Reward will be credited soon.');
-      
-      // Close modal and refresh data
-      setShowCommentModal(false);
-      setSelectedCommentPromo(null);
-      setSelectedCommentTemplate('');
-      await refreshAllData();
+      // Don't wait automatically - let user click verify when ready
+      // The verification is now handled by the "Verify Comment" button
       
     } catch (error: any) {
       console.error('❌ Comment action failed:', error);
@@ -1623,6 +1581,61 @@ export default function PromotePage() {
                 {sharingPromoId === selectedCommentPromo.id.toString() ? 'Sharing...' : '🚧 Share Comment (Under Development)'}
               </button>
             </div>
+
+            {/* Verify Comment Button - appears after Share Comment is clicked */}
+            {shareError && shareError.includes('Comment ready!') && (
+              <div className="mt-4">
+                <button
+                  onClick={async () => {
+                    if (!selectedCommentPromo || !selectedCommentTemplate) return;
+                    
+                    console.log('🔍 Verifying comment...');
+                    setShareError('🔍 Verifying comment...');
+                    
+                    try {
+                      // Submit to backend for reward verification
+                      const response = await fetch('/api/comment-actions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          promotionId: selectedCommentPromo.id,
+                          userFid: currentUser.fid,
+                          username: currentUser.username,
+                          actionType: 'comment',
+                          castHash: selectedCommentPromo.castUrl.split('/').pop() || '',
+                          rewardAmount: selectedCommentPromo.rewardPerShare,
+                          proofUrl: selectedCommentTemplate
+                        })
+                      });
+
+                      const data = await response.json();
+                      
+                      if (!response.ok) {
+                        throw new Error(data.error || 'Failed to verify comment');
+                      }
+
+                      console.log('✅ Comment verified successfully');
+                      setShareError('✅ Comment verified! Reward credited successfully!');
+                      
+                      // Close modal after successful verification
+                      setTimeout(() => {
+                        setShowCommentModal(false);
+                        setSelectedCommentPromo(null);
+                        setSelectedCommentTemplate('');
+                        setShareError(null);
+                      }, 2000);
+                      
+                    } catch (error: any) {
+                      console.error('❌ Comment verification failed:', error);
+                      setShareError(`❌ Verification failed: ${error.message}`);
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  ✅ Verify Comment
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
