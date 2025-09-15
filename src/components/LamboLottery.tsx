@@ -185,15 +185,38 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const updateTimer = () => {
       const now = new Date();
       const drawTime = new Date();
-      drawTime.setUTCHours(19, 0, 0, 0);
+      drawTime.setUTCHours(19, 5, 0, 0); // Changed to 19:05 UTC
       if (now.getTime() > drawTime.getTime()) { drawTime.setDate(drawTime.getDate() + 1); }
+      
       const difference = drawTime.getTime() - now.getTime();
-      if (difference > 0) {
+      
+      // Check if we're in the drawing period (19:05 - 19:10)
+      const drawStart = new Date();
+      drawStart.setUTCHours(19, 5, 0, 0);
+      const drawEnd = new Date();
+      drawEnd.setUTCHours(19, 10, 0, 0);
+      
+      if (now.getTime() >= drawStart.getTime() && now.getTime() < drawEnd.getTime()) {
+        // During drawing period (19:05 - 19:10)
+        setTimeRemaining("Drawing in progress...");
+      } else if (difference > 0) {
+        // Before drawing time
         const hours = Math.floor(difference / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
         setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      } else { setTimeRemaining("00:00:00"); }
+      } else {
+        // After drawing period, calculate next draw
+        const nextDrawTime = new Date();
+        nextDrawTime.setUTCHours(19, 5, 0, 0);
+        nextDrawTime.setDate(nextDrawTime.getDate() + 1);
+        
+        const nextDifference = nextDrawTime.getTime() - now.getTime();
+        const hours = Math.floor(nextDifference / (1000 * 60 * 60));
+        const minutes = Math.floor((nextDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((nextDifference % (1000 * 60)) / 1000);
+        setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      }
     };
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
