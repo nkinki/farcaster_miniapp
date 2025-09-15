@@ -338,7 +338,7 @@ export default function Home() {
                 className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
               >
                 <FiDollarSign size={28} className="text-green-300" />
-                <span>Share & Earn</span>
+                <span>Share & Earn Money</span>
               </button>
             </div>
             
