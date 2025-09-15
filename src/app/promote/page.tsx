@@ -1457,57 +1457,29 @@ export default function PromotePage() {
               </button>
             </div>
             
-            {/* Post Preview with Scrollable Content */}
+            {/* Original Post Preview with iframe */}
             <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-              <p className="text-sm text-gray-300 mb-2">📱 Post Preview:</p>
+              <p className="text-sm text-gray-300 mb-2">📱 Original Post:</p>
               
-              {/* Scrollable Post Content */}
-              <div className="bg-white rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                {/* Post Header */}
-                <div className="flex items-center gap-3 p-4 border-b border-gray-200">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {selectedCommentPromo.username?.charAt(0).toUpperCase() || 'U'}
+              {/* Original Post iframe */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="h-64 relative">
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                    <div className="text-gray-500 text-sm">Loading preview...</div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{selectedCommentPromo.displayName || selectedCommentPromo.username}</p>
-                    <p className="text-sm text-gray-500">@{selectedCommentPromo.username}</p>
-                  </div>
-                </div>
-                
-                {/* Post Content */}
-                <div className="p-4">
-                  <p className="text-gray-900 text-sm leading-relaxed">
-                    This is a preview of the original post. Scroll down to see the comment button.
-                  </p>
-                  <div className="mt-4 h-32 bg-gray-100 rounded p-2">
-                    <p className="text-gray-600 text-xs">More post content...</p>
-                    <p className="text-gray-600 text-xs mt-2">Keep scrolling to find the comment button...</p>
-                    <p className="text-gray-600 text-xs mt-2">Almost there...</p>
-                  </div>
-                </div>
-                
-                {/* Post Actions - Fixed at bottom */}
-                <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
-                  <button className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors">
-                    <span>👍</span>
-                    <span className="text-sm">Like</span>
-                  </button>
-                  
-                  <button className="flex items-center gap-2 text-gray-500 hover:text-green-500 transition-colors">
-                    <span>🔄</span>
-                    <span className="text-sm">Recast</span>
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      console.log('🔘 Comment button clicked in preview!');
-                      setShowCommentTemplates(true);
+                  <iframe 
+                    src={selectedCommentPromo.castUrl} 
+                    className="w-full h-full border-0 relative z-10" 
+                    title={`Preview of post for commenting`}
+                    loading="lazy"
+                    onLoad={(e) => {
+                      const iframe = e.target as HTMLIFrameElement;
+                      const parent = iframe.parentElement;
+                      if (parent) {
+                        parent.querySelector('.absolute')?.remove();
+                      }
                     }}
-                    className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors bg-blue-50 px-3 py-1 rounded-lg"
-                  >
-                    <span>💬</span>
-                    <span className="text-sm font-medium">Comment</span>
-                  </button>
+                  />
                 </div>
               </div>
               
@@ -1515,7 +1487,7 @@ export default function PromotePage() {
               {!showCommentTemplates && (
                 <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
                   <p className="text-blue-300 text-sm">
-                    👆 <strong>Click the Comment button above</strong> to add your comment to this post
+                    👆 <strong>Click the Comment button in the post above</strong> to add your comment
                   </p>
                 </div>
               )}
