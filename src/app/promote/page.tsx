@@ -595,12 +595,15 @@ export default function PromotePage() {
         castHash
       });
       
-      // Cast hash alapú quote (ha van érvényes hash)
+      // Cast hash alapú comment (ha van érvényes hash)
       if (hasValidCastHash && castHash) {
         console.log(`📤 Using cast hash for comment: ${castHash}`);
-        castOptions.parent = castHash;
+        castOptions.parent = { 
+          type: 'cast', 
+          hash: castHash 
+        };
       } else {
-        // Embed alapú quote (biztonságosabb)
+        // Embed alapú comment (biztonságosabb)
         console.log(`📤 Using embed for comment: ${selectedCommentPromo.castUrl}`);
         castOptions.embeds = [{ url: selectedCommentPromo.castUrl }];
       }
