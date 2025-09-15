@@ -1457,14 +1457,14 @@ export default function PromotePage() {
               </button>
             </div>
             
-            {/* Interactive Post Preview with Clickable Comment Button */}
+            {/* Post Preview with Scrollable Content */}
             <div className="mb-6 p-4 bg-slate-700 rounded-lg">
               <p className="text-sm text-gray-300 mb-2">📱 Post Preview:</p>
               
-              {/* Mock Farcaster Post */}
-              <div className="bg-white rounded-lg p-4 shadow-lg">
+              {/* Scrollable Post Content */}
+              <div className="bg-white rounded-lg shadow-lg max-h-64 overflow-y-auto">
                 {/* Post Header */}
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3 p-4 border-b border-gray-200">
                   <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                     {selectedCommentPromo.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
@@ -1475,14 +1475,19 @@ export default function PromotePage() {
                 </div>
                 
                 {/* Post Content */}
-                <div className="mb-4">
+                <div className="p-4">
                   <p className="text-gray-900 text-sm leading-relaxed">
-                    This is a preview of the original post. Click the comment button below to add your comment.
+                    This is a preview of the original post. Scroll down to see the comment button.
                   </p>
+                  <div className="mt-4 h-32 bg-gray-100 rounded p-2">
+                    <p className="text-gray-600 text-xs">More post content...</p>
+                    <p className="text-gray-600 text-xs mt-2">Keep scrolling to find the comment button...</p>
+                    <p className="text-gray-600 text-xs mt-2">Almost there...</p>
+                  </div>
                 </div>
                 
-                {/* Post Actions - Like, Recast, Comment */}
-                <div className="flex items-center gap-6 pt-3 border-t border-gray-200">
+                {/* Post Actions - Fixed at bottom */}
+                <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
                   <button className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors">
                     <span>👍</span>
                     <span className="text-sm">Like</span>
@@ -1496,28 +1501,21 @@ export default function PromotePage() {
                   <button 
                     onClick={() => {
                       console.log('🔘 Comment button clicked in preview!');
-                      // Enable comment template selection
                       setShowCommentTemplates(true);
                     }}
-                    className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors"
+                    className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors bg-blue-50 px-3 py-1 rounded-lg"
                   >
                     <span>💬</span>
-                    <span className="text-sm">Comment</span>
+                    <span className="text-sm font-medium">Comment</span>
                   </button>
                 </div>
               </div>
               
-              {/* Comment Input Overlay - appears when template is selected */}
-              {selectedCommentTemplate && (
-                <div className="mt-4 p-3 bg-slate-600 rounded-lg border-l-4 border-green-500">
-                  <p className="text-green-300 text-sm mb-2">💬 Your comment will be:</p>
-                  <div className="bg-slate-800 p-2 rounded border">
-                    <p className="text-white text-sm break-words">
-                      {selectedCommentTemplate}
-                    </p>
-                  </div>
-                  <p className="text-gray-400 text-xs mt-2">
-                    This will be posted as a reply to the post above
+              {/* Instruction */}
+              {!showCommentTemplates && (
+                <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
+                  <p className="text-blue-300 text-sm">
+                    👆 <strong>Click the Comment button above</strong> to add your comment to this post
                   </p>
                 </div>
               )}
@@ -1542,19 +1540,20 @@ export default function PromotePage() {
                     </button>
                   ))}
                 </div>
+                
+                {/* Selected Template Preview */}
+                {selectedCommentTemplate && (
+                  <div className="mt-4 p-3 bg-green-900 border border-green-600 rounded-lg">
+                    <p className="text-green-300 text-sm mb-2">💬 Your comment:</p>
+                    <div className="bg-slate-800 p-2 rounded border">
+                      <p className="text-white text-sm break-words">
+                        {selectedCommentTemplate}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Development Notice */}
-            <div className="mb-6 p-4 bg-yellow-900 border border-yellow-600 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-yellow-400">⚠️</span>
-                <p className="text-yellow-300 font-medium">Under Development</p>
-              </div>
-              <p className="text-yellow-200 text-sm">
-                Comment functionality is currently under development. The comment will be posted as a reply to the original post above.
-              </p>
-            </div>
 
 
 
@@ -1571,24 +1570,15 @@ export default function PromotePage() {
               >
                 Cancel
               </button>
-              <button
-                onClick={handleCommentSubmit}
-                disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
-                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-              >
-                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Sharing...' : '🚧 Share Comment (Under Development)'}
-              </button>
-            </div>
-
-            {/* Verify Comment Button - appears after Share Comment is clicked */}
-            {shareError && shareError.includes('Comment ready!') && (
-              <div className="mt-4">
+              
+              {/* Simple Share Button - only show when template is selected */}
+              {selectedCommentTemplate && (
                 <button
                   onClick={async () => {
                     if (!selectedCommentPromo || !selectedCommentTemplate) return;
                     
-                    console.log('🔍 Verifying comment...');
-                    setShareError('🔍 Verifying comment...');
+                    console.log('🚀 Sharing comment...');
+                    setShareError('🚀 Sharing comment...');
                     
                     try {
                       // Submit to backend for reward verification
@@ -1609,31 +1599,32 @@ export default function PromotePage() {
                       const data = await response.json();
                       
                       if (!response.ok) {
-                        throw new Error(data.error || 'Failed to verify comment');
+                        throw new Error(data.error || 'Failed to share comment');
                       }
 
-                      console.log('✅ Comment verified successfully');
-                      setShareError('✅ Comment verified! Reward credited successfully!');
+                      console.log('✅ Comment shared successfully');
+                      setShareError('✅ Comment shared! Reward credited successfully!');
                       
-                      // Close modal after successful verification
+                      // Close modal after successful sharing
                       setTimeout(() => {
                         setShowCommentModal(false);
                         setSelectedCommentPromo(null);
                         setSelectedCommentTemplate('');
+                        setShowCommentTemplates(false);
                         setShareError(null);
                       }, 2000);
                       
                     } catch (error: any) {
-                      console.error('❌ Comment verification failed:', error);
-                      setShareError(`❌ Verification failed: ${error.message}`);
+                      console.error('❌ Comment sharing failed:', error);
+                      setShareError(`❌ Sharing failed: ${error.message}`);
                     }
                   }}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  ✅ Verify Comment
+                  🚀 Share Comment
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
