@@ -1457,29 +1457,30 @@ export default function PromotePage() {
               </button>
             </div>
             
-            {/* Original Post Preview with iframe */}
+            {/* Simple Post Preview */}
             <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-              <p className="text-sm text-gray-300 mb-2">📱 Original Post:</p>
+              <p className="text-sm text-gray-300 mb-2">📱 Post to Comment On:</p>
               
-              {/* Original Post iframe */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="h-64 relative">
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <div className="text-gray-500 text-sm">Loading preview...</div>
+              {/* Simple Post Preview */}
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                    {selectedCommentPromo.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                  <iframe 
-                    src={selectedCommentPromo.castUrl} 
-                    className="w-full h-full border-0 relative z-10" 
-                    title={`Preview of post for commenting`}
-                    loading="lazy"
-                    onLoad={(e) => {
-                      const iframe = e.target as HTMLIFrameElement;
-                      const parent = iframe.parentElement;
-                      if (parent) {
-                        parent.querySelector('.absolute')?.remove();
-                      }
-                    }}
-                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">{selectedCommentPromo.displayName || selectedCommentPromo.username}</p>
+                    <p className="text-sm text-gray-500">@{selectedCommentPromo.username}</p>
+                  </div>
+                </div>
+                
+                <div className="mb-3">
+                  <p className="text-gray-900 text-sm leading-relaxed">
+                    Original post content will be displayed here. You can comment on this post using the templates below.
+                  </p>
+                </div>
+                
+                <div className="text-xs text-gray-500 break-all">
+                  {selectedCommentPromo.castUrl}
                 </div>
               </div>
               
