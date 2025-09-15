@@ -338,7 +338,7 @@ export default function Home() {
                 }}
               >
                 <FiDollarSign size={28} className="text-green-300" />
-                Share & Earn
+                <span>Share & Earn</span>
               </span>
             </Link>
             
