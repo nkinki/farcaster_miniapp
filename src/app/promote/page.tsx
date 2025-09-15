@@ -1472,6 +1472,7 @@ export default function PromotePage() {
                     className="w-full h-full border-0 relative z-10" 
                     title={`Preview of post for commenting`}
                     loading="lazy"
+                    sandbox="allow-scripts allow-same-origin"
                     onLoad={(e) => {
                       const iframe = e.target as HTMLIFrameElement;
                       const parent = iframe.parentElement;
