@@ -5,7 +5,6 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
 import type { IconType } from "react-icons";
 import React from "react"
-import Link from "next/link"
 import Image from "next/image"
 import LamboLottery from "@/components/LamboLottery"
 
@@ -325,23 +324,22 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
             <div className="inline-block">
-              <Link href="/promote">
-                <button
-                  className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
-                  onClick={async () => {
-                    if (hapticsSupported) {
-                      try {
-                        await sdk.haptics.impactOccurred('medium');
-                      } catch (error) {
-                        console.log('Haptics error:', error);
-                      }
+              <button
+                onClick={async () => {
+                  if (hapticsSupported) {
+                    try {
+                      await sdk.haptics.impactOccurred('medium');
+                    } catch (error) {
+                      console.log('Haptics error:', error);
                     }
-                  }}
-                >
-                  <FiDollarSign size={28} className="text-green-300" />
-                  <span>Share & Earn</span>
-                </button>
-              </Link>
+                  }
+                  window.location.href = '/promote';
+                }}
+                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+              >
+                <FiDollarSign size={28} className="text-green-300" />
+                <span>Share & Earn</span>
+              </button>
             </div>
             
             <div className="inline-block">
