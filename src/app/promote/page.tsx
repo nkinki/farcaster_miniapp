@@ -155,6 +155,7 @@ export default function PromotePage() {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
+  const [showCommentTemplates, setShowCommentTemplates] = useState(false);
 
   // Comment templates - same as in PaymentForm
   const COMMENT_TEMPLATES = [
@@ -1448,6 +1449,7 @@ export default function PromotePage() {
                   setShowCommentModal(false);
                   setSelectedCommentPromo(null);
                   setSelectedCommentTemplate('');
+                  setShowCommentTemplates(false);
                 }}
                 className="text-gray-400 hover:text-white"
               >
@@ -1492,17 +1494,10 @@ export default function PromotePage() {
                   </button>
                   
                   <button 
-                    onClick={async () => {
+                    onClick={() => {
                       console.log('🔘 Comment button clicked in preview!');
-                      try {
-                        // Open the original post in Farcaster to enable commenting
-                        await (miniAppSdk as any).actions.viewCast({ 
-                          hash: selectedCommentPromo.castUrl.split('/').pop() || '' 
-                        });
-                        console.log('✅ Original post opened for commenting');
-                      } catch (error) {
-                        console.log('⚠️ Could not open original post:', error);
-                      }
+                      // Enable comment template selection
+                      setShowCommentTemplates(true);
                     }}
                     className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors"
                   >
@@ -1528,25 +1523,27 @@ export default function PromotePage() {
               )}
             </div>
 
-            {/* Comment Templates */}
-            <div className="mb-6">
-              <p className="text-sm text-gray-300 mb-3">Choose a comment template:</p>
-              <div className="grid grid-cols-1 gap-2">
-                {COMMENT_TEMPLATES.slice(0, 3).map((template, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedCommentTemplate(template)}
-                    className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
-                      selectedCommentTemplate === template
-                        ? 'bg-green-600 text-white border border-green-500'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
-                    }`}
-                  >
-                    {template}
-                  </button>
-                ))}
+            {/* Comment Templates - only show when comment button was clicked */}
+            {showCommentTemplates && (
+              <div className="mb-6">
+                <p className="text-sm text-gray-300 mb-3">Choose a comment template:</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {COMMENT_TEMPLATES.slice(0, 3).map((template, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedCommentTemplate(template)}
+                      className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
+                        selectedCommentTemplate === template
+                          ? 'bg-green-600 text-white border border-green-500'
+                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                      }`}
+                    >
+                      {template}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Development Notice */}
             <div className="mb-6 p-4 bg-yellow-900 border border-yellow-600 rounded-lg">
@@ -1568,6 +1565,7 @@ export default function PromotePage() {
                   setShowCommentModal(false);
                   setSelectedCommentPromo(null);
                   setSelectedCommentTemplate('');
+                  setShowCommentTemplates(false);
                 }}
                 className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
