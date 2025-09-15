@@ -28,7 +28,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const { balance, formatChessAmount } = useChessToken();
 
   // Összecsukható logika
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
