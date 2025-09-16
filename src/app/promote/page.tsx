@@ -1505,11 +1505,12 @@ export default function PromotePage() {
                   {/* Post Header */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {selectedCommentPromo.displayName?.charAt(0) || selectedCommentPromo.username?.charAt(0) || 'U'}
+                      {(selectedCommentPromo.displayName && selectedCommentPromo.displayName.charAt(0)) || 
+                       (selectedCommentPromo.username && selectedCommentPromo.username.charAt(0)) || 'U'}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{selectedCommentPromo.displayName || selectedCommentPromo.username}</p>
-                      <p className="text-sm text-gray-500">@{selectedCommentPromo.username}</p>
+                      <p className="font-semibold text-gray-900">{selectedCommentPromo.displayName || selectedCommentPromo.username || 'Unknown User'}</p>
+                      <p className="text-sm text-gray-500">@{selectedCommentPromo.username || 'unknown'}</p>
                     </div>
                   </div>
                   
