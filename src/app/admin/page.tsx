@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiBarChart, FiShare2, FiCopy, FiMessageSquare } from 'react-icons/fi';
+import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw } from 'react-icons/fi';
 import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 
 

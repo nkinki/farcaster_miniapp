@@ -19,16 +19,23 @@ export async function GET(request: NextRequest) {
                 p.status,
                 p.remaining_budget,
                 p.reward_per_share,
+                p.action_type,
                 s.last_share_time,
                 CASE 
                     WHEN s.last_share_time IS NULL THEN true
-                    WHEN s.last_share_time < NOW() - INTERVAL '48 hours' THEN true
+                    WHEN p.action_type = 'like_recast' THEN false  -- Like/recast can only be done once
+                    WHEN p.action_type = 'comment' AND s.last_share_time < NOW() - INTERVAL '48 hours' THEN true  -- Comment: 48h cooldown
+                    WHEN p.action_type = 'comment' THEN false  -- Comment: still in 48h cooldown
+                    WHEN s.last_share_time < NOW() - INTERVAL '48 hours' THEN true  -- Quote: 48h cooldown
                     ELSE false 
                 END as can_share,
                 CASE
                     WHEN s.last_share_time IS NULL THEN 0
-                    WHEN s.last_share_time < NOW() - INTERVAL '48 hours' THEN 0
-                    ELSE EXTRACT(EPOCH FROM (s.last_share_time + INTERVAL '48 hours' - NOW())) / 3600
+                    WHEN p.action_type = 'like_recast' THEN 0  -- Like/recast: no countdown
+                    WHEN p.action_type = 'comment' AND s.last_share_time < NOW() - INTERVAL '48 hours' THEN 0  -- Comment: cooldown finished
+                    WHEN p.action_type = 'comment' THEN EXTRACT(EPOCH FROM (s.last_share_time + INTERVAL '48 hours' - NOW())) / 3600  -- Comment: show countdown
+                    WHEN s.last_share_time < NOW() - INTERVAL '48 hours' THEN 0  -- Quote: cooldown finished
+                    ELSE EXTRACT(EPOCH FROM (s.last_share_time + INTERVAL '48 hours' - NOW())) / 3600  -- Quote: show countdown
                 END as time_remaining_hours
             FROM promotions p
             LEFT JOIN (

@@ -1001,7 +1001,7 @@ export default function PromotePage() {
                             <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
                           </div>
                           <div>
-                            {!canShare && timerInfo && (
+                            {!canShare && timerInfo && timerInfo.timeRemaining > 0 && promo.actionType !== 'like_recast' && (
                                <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg mb-2">
                                  <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
                                </div>
@@ -1036,7 +1036,7 @@ export default function PromotePage() {
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white text-sm font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:border-slate-600 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 pulse-glow"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1088,7 +1088,7 @@ export default function PromotePage() {
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-purple-400 hover:bg-[#2a2f42] text-white text-sm font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:border-slate-600 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 pulse-glow"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1101,7 +1101,7 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Like & Recast` 
-                                        : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`
+                                        : `👍 Like & Recast & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
@@ -1137,7 +1137,7 @@ export default function PromotePage() {
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] text-white text-sm font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:border-slate-600 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 pulse-glow"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1150,7 +1150,9 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Comment` 
-                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
+                                        : !canShare && timerInfo && timerInfo.timeRemaining > 0
+                                          ? `⏳ Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Comment`
+                                          : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
