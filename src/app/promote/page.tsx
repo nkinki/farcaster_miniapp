@@ -1194,7 +1194,7 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Comment` 
-                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
+                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS (Under Development)`
                                     }
                                   </button>
                                 );
