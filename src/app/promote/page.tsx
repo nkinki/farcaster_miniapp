@@ -1523,8 +1523,15 @@ export default function PromotePage() {
                   onClick={async () => {
                     if (!selectedCommentPromo || !selectedCommentTemplate) return;
                     
+                    // Prevent multiple clicks
+                    if (sharingPromoId === selectedCommentPromo.id.toString()) {
+                      console.log('⏳ Already processing, please wait...');
+                      return;
+                    }
+                    
                     console.log('🔍 Verifying comment manually...');
                     setShareError('🔍 Verifying comment...');
+                    setSharingPromoId(selectedCommentPromo.id.toString());
                     
                     try {
                       // Submit to backend for reward verification
@@ -1563,17 +1570,20 @@ export default function PromotePage() {
                         setSelectedCommentPromo(null);
                         setSelectedCommentTemplate('');
                         setShareError(null);
+                        setSharingPromoId(null);
                         refreshAllData();
                       }, 2000);
                       
                     } catch (error: any) {
                       console.error('❌ Comment verification failed:', error);
                       setShareError(`❌ Verification failed: ${error.message}`);
+                      setSharingPromoId(null);
                     }
                   }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={sharingPromoId === selectedCommentPromo.id.toString()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
                 >
-                  ✅ Verify Comment
+                  {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '✅ Verify Comment'}
                 </button>
               )}
             </div>

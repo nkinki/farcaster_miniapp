@@ -30,6 +30,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'You have already completed this comment action' }, { status: 409 });
     }
 
+    // Check if user already has a pending comment for this promotion
+    const existingPendingComment = await sql`
+      SELECT id FROM pending_comments 
+      WHERE promotion_id = ${promotionId} AND user_fid = ${userFid} AND status = 'pending'
+    `;
+
+    if (existingPendingComment.length > 0) {
+      return NextResponse.json({ error: 'You already have a pending comment for this promotion' }, { status: 409 });
+    }
+
     // Check if promotion exists and is active
     const promotion = await sql`
       SELECT id, remaining_budget, reward_per_share, status, action_type 

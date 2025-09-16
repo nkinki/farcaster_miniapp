@@ -7,6 +7,7 @@ import type { IconType } from "react-icons";
 import React from "react"
 import Image from "next/image"
 import LamboLottery from "@/components/LamboLottery"
+import AdminPendingCommentsManager from "@/components/AdminPendingCommentsManager"
 
 // Tipusok
 interface Miniapp {
@@ -128,6 +129,7 @@ export default function Home() {
   const [openMiniappIndex, setOpenMiniappIndex] = useState<number | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
   const [showLamboLottery, setShowLamboLottery] = useState(false)
+  const [showAdminPanel, setShowAdminPanel] = useState(false)
   const [userFid, setUserFid] = useState<number>(0)
 
   useEffect(() => {
@@ -265,6 +267,26 @@ export default function Home() {
         }}
       />
 
+      {/* Admin Panel Modal */}
+      {showAdminPanel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-6xl w-full h-[85vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">🔧 Admin Panel - Pending Comments</h2>
+              <button
+                onClick={() => setShowAdminPanel(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <AdminPendingCommentsManager />
+            </div>
+          </div>
+        </div>
+      )}
+
       {openMiniapp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[#23283a] rounded-xl shadow-lg p-6 max-w-4xl w-full h-[85vh] flex flex-col">
@@ -381,7 +403,15 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
+          <div className="flex justify-between items-center max-w-2xl mx-auto mb-1 px-2">
+            {/* Admin Panel Button */}
+            <button
+              onClick={() => setShowAdminPanel(!showAdminPanel)}
+              className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+            >
+              🔧 Admin Panel
+            </button>
+            
             <form className="flex items-center" onSubmit={(e) => e.preventDefault()}>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs w-[110px]" />
               <button type="submit" className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900" aria-label="Search">
