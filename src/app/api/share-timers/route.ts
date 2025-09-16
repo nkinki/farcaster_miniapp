@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
                     MAX(created_at) as last_share_time
                 FROM shares
                 WHERE sharer_fid = ${fid}
-                AND action_type = 'quote'
                 GROUP BY promotion_id, sharer_fid
             ) s ON p.id = s.promotion_id
             WHERE p.status = 'active'
