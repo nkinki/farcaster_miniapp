@@ -151,7 +151,10 @@ export default function AdminPendingCommentsManager() {
               Approve
             </button>
             <button
-              onClick={() => handleAction(comment.id, 'reject', prompt('Reason for rejection (optional):'))}
+              onClick={() => {
+                const reason = prompt('Reason for rejection (optional):');
+                handleAction(comment.id, 'reject', reason || undefined);
+              }}
               disabled={processingId === comment.id}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
             >
