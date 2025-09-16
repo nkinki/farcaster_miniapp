@@ -853,7 +853,12 @@ export default function PromotePage() {
           />
         </div>
 
-        <MyCampaignsDropdown myPromos={myPromos} onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} onDeleteClick={handleDeleteCampaign} />
+        <MyCampaignsDropdown 
+          myPromos={myPromos} 
+          onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }} 
+          onDeleteClick={handleDeleteCampaign}
+          currentUserFid={currentUser.fid}
+        />
         
         <div className="flex justify-center my-8">
             <button
@@ -1543,8 +1548,8 @@ export default function PromotePage() {
                         throw new Error(data.error || 'Failed to verify comment');
                       }
 
-                      console.log('✅ Comment verified successfully');
-                      setShareError('✅ Comment verified! Reward credited successfully! (Trust-based verification)');
+                      console.log('✅ Comment submitted for approval');
+                      setShareError('✅ Comment submitted for admin approval! Reward will be credited after review.');
                       
                       // Mark action as completed
                       setCompletedActions(prev => ({

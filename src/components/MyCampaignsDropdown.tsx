@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from 'react';
-import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiStar, FiTrash } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiStar, FiTrash, FiClock } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
+import PendingCommentsManager from './PendingCommentsManager';
 
 interface MyCampaignsDropdownProps {
   myPromos: PromoCast[];
   onManageClick: (promo: PromoCast) => void;
   onDeleteClick?: (promo: PromoCast) => void;
+  currentUserFid?: number;
 }
 
 // Helper függvény a progress bar kiszámításához
@@ -19,8 +21,9 @@ const calculateProgress = (promo: PromoCast): number => {
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
-export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteClick }: MyCampaignsDropdownProps) {
+export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteClick, currentUserFid }: MyCampaignsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showPendingComments, setShowPendingComments] = useState(false);
 
   // Automatikus státusz korrekció: ha nincs elég budget, akkor completed
   const correctedPromos = myPromos.map(promo => {
@@ -61,6 +64,27 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
 
       {isOpen && (
         <div className="p-4 border-t border-gray-700">
+          {/* Pending Comments Section */}
+          {currentUserFid && (
+            <div className="mb-4">
+              <button
+                onClick={() => setShowPendingComments(!showPendingComments)}
+                className="w-full flex items-center justify-between p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-lg hover:bg-yellow-900/50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <FiClock className="text-yellow-400" />
+                  <span className="text-yellow-200 font-medium">Pending Comments</span>
+                </div>
+                <div className="w-4">{showPendingComments ? <FiChevronUp /> : <FiChevronDown />}</div>
+              </button>
+              
+              {showPendingComments && (
+                <div className="mt-3">
+                  <PendingCommentsManager promoterFid={currentUserFid} />
+                </div>
+              )}
+            </div>
+          )}
           <div className="space-y-4 max-h-[30rem] overflow-y-auto pr-2">
             {sortedPromos.map((promo) => (
               <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700">
