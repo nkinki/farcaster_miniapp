@@ -53,8 +53,15 @@ export default function AdminPendingCommentsManager() {
   }, [fetchPendingComments]);
 
   const handleAction = async (commentId: number, action: 'approve' | 'reject', rejectionReason?: string) => {
+    console.log('🔍 AdminPendingCommentsManager handleAction:', {
+      commentId,
+      action,
+      fcProfile,
+      fid: fcProfile?.fid
+    });
+
     if (!fcProfile?.fid) {
-      setError("You must be logged in to perform this action.");
+      setError("You must be logged in to perform this action. Please refresh the page and try again.");
       return;
     }
 
@@ -67,7 +74,7 @@ export default function AdminPendingCommentsManager() {
         body: JSON.stringify({
           pendingCommentId: commentId,
           action,
-          adminFid: fcProfile.fid,
+          adminFid: fcProfile.fid || 0, // Fallback to 0 if fid is not available
           rejectionReason
         })
       });
