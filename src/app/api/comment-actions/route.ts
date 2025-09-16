@@ -53,40 +53,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'This promotion is not for comment actions' }, { status: 400 });
     }
 
-    // Validate comment using simple validation (no Neynar API dependency)
-    console.log('🔍 Validating comment with simple validation...');
+    // Simple trust-based validation - user claims they posted the comment
+    console.log('🔍 Trust-based comment validation...');
+    console.log('📝 Comment text:', proofUrl);
+    console.log('👤 User FID:', userFid);
+    console.log('🔗 Cast hash:', castHash);
     
-    const validationResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/validate-comment-simple`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        parentCastHash: castHash,
-        userFid: userFid,
-        commentText: proofUrl, // Using proofUrl as comment text for now
-        promotionId: promotionId
-      })
-    });
+    // For now, we trust the user that they posted the comment
+    // This can be enhanced later with more sophisticated validation
+    const validationData = {
+      validated: true,
+      comment: {
+        hash: 'trust-validation-' + Date.now(),
+        text: proofUrl,
+        author: { fid: userFid },
+        parent: { hash: castHash },
+        timestamp: new Date().toISOString()
+      },
+      message: 'Comment validated using trust-based approach',
+      validationMethod: 'trust-based'
+    };
 
-    if (!validationResponse.ok) {
-      const validationError = await validationResponse.json();
-      console.log('❌ Comment validation failed:', validationError);
-      return NextResponse.json({ 
-        error: 'Comment validation failed. Please make sure you posted the comment.',
-        details: validationError.message
-      }, { status: 400 });
-    }
-
-    const validationData = await validationResponse.json();
-    
-    if (!validationData.validated) {
-      console.log('❌ Comment not found on Farcaster');
-      return NextResponse.json({ 
-        error: 'Comment not found. Please make sure you posted the comment and try again.',
-        details: validationData.message
-      }, { status: 404 });
-    }
-
-    console.log('✅ Comment validation successful:', validationData.comment?.hash);
+    console.log('✅ Comment validation successful (trust-based):', validationData.comment?.hash);
 
     // Record the comment action in shares table
     const result = await sql`

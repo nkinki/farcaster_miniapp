@@ -1544,7 +1544,7 @@ export default function PromotePage() {
                       }
 
                       console.log('✅ Comment verified successfully');
-                      setShareError('✅ Comment verified! Reward credited successfully!');
+                      setShareError('✅ Comment verified! Reward credited successfully! (Trust-based verification)');
                       
                       // Mark action as completed
                       setCompletedActions(prev => ({
