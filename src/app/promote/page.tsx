@@ -1495,37 +1495,103 @@ export default function PromotePage() {
               </button>
             </div>
             
-            {/* Original Post Preview with iframe */}
+            {/* Interactive Post Preview */}
             <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-              <p className="text-sm text-gray-300 mb-2">📱 Original Post:</p>
+              <p className="text-sm text-gray-300 mb-2">📱 Interactive Post Preview:</p>
               
-              {/* Original Post iframe */}
+              {/* Mock Interactive Post */}
               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="h-64 relative">
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <div className="text-gray-500 text-sm">Loading preview...</div>
+                <div className="p-4">
+                  {/* Post Header */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                      {selectedCommentPromo.displayName?.charAt(0) || selectedCommentPromo.username?.charAt(0) || 'U'}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{selectedCommentPromo.displayName || selectedCommentPromo.username}</p>
+                      <p className="text-sm text-gray-500">@{selectedCommentPromo.username}</p>
+                    </div>
                   </div>
-                  <iframe 
-                    src={selectedCommentPromo.castUrl} 
-                    className="w-full h-full border-0 relative z-10" 
-                    title={`Preview of post for commenting`}
-                    loading="lazy"
-                    sandbox="allow-scripts allow-same-origin"
-                    onLoad={(e) => {
-                      const iframe = e.target as HTMLIFrameElement;
-                      const parent = iframe.parentElement;
-                      if (parent) {
-                        parent.querySelector('.absolute')?.remove();
-                      }
-                    }}
-                  />
+                  
+                  {/* Post Content */}
+                  <div className="mb-4">
+                    <p className="text-gray-800 text-sm leading-relaxed">
+                      {selectedCommentPromo.shareText || "Check out this amazing post! 🚀"}
+                    </p>
+                  </div>
+                  
+                  {/* Interactive Action Buttons */}
+                  <div className="flex items-center gap-4 pt-3 border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        console.log('👍 Like clicked in preview');
+                        setShareError('👍 Like action - use the main buttons above for rewards');
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">👍</span>
+                      <span className="text-sm">Like</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        console.log('🔄 Recast clicked in preview');
+                        setShareError('🔄 Recast action - use the main buttons above for rewards');
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">🔄</span>
+                      <span className="text-sm">Recast</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        console.log('💬 Comment clicked in preview');
+                        if (selectedCommentTemplate) {
+                          setShareError(`💬 Comment ready: "${selectedCommentTemplate}" - Click "Comment & Earn" below to post!`);
+                        } else {
+                          setShareError('💬 Please select a comment template first, then click here to see your comment');
+                        }
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">💬</span>
+                      <span className="text-sm">Comment</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        console.log('📤 Share clicked in preview');
+                        setShareError('📤 Share action - use the main buttons above for rewards');
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">📤</span>
+                      <span className="text-sm">Share</span>
+                    </button>
+                  </div>
+                  
+                  {/* Comment Preview */}
+                  {selectedCommentTemplate && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 text-sm font-medium mb-2">💬 Your comment will be:</p>
+                      <div className="bg-white p-2 rounded border border-blue-300">
+                        <p className="text-gray-800 text-sm break-words">
+                          {selectedCommentTemplate}
+                        </p>
+                      </div>
+                      <p className="text-blue-600 text-xs mt-2">
+                        ✅ This will be posted as a reply to the original post above
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               
               {/* Instruction */}
               <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
                 <p className="text-blue-300 text-sm">
-                  👇 <strong>Choose a comment template below</strong> to add your comment to this post
+                  👆 <strong>Click the buttons above</strong> to test interactions, then choose a comment template below
                 </p>
               </div>
             </div>
