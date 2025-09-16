@@ -150,7 +150,7 @@ export default function PromotePage() {
   
   // 10-second countdown timer for share/like buttons
   const [buttonCountdowns, setButtonCountdowns] = useState<Record<string, number>>({});
-  
+
   // Comment modal state
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
@@ -434,99 +434,99 @@ export default function PromotePage() {
   };
 
            // Like & Recast combined action with timer and verification
-  const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
-    console.log('🚀 handleLikeRecastBoth called!');
-    console.log('📊 Promo:', promo);
-    console.log('📱 Event:', e);
-    
-    // Prevent default behavior to avoid page reload
-    if (e) {
-      console.log('🛑 Preventing default behavior...');
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('✅ Default behavior prevented');
-    }
-    
-    if (!isAuthenticated || !currentUser.fid) {
-      setShareError("Please connect your Farcaster account first.");
-      return;
-    }
-    
-    setShareError(null);
-    setSharingPromoId(promo.id.toString());
-    
-    try {
-      console.log('🚀 Starting like & recast actions for promo:', promo.id);
+    const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
+      console.log('🚀 handleLikeRecastBoth called!');
+      console.log('📊 Promo:', promo);
+      console.log('📱 Event:', e);
       
-      // Extract cast hash from URL
-      const castHash = promo.castUrl.split('/').pop() || '';
-      
-      if (!castHash || !castHash.startsWith('0x')) {
-        throw new Error('Invalid cast hash. Please check the cast URL.');
+      // Prevent default behavior to avoid page reload
+      if (e) {
+        console.log('🛑 Preventing default behavior...');
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('✅ Default behavior prevented');
       }
       
-      console.log('🔍 Using cast hash:', castHash);
-      
-      // First, open the cast so user can see it
-      console.log('📱 Opening cast for user to view...');
-      try {
-        await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-        console.log('✅ Cast opened successfully');
-      } catch (viewError) {
-        console.log('⚠️ Could not open cast, continuing with like/recast...');
+      if (!isAuthenticated || !currentUser.fid) {
+        setShareError("Please connect your Farcaster account first.");
+        return;
       }
       
-      // Show instruction message
-      setShareError('📱 Cast opened! Please like & recast it, then wait for verification...');
-      
-      // Wait 5 seconds for user to complete actions
-      console.log('⏳ Waiting 5 seconds for user to complete like/recast...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      // Now submit to our backend for reward verification
-      console.log('💰 Submitting actions for reward...');
-      const response = await fetch('/api/like-recast-actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          promotionId: promo.id,
-          userFid: currentUser.fid,
-          username: currentUser.username,
-          actionType: 'both',
-          castHash,
-          rewardAmount: promo.rewardPerShare,
-          proofUrl: promo.castUrl
-        })
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit actions for reward');
-      }
-
-      console.log('✅ Like & recast actions completed successfully');
       setShareError(null);
+      setSharingPromoId(promo.id.toString());
       
-      // Mark this promotion as completed
-      setCompletedActions(prev => ({
-        ...prev,
-        [promo.id]: true
-      }));
-      
-      // Show success message
-      setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
-      
-      // Refresh data
-      await refreshAllData();
-      
-    } catch (error: any) {
-      console.error('❌ Like & recast actions failed:', error);
-      setShareError(error.message || 'Failed to complete like & recast actions');
-    } finally {
-      setSharingPromoId(null);
-    }
-  };
+      try {
+        console.log('🚀 Starting like & recast actions for promo:', promo.id);
+        
+        // Extract cast hash from URL
+        const castHash = promo.castUrl.split('/').pop() || '';
+        
+        if (!castHash || !castHash.startsWith('0x')) {
+          throw new Error('Invalid cast hash. Please check the cast URL.');
+        }
+        
+        console.log('🔍 Using cast hash:', castHash);
+        
+        // First, open the cast so user can see it
+        console.log('📱 Opening cast for user to view...');
+        try {
+          await (miniAppSdk as any).actions.viewCast({ hash: castHash });
+          console.log('✅ Cast opened successfully');
+        } catch (viewError) {
+          console.log('⚠️ Could not open cast, continuing with like/recast...');
+        }
+        
+        // Show instruction message
+        setShareError('📱 Cast opened! Please like & recast it, then wait for verification...');
+        
+        // Wait 5 seconds for user to complete actions
+        console.log('⏳ Waiting 5 seconds for user to complete like/recast...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Now submit to our backend for reward verification
+        console.log('💰 Submitting actions for reward...');
+        const response = await fetch('/api/like-recast-actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promotionId: promo.id,
+            userFid: currentUser.fid,
+            username: currentUser.username,
+            actionType: 'both',
+            castHash,
+            rewardAmount: promo.rewardPerShare,
+            proofUrl: promo.castUrl
+          })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit actions for reward');
+        }
+
+        console.log('✅ Like & recast actions completed successfully');
+        setShareError(null);
+        
+        // Mark this promotion as completed
+        setCompletedActions(prev => ({
+          ...prev,
+          [promo.id]: true
+        }));
+        
+        // Show success message
+        setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
+        
+        // Refresh data
+        await refreshAllData();
+        
+      } catch (error: any) {
+        console.error('❌ Like & recast actions failed:', error);
+        setShareError(error.message || 'Failed to complete like & recast actions');
+      } finally {
+        setSharingPromoId(null);
+      }
+    };
 
   const handleCommentAction = async (promo: PromoCast, e?: React.MouseEvent) => {
     console.log('🚀 handleCommentAction called!');
@@ -781,8 +781,35 @@ export default function PromotePage() {
     return true;
   });
 
+  // Separate promotions into available and countdown sections
+  const { availablePromos: trulyAvailable, countdownPromos } = useMemo(() => {
+    const available: any[] = [];
+    const countdown: any[] = [];
+    
+    availablePromos.forEach(promo => {
+      const timerInfo = shareTimers[promo.id.toString()];
+      const canShare = timerInfo?.canShare ?? true;
+      const isCompleted = completedActions[promo.id] || false;
+      
+      // Check if this should be in countdown section
+      const shouldBeInCountdown = !canShare && timerInfo && timerInfo.timeRemaining > 0 && 
+        (promo.actionType === 'comment' || promo.actionType === 'quote');
+      
+      if (shouldBeInCountdown) {
+        countdown.push(promo);
+      } else {
+        available.push(promo);
+      }
+    });
+    
+    return { 
+      availablePromos: available, 
+      countdownPromos: countdown 
+    };
+  }, [availablePromos, shareTimers, completedActions]);
+
   const sortedAvailablePromos = useMemo(() => {
-    return [...availablePromos].sort((a, b) => {
+    return [...trulyAvailable].sort((a, b) => {
       const timerA = shareTimers[a.id.toString()];
       const timerB = shareTimers[b.id.toString()];
       const canShareA = timerA?.canShare ?? true;
@@ -792,11 +819,10 @@ export default function PromotePage() {
       const isCompletedA = completedActions[a.id] || false;
       const isCompletedB = completedActions[b.id] || false;
       
-      // Priority levels: 1=Active, 2=48h Quote Wait, 3=Completed Like/Recast, 4=Completed Comment
+      // Priority levels: 1=Active, 2=Completed Like/Recast, 3=Completed Comment
       const getPriority = (promo: any, canShare: boolean, isCompleted: boolean) => {
-        if (promo.actionType === 'comment' && isCompleted) return 4; // Completed comment - bottom
-        if (promo.actionType === 'like_recast' && isCompleted) return 3; // Completed like/recast - bottom
-        if (promo.actionType === 'quote' && !canShare) return 2; // 48h quote wait - middle
+        if (promo.actionType === 'comment' && isCompleted) return 3; // Completed comment - bottom
+        if (promo.actionType === 'like_recast' && isCompleted) return 2; // Completed like/recast - middle
         return 1; // Active (all types available) - top
       };
       
@@ -811,7 +837,25 @@ export default function PromotePage() {
       // Within same priority, sort by reward amount (highest first)
       return b.rewardPerShare - a.rewardPerShare;
     });
-  }, [availablePromos, shareTimers, completedActions]);
+  }, [trulyAvailable, shareTimers, completedActions]);
+
+  const sortedCountdownPromos = useMemo(() => {
+    return [...countdownPromos].sort((a, b) => {
+      const timerA = shareTimers[a.id.toString()];
+      const timerB = shareTimers[b.id.toString()];
+      
+      // Sort by time remaining (shortest first)
+      const timeA = timerA?.timeRemaining ?? 0;
+      const timeB = timerB?.timeRemaining ?? 0;
+      
+      if (timeA !== timeB) {
+        return timeA - timeB;
+      }
+      
+      // Within same time, sort by reward amount (highest first)
+      return b.rewardPerShare - a.rewardPerShare;
+    });
+  }, [countdownPromos, shareTimers]);
 
   if (loading || (promotionsLoading && allPromotions.length === 0)) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
@@ -931,10 +975,14 @@ export default function PromotePage() {
                       💬 Comment
                     </button>
                   </div>
-                  {sortedAvailablePromos.length === 0 ? (
-                    <div className="text-center py-8"><div className="text-gray-400 text-lg">No other active campaigns right now.</div></div>
-                  ) : (
-                    sortedAvailablePromos.map((promo) => {
+                  {/* Available Promotions Section */}
+                  {sortedAvailablePromos.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span className="bg-green-600 text-white px-2 py-1 rounded-md text-sm">✅</span>
+                        Available Campaigns ({sortedAvailablePromos.length})
+                      </h3>
+                      {sortedAvailablePromos.map((promo) => {
                       const timerInfo = shareTimers[promo.id.toString()];
                       const canShare = timerInfo?.canShare ?? true;
                       return (
@@ -1001,11 +1049,7 @@ export default function PromotePage() {
                             <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
                           </div>
                           <div>
-                            {!canShare && timerInfo && timerInfo.timeRemaining > 0 && promo.actionType !== 'like_recast' && (
-                               <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg mb-2">
-                                 <FiClock size={16} /><span>{formatTimeRemaining(timerInfo.timeRemaining)}</span>
-                               </div>
-                            )}
+                            {/* No countdown timer in available section - those are in countdown section */}
                             
                             {/* Different buttons based on promotion type */}
                             {(() => {
@@ -1150,9 +1194,7 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Comment` 
-                                        : !canShare && timerInfo && timerInfo.timeRemaining > 0
-                                          ? `⏳ Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Comment`
-                                          : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
+                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
@@ -1193,7 +1235,102 @@ export default function PromotePage() {
                           </div>
                         </div>
                       );
-                    })
+                    })}
+                    </div>
+                  )}
+
+                  {/* Countdown Promotions Section */}
+                  {sortedCountdownPromos.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span className="bg-yellow-600 text-white px-2 py-1 rounded-md text-sm">⏰</span>
+                        Countdown Campaigns ({sortedCountdownPromos.length})
+                      </h3>
+                      {sortedCountdownPromos.map((promo) => {
+                        const timerInfo = shareTimers[promo.id.toString()];
+                        const canShare = timerInfo?.canShare ?? true;
+                        return (
+                          <div key={promo.id} className="bg-[#181c23] p-3 rounded-lg border border-gray-700 flex flex-col gap-3 mb-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-1 overflow-hidden">
+                                <div className="bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-md min-w-[2rem] text-center">
+                                  #{promo.id}
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                  <p className="text-white text-sm font-medium truncate">{promo.castUrl}</p>
+                                  <p className="text-purple-300 text-xs">@{promo.author.username}</p>
+                                </div>
+                              </div>
+                              <div className="relative">
+                                <button onClick={() => setOpenMenuId(openMenuId === promo.id.toString() ? null : promo.id.toString())} className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"><FiMoreHorizontal size={16} /></button>
+                                {openMenuId === promo.id.toString() && ( 
+                                  <div className="absolute right-0 mt-2 w-48 bg-[#2a2f42] border border-gray-600 rounded-lg shadow-xl z-10"> 
+                                    <button onClick={() => handleViewCast(promo.castUrl)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-gray-700">
+                                      <FiEye size={14} /> view cast
+                                    </button> 
+                                  </div> 
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Content Preview */}
+                            <div className="bg-gray-900 rounded-lg p-2">
+                              <div className="text-xs text-gray-400 mb-2">📱 Content Preview:</div>
+                              <div className="bg-white rounded overflow-hidden h-40 sm:h-48 lg:h-56 relative">
+                                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                                  <div className="text-gray-500 text-sm">Loading preview...</div>
+                                </div>
+                                <iframe 
+                                  src={promo.castUrl} 
+                                  className="w-full h-full border-0 relative z-10" 
+                                  title={`Preview of campaign #${promo.id}`}
+                                  loading="lazy"
+                                  sandbox="allow-scripts allow-same-origin"
+                                  onLoad={(e) => {
+                                    const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                                    if (skeleton) skeleton.style.display = 'none';
+                                  }}
+                                  onError={(e) => {
+                                    const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                                    if (skeleton) {
+                                      skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Preview unavailable</div>';
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-4 gap-2 text-center text-white">
+                              <div className="p-2 bg-gray-800 rounded"><div className="flex items-center justify-center gap-1 mb-0.5 text-sm font-semibold"><FiDollarSign className="text-green-400" size={12} />{promo.rewardPerShare}</div><p className="text-xs text-gray-400">reward</p></div>
+                              <div className="p-2 bg-gray-800 rounded"><div className="flex items-center justify-center gap-1 mb-0.5 text-sm font-semibold"><FiUsers className="text-blue-400" size={12} />{promo.sharesCount}</div><p className="text-xs text-gray-400">shares</p></div>
+                              <div className="p-2 bg-gray-800 rounded"><div className="mb-0.5 text-sm font-semibold">{promo.remainingBudget}</div><p className="text-xs text-gray-400">left</p></div>
+                              <div className="p-2 bg-gray-800 rounded"><div className="mb-0.5 text-sm font-semibold">{promo.totalBudget}</div><p className="text-xs text-gray-400">total</p></div>
+                            </div>
+                            <div className="w-full bg-gray-700 rounded-full h-1.5">
+                              <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
+                            </div>
+                            
+                            {/* Countdown Timer */}
+                            <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg">
+                              <FiClock size={16} />
+                              <span>
+                                {promo.actionType === 'comment' 
+                                  ? `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Comment Again`
+                                  : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* No campaigns message */}
+                  {sortedAvailablePromos.length === 0 && sortedCountdownPromos.length === 0 && (
+                    <div className="text-center py-8">
+                      <div className="text-gray-400 text-lg">No active campaigns right now.</div>
+                    </div>
                   )}
                 </div>
             )}
