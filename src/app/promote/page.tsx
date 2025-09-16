@@ -546,9 +546,10 @@ export default function PromotePage() {
       return;
     }
     
-    // Open comment frame instead of direct action
+    setShareError(null);
     setSelectedCommentPromo(promo);
     setShowCommentModal(true);
+    setSelectedCommentTemplate('');
   };
 
   const handleCommentSubmit = async () => {
@@ -561,76 +562,110 @@ export default function PromotePage() {
     setSharingPromoId(selectedCommentPromo.id.toString());
     
     try {
-      // Combine selected template with original cast URL
-      const finalText = `${selectedCommentTemplate}\n\n${selectedCommentPromo.castUrl}`;
+      console.log('📝 Comment template selected:', selectedCommentTemplate);
+      console.log('🔗 Original post URL:', selectedCommentPromo.castUrl);
       
-      console.log('📝 Final comment text:', finalText);
-      
-      // Use same logic as quote sharing
-      const castOptions: any = { 
-        text: finalText
-      };
-      
-      // URL típus ellenőrzése és cast hash kinyerése
+      // Extract cast hash from URL
       const shortHash = selectedCommentPromo.castUrl.split('/').pop();
-      const isWarpcastUrl = selectedCommentPromo.castUrl.includes('warpcast.com');
-      const isFarcasterUrl = selectedCommentPromo.castUrl.includes('farcaster.xyz');
-      const isConversationUrl = selectedCommentPromo.castUrl.includes('/conversations/');
-      
-      // Teljes cast hash lekérése API-ból (ha rövid hash)
       let castHash: string | undefined = shortHash;
-      let hasValidCastHash: boolean = false;
       
-      // Farcaster cast hash validáció: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
-      // VAGY 42 karakteres hash is elfogadható (gyakori formátum)
-      hasValidCastHash = Boolean(castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42));
+      // Validate cast hash format
+      const hasValidCastHash = Boolean(castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42));
       
-      console.log(`🔍 URL Analysis:`, {
+      console.log(`🔍 Cast hash analysis:`, {
         originalUrl: selectedCommentPromo.castUrl,
         shortHash,
-        isWarpcastUrl,
-        isFarcasterUrl,
-        isConversationUrl,
         hasValidCastHash,
         castHash
       });
       
-      // Cast hash alapú comment (ha van érvényes hash)
-      if (hasValidCastHash && castHash) {
-        console.log(`📤 Using cast hash for comment: ${castHash}`);
-        castOptions.parent = { 
-          type: 'cast', 
-          hash: castHash 
-        };
-      } else {
-        // Embed alapú comment (biztonságosabb)
-        console.log(`📤 Using embed for comment: ${selectedCommentPromo.castUrl}`);
-        castOptions.embeds = [{ url: selectedCommentPromo.castUrl }];
+      // Try to compose comment as reply using miniAppSdk
+      try {
+        if (hasValidCastHash && castHash) {
+          console.log(`📤 Attempting to compose comment as reply to: ${castHash}`);
+          
+          await (miniAppSdk as any).actions.composeCast({
+            text: selectedCommentTemplate,
+            parent: {
+              type: 'cast',
+              hash: castHash
+            }
+          });
+          
+          console.log('✅ Comment composed successfully as reply');
+        } else {
+          console.log(`📤 Attempting to compose comment with embed`);
+          
+          await (miniAppSdk as any).actions.composeCast({
+            text: selectedCommentTemplate,
+            embeds: [{ url: selectedCommentPromo.castUrl }]
+          });
+          
+          console.log('✅ Comment composed successfully with embed');
+        }
+        
+        setShareError('📱 Comment composed! Please post it, then wait for verification...');
+        
+        // Wait 10 seconds for user to post the comment
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        
+        // Submit to backend for reward verification
+        const response = await fetch('/api/comment-actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promotionId: selectedCommentPromo.id,
+            userFid: currentUser.fid,
+            username: currentUser.username,
+            actionType: 'comment',
+            castHash: castHash || shortHash,
+            rewardAmount: selectedCommentPromo.rewardPerShare,
+            proofUrl: selectedCommentTemplate
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit comment action for reward');
+        }
+
+        console.log('✅ Comment action completed successfully');
+        setShareError(null);
+
+        // Mark action as completed
+        setCompletedActions(prev => ({
+          ...prev,
+          [selectedCommentPromo.id]: true
+        }));
+
+        setShareError('🎉 Comment completed! Reward will be credited soon.');
+
+        // Close modal and refresh data
+        setShowCommentModal(false);
+        setSelectedCommentPromo(null);
+        setSelectedCommentTemplate('');
+
+        await refreshAllData();
+        
+      } catch (composeError) {
+        console.log('⚠️ Could not compose comment automatically, trying viewCast...');
+        
+        // Fallback: open the original cast for manual commenting
+        try {
+          await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
+          console.log('✅ Cast opened for manual comment');
+          
+          setShareError('📱 Cast opened! Please comment manually, then click "Verify Comment" below.');
+          
+          // Keep modal open for manual verification
+          // User can click "Verify Comment" button when ready
+          
+        } catch (viewError) {
+          console.log('⚠️ Could not open cast either');
+          throw new Error('Could not open cast for commenting. Please try again.');
+        }
       }
-      
-      // Véletlenszerű csatorna kiválasztása
-      const randomChannel = getRandomChannel();
-      if (randomChannel) {
-        castOptions.channel = randomChannel;
-        console.log(`📺 Using random channel: ${randomChannel}`);
-      }
-      
-      console.log('🚀 Final cast options:', castOptions);
-      
-      // Keep modal open and show comment input interface
-      console.log('📝 Comment template selected:', selectedCommentTemplate);
-      console.log('🔗 Original post URL:', selectedCommentPromo.castUrl);
-      
-      // Show instruction message
-      setShareError('📱 Comment ready! Please post it in the Farcaster app, then click "Verify Comment" below.');
-      
-      // Don't close modal - keep it open for comment verification
-      // setShowCommentModal(false);
-      // setSelectedCommentPromo(null);
-      // setSelectedCommentTemplate('');
-      
-      // Don't wait automatically - let user click verify when ready
-      // The verification is now handled by the "Verify Comment" button
       
     } catch (error: any) {
       console.error('❌ Comment action failed:', error);
@@ -1542,14 +1577,25 @@ export default function PromotePage() {
                 Cancel
               </button>
               
-              {/* Simple Share Button - only show when template is selected */}
+              {/* Comment Action Button - only show when template is selected */}
+              {selectedCommentTemplate && (
+                <button
+                  onClick={handleCommentSubmit}
+                  disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                >
+                  {sharingPromoId === selectedCommentPromo.id.toString() ? 'Sharing...' : '💬 Comment & Earn'}
+                </button>
+              )}
+
+              {/* Verify Comment Button - always show for manual verification */}
               {selectedCommentTemplate && (
                 <button
                   onClick={async () => {
                     if (!selectedCommentPromo || !selectedCommentTemplate) return;
                     
-                    console.log('🚀 Sharing comment...');
-                    setShareError('🚀 Sharing comment...');
+                    console.log('🔍 Verifying comment manually...');
+                    setShareError('🔍 Verifying comment...');
                     
                     try {
                       // Submit to backend for reward verification
@@ -1570,28 +1616,35 @@ export default function PromotePage() {
                       const data = await response.json();
                       
                       if (!response.ok) {
-                        throw new Error(data.error || 'Failed to share comment');
+                        throw new Error(data.error || 'Failed to verify comment');
                       }
 
-                      console.log('✅ Comment shared successfully');
-                      setShareError('✅ Comment shared! Reward credited successfully!');
+                      console.log('✅ Comment verified successfully');
+                      setShareError('✅ Comment verified! Reward credited successfully!');
                       
-                      // Close modal after successful sharing
+                      // Mark action as completed
+                      setCompletedActions(prev => ({
+                        ...prev,
+                        [selectedCommentPromo.id]: true
+                      }));
+                      
+                      // Close modal after successful verification
                       setTimeout(() => {
                         setShowCommentModal(false);
                         setSelectedCommentPromo(null);
                         setSelectedCommentTemplate('');
                         setShareError(null);
+                        refreshAllData();
                       }, 2000);
                       
                     } catch (error: any) {
-                      console.error('❌ Comment sharing failed:', error);
-                      setShareError(`❌ Sharing failed: ${error.message}`);
+                      console.error('❌ Comment verification failed:', error);
+                      setShareError(`❌ Verification failed: ${error.message}`);
                     }
                   }}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  🚀 Share Comment
+                  ✅ Verify Comment
                 </button>
               )}
             </div>
