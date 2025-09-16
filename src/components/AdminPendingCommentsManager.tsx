@@ -70,7 +70,10 @@ export default function AdminPendingCommentsManager() {
     try {
       const response = await fetch('/api/admin/approve-comment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-key': 'admin-key-123' // Admin key for approval
+        },
         body: JSON.stringify({
           pendingCommentId: commentId,
           action,
