@@ -792,11 +792,12 @@ export default function PromotePage() {
       const isCompletedA = completedActions[a.id] || false;
       const isCompletedB = completedActions[b.id] || false;
       
-      // Priority levels: 1=Active, 2=48h Quote Wait, 3=Completed Like/Recast
+      // Priority levels: 1=Active, 2=48h Quote Wait, 3=Completed Like/Recast, 4=Completed Comment
       const getPriority = (promo: any, canShare: boolean, isCompleted: boolean) => {
+        if (promo.actionType === 'comment' && isCompleted) return 4; // Completed comment - bottom
         if (promo.actionType === 'like_recast' && isCompleted) return 3; // Completed like/recast - bottom
         if (promo.actionType === 'quote' && !canShare) return 2; // 48h quote wait - middle
-        return 1; // Active (both quote available and like/recast available) - top
+        return 1; // Active (all types available) - top
       };
       
       const priorityA = getPriority(a, canShareA, isCompletedA);
@@ -1035,7 +1036,7 @@ export default function PromotePage() {
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white text-sm font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:border-slate-600 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 pulse-glow"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1058,7 +1059,7 @@ export default function PromotePage() {
                                 
                                 if (isCompleted) {
                                   return (
-                                    <div className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm">
+                                    <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-green-400 text-white text-sm font-bold rounded-xl shadow-lg">
                                       <span>✅</span>
                                       <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
                                     </div>
@@ -1087,7 +1088,7 @@ export default function PromotePage() {
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-purple-400 hover:bg-[#2a2f42] text-white text-sm font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:border-slate-600 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 pulse-glow"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1110,7 +1111,7 @@ export default function PromotePage() {
                                 
                                 if (isCompleted) {
                                   return (
-                                    <div className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg shadow-sm">
+                                    <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-green-400 text-white text-sm font-bold rounded-xl shadow-lg">
                                       <span>✅</span>
                                       <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
                                     </div>
@@ -1136,7 +1137,7 @@ export default function PromotePage() {
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] text-white text-sm font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:border-slate-600 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 pulse-glow"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1149,7 +1150,7 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Comment` 
-                                        : `🚧 Comment & Earn ${promo.rewardPerShare} $CHESS (Under Development)`
+                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
