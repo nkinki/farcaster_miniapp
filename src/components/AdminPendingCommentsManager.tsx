@@ -73,7 +73,7 @@ export default function AdminPendingCommentsManager() {
           pendingCommentId: commentId,
           action,
           adminFid: fcProfile?.fid || 0, // Fallback to 0 if fid is not available
-          rejectionReason
+          reviewNotes: rejectionReason
         })
       });
 
