@@ -1023,14 +1023,19 @@ export default function PromotePage() {
                                 
                                 return (
                                   <button 
-                                    onClick={() => {
+                                    onClick={(e) => {
                                       if (!isCountingDown) {
+                                        // Add click animation
+                                        e.currentTarget.style.transform = 'scale(0.95)';
+                                        setTimeout(() => {
+                                          e.currentTarget.style.transform = 'scale(1)';
+                                        }, 150);
                                         startButtonCountdown(promo.id.toString());
                                         setTimeout(() => handleSharePromo(promo), 10000);
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1072,12 +1077,17 @@ export default function PromotePage() {
                                         console.log('📱 Event:', e);
                                         console.log('🎯 Promo:', promo);
                                         console.log('🧪 Simple test - button works!');
+                                        // Add click animation
+                                        e.currentTarget.style.transform = 'scale(0.95)';
+                                        setTimeout(() => {
+                                          e.currentTarget.style.transform = 'scale(1)';
+                                        }, 150);
                                         startButtonCountdown(promo.id.toString());
                                         setTimeout(() => handleLikeRecastBoth(promo, e), 10000);
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1116,12 +1126,17 @@ export default function PromotePage() {
                                     onClick={(e) => {
                                       if (!isCountingDown) {
                                         console.log('🔘 Comment button clicked!');
+                                        // Add click animation
+                                        e.currentTarget.style.transform = 'scale(0.95)';
+                                        setTimeout(() => {
+                                          e.currentTarget.style.transform = 'scale(1)';
+                                        }, 150);
                                         startButtonCountdown(promo.id.toString());
                                         setTimeout(() => handleCommentAction(promo, e), 10000);
                                       }
                                     }} 
                                     disabled={isDisabled} 
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
                                   >
                                     {sharingPromoId === promo.id.toString() ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -1388,7 +1403,7 @@ export default function PromotePage() {
                   setSelectedCommentPromo(null);
                   setSelectedCommentTemplate('');
                 }}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
               >
                 Cancel
               </button>
@@ -1483,7 +1498,7 @@ export default function PromotePage() {
                           setShareError('❌ Failed to copy to clipboard. Please copy manually.');
                         }
                       }}
-                      className="mt-2 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                      className="mt-2 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors active:scale-95"
                     >
                       📋 Copy Comment to Clipboard
                     </button>
@@ -1501,7 +1516,7 @@ export default function PromotePage() {
                   setSelectedCommentPromo(null);
                   setSelectedCommentTemplate('');
                 }}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
               >
                 Cancel
               </button>
@@ -1511,7 +1526,7 @@ export default function PromotePage() {
                 <button
                   onClick={handleCommentSubmit}
                   disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                 >
                   {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '📱 Open Post & Comment'}
                 </button>
@@ -1581,7 +1596,7 @@ export default function PromotePage() {
                     }
                   }}
                   disabled={sharingPromoId === selectedCommentPromo.id.toString()}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                 >
                   {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '✅ Verify Comment'}
                 </button>
