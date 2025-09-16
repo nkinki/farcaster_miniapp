@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiCheck, FiX, FiEye, FiRefreshCw, FiBarChart, FiShare2, FiCopy } from 'react-icons/fi';
+import { FiCheck, FiX, FiEye, FiRefreshCw, FiBarChart, FiShare2, FiCopy, FiMessageSquare } from 'react-icons/fi';
+import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 
 interface PendingVerification {
   id: number;
@@ -72,7 +73,7 @@ export default function AdminPage() {
   const [processing, setProcessing] = useState<number | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [shareablePromos, setShareablePromos] = useState<ShareablePromo[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'verifications'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'verifications' | 'comments'>('stats');
 
   const fetchStats = async () => {
     try {
@@ -212,6 +213,17 @@ export default function AdminPage() {
             >
               <FiCheck className="inline mr-2" size={16} />
               Verifications ({pendingVerifications.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('comments')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'comments'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              <FiMessageSquare className="inline mr-2" size={16} />
+              Pending Comments
             </button>
           </div>
         </div>
@@ -593,6 +605,17 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Pending Comments Tab */}
+        {activeTab === 'comments' && (
+          <div>
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-white mb-2">💬 Pending Comments</h2>
+              <p className="text-gray-300">Review and approve pending comment submissions</p>
+            </div>
+            <AdminPendingCommentsManager />
           </div>
         )}
 
