@@ -60,11 +60,6 @@ export default function AdminPendingCommentsManager() {
       fid: fcProfile?.fid
     });
 
-    if (!fcProfile?.fid) {
-      setError("You must be logged in to perform this action. Please refresh the page and try again.");
-      return;
-    }
-
     setProcessingId(commentId);
     setError(null);
     try {
@@ -77,7 +72,7 @@ export default function AdminPendingCommentsManager() {
         body: JSON.stringify({
           pendingCommentId: commentId,
           action,
-          adminFid: fcProfile.fid || 0, // Fallback to 0 if fid is not available
+          adminFid: fcProfile?.fid || 0, // Fallback to 0 if fid is not available
           rejectionReason
         })
       });
