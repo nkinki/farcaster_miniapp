@@ -275,7 +275,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <div>
           <label className="block text-sm font-medium text-purple-300 mb-2">
             <FiMessageSquare className="inline mr-1" />
-            Comment Templates (Select up to 3)
+            Comment Templates (Select up to 10)
           </label>
           <div className="grid grid-cols-2 gap-2 mb-3">
             {COMMENT_TEMPLATES.map((template, index) => (
@@ -283,7 +283,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
                 key={index}
                 type="button"
                 onClick={() => handleTemplateSelect(template)}
-                disabled={step >= CreationStep.ReadyToCreate || (selectedTemplates.length >= 3 && !selectedTemplates.includes(template))}
+                disabled={step >= CreationStep.ReadyToCreate || (selectedTemplates.length >= 10 && !selectedTemplates.includes(template))}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   selectedTemplates.includes(template)
                     ? 'bg-green-600 text-white border border-green-500'
@@ -295,7 +295,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             ))}
           </div>
           <p className="text-xs text-gray-400">
-            Selected: {selectedTemplates.length}/3 templates
+            Selected: {selectedTemplates.length}/10 templates
           </p>
         </div>
       )}
