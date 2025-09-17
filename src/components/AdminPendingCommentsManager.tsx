@@ -124,6 +124,36 @@ export default function AdminPendingCommentsManager() {
             </span>
           </div>
           
+          {/* Original Post Preview */}
+          <div className="bg-gray-900 rounded-lg p-3 mb-4">
+            <div className="text-xs text-gray-400 mb-2">📱 Original Post Preview:</div>
+            <div className="bg-white rounded overflow-hidden h-48 relative">
+              {/* Loading Skeleton */}
+              <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                <div className="text-gray-500 text-sm">Loading preview...</div>
+              </div>
+              <iframe 
+                src={comment.promotion_cast_url} 
+                className="w-full h-full border-0 relative z-10" 
+                title={`Preview of post for comment #${comment.id}`}
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
+                onLoad={(e) => {
+                  // Hide loading skeleton when iframe loads
+                  const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                  if (skeleton) skeleton.style.display = 'none';
+                }}
+                onError={(e) => {
+                  // Show error message if iframe fails to load
+                  const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                  if (skeleton) {
+                    skeleton.innerHTML = '<div class="text-red-500 text-sm">❌ Preview unavailable</div>';
+                  }
+                }}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2 text-gray-300 text-sm mb-4">
             <p className="flex items-center gap-2">
               <FiUser /> <strong>Commenter:</strong> @{comment.username} (FID: {comment.user_fid})
