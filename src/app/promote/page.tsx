@@ -1602,11 +1602,11 @@ export default function PromotePage() {
               </div>
             </div>
 
-            {/* Comment Templates - always show */}
+            {/* Comment Templates - show promoter's selected templates */}
             <div className="mb-6">
                 <p className="text-sm text-gray-300 mb-3">Choose a comment template:</p>
                 <div className="grid grid-cols-1 gap-2">
-                  {COMMENT_TEMPLATES.slice(0, 3).map((template, index) => (
+                  {(selectedCommentPromo.commentTemplates || COMMENT_TEMPLATES.slice(0, 3)).map((template, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedCommentTemplate(template)}
