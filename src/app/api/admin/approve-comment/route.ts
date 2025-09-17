@@ -13,8 +13,17 @@ export async function POST(request: NextRequest) {
       reviewNotes 
     } = body;
 
-    if (!pendingCommentId || !action || !adminFid) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    // Check if admin is the promoter (owner of the promotion) OR has admin key
+    const adminKey = request.headers.get('x-admin-key');
+    const isAdmin = adminKey === 'admin-key-123';
+    
+    if (!pendingCommentId || !action) {
+      return NextResponse.json({ error: 'Missing required fields: pendingCommentId and action are required' }, { status: 400 });
+    }
+    
+    // If not admin, require adminFid
+    if (!isAdmin && !adminFid) {
+      return NextResponse.json({ error: 'Missing required fields: adminFid is required when not using admin key' }, { status: 400 });
     }
 
     if (!['approve', 'reject'].includes(action)) {
@@ -35,10 +44,6 @@ export async function POST(request: NextRequest) {
 
     const comment = pendingComment[0];
 
-    // Check if admin is the promoter (owner of the promotion) OR has admin key
-    const adminKey = request.headers.get('x-admin-key');
-    const isAdmin = adminKey === 'admin-key-123';
-    
     if (comment.promoter_fid !== adminFid && !isAdmin) {
       return NextResponse.json({ error: 'Only the promotion owner or admin can approve comments' }, { status: 403 });
     }
