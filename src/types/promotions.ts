@@ -19,6 +19,10 @@ export interface PromoCast {
     displayName: string
   }
   actionType: 'quote' | 'like_recast' | 'comment' // Add actionType field
+  // Comment functionality fields
+  commentTemplates?: string[] // Array of selected comment templates
+  customComment?: string | null // Custom comment text
+  allowCustomComments?: boolean // Allow users to add custom comments
 }
 
 // Database Promotion interface (az adatbázisból érkező adatokhoz)
@@ -37,6 +41,10 @@ export interface Promotion {
   created_at: string
   updated_at: string
   action_type: 'quote' | 'like_recast' | 'comment' // Add action_type field
+  // Comment functionality fields
+  comment_templates?: string[] | null // Array of selected comment templates (JSON from DB)
+  custom_comment?: string | null // Custom comment text
+  allow_custom_comments?: boolean | null // Allow users to add custom comments
 }
 
 // User interface for components

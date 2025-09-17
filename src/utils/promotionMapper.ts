@@ -35,6 +35,10 @@ export function mapPromotionToPromoCast(promotion: Promotion): PromoCast {
       displayName: promotion.display_name || promotion.username,
     },
     actionType: promotion.action_type || 'quote', // Add actionType mapping
+    // Comment functionality fields
+    commentTemplates: promotion.comment_templates || undefined,
+    customComment: promotion.custom_comment || undefined,
+    allowCustomComments: promotion.allow_custom_comments || undefined,
   }
 }
 
