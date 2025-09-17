@@ -103,9 +103,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
   const [customComment, setCustomComment] = useState('');
   const [allowCustomComments, setAllowCustomComments] = useState(true);
   
-  // Promoter comment verification state
-  const [promoterComment, setPromoterComment] = useState('');
-  const [showCommentVerification, setShowCommentVerification] = useState(false);
+  // Promoter comment verification state - removed test comment functionality
   
   const [step, setStep] = useState<CreationStep>(CreationStep.Idle);
   const [error, setError] = useState<string | null>(null);
@@ -171,22 +169,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
     });
   };
 
-  const handleCommentVerification = () => {
-    if (!promoterComment.trim()) {
-      setError('Please write a comment to verify the process');
-      return;
-    }
-    setShowCommentVerification(true);
-  };
-
-  const handleCopyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setError('Comment copied to clipboard! Now paste it as a reply to the post above.');
-    } catch (err) {
-      setError('Failed to copy to clipboard. Please copy manually.');
-    }
-  };
+  // Removed test comment verification functions
 
   const handleApprove = async () => {
     setError(null);
@@ -317,90 +300,22 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         </div>
       )}
 
-      {/* Promoter Comment Verification Section */}
-      {selectedAction === 'comment' && !showCommentVerification && (
-        <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-yellow-300 mb-3">
-            🔍 Comment Process Verification
+      {/* Comment Process Info - Simple explanation */}
+      {selectedAction === 'comment' && (
+        <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-blue-300 mb-3">
+            💬 Comment Process
           </h3>
-          <p className="text-sm text-gray-300 mb-4">
-            To understand how users will comment, please write a test comment below and follow the process:
+          <p className="text-sm text-gray-300 mb-3">
+            Users will be able to comment on your post using the templates you select above. 
+            The comment process will be guided with clear step-by-step instructions on the user interface.
           </p>
-          
-          <div className="space-y-3">
-            <div>
-              <label htmlFor="promoterComment" className="block text-sm font-medium text-yellow-300 mb-1">
-                Write your test comment:
-              </label>
-              <input
-                type="text"
-                id="promoterComment"
-                value={promoterComment}
-                onChange={(e) => setPromoterComment(e.target.value)}
-                placeholder="e.g., 🚀 This is amazing!"
-                className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-yellow-500 focus:outline-none"
-                disabled={step >= CreationStep.ReadyToCreate}
-              />
-            </div>
-            
-            <button
-              type="button"
-              onClick={handleCommentVerification}
-              disabled={step >= CreationStep.ReadyToCreate || !promoterComment.trim()}
-              className="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-            >
-              Test Comment Process
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Comment Process Demo */}
-      {selectedAction === 'comment' && showCommentVerification && (
-        <div className="bg-green-900/20 border border-green-600 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-green-300 mb-3">
-            ✅ Comment Process Demo
-          </h3>
-          <p className="text-sm text-gray-300 mb-4">
-            This is how users will comment on your promotion:
-          </p>
-          
-          <div className="space-y-3">
-            <div className="bg-slate-800 rounded-lg p-3">
-              <p className="text-sm text-gray-400 mb-2">Your test comment:</p>
-              <p className="text-white font-medium">"{promoterComment}"</p>
-            </div>
-            
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-green-300">Step-by-step process:</h4>
-              <ol className="text-sm text-gray-300 space-y-1 ml-4">
-                <li>1. User clicks "Comment" button</li>
-                <li>2. Modal opens with your post preview</li>
-                <li>3. User selects from your templates or writes custom</li>
-                <li>4. User copies comment to clipboard</li>
-                <li>5. User pastes as reply to your post</li>
-                <li>6. User clicks "Verify Comment"</li>
-                <li>7. You (promoter) or admin approves it</li>
-                <li>8. User gets reward after approval</li>
-              </ol>
-            </div>
-            
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleCopyToClipboard(promoterComment)}
-                className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-              >
-                📋 Copy Comment to Clipboard
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCommentVerification(false)}
-                className="flex-1 px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
-              >
-                Back to Edit
-              </button>
-            </div>
+          <div className="text-xs text-gray-400">
+            <p>• Users select from your comment templates</p>
+            <p>• Copy comment to clipboard</p>
+            <p>• Paste as reply to your post</p>
+            <p>• Verify comment for approval</p>
+            <p>• Get reward after promoter/admin approval</p>
           </div>
         </div>
       )}
