@@ -9,7 +9,8 @@ import PaymentForm from "../../components/PaymentForm";
 import CampaignManager from "../../components/CampaignManager";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import LuckyBox from "@/components/LuckyBox";
-import { usePromotions } from "@/hooks/usePromotions";
+import { usePromotions } from "@/hooks/usePromotions"
+import { usePromotionsWithComments } from "@/hooks/usePromotionsWithComments";
 import type { PromoCast } from "@/types/promotions";
 import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi';
 import { SignInButton, useProfile } from '@farcaster/auth-kit';
@@ -181,6 +182,16 @@ export default function PromotePage() {
     limit: 50,
     offset: 0,
     status: "all",
+  });
+
+  const {
+    promotions: commentPromotions,
+    loading: commentPromotionsLoading,
+    refetch: refetchCommentPromotions,
+  } = usePromotionsWithComments({
+    limit: 50,
+    offset: 0,
+    status: "active",
   });
 
   useEffect(() => {
@@ -761,7 +772,11 @@ export default function PromotePage() {
   const myPromos = allPromotions.filter(
     p => p.author.fid === currentUser.fid
   );
-  const availablePromos = allPromotions.filter(p => {
+  
+  // Combine regular promotions and comment promotions
+  const allCombinedPromotions = [...allPromotions, ...commentPromotions];
+  
+  const availablePromos = allCombinedPromotions.filter(p => {
     if (p.status !== 'active' || p.author.fid === currentUser.fid) return false;
     if (p.remainingBudget < p.rewardPerShare) return false;
     
@@ -1602,11 +1617,13 @@ export default function PromotePage() {
               </div>
             </div>
 
-            {/* Comment Templates - always show first 3 templates */}
+            {/* Comment Templates - show promoter's selected templates */}
             <div className="mb-6">
                 <p className="text-sm text-gray-300 mb-3">Choose a comment template:</p>
                 <div className="grid grid-cols-1 gap-2">
-                  {COMMENT_TEMPLATES.slice(0, 3).map((template, index) => (
+                  {(selectedCommentPromo.commentTemplates && selectedCommentPromo.commentTemplates.length > 0 
+                    ? selectedCommentPromo.commentTemplates 
+                    : COMMENT_TEMPLATES.slice(0, 3)).map((template, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedCommentTemplate(template)}
