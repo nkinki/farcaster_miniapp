@@ -792,8 +792,10 @@ export default function PromotePage() {
       const isCompleted = completedActions[promo.id] || false;
       
       // Check if this should be in countdown section
+      // For comment: only show in countdown if not completed yet (can be done again after 48h)
+      // For quote: show in countdown if in 48h cooldown
       const shouldBeInCountdown = !canShare && timerInfo && timerInfo.timeRemaining > 0 && 
-        (promo.actionType === 'comment' || promo.actionType === 'quote');
+        ((promo.actionType === 'comment' && !isCompleted) || promo.actionType === 'quote');
       
       if (shouldBeInCountdown) {
         countdown.push(promo);

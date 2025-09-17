@@ -43,8 +43,11 @@ export async function GET(request: NextRequest) {
                     promotion_id,
                     sharer_fid,
                     MAX(created_at) as last_share_time
-                FROM shares
-                WHERE sharer_fid = ${fid}
+                FROM (
+                    SELECT promotion_id, sharer_fid, created_at FROM shares WHERE sharer_fid = ${fid}
+                    UNION ALL
+                    SELECT promotion_id, user_fid as sharer_fid, created_at FROM pending_comments WHERE user_fid = ${fid} AND status = 'pending'
+                ) combined_actions
                 GROUP BY promotion_id, sharer_fid
             ) s ON p.id = s.promotion_id
             WHERE p.status = 'active'
