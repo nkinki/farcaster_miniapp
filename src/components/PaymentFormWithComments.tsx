@@ -321,35 +321,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" disabled={step >= CreationStep.ReadyToCreate} />
       </div>
 
-      {/* Comment Templates Section - Only shown when comment action is selected */}
-      {selectedAction === 'comment' && (
-        <div>
-          <label className="block text-sm font-medium text-purple-300 mb-2">
-            <FiMessageSquare className="inline mr-1" />
-            Comment Templates (Select up to 3)
-          </label>
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          {COMMENT_TEMPLATES.map((template, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => handleTemplateSelect(template)}
-              disabled={step >= CreationStep.ReadyToCreate || (selectedTemplates.length >= 3 && !selectedTemplates.includes(template))}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                selectedTemplates.includes(template)
-                  ? 'bg-green-600 text-white border border-green-500'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-              } disabled:bg-gray-800 disabled:cursor-not-allowed`}
-            >
-              {template}
-            </button>
-          ))}
-        </div>
-          <p className="text-xs text-gray-400">
-            Selected: {selectedTemplates.length}/3 templates
-          </p>
-        </div>
-      )}
+      {/* Comment Templates Section - removed for create promotion flow */}
 
       {/* Custom Comment Section - Only shown when comment action is selected */}
       {selectedAction === 'comment' && (

@@ -1551,21 +1551,7 @@ export default function PromotePage() {
               <p className="text-sm text-gray-300 mb-2">
                 Select a comment template to use:
               </p>
-              <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
-                {COMMENT_TEMPLATES.map((template, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedCommentTemplate(template)}
-                    className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
-                      selectedCommentTemplate === template
-                        ? 'bg-green-600 text-white border border-green-500'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
-                    }`}
-                  >
-                    {template}
-                  </button>
-                ))}
-              </div>
+              {/* Static list removed from create flow */}
             </div>
 
             {selectedCommentTemplate && (
