@@ -1184,7 +1184,7 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Like & Recast` 
-                                        : `👍 Like & Recast & Earn ${promo.rewardPerShare} $CHESS`
+                                        : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
