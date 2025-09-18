@@ -164,14 +164,36 @@ export default function PromotePage() {
     "💯 Totally agree with this!",
     "🔥 This is fire!",
     "💎 Great content!",
-    "💎 Diamond hands!",
     "🎯 Spot on!",
     "⚡ This hits different!",
     "🌟 Absolutely brilliant!",
     "🚀 Love this energy!",
     "💪 This is the way!",
     "🎉 Amazing work!",
-    "⭐ Perfect!"
+    "⭐ Perfect!",
+    "👏 Well said!",
+    "🏆 Top tier content!",
+    "💫 Mind blown!",
+    "🎨 Beautiful work!",
+    "💎 Pure gold!",
+    "Love this insight!",
+    "Totally agree, well said.",
+    "This adds real value, thanks!",
+    "Sharp take. Following.",
+    "Saving this for later.",
+    "Important point, appreciate the share.",
+    "Great breakdown!",
+    "Clear and concise. Nice.",
+    "Thanks for the alpha!",
+    "Signal > noise. Bookmarked.",
+    "This aged well.",
+    "Context matters — this nails it.",
+    "Data-backed and practical. +1",
+    "Learned something new today.",
+    "Useful for builders.",
+    "Quality over hype. Respect.",
+    "Actionable and clean.",
+    "Mind opening perspective."
   ];
 
   const {
@@ -1623,7 +1645,7 @@ export default function PromotePage() {
                 <div className="grid grid-cols-1 gap-2">
                   {(selectedCommentPromo.commentTemplates && selectedCommentPromo.commentTemplates.length > 0 
                     ? selectedCommentPromo.commentTemplates 
-                    : COMMENT_TEMPLATES.slice(0, 3)).map((template, index) => (
+                    : COMMENT_TEMPLATES).map((template, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedCommentTemplate(template)}
