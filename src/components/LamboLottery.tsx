@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap } from "react-icons/fi";
-import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
+import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract, useEstimateFeesPerGas } from 'wagmi';
 import { type Hash } from 'viem';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '@/abis/LottoPaymentRouter';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
@@ -53,11 +53,15 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [claimError, setClaimError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentInfoIndex, setCurrentInfoIndex] = useState(0);
+  const [pendingSinceMs, setPendingSinceMs] = useState<number | null>(null);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
   const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ hash: purchaseTxHash });
 
   const totalCost = TICKET_PRICE * BigInt(selectedNumbers.length);
+
+  // Fee estimation (Base may require explicit tips during congestion)
+  const { data: feeEstimates } = useEstimateFeesPerGas();
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: CHESS_TOKEN_ADDRESS,
@@ -125,6 +129,17 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       refetchAllowance();
       // Reset approve transaction hash to clear pending state
       setApproveTxHash(undefined);
+
+      // Poll allowance for a few seconds until it reflects on-chain state
+      (async () => {
+        try {
+          for (let i = 0; i < 6; i++) { // ~9s total
+            await new Promise(r => setTimeout(r, 1500));
+            const res = await refetchAllowance();
+            if (res?.data !== undefined && res.data >= totalCost) break;
+          }
+        } catch {}
+      })();
     }
   }, [isApproved, step, refetchAllowance]);
   
@@ -239,12 +254,20 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           }
         }
         
+        // Prepare fee bump if available (20% over suggestion)
+        const feeOverrides: { maxFeePerGas?: bigint; maxPriorityFeePerGas?: bigint } = {};
+        if (feeEstimates?.maxFeePerGas && feeEstimates?.maxPriorityFeePerGas) {
+          feeOverrides.maxFeePerGas = (feeEstimates.maxFeePerGas * 12n) / 10n;
+          feeOverrides.maxPriorityFeePerGas = (feeEstimates.maxPriorityFeePerGas * 12n) / 10n;
+        }
+
         const hash = await writeContractAsync({
             address: LOTTO_PAYMENT_ROUTER_ADDRESS,
             abi: LOTTO_PAYMENT_ROUTER_ABI,
             functionName: 'buyTicket',
             args: [contractTicketNumber],
             gas: BigInt(200000), // Standard gas limit for single ticket purchase
+            ...feeOverrides,
         });
         ticketTxPairs.push({ number: ticketNumber, hash });
       }
@@ -373,6 +396,28 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const isNumberTaken = (number: number) => takenNumbers.includes(number);
 
   const isLoading = isPending || isApproveConfirming || isPurchaseConfirming || step === PurchaseStep.Saving;
+
+  // Pending guard: if wallet signature pending too long, hint the user
+  useEffect(() => {
+    if (isPending && pendingSinceMs == null) {
+      setPendingSinceMs(Date.now());
+    }
+    if (!isPending && pendingSinceMs != null) {
+      setPendingSinceMs(null);
+    }
+  }, [isPending]);
+
+  useEffect(() => {
+    if (pendingSinceMs == null) return;
+    const id = setInterval(() => {
+      const elapsed = Date.now() - pendingSinceMs;
+      if (elapsed > 30000) {
+        setErrorMessage('Transaction pending in wallet for a while. If no prompt appears, open your wallet or try speeding up.');
+        clearInterval(id);
+      }
+    }, 2000);
+    return () => clearInterval(id);
+  }, [pendingSinceMs]);
 
   if (!isOpen) return null;
 
