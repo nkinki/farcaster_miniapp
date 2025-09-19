@@ -12,7 +12,6 @@ const pool = new Pool({
 });
 
 // Szerver-oldali viem kliens a blokklánc ellenőrzéséhez
-// Fallback transport: ha az első RPC leáll, automatikusan a másodikra vált
 const publicClient = createPublicClient({
   chain: base,
   transport: fallback([
@@ -69,36 +68,17 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS ---
-    console.log(`[Verifier] Verifying txHash: ${txHash}`);
+    // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS (JAVÍTVA) ---
+    console.log(`[Verifier] Waiting for receipt for txHash: ${txHash}`);
     
-    // Retry mechanism for pending transactions
-    let receipt = null;
-    let retries = 0;
-    const maxRetries = 6; // 30 seconds total
-    
-    while (!receipt && retries < maxRetries) {
-      try {
-        receipt = await publicClient.getTransactionReceipt({ hash: txHash as `0x${string}` });
-        if (!receipt) {
-          console.log(`[Verifier] Receipt not found, retry ${retries + 1}/${maxRetries}`);
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-          retries++;
-        }
-      } catch (error: any) {
-        if (error.message?.includes('TransactionReceiptNotFoundError')) {
-          console.log(`[Verifier] Receipt not found, retry ${retries + 1}/${maxRetries}`);
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-          retries++;
-        } else {
-          throw error; // Re-throw other errors
-        }
-      }
-    }
+    // A waitForTransactionReceipt lecseréli a bonyolult while ciklust.
+    // Addig vár, amíg a bizonylat elérhetővé nem válik, vagy lejár a 30 másodperces időkorlát.
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+      timeout: 30_000 
+    });
 
-    if (!receipt) {
-      return NextResponse.json({ error: 'Transaction receipt not found after 30 seconds. The transaction may still be pending.' }, { status: 404 });
-    }
+    // A waitForTransactionReceipt hibát dob, ha nem találja, így a sikeres eset után folytatódhat a kód.
     if (receipt.status !== 'success') {
       return NextResponse.json({ error: 'On-chain transaction failed.', details: `Status: ${receipt.status}` }, { status: 400 });
     }
@@ -136,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Verifier] Registering ${ticket_numbers.length} tickets for round ${round_id}`);
     for (const number of ticket_numbers) {
-      // JAVÍTVA: Az oszlop neve "number"-re cserélve (és idézőjelek közé téve)
+      // JAVÍTVA: A "number" oszlopnév idézőjelek közé került, mert az SQL-ben foglalt kulcsszó.
       await client.query(
         `INSERT INTO lottery_tickets (draw_id, player_fid, "number", transaction_hash, player_address, purchased_at, purchase_price)
          VALUES ($1, $2, $3, $4, $5, NOW(), 100000)`,
@@ -152,6 +132,12 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     await client.query('ROLLBACK').catch(rollbackError => console.error('Rollback failed:', rollbackError));
     console.error('[Verifier] API Error:', error);
+
+    // Külön hibakezelés az időtúllépésre
+    if (error.name === 'TimeoutError') {
+      return NextResponse.json({ error: 'Transaction verification timed out. It might still be processing. Please check back later.' }, { status: 408 });
+    }
+
     return NextResponse.json({ error: 'Internal server error during transaction verification.', details: error.message }, { status: 500 });
   } finally {
     client.release();
