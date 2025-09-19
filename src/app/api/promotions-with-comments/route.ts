@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       totalBudget, // remaining_budget starts equal to total_budget
       blockchainHash, 
       actionType || 'quote',
-      JSON.stringify(commentTemplates), // Comment templates JSON-ként tárolva
+      commentTemplates, // A JSONB oszlop közvetlenül fogadja a JS tömböt, a driver stringify-olja
       customComment || null,
       allowCustomComments !== false // Default true
     ]);
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
           totalBudget: totalBudget,
           rewardPerShare: rewardPerShare,
           castUrl: castUrl,
-          hasComments: true, // Új flag a comment funkcionalitáshoz
+          hasComments: true, 
           commentTemplates: commentTemplates,
           allowCustomComments: allowCustomComments
         })
@@ -121,7 +121,8 @@ export async function POST(request: NextRequest) {
       success: true, 
       promotion: {
         ...newPromotion,
-        commentTemplates: JSON.parse(newPromotion.comment_templates || '[]'),
+        // JAVÍTVA: A newPromotion.comment_templates már egy JS tömb, mert a pg driver automatikusan parse-olja a JSONB-t.
+        commentTemplates: newPromotion.comment_templates || [],
         customComment: newPromotion.custom_comment,
         allowCustomComments: newPromotion.allow_custom_comments
       }
@@ -153,7 +154,7 @@ export async function GET(request: NextRequest) {
       WHERE status = $1
     `;
     
-    const params = [status];
+    const params: (string | number)[] = [status];
     
     if (fid) {
       query += ` AND fid = $2`;
@@ -164,10 +165,11 @@ export async function GET(request: NextRequest) {
 
     const result = await pool.query(query, params);
     
-    // Comment templates JSON parse-olása
+    // Comment templates már parse-olva érkezik a JSONB oszlopból
     const promotions = result.rows.map(row => ({
       ...row,
-      commentTemplates: JSON.parse(row.comment_templates || '[]'),
+      // JAVÍTVA: A row.comment_templates már egy JS tömb, mert a pg driver automatikusan parse-olja a JSONB-t.
+      commentTemplates: row.comment_templates || [],
       customComment: row.custom_comment,
       allowCustomComments: row.allow_custom_comments
     }));
