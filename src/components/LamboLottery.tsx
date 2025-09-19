@@ -257,8 +257,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         // Prepare fee bump if available (20% over suggestion)
         const feeOverrides: { maxFeePerGas?: bigint; maxPriorityFeePerGas?: bigint } = {};
         if (feeEstimates?.maxFeePerGas && feeEstimates?.maxPriorityFeePerGas) {
-          feeOverrides.maxFeePerGas = (feeEstimates.maxFeePerGas * 12n) / 10n;
-          feeOverrides.maxPriorityFeePerGas = (feeEstimates.maxPriorityFeePerGas * 12n) / 10n;
+          feeOverrides.maxFeePerGas = (feeEstimates.maxFeePerGas * BigInt(12)) / BigInt(10);
+          feeOverrides.maxPriorityFeePerGas = (feeEstimates.maxPriorityFeePerGas * BigInt(12)) / BigInt(10);
         }
 
         const hash = await writeContractAsync({
