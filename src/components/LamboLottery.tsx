@@ -128,48 +128,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     }
   }, [isApproved, step, refetchAllowance]);
   
-  useEffect(() => {
-    if (!isPurchased || !purchaseTxHash || step !== PurchaseStep.PurchaseConfirming) return;
-    const verifyAndRegister = async () => {
-      setStep(PurchaseStep.Saving);
-      try {
-        const response = await fetch('/api/lottery/verify-purchase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            txHash: purchaseTxHash,
-            fid: userFid,
-            round_id: currentRound!.id,
-            ticket_numbers: selectedNumbers,
-            playerAddress: address,
-          }),
-        });
-        if (!response.ok) {
-          const errorResult = await response.json();
-          throw new Error(errorResult.error || 'Verification failed on the server.');
-        }
-        setSelectedNumbers([]);
-        await fetchLotteryData();
-        if (onPurchaseSuccess) onPurchaseSuccess();
-        
-        // Show success message and refresh
-        setErrorMessage(null);
-        setStep(PurchaseStep.Idle);
-        
-        // Show success message
-        alert(`✅ Successfully purchased ${selectedNumbers.length} ticket(s)! Refreshing app...`);
-        
-        // Force refresh the entire app to show updated data
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000); // Wait 1 second to show success message
-      } catch (error: any) {
-        setErrorMessage(`CRITICAL ERROR: Purchase successful, but registration failed. Contact support with TxHash: ${purchaseTxHash}.`);
-        setStep(PurchaseStep.ReadyToPurchase);
-      }
-    };
-    verifyAndRegister();
-  }, [isPurchased, purchaseTxHash, step, userFid, currentRound, selectedNumbers, address, fetchLotteryData, onPurchaseSuccess]);
+  // Verification is handled per-ticket immediately after each purchase now
 
   useEffect(() => { if (isOpen) { fetchLotteryData(); } }, [isOpen, fetchLotteryData]);
 
@@ -259,7 +218,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           return;
       }
       
-      let finalHash: Hash | undefined;
+      const ticketTxPairs: Array<{ number: number; hash: Hash }> = [];
       for (const ticketNumber of selectedNumbers) {
         // Check if we need to map the number based on contract limits
         let contractTicketNumber = BigInt(ticketNumber);
@@ -287,15 +246,50 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             args: [contractTicketNumber],
             gas: BigInt(200000), // Standard gas limit for single ticket purchase
         });
-        finalHash = hash;
+        ticketTxPairs.push({ number: ticketNumber, hash });
       }
 
-      if (finalHash) {
-          setPurchaseTxHash(finalHash);
-          setStep(PurchaseStep.PurchaseConfirming);
+      if (ticketTxPairs.length === 0) {
+        throw new Error("No tickets were selected to purchase.");
+      }
+
+      // Immediately verify each ticket individually so partial success is recorded
+      setStep(PurchaseStep.Saving);
+      const successes: number[] = [];
+      const failures: Array<{ number: number; error: string }> = [];
+      for (const { number, hash } of ticketTxPairs) {
+        try {
+          const response = await fetch('/api/lottery/verify-purchase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              txHash: hash,
+              fid: userFid,
+              round_id: currentRound!.id,
+              ticket_numbers: [number],
+              playerAddress: address,
+            }),
+          });
+          if (!response.ok) {
+            const errorResult = await response.json().catch(() => ({}));
+            throw new Error(errorResult.error || 'Verification failed on the server.');
+          }
+          successes.push(number);
+        } catch (e: any) {
+          failures.push({ number, error: e?.message || 'Verify failed' });
+        }
+      }
+
+      setSelectedNumbers([]);
+      await fetchLotteryData();
+      if (onPurchaseSuccess) onPurchaseSuccess();
+      setStep(PurchaseStep.Idle);
+      if (failures.length === 0) {
+        alert(`✅ Successfully purchased ${successes.length} ticket(s)!`);
+      } else if (successes.length > 0) {
+        alert(`⚠️ Partial success: ${successes.length} purchased, ${failures.length} failed (${failures.map(f => f.number).join(', ')}).`);
       } else {
-          // This case should not happen if selectedNumbers.length > 0
-          throw new Error("No tickets were selected to purchase.");
+        throw new Error('All verifications failed. Please try again later.');
       }
     } catch (err: any) {
       setErrorMessage(err.shortMessage || "Purchase rejected or failed. A ticket might be taken.");
