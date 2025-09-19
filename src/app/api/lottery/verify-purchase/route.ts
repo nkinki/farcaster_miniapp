@@ -83,7 +83,20 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Verifier] Verification successful for txHash: ${txHash}`);
 
-    // --- 2. ADATBÁZISBA ÍRÁS ---
+    // --- 2. KUMULATÍV LIMIT ELLENŐRZÉS (max 10 jegy / felhasználó / kör) ---
+    const existingCountRes = await client.query(
+      `SELECT COUNT(*) AS ticket_count FROM lottery_tickets WHERE draw_id = $1 AND player_fid = $2`,
+      [round_id, fid]
+    );
+    const currentUserTickets = parseInt(existingCountRes.rows[0]?.ticket_count ?? '0', 10);
+    if (currentUserTickets + ticket_numbers.length > 10) {
+      return NextResponse.json(
+        { error: `You already have ${currentUserTickets} tickets in this round. Maximum 10 tickets per user per round.` },
+        { status: 400 }
+      );
+    }
+
+    // --- 3. ADATBÁZISBA ÍRÁS ---
     await client.query('BEGIN');
 
     const existingTx = await client.query('SELECT id FROM lottery_tickets WHERE transaction_hash = $1', [txHash]);
