@@ -1,7 +1,7 @@
 // FÁJL: src/app/api/lottery/verify-purchase/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient, http, fallback } from 'viem';
 import { base } from 'viem/chains';
 import { Pool } from 'pg';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS } from '@/abis/LottoPaymentRouter';
@@ -15,11 +15,11 @@ const pool = new Pool({
 // Fallback transport: ha az első RPC leáll, automatikusan a másodikra vált
 const publicClient = createPublicClient({
   chain: base,
-  transport: http([
-    process.env.BASE_RPC_URL || 'https://mainnet.base.org',
-    'https://base.blockpi.network/v1/rpc/public',
-    'https://base.llamarpc.com',
-    'https://base-mainnet.public.blastapi.io'
+  transport: fallback([
+    http(process.env.BASE_RPC_URL || 'https://mainnet.base.org'),
+    http('https://base.blockpi.network/v1/rpc/public'),
+    http('https://base.llamarpc.com'),
+    http('https://base-mainnet.public.blastapi.io')
   ]),
 });
 
