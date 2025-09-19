@@ -10,7 +10,12 @@ const pool = new Pool({
 
 const publicClient = createPublicClient({
   chain: base,
-  transport: http(process.env.BASE_RPC_URL),
+  transport: http([
+    process.env.BASE_RPC_URL || 'https://mainnet.base.org',
+    'https://base.blockpi.network/v1/rpc/public',
+    'https://base.llamarpc.com',
+    'https://base-mainnet.public.blastapi.io'
+  ]),
 });
 
 export async function POST(request: NextRequest) {

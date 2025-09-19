@@ -12,10 +12,15 @@ const pool = new Pool({
 });
 
 // Szerver-oldali viem kliens a blokklánc ellenőrzéséhez
-// FONTOS: A BASE_RPC_URL környezeti változónak be kell lennie állítva a Vercelen!
+// Fallback transport: ha az első RPC leáll, automatikusan a másodikra vált
 const publicClient = createPublicClient({
   chain: base,
-  transport: http(process.env.BASE_RPC_URL),
+  transport: http([
+    process.env.BASE_RPC_URL || 'https://mainnet.base.org',
+    'https://base.blockpi.network/v1/rpc/public',
+    'https://base.llamarpc.com',
+    'https://base-mainnet.public.blastapi.io'
+  ]),
 });
 
 export async function POST(request: NextRequest) {
