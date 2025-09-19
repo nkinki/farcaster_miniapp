@@ -71,10 +71,33 @@ export async function POST(request: NextRequest) {
 
     // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS ---
     console.log(`[Verifier] Verifying txHash: ${txHash}`);
-    const receipt = await publicClient.getTransactionReceipt({ hash: txHash as `0x${string}` });
+    
+    // Retry mechanism for pending transactions
+    let receipt = null;
+    let retries = 0;
+    const maxRetries = 6; // 30 seconds total
+    
+    while (!receipt && retries < maxRetries) {
+      try {
+        receipt = await publicClient.getTransactionReceipt({ hash: txHash as `0x${string}` });
+        if (!receipt) {
+          console.log(`[Verifier] Receipt not found, retry ${retries + 1}/${maxRetries}`);
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+          retries++;
+        }
+      } catch (error: any) {
+        if (error.message?.includes('TransactionReceiptNotFoundError')) {
+          console.log(`[Verifier] Receipt not found, retry ${retries + 1}/${maxRetries}`);
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+          retries++;
+        } else {
+          throw error; // Re-throw other errors
+        }
+      }
+    }
 
     if (!receipt) {
-      return NextResponse.json({ error: 'Transaction receipt not found. It might still be processing.' }, { status: 404 });
+      return NextResponse.json({ error: 'Transaction receipt not found after 30 seconds. The transaction may still be pending.' }, { status: 404 });
     }
     if (receipt.status !== 'success') {
       return NextResponse.json({ error: 'On-chain transaction failed.', details: `Status: ${receipt.status}` }, { status: 400 });
