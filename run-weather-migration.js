@@ -1,19 +1,17 @@
 const https = require('https');
 
-// This script will call the migration API endpoint
-async function runMigration() {
+// This script will call the Weather Lotto database setup API endpoint
+async function setupWeatherDB() {
   try {
-    console.log('🚀 Starting Weather Lotto migration via API...');
+    console.log('🚀 Setting up Weather Lotto database via API...');
     
     const options = {
       hostname: 'farcaster-miniapp.vercel.app', // Replace with your actual Vercel domain
       port: 443,
-      path: '/api/admin/run-migrations',
+      path: '/api/weather-lotto/setup-db',
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        // Add authorization header if you have ADMIN_SECRET set
-        // 'Authorization': 'Bearer your-admin-secret'
+        'Content-Type': 'application/json'
       }
     };
 
@@ -27,13 +25,18 @@ async function runMigration() {
       res.on('end', () => {
         try {
           const result = JSON.parse(data);
-          console.log('📊 Migration Results:');
+          console.log('📊 Weather Lotto Database Setup Results:');
           console.log(JSON.stringify(result, null, 2));
           
           if (result.success) {
-            console.log('✅ Migration completed successfully!');
+            if (result.status === 'created') {
+              console.log('✅ Weather Lotto database created successfully!');
+              console.log('📊 Created tables:', result.tables.join(', '));
+            } else if (result.status === 'already_exists') {
+              console.log('✅ Weather Lotto database already exists!');
+            }
           } else {
-            console.log('❌ Migration failed:', result.error);
+            console.log('❌ Database setup failed:', result.error);
           }
         } catch (error) {
           console.log('📄 Raw response:', data);
@@ -48,8 +51,8 @@ async function runMigration() {
     req.end();
     
   } catch (error) {
-    console.error('❌ Migration script failed:', error);
+    console.error('❌ Database setup script failed:', error);
   }
 }
 
-runMigration();
+setupWeatherDB();
