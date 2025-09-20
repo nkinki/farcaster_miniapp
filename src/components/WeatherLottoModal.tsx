@@ -212,6 +212,42 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     }
   };
 
+  const handleTestPurchase = async () => {
+    try {
+      if (!selectedSide || !address) return;
+
+      setErrorMessage('');
+      
+      const response = await fetch('/api/weather-lotto/test-offline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'buy_tickets',
+          playerFid: userFid,
+          playerAddress: address,
+          side: selectedSide,
+          quantity: ticketQuantity
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Test purchase successful:', result);
+        await fetchWeatherLottoData();
+        onPurchaseSuccess?.();
+        setSelectedSide(null);
+        setTicketQuantity(1);
+        setErrorMessage('');
+      } else {
+        setErrorMessage(result.error || 'Test purchase failed');
+      }
+    } catch (error) {
+      console.error('Error in test purchase:', error);
+      setErrorMessage('Test purchase failed');
+    }
+  };
+
   const handlePurchase = async () => {
     if (!selectedSide || !address || !isConnected) return;
 
@@ -427,6 +463,19 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         {step === PurchaseStep.Idle && 'Purchase Tickets'}
                       </button>
                     )}
+
+                    {/* Test DB Button - Temporary for offline testing */}
+                    <button
+                      onClick={handleTestPurchase}
+                      disabled={!selectedSide || ticketQuantity === 0}
+                      className={`w-full py-3 px-6 rounded-xl font-bold text-lg transition-all duration-300 disabled:cursor-not-allowed hover:scale-105 shadow-lg ${
+                        !selectedSide || ticketQuantity === 0
+                          ? 'bg-gray-600 text-gray-400'
+                          : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
+                      }`}
+                    >
+                      🧪 Test DB Purchase (Offline)
+                    </button>
                 </div>
               )}
             </div>
