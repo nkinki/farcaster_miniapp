@@ -272,13 +272,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
+                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
                 <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                  <p className="text-sm text-blue-300">Maximum 10 tickets per user per round.{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
+                  <p className="text-sm text-blue-300">Maximum 10 tickets per user per round. Draw at 19:05 UTC daily via GitHub Action.{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
                 </div>
                 
                 <div className="grid grid-cols-10 gap-1 mb-4">
-                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-10 h-10 rounded text-sm font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}>{number}</button>))}
+                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-9 h-9 rounded text-sm font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}>{number}</button>))}
                 </div>
                 
                 {errorMessage && (
