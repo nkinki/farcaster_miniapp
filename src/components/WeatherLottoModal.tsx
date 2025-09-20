@@ -298,43 +298,6 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             <div className="flex-1 flex items-center justify-center"><div className="text-cyan-400 text-2xl font-bold animate-pulse">Loading weather lotto...</div></div>
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center"><FiZap className="inline mr-2" /> Current Round</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg p-3 border border-yellow-300">
-                    <div className="text-lg font-bold text-orange-600">100k CHESS</div>
-                    <div className="text-xs text-orange-700 font-semibold">Sunny</div>
-                    <div className="text-xs text-green-600 font-semibold">
-                      Win: {currentRound ? formatNumber(currentRound.winners_pool / (currentRound.sunny_tickets + 100000)) : '0'} CHESS
-                    </div>
-                    <div className="text-xs text-orange-600">
-                      ROI: {currentRound ? (((currentRound.winners_pool / (currentRound.sunny_tickets + 100000)) / Number(TICKET_PRICE) - 1) * 100).toFixed(1) : '0'}%
-                    </div>
-                  </div>
-                  <div className="text-center bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg p-3 border border-blue-300">
-                    <div className="text-lg font-bold text-blue-600">100k CHESS</div>
-                    <div className="text-xs text-blue-700 font-semibold">Rainy</div>
-                    <div className="text-xs text-green-600 font-semibold">
-                      Win: {currentRound ? formatNumber(currentRound.winners_pool / (currentRound.rainy_tickets + 100000)) : '0'} CHESS
-                    </div>
-                    <div className="text-xs text-blue-600">
-                      ROI: {currentRound ? (((currentRound.winners_pool / (currentRound.rainy_tickets + 100000)) / Number(TICKET_PRICE) - 1) * 100).toFixed(1) : '0'}%
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-600">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-300">Pool:</span>
-                    <span className="font-semibold text-cyan-400">{currentRound ? formatNumber(currentRound.current_total_pool) : '0'} CHESS</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-300">Winners (70%):</span>
-                    <span className="font-semibold text-green-400">{currentRound ? formatNumber(currentRound.winners_pool) : '0'} CHESS</span>
-                  </div>
-                </div>
-              </div>
 
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center"><FiZap className="inline mr-2" /> Choose Your Side</h3>
