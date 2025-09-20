@@ -1,5 +1,175 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { performWeatherLottoDraw } from '../../../../scripts/weather-lotto-draw';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+async function performWeatherLottoDraw() {
+  const client = await pool.connect();
+  console.log('🌤️ --- Starting Weather Lotto Draw (19:00 Budapest Time) --- 🌤️');
+  
+  try {
+    console.log('[1/8] Connecting to database and starting transaction...');
+    await client.query('BEGIN');
+    console.log('✅ Transaction started.');
+    
+    const forceNow = process.env.FORCE_DRAW_NOW === 'true';
+    if (forceNow) {
+      console.log('⏱️ FORCE NOW enabled – setting end_time to NOW() for active rounds...');
+      await client.query(`UPDATE weather_lotto_rounds SET end_time = NOW() WHERE status = 'active';`);
+    }
+
+    console.log('[2/8] Searching for an active round that is due for drawing...');
+    let roundResult = await client.query(`
+      SELECT * FROM weather_lotto_rounds 
+      WHERE status = 'active' AND end_time <= NOW()
+      ORDER BY round_number DESC 
+      LIMIT 1
+    `);
+    
+    if (roundResult.rows.length === 0) {
+      console.log('ℹ️ No rounds ready for drawing.');
+      await client.query('ROLLBACK');
+      return;
+    }
+    
+    const round = roundResult.rows[0];
+    console.log(`✅ Found round to draw: ID #${round.id}, Round Number #${round.round_number}`);
+    
+    console.log(`[3/8] Fetching all tickets for round ID #${round.id}...`);
+    const ticketsResult = await client.query(`
+      SELECT * FROM weather_lotto_tickets 
+      WHERE round_id = $1
+    `, [round.id]);
+    
+    const totalTicketsSold = ticketsResult.rows.length;
+    console.log(`✅ Found ${totalTicketsSold} tickets.`);
+
+    // --- WEATHER SORSOLÁS ---
+    console.log('[4/8] Generating random weather result...');
+    const random = Math.random();
+    const winningSide = random < 0.5 ? 'sunny' : 'rainy';
+    console.log(`🎲 Random number: ${random.toFixed(4)}`);
+    console.log(`🏆 Winning side: ${winningSide.toUpperCase()}`);
+
+    // Find winning tickets
+    const winningTickets = ticketsResult.rows.filter(ticket => ticket.side === winningSide);
+    const totalWinningTickets = winningTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
+    
+    console.log(`[5/8] Processing ${winningTickets.length} winning ticket purchases...`);
+    console.log(`📊 Total winning tickets: ${totalWinningTickets}`);
+
+    let totalPayout = 0;
+    let treasuryAmount = 0;
+
+    if (totalWinningTickets > 0) {
+      // Calculate payouts
+      const totalPool = parseInt(round.total_pool);
+      const winnersPool = Math.floor(totalPool * 0.7); // 70% winners
+      treasuryAmount = totalPool - winnersPool; // 30% treasury
+      
+      console.log(`💰 Total pool: ${(totalPool / 1e18).toFixed(2)} CHESS`);
+      console.log(`🏆 Winners pool (70%): ${(winnersPool / 1e18).toFixed(2)} CHESS`);
+      console.log(`🏛️ Treasury (30%): ${(treasuryAmount / 1e18).toFixed(2)} CHESS`);
+
+      // Update ticket payouts and create claims
+      for (const ticket of winningTickets) {
+        const payoutPerTicket = Math.floor(winnersPool / totalWinningTickets);
+        const totalTicketPayout = payoutPerTicket * ticket.quantity;
+        totalPayout += totalTicketPayout;
+
+        console.log(`🎫 Ticket ID ${ticket.id}: ${ticket.quantity} tickets → ${(totalTicketPayout / 1e18).toFixed(2)} CHESS`);
+
+        // Update ticket payout
+        await client.query(`
+          UPDATE weather_lotto_tickets 
+          SET payout_amount = $1
+          WHERE id = $2
+        `, [totalTicketPayout.toString(), ticket.id]);
+
+        // Create claim record
+        await client.query(`
+          INSERT INTO weather_lotto_claims (
+            round_id,
+            player_fid,
+            player_address,
+            total_tickets,
+            total_payout,
+            status
+          ) VALUES ($1, $2, $3, $4, $5, 'pending')
+        `, [
+          round.id,
+          ticket.player_fid,
+          ticket.player_address,
+          ticket.quantity,
+          totalTicketPayout.toString()
+        ]);
+      }
+    } else {
+      // No winning tickets - all goes to treasury
+      treasuryAmount = parseInt(round.total_pool);
+      console.log(`😔 No winning tickets. All ${(treasuryAmount / 1e18).toFixed(2)} CHESS goes to treasury.`);
+    }
+
+    console.log('[6/8] Updating round with results...');
+    await client.query(`
+      UPDATE weather_lotto_rounds 
+      SET 
+        status = 'completed',
+        winning_side = $1,
+        winners_pool = $2,
+        treasury_amount = $3,
+        updated_at = NOW()
+      WHERE id = $4
+    `, [winningSide, totalPayout.toString(), treasuryAmount.toString(), round.id]);
+
+    console.log('[7/8] Updating global statistics...');
+    await client.query(`
+      UPDATE weather_lotto_stats 
+      SET 
+        total_rounds = total_rounds + 1,
+        total_treasury = total_treasury + $1,
+        total_payouts = total_payouts + $2,
+        current_sunny_tickets = 0,
+        current_rainy_tickets = 0,
+        current_total_pool = 200000000000000000000000,
+        updated_at = NOW()
+      WHERE id = 1
+    `, [treasuryAmount.toString(), totalPayout.toString()]);
+
+    console.log('[8/8] Committing transaction...');
+    await client.query('COMMIT');
+    console.log('✅ Transaction committed successfully!');
+
+    // --- EREDMÉNYEK KIÍRÁSA ---
+    console.log('\n🎉 === WEATHER LOTTO DRAW COMPLETED === 🎉');
+    console.log(`📅 Round: #${round.round_number}`);
+    console.log(`🏆 Winning Side: ${winningSide.toUpperCase()}`);
+    console.log(`🎫 Total Tickets Sold: ${totalTicketsSold}`);
+    console.log(`🏆 Winning Tickets: ${totalWinningTickets}`);
+    console.log(`💰 Total Payout: ${(totalPayout / 1e18).toFixed(2)} CHESS`);
+    console.log(`🏛️ Treasury: ${(treasuryAmount / 1e18).toFixed(2)} CHESS`);
+    console.log(`👥 Winners: ${winningTickets.length} players`);
+    
+    if (winningTickets.length > 0) {
+      console.log('\n🏆 WINNERS:');
+      winningTickets.forEach((ticket, index) => {
+        console.log(`  ${index + 1}. FID ${ticket.player_fid} - ${ticket.quantity} tickets - ${(ticket.payout_amount / 1e18).toFixed(2)} CHESS`);
+      });
+    }
+
+    console.log('\n✅ Weather Lotto draw completed successfully!');
+
+  } catch (error) {
+    console.error('❌ Error during weather lotto draw:', error);
+    await client.query('ROLLBACK');
+    console.log('🔄 Transaction rolled back due to error.');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
