@@ -272,21 +272,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiDollarSign /> Payment Method</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                    <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div><span className="text-sm text-blue-300">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span></div>
-                    {isConnected && address && <span className="text-xs text-gray-400 font-mono">{address.slice(0, 6)}...{address.slice(-4)}</span>}
-                  </div>
-                  <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
-                    <div className="text-sm text-yellow-300"><span className="font-bold">Price per ticket:</span> 100,000 CHESS</div>
-                    {selectedNumbers.length > 0 && <div className="text-sm text-yellow-300 mt-1"><span className="font-bold">Total cost:</span> {(Number(totalCost)/1e18).toLocaleString()} CHESS</div>}
-                  </div>
-                  {isConnected && (<div className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg"><div className="text-sm font-medium text-green-300">Token Approval Status</div><div className="text-xs text-gray-400">{step === PurchaseStep.ReadyToPurchase ? 'Sufficient allowance approved.' : 'Approval will be needed to purchase.'}</div></div>)}
-                </div>
-              </div>
-              
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
                 <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                   <p className="text-sm text-blue-300">Maximum 10 tickets per user per round.{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
@@ -315,6 +300,34 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       {isPurchased && step !== PurchaseStep.Saving ? 'Success!' : isPurchaseConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : `2. Buy ${selectedNumbers.length} Ticket(s)`}
                     </button>
                   )}
+                </div>
+              </div>
+
+              {userTickets.length > 0 && (
+                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
+                  <div className="flex justify-center">
+                    <div className="grid grid-cols-10 gap-2">
+                      {userTickets.map((ticket) => (
+                        <div key={ticket.id} className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-bold flex items-center justify-center">{ticket.ticket_number}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiDollarSign /> Payment Method</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                    <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div><span className="text-sm text-blue-300">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span></div>
+                    {isConnected && address && <span className="text-xs text-gray-400 font-mono">{address.slice(0, 6)}...{address.slice(-4)}</span>}
+                  </div>
+                  <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                    <div className="text-sm text-yellow-300"><span className="font-bold">Price per ticket:</span> 100,000 CHESS</div>
+                    {selectedNumbers.length > 0 && <div className="text-sm text-yellow-300 mt-1"><span className="font-bold">Total cost:</span> {(Number(totalCost)/1e18).toLocaleString()} CHESS</div>}
+                  </div>
+                  {isConnected && (<div className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg"><div className="text-sm font-medium text-green-300">Token Approval Status</div><div className="text-xs text-gray-400">{step === PurchaseStep.ReadyToPurchase ? 'Sufficient allowance approved.' : 'Approval will be needed to purchase.'}</div></div>)}
                 </div>
               </div>
 
@@ -356,18 +369,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                         )}
                       </div>
                     ))}
-                  </div>
-                </div>
-              )}
-              {userTickets.length > 0 && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
-                  <div className="flex justify-center">
-                    <div className="grid grid-cols-10 gap-2">
-                      {userTickets.map((ticket) => (
-                        <div key={ticket.id} className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-bold flex items-center justify-center">{ticket.ticket_number}</div>
-                      ))}
-                    </div>
                   </div>
                 </div>
               )}
