@@ -27,16 +27,35 @@ export async function POST(request: NextRequest) {
       
       try {
         // Get current active round
-        const { rows: currentRound } = await client.query(
+        let { rows: currentRound } = await client.query(
           'SELECT * FROM weather_lotto_rounds WHERE status = $1 ORDER BY round_number DESC LIMIT 1',
           ['active']
         );
         
         if (currentRound.length === 0) {
-          return NextResponse.json({ 
-            success: false, 
-            error: 'No active round found' 
-          }, { status: 400 });
+          // Create new round if none exists
+          console.log('📝 No active round found, creating new one...');
+          const newRoundResult = await client.query(`
+            INSERT INTO weather_lotto_rounds (
+              round_number, 
+              start_time, 
+              end_time, 
+              status,
+              house_base,
+              total_pool
+            ) VALUES (
+              COALESCE((SELECT MAX(round_number) FROM weather_lotto_rounds), 0) + 1,
+              NOW(),
+              NOW() + INTERVAL '1 day',
+              'active',
+              200000000000000000000000,
+              200000000000000000000000
+            )
+            RETURNING *
+          `);
+          
+          currentRound = newRoundResult.rows;
+          console.log('✅ New round created:', currentRound[0].round_number);
         }
         
         const round = currentRound[0];
