@@ -493,7 +493,6 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     </button>
                 </div>
               )}
-            </div>
 
             {userTickets.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
