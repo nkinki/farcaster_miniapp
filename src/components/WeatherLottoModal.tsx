@@ -495,7 +495,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               )}
             </div>
 
-              {userTickets.length > 0 && (
+            {userTickets.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                   <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
                   <div className="space-y-2">
