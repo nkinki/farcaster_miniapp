@@ -540,7 +540,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                             <div className="flex justify-between">
                               <span>If {ticket.side === 'sunny' ? 'rainy' : 'sunny'} wins:</span>
                               <span className="text-red-400">
-                                -{formatNumber(potentialLoss)} CHESS
+                                0 CHESS
                               </span>
                             </div>
                           </div>
