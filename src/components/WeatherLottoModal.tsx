@@ -482,24 +482,49 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                   <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
                   <div className="space-y-2">
-                    {userTickets.slice(0, 5).map((ticket) => (
-                      <div key={ticket.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            {ticket.side === 'sunny' ? (
-                              <FiSun className="w-5 h-5 text-orange-500" />
-                            ) : (
-                              <FiCloudRain className="w-5 h-5 text-blue-500" />
-                            )}
-                            <span className="font-medium capitalize text-sm text-gray-300">{ticket.side}</span>
-                            <span className="text-xs text-gray-400">x{ticket.quantity}</span>
+                    {userTickets.slice(0, 5).map((ticket) => {
+                      // Calculate potential win/loss for this ticket
+                      const currentSideTickets = ticket.side === 'sunny' ? (currentRound?.sunny_tickets || 0) : (currentRound?.rainy_tickets || 0);
+                      const otherSideTickets = ticket.side === 'sunny' ? (currentRound?.rainy_tickets || 0) : (currentRound?.sunny_tickets || 0);
+                      
+                      // If this side wins: 70k CHESS pool / total tickets on this side * ticket quantity
+                      const potentialWin = currentSideTickets > 0 ? (70000 / currentSideTickets) * ticket.quantity : 0;
+                      const potentialLoss = Number(ticket.total_cost);
+                      const netResult = potentialWin - potentialLoss;
+                      
+                      return (
+                        <div key={ticket.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center gap-2">
+                              {ticket.side === 'sunny' ? (
+                                <FiSun className="w-5 h-5 text-orange-500" />
+                              ) : (
+                                <FiCloudRain className="w-5 h-5 text-blue-500" />
+                              )}
+                              <span className="font-medium capitalize text-sm text-gray-300">{ticket.side}</span>
+                              <span className="text-xs text-gray-400">x{ticket.quantity}</span>
+                            </div>
+                            <div className="text-sm text-yellow-400">
+                              {formatNumber(ticket.total_cost)} CHESS
+                            </div>
                           </div>
-                          <div className="text-sm text-yellow-400">
-                            {formatNumber(ticket.total_cost)} CHESS
+                          <div className="text-xs text-gray-400 border-t border-gray-600 pt-2">
+                            <div className="flex justify-between">
+                              <span>If {ticket.side} wins:</span>
+                              <span className={netResult >= 0 ? 'text-green-400' : 'text-red-400'}>
+                                {netResult >= 0 ? '+' : ''}{formatNumber(netResult)} CHESS
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>If {ticket.side === 'sunny' ? 'rainy' : 'sunny'} wins:</span>
+                              <span className="text-red-400">
+                                -{formatNumber(potentialLoss)} CHESS
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
