@@ -395,10 +395,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               </div>
 
               {selectedSide && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Number of Tickets: {quantity}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tickets: {quantity}
                     </label>
                     <input
                       type="range"
@@ -414,8 +414,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex justify-between text-sm mb-2">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex justify-between text-sm mb-1">
                       <span className="text-gray-600">Total Cost:</span>
                       <span className="font-semibold">{formatNumber(totalCost)} CHESS</span>
                     </div>
@@ -424,17 +424,17 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       <span className="font-semibold">{formatNumber(TICKET_PRICE)} CHESS</span>
                     </div>
                     
-                    {/* Real-time win calculation */}
-                    <div className="mt-3 pt-3 border-t border-gray-200">
+                    {/* Real-time win calculation - compact */}
+                    <div className="pt-2 border-t border-gray-200">
                       <div className="text-center">
-                        <div className="text-sm text-gray-600 mb-1">If you win with {quantity} ticket{quantity > 1 ? 's' : ''}:</div>
-                        <div className="text-lg font-bold text-green-600">
+                        <div className="text-xs text-gray-600 mb-1">Win with {quantity} ticket{quantity > 1 ? 's' : ''}:</div>
+                        <div className="text-base font-bold text-green-600">
                           {formatNumber(
                             (currentRound?.winners_pool || 0) / 
                             ((selectedSide === 'sunny' ? currentRound?.sunny_tickets || 0 : currentRound?.rainy_tickets || 0) + quantity) * quantity
                           )} CHESS
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-gray-500">
                           ROI: {(
                             ((currentRound?.winners_pool || 0) / 
                             ((selectedSide === 'sunny' ? currentRound?.sunny_tickets || 0 : currentRound?.rainy_tickets || 0) + quantity) * quantity) / 
@@ -480,24 +480,24 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               )}
             </div>
 
-            {/* User Tickets */}
+            {/* User Tickets - Compact */}
             {userTickets.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Your Tickets</h3>
-                <div className="space-y-2">
-                  {userTickets.slice(0, 5).map((ticket) => (
-                    <div key={ticket.id} className="bg-gray-50 rounded-lg p-3">
+              <div className="space-y-2">
+                <h3 className="font-semibold text-gray-900 text-sm">Your Tickets</h3>
+                <div className="space-y-1">
+                  {userTickets.slice(0, 3).map((ticket) => (
+                    <div key={ticket.id} className="bg-gray-50 rounded-lg p-2">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           {ticket.side === 'sunny' ? (
-                            <FiSun className="w-4 h-4 text-yellow-500" />
+                            <FiSun className="w-3 h-3 text-orange-500" />
                           ) : (
-                            <FiCloudRain className="w-4 h-4 text-blue-500" />
+                            <FiCloudRain className="w-3 h-3 text-blue-500" />
                           )}
-                          <span className="font-medium capitalize">{ticket.side}</span>
-                          <span className="text-sm text-gray-600">x{ticket.quantity}</span>
+                          <span className="font-medium capitalize text-sm">{ticket.side}</span>
+                          <span className="text-xs text-gray-600">x{ticket.quantity}</span>
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs text-gray-600">
                           {formatNumber(ticket.total_cost)} CHESS
                         </div>
                       </div>
@@ -507,26 +507,26 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               </div>
             )}
 
-            {/* Stats */}
+            {/* Stats - Compact */}
             {stats && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Statistics</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h3 className="font-semibold text-gray-900 mb-2 text-sm">Statistics</h3>
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-gray-600">Total Rounds:</span>
-                    <span className="font-semibold ml-2">{stats.total_rounds}</span>
+                    <span className="text-gray-600">Rounds:</span>
+                    <span className="font-semibold ml-1">{stats.total_rounds}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Total Tickets:</span>
-                    <span className="font-semibold ml-2">{stats.total_tickets_sold}</span>
+                    <span className="text-gray-600">Tickets:</span>
+                    <span className="font-semibold ml-1">{stats.total_tickets_sold}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Total Volume:</span>
-                    <span className="font-semibold ml-2">{formatNumber(stats.total_volume)} CHESS</span>
+                    <span className="text-gray-600">Volume:</span>
+                    <span className="font-semibold ml-1">{formatNumber(stats.total_volume)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Total Payouts:</span>
-                    <span className="font-semibold ml-2">{formatNumber(stats.total_payouts)} CHESS</span>
+                    <span className="text-gray-600">Payouts:</span>
+                    <span className="font-semibold ml-1">{formatNumber(stats.total_payouts)}</span>
                   </div>
                 </div>
               </div>
