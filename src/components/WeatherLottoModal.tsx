@@ -322,7 +322,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             <div className="w-full flex justify-between items-start mb-2">
                 <div className="flex items-center gap-4">
                   <div className="w-full">
-                    <div className="flex items-center justify-center gap-2 mr-[8%]">
+                    <div className="flex items-center justify-center gap-2">
                       <FiSun size={38} className="text-yellow-300" />
                       <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">SUNNY/RAINY</h1>
                     </div>
