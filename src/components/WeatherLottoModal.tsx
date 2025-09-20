@@ -271,15 +271,15 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl">
-              <FiSun className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl">
+                <FiSun className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">SUNNY/RAINY</h2>
+                <p className="text-sm text-gray-600">☀️ vs 🌧️</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Weather Lotto</h2>
-              <p className="text-sm text-gray-600">Sunny ☀️ vs Rainy 🌧️</p>
-            </div>
-          </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -307,18 +307,18 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{currentRound.sunny_tickets + 1}</div>
-                    <div className="text-sm text-gray-600">Sunny Tickets</div>
-                    <div className="text-xs text-gray-500">Base: 100k + {currentRound.sunny_tickets} players</div>
+                  <div className="text-center bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg p-3 border border-yellow-300">
+                    <div className="text-2xl font-bold text-orange-600">{currentRound.sunny_tickets + 1}</div>
+                    <div className="text-sm text-orange-700 font-semibold">Sunny Tickets</div>
+                    <div className="text-xs text-orange-600">Base: 100k + {currentRound.sunny_tickets} players</div>
                     <div className="text-xs text-green-600 font-semibold">
                       Win: {formatNumber(currentRound.winners_pool / (currentRound.sunny_tickets + 1))} CHESS
                     </div>
                   </div>
-                  <div className="text-center">
+                  <div className="text-center bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg p-3 border border-blue-300">
                     <div className="text-2xl font-bold text-blue-600">{currentRound.rainy_tickets + 1}</div>
-                    <div className="text-sm text-gray-600">Rainy Tickets</div>
-                    <div className="text-xs text-gray-500">Base: 100k + {currentRound.rainy_tickets} players</div>
+                    <div className="text-sm text-blue-700 font-semibold">Rainy Tickets</div>
+                    <div className="text-xs text-blue-600">Base: 100k + {currentRound.rainy_tickets} players</div>
                     <div className="text-xs text-green-600 font-semibold">
                       Win: {formatNumber(currentRound.winners_pool / (currentRound.rainy_tickets + 1))} CHESS
                     </div>
@@ -351,19 +351,19 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   onClick={() => setSelectedSide('sunny')}
                   className={`p-4 rounded-xl border-2 transition-all ${
                     selectedSide === 'sunny'
-                      ? 'border-yellow-400 bg-yellow-50'
-                      : 'border-gray-200 hover:border-yellow-300'
+                      ? 'border-orange-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg'
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-gradient-to-br hover:from-yellow-50 hover:to-orange-50'
                   }`}
                 >
                   <div className="text-center">
-                    <FiSun className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                    <div className="font-semibold text-gray-900">Sunny ☀️</div>
-                    <div className="text-sm text-gray-600">Current: {currentRound?.sunny_tickets || 0} tickets</div>
-                    <div className="mt-2 pt-2 border-t border-gray-200">
+                    <FiSun className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                    <div className="font-semibold text-orange-700">Sunny ☀️</div>
+                    <div className="text-sm text-orange-600">Current: {currentRound?.sunny_tickets || 0} tickets</div>
+                    <div className="mt-2 pt-2 border-t border-orange-200">
                       <div className="text-xs text-green-600 font-semibold">
                         Win: {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.sunny_tickets || 0) + 1))} CHESS
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-orange-600">
                         ROI: {(((currentRound?.winners_pool || 0) / ((currentRound?.sunny_tickets || 0) + 1)) / Number(TICKET_PRICE) - 1) * 100}%
                       </div>
                     </div>
@@ -374,19 +374,19 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   onClick={() => setSelectedSide('rainy')}
                   className={`p-4 rounded-xl border-2 transition-all ${
                     selectedSide === 'rainy'
-                      ? 'border-blue-400 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-300'
+                      ? 'border-blue-400 bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50'
                   }`}
                 >
                   <div className="text-center">
                     <FiCloudRain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <div className="font-semibold text-gray-900">Rainy 🌧️</div>
-                    <div className="text-sm text-gray-600">Current: {currentRound?.rainy_tickets || 0} tickets</div>
-                    <div className="mt-2 pt-2 border-t border-gray-200">
+                    <div className="font-semibold text-blue-700">Rainy 🌧️</div>
+                    <div className="text-sm text-blue-600">Current: {currentRound?.rainy_tickets || 0} tickets</div>
+                    <div className="mt-2 pt-2 border-t border-blue-200">
                       <div className="text-xs text-green-600 font-semibold">
                         Win: {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.rainy_tickets || 0) + 1))} CHESS
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-blue-600">
                         ROI: {(((currentRound?.winners_pool || 0) / ((currentRound?.rainy_tickets || 0) + 1)) / Number(TICKET_PRICE) - 1) * 100}%
                       </div>
                     </div>
@@ -463,8 +463,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                           : selectedSide === 'sunny'
-                          ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                          : 'bg-blue-500 hover:bg-blue-600 text-white'
+                          ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-lg'
+                          : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg'
                       }`}
                     >
                       {step === PurchaseStep.Approving && 'Approving...'}
