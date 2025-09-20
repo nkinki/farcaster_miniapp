@@ -61,6 +61,13 @@ export async function GET() {
 
       const round = result.rows[0];
       
+      if (!round || !round.id) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Invalid round data' 
+        }, { status: 500 });
+      }
+      
       // Calculate time remaining
       const now = new Date();
       const endTime = new Date(round.end_time);
