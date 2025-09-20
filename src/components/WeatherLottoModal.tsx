@@ -270,7 +270,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl">
                 <FiSun className="w-6 h-6 text-white" />
@@ -294,77 +294,68 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             <p className="text-gray-600">Loading weather lotto data...</p>
           </div>
         ) : (
-          <div className="p-6 space-y-6">
+          <div className="p-4 space-y-4">
             {/* Current Round Info */}
             {currentRound && (
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Round #{currentRound.round_number}</h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <FiClock className="w-4 h-4" />
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900 text-sm">Round #{currentRound.round_number}</h3>
+                  <div className="flex items-center gap-1 text-xs text-gray-600">
+                    <FiClock className="w-3 h-3" />
                     <span>{timeRemaining}</span>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg p-3 border border-yellow-300">
-                    <div className="text-2xl font-bold text-orange-600">{currentRound.sunny_tickets + 1}</div>
-                    <div className="text-sm text-orange-700 font-semibold">Sunny Tickets</div>
-                    <div className="text-xs text-orange-600">Base: 100k + {currentRound.sunny_tickets} players</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg p-2 border border-yellow-300">
+                    <div className="text-lg font-bold text-orange-600">{currentRound.sunny_tickets + 1}</div>
+                    <div className="text-xs text-orange-700 font-semibold">Sunny</div>
                     <div className="text-xs text-green-600 font-semibold">
-                      Win: {formatNumber(currentRound.winners_pool / (currentRound.sunny_tickets + 1))} CHESS
+                      {formatNumber(currentRound.winners_pool / (currentRound.sunny_tickets + 1))} CHESS
                     </div>
                   </div>
-                  <div className="text-center bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg p-3 border border-blue-300">
-                    <div className="text-2xl font-bold text-blue-600">{currentRound.rainy_tickets + 1}</div>
-                    <div className="text-sm text-blue-700 font-semibold">Rainy Tickets</div>
-                    <div className="text-xs text-blue-600">Base: 100k + {currentRound.rainy_tickets} players</div>
+                  <div className="text-center bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg p-2 border border-blue-300">
+                    <div className="text-lg font-bold text-blue-600">{currentRound.rainy_tickets + 1}</div>
+                    <div className="text-xs text-blue-700 font-semibold">Rainy</div>
                     <div className="text-xs text-green-600 font-semibold">
-                      Win: {formatNumber(currentRound.winners_pool / (currentRound.rainy_tickets + 1))} CHESS
+                      {formatNumber(currentRound.winners_pool / (currentRound.rainy_tickets + 1))} CHESS
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total Pool:</span>
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600">Pool:</span>
                     <span className="font-semibold">{formatNumber(currentRound.current_total_pool)} CHESS</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Winners Pool (70%):</span>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600">Winners (70%):</span>
                     <span className="font-semibold text-green-600">{formatNumber(currentRound.winners_pool)} CHESS</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Treasury (30%):</span>
-                    <span className="font-semibold text-purple-600">{formatNumber(currentRound.treasury_amount)} CHESS</span>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Purchase Section */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900">Choose Your Side</h3>
+            <div className="space-y-3">
+              <h3 className="font-semibold text-gray-900 text-sm">Choose Your Side</h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setSelectedSide('sunny')}
-                  className={`p-4 rounded-xl border-2 transition-all ${
+                  className={`p-3 rounded-xl border-2 transition-all ${
                     selectedSide === 'sunny'
                       ? 'border-orange-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg'
                       : 'border-gray-200 hover:border-orange-300 hover:bg-gradient-to-br hover:from-yellow-50 hover:to-orange-50'
                   }`}
                 >
                   <div className="text-center">
-                    <FiSun className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                    <div className="font-semibold text-orange-700">Sunny ☀️</div>
-                    <div className="text-sm text-orange-600">Current: {currentRound?.sunny_tickets || 0} tickets</div>
-                    <div className="mt-2 pt-2 border-t border-orange-200">
+                    <FiSun className="w-6 h-6 text-orange-500 mx-auto mb-1" />
+                    <div className="font-semibold text-orange-700 text-sm">Sunny ☀️</div>
+                    <div className="text-xs text-orange-600">{currentRound?.sunny_tickets || 0} tickets</div>
+                    <div className="mt-1 pt-1 border-t border-orange-200">
                       <div className="text-xs text-green-600 font-semibold">
-                        Win: {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.sunny_tickets || 0) + 1))} CHESS
-                      </div>
-                      <div className="text-xs text-orange-600">
-                        ROI: {(((currentRound?.winners_pool || 0) / ((currentRound?.sunny_tickets || 0) + 1)) / Number(TICKET_PRICE) - 1) * 100}%
+                        {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.sunny_tickets || 0) + 1))} CHESS
                       </div>
                     </div>
                   </div>
@@ -372,22 +363,19 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
                 <button
                   onClick={() => setSelectedSide('rainy')}
-                  className={`p-4 rounded-xl border-2 transition-all ${
+                  className={`p-3 rounded-xl border-2 transition-all ${
                     selectedSide === 'rainy'
                       ? 'border-blue-400 bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg'
                       : 'border-gray-200 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50'
                   }`}
                 >
                   <div className="text-center">
-                    <FiCloudRain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <div className="font-semibold text-blue-700">Rainy 🌧️</div>
-                    <div className="text-sm text-blue-600">Current: {currentRound?.rainy_tickets || 0} tickets</div>
-                    <div className="mt-2 pt-2 border-t border-blue-200">
+                    <FiCloudRain className="w-6 h-6 text-blue-500 mx-auto mb-1" />
+                    <div className="font-semibold text-blue-700 text-sm">Rainy 🌧️</div>
+                    <div className="text-xs text-blue-600">{currentRound?.rainy_tickets || 0} tickets</div>
+                    <div className="mt-1 pt-1 border-t border-blue-200">
                       <div className="text-xs text-green-600 font-semibold">
-                        Win: {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.rainy_tickets || 0) + 1))} CHESS
-                      </div>
-                      <div className="text-xs text-blue-600">
-                        ROI: {(((currentRound?.winners_pool || 0) / ((currentRound?.rainy_tickets || 0) + 1)) / Number(TICKET_PRICE) - 1) * 100}%
+                        {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.rainy_tickets || 0) + 1))} CHESS
                       </div>
                     </div>
                   </div>
@@ -395,9 +383,9 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               </div>
 
               {selectedSide && (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       Tickets: {quantity}
                     </label>
                     <input
@@ -414,26 +402,19 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Total Cost:</span>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-600">Cost:</span>
                       <span className="font-semibold">{formatNumber(totalCost)} CHESS</span>
                     </div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600">Price per Ticket:</span>
-                      <span className="font-semibold">{formatNumber(TICKET_PRICE)} CHESS</span>
-                    </div>
                     
-                    {/* Real-time win calculation - compact */}
-                    <div className="pt-2 border-t border-gray-200">
+                    {/* Real-time win calculation - ultra compact */}
+                    <div className="pt-1 border-t border-gray-200">
                       <div className="text-center">
-                        <div className="text-xs text-gray-600 mb-1">Win with {quantity} ticket{quantity > 1 ? 's' : ''}:</div>
-                        <div className="text-base font-bold text-green-600">
-                          {formatNumber(
-                            (currentRound?.winners_pool || 0) / 
-                            ((selectedSide === 'sunny' ? currentRound?.sunny_tickets || 0 : currentRound?.rainy_tickets || 0) + quantity) * quantity
-                          )} CHESS
-                        </div>
+                        <div className="text-xs text-gray-600 mb-1">Win: {formatNumber(
+                          (currentRound?.winners_pool || 0) / 
+                          ((selectedSide === 'sunny' ? currentRound?.sunny_tickets || 0 : currentRound?.rainy_tickets || 0) + quantity) * quantity
+                        )} CHESS</div>
                         <div className="text-xs text-gray-500">
                           ROI: {(
                             ((currentRound?.winners_pool || 0) / 
