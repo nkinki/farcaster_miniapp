@@ -308,14 +308,20 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{currentRound.sunny_tickets}</div>
+                    <div className="text-2xl font-bold text-yellow-600">{currentRound.sunny_tickets + 1}</div>
                     <div className="text-sm text-gray-600">Sunny Tickets</div>
-                    <div className="text-xs text-gray-500">Odds: {formatNumber(currentRound.sunny_odds)} CHESS</div>
+                    <div className="text-xs text-gray-500">Base: 100k + {currentRound.sunny_tickets} players</div>
+                    <div className="text-xs text-green-600 font-semibold">
+                      Win: {formatNumber(currentRound.winners_pool / (currentRound.sunny_tickets + 1))} CHESS
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{currentRound.rainy_tickets}</div>
+                    <div className="text-2xl font-bold text-blue-600">{currentRound.rainy_tickets + 1}</div>
                     <div className="text-sm text-gray-600">Rainy Tickets</div>
-                    <div className="text-xs text-gray-500">Odds: {formatNumber(currentRound.rainy_odds)} CHESS</div>
+                    <div className="text-xs text-gray-500">Base: 100k + {currentRound.rainy_tickets} players</div>
+                    <div className="text-xs text-green-600 font-semibold">
+                      Win: {formatNumber(currentRound.winners_pool / (currentRound.rainy_tickets + 1))} CHESS
+                    </div>
                   </div>
                 </div>
 
@@ -397,9 +403,29 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       <span className="text-gray-600">Total Cost:</span>
                       <span className="font-semibold">{formatNumber(totalCost)} CHESS</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-600">Price per Ticket:</span>
                       <span className="font-semibold">{formatNumber(TICKET_PRICE)} CHESS</span>
+                    </div>
+                    
+                    {/* Real-time win calculation */}
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="text-center">
+                        <div className="text-sm text-gray-600 mb-1">If you win with {quantity} ticket{quantity > 1 ? 's' : ''}:</div>
+                        <div className="text-lg font-bold text-green-600">
+                          {formatNumber(
+                            (currentRound?.winners_pool || 0) / 
+                            ((selectedSide === 'sunny' ? currentRound?.sunny_tickets || 0 : currentRound?.rainy_tickets || 0) + quantity) * quantity
+                          )} CHESS
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          ROI: {(
+                            ((currentRound?.winners_pool || 0) / 
+                            ((selectedSide === 'sunny' ? currentRound?.sunny_tickets || 0 : currentRound?.rainy_tickets || 0) + quantity) * quantity) / 
+                            Number(totalCost) - 1
+                          ) * 100}%
+                        </div>
+                      </div>
                     </div>
                   </div>
 
