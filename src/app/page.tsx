@@ -394,11 +394,11 @@ export default function Home() {
               
               <button
                 onClick={() => setShowWeatherLotto(true)}
-                className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer w-full sm:w-auto"
+                className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-gray-600 hover:bg-gray-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer w-full sm:w-auto"
               >
                 <span className="text-2xl">☀️🌧️</span>
                 <div className="flex flex-col items-start">
-                  <span>Weather Lotto</span>
+                  <span>SUNNY/RAINY</span>
                   <span className="text-xs opacity-80">Under Development</span>
                 </div>
               </button>
