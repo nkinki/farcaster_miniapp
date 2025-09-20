@@ -226,7 +226,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           playerFid: userFid,
           playerAddress: address,
           side: selectedSide,
-          quantity: ticketQuantity
+          quantity: quantity
         })
       });
 
@@ -237,7 +237,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         await fetchWeatherLottoData();
         onPurchaseSuccess?.();
         setSelectedSide(null);
-        setTicketQuantity(1);
+        setQuantity(1);
         setErrorMessage('');
       } else {
         setErrorMessage(result.error || 'Test purchase failed');
@@ -467,9 +467,9 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     {/* Test DB Button - Temporary for offline testing */}
                     <button
                       onClick={handleTestPurchase}
-                      disabled={!selectedSide || ticketQuantity === 0}
+                      disabled={!selectedSide || quantity === 0}
                       className={`w-full py-3 px-6 rounded-xl font-bold text-lg transition-all duration-300 disabled:cursor-not-allowed hover:scale-105 shadow-lg ${
-                        !selectedSide || ticketQuantity === 0
+                        !selectedSide || quantity === 0
                           ? 'bg-gray-600 text-gray-400'
                           : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
                       }`}
