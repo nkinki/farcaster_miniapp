@@ -15,44 +15,44 @@ export async function POST() {
     const client = await pool.connect();
     
     try {
-      // Update existing weather_lotto_rounds to use realistic values
+      // Update existing weather_lotto_rounds to use correct values
       const roundsUpdate = await client.query(`
         UPDATE weather_lotto_rounds 
         SET 
-          house_base = 200000,  -- 200k CHESS
-          total_pool = 200000   -- 200k CHESS
-        WHERE house_base > 1000000
+          house_base = 200000000000000000000000,  -- 200k CHESS
+          total_pool = 200000000000000000000000   -- 200k CHESS
+        WHERE house_base != 200000000000000000000000
         RETURNING id, round_number
       `);
       
-      // Update existing weather_lotto_stats to use realistic values
+      // Update existing weather_lotto_stats to use correct values
       const statsUpdate = await client.query(`
         UPDATE weather_lotto_stats 
         SET 
-          current_total_pool = 200000,  -- 200k CHESS
+          current_total_pool = 200000000000000000000000,  -- 200k CHESS
           total_volume = 0,             -- Reset to 0
           total_treasury = 0,           -- Reset to 0
           total_payouts = 0             -- Reset to 0
-        WHERE current_total_pool > 1000000
+        WHERE current_total_pool != 200000000000000000000000
         RETURNING id
       `);
       
-      // Update existing weather_lotto_tickets to use realistic values
+      // Update existing weather_lotto_tickets to use correct values
       const ticketsUpdate = await client.query(`
         UPDATE weather_lotto_tickets 
         SET 
-          total_cost = 100,  -- 100 CHESS per ticket
+          total_cost = 100000000000000000000000,  -- 100k CHESS per ticket
           payout_amount = 0  -- Reset to 0
-        WHERE total_cost > 1000
+        WHERE total_cost != 100000000000000000000000
         RETURNING id
       `);
       
-      // Update existing weather_lotto_claims to use realistic values
+      // Update existing weather_lotto_claims to use correct values
       const claimsUpdate = await client.query(`
         UPDATE weather_lotto_claims 
         SET 
           total_payout = 0  -- Reset to 0
-        WHERE total_payout > 1000
+        WHERE total_payout != 0
         RETURNING id
       `);
       
@@ -71,8 +71,8 @@ export async function POST() {
           NOW(),
           NOW() + INTERVAL '1 day',
           'active',
-          200000,  -- 200k CHESS
-          200000   -- 200k CHESS
+          200000000000000000000000,  -- 200k CHESS
+          200000000000000000000000   -- 200k CHESS
         WHERE NOT EXISTS (
           SELECT 1 FROM weather_lotto_rounds WHERE status = 'active'
         )
@@ -85,7 +85,7 @@ export async function POST() {
         SET 
           active_round_id = (SELECT id FROM weather_lotto_rounds WHERE status = 'active' LIMIT 1),
           next_draw_time = (SELECT end_time FROM weather_lotto_rounds WHERE status = 'active' LIMIT 1),
-          current_total_pool = 200000,
+          current_total_pool = 200000000000000000000000,
           current_sunny_tickets = 0,
           current_rainy_tickets = 0
         WHERE id = 1
