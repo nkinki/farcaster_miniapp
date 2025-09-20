@@ -250,7 +250,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     }
   };
 
-  const formatNumber = (num: number | bigint) => {
+  const formatNumber = (num: number | bigint | string) => {
+    if (typeof num === 'string') {
+      return new Intl.NumberFormat('hu-HU').format(Number(num) / 1e18);
+    }
     if (typeof num === 'bigint') {
       return new Intl.NumberFormat('hu-HU').format(Number(num) / 1e18);
     }
