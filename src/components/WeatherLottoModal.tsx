@@ -248,6 +248,31 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     }
   };
 
+  const handleManualDraw = async () => {
+    try {
+      const response = await fetch('/api/weather-lotto/draw-winner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Manual draw successful:', result);
+        // Refresh data
+        fetchCurrentRound();
+        fetchUserTickets();
+        fetchStats();
+      } else {
+        console.error('❌ Manual draw failed:', result.error);
+        setErrorMessage(result.error || 'Manual draw failed');
+      }
+    } catch (error) {
+      console.error('❌ Manual draw error:', error);
+      setErrorMessage('Manual draw failed');
+    }
+  };
+
   const handlePurchase = async () => {
     if (!selectedSide || !address || !isConnected) return;
 
@@ -317,18 +342,23 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-2xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
-          <div className="relative z-10 flex flex-col items-start mb-6">
-            <div className="w-full flex justify-between items-start mb-2">
-                <div className="flex items-center gap-4">
-                  <div className="w-full">
-                    <div className="flex items-center justify-center gap-2">
-                      <FiSun size={38} className="text-yellow-300" />
-                      <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">SUNNY/RAINY</h1>
-                    </div>
-                    <p className="text-purple-200 text-sm font-medium mt-1 text-center">Weather Lottery</p>
-                  </div>
-                </div>
+          <div className="relative z-10 flex flex-col items-center mb-6">
+            <div className="w-full flex justify-center items-center mb-2">
+              <div className="flex items-center justify-center gap-2">
+                <FiSun size={38} className="text-yellow-300" />
+                <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">SUNNY/RAINY</h1>
+              </div>
             </div>
+            <p className="text-purple-200 text-sm font-medium mt-1 text-center">Weather Lottery</p>
+            
+            {/* Manual Draw Button */}
+            <button 
+              onClick={handleManualDraw}
+              className="mt-3 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg"
+            >
+              🎲 Manual Draw
+            </button>
+            
             <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
           </div>
 
