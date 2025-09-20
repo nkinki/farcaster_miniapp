@@ -12,9 +12,16 @@ export async function POST(request: NextRequest) {
   try {
     const { action, playerFid, playerAddress, side, quantity } = await request.json();
     
-    console.log(`🧪 Testing Weather Lotto offline: ${action}`);
+    console.log(`🧪 Testing Weather Lotto offline: ${action}`, { playerFid, playerAddress, side, quantity });
     
     if (action === 'buy_tickets') {
+      // Validate required fields
+      if (!playerFid || !playerAddress || !side || !quantity) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Missing required fields: playerFid, playerAddress, side, quantity' 
+        }, { status: 400 });
+      }
       // Simulate buying tickets without blockchain
       const client = await pool.connect();
       

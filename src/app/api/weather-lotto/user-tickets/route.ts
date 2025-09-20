@@ -84,10 +84,10 @@ export async function GET(request: NextRequest) {
         stats: {
           total_tickets: parseInt(stats.total_tickets) || 0,
           total_quantity: parseInt(stats.total_quantity) || 0,
-          total_spent: BigInt(stats.total_spent) || BigInt(0),
+          total_spent: stats.total_spent ? BigInt(stats.total_spent) : BigInt(0),
           sunny_tickets: parseInt(stats.sunny_tickets) || 0,
           rainy_tickets: parseInt(stats.rainy_tickets) || 0,
-          total_winnings: BigInt(stats.total_winnings) || BigInt(0)
+          total_winnings: stats.total_winnings ? BigInt(stats.total_winnings) : BigInt(0)
         },
         pending_claims: claimsResult.rows
       });

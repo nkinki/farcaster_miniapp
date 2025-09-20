@@ -75,14 +75,14 @@ export async function GET() {
 
       // Calculate current pools
       const totalTickets = sunnyTickets + rainyTickets;
-      const playerPool = totalTickets * 100000000000000000000000; // 100k CHESS per ticket
-      const currentTotalPool = 200000000000000000000000 + playerPool; // House base + player pool
-      const winnersPool = Math.floor(currentTotalPool * 0.7); // 70% winners
+      const playerPool = BigInt(totalTickets) * BigInt(100000000000000000000000); // 100k CHESS per ticket
+      const currentTotalPool = BigInt(200000000000000000000000) + playerPool; // House base + player pool
+      const winnersPool = (currentTotalPool * BigInt(70)) / BigInt(100); // 70% winners
       const treasuryPool = currentTotalPool - winnersPool; // 30% treasury
 
       // Calculate odds
-      const sunnyOdds = sunnyTickets > 0 ? winnersPool / sunnyTickets : 0;
-      const rainyOdds = rainyTickets > 0 ? winnersPool / rainyTickets : 0;
+      const sunnyOdds = sunnyTickets > 0 ? Number(winnersPool) / sunnyTickets : 0;
+      const rainyOdds = rainyTickets > 0 ? Number(winnersPool) / rainyTickets : 0;
 
       return NextResponse.json({
         success: true,
@@ -91,9 +91,9 @@ export async function GET() {
           sunny_tickets: sunnyTickets,
           rainy_tickets: rainyTickets,
           total_tickets: totalTickets,
-          current_total_pool: currentTotalPool,
-          winners_pool: winnersPool,
-          treasury_amount: treasuryPool,
+          current_total_pool: currentTotalPool.toString(),
+          winners_pool: winnersPool.toString(),
+          treasury_amount: treasuryPool.toString(),
           time_remaining: timeRemaining,
           sunny_odds: sunnyOdds,
           rainy_odds: rainyOdds

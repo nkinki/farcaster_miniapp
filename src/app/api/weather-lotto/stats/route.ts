@@ -108,28 +108,28 @@ export async function GET() {
         stats: {
           total_rounds: parseInt(stats.total_rounds) || 0,
           total_tickets_sold: parseInt(stats.total_tickets_sold) || 0,
-          total_volume: BigInt(stats.total_volume) || BigInt(0),
-          total_treasury: BigInt(stats.total_treasury) || BigInt(0),
-          total_payouts: BigInt(stats.total_payouts) || BigInt(0),
+          total_volume: stats.total_volume ? BigInt(stats.total_volume) : BigInt(0),
+          total_treasury: stats.total_treasury ? BigInt(stats.total_treasury) : BigInt(0),
+          total_payouts: stats.total_payouts ? BigInt(stats.total_payouts) : BigInt(0),
           current_sunny_tickets: parseInt(stats.current_sunny_tickets) || 0,
           current_rainy_tickets: parseInt(stats.current_rainy_tickets) || 0,
-          current_total_pool: BigInt(stats.current_total_pool) || BigInt(200000000000000000000000),
+          current_total_pool: stats.current_total_pool ? BigInt(stats.current_total_pool) : BigInt(200000000000000000000000),
           pending_claims: parseInt(pendingClaims.total_claims) || 0,
-          pending_amount: BigInt(pendingClaims.total_pending_amount) || BigInt(0)
+          pending_amount: pendingClaims.total_pending_amount ? BigInt(pendingClaims.total_pending_amount) : BigInt(0)
         },
         recent_rounds: recentRoundsResult.rows,
         top_players: topPlayersResult.rows.map(player => ({
           ...player,
-          total_volume: BigInt(player.total_volume) || BigInt(0),
-          total_winnings: BigInt(player.total_winnings) || BigInt(0)
+          total_volume: player.total_volume ? BigInt(player.total_volume) : BigInt(0),
+          total_winnings: player.total_winnings ? BigInt(player.total_winnings) : BigInt(0)
         })),
         side_stats: sideStatsResult.rows.map(side => ({
           ...side,
-          total_volume: BigInt(side.total_volume) || BigInt(0)
+          total_volume: side.total_volume ? BigInt(side.total_volume) : BigInt(0)
         })),
         daily_volume: dailyVolumeResult.rows.map(day => ({
           ...day,
-          volume: BigInt(day.volume) || BigInt(0)
+          volume: day.volume ? BigInt(day.volume) : BigInt(0)
         }))
       });
 
