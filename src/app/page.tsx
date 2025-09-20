@@ -336,73 +336,67 @@ export default function Home() {
            </header>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
-            <div className="inline-block">
-              <button
-                onClick={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('medium');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
+            <button
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.impactOccurred('medium');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
                   }
-                  window.location.href = '/promote';
-                }}
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
-              >
-                <FiDollarSign size={28} className="text-green-300" />
-                <span>Share & Earn&nbsp;&nbsp;</span>
-              </button>
-            </div>
+                }
+                window.location.href = '/promote';
+              }}
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+            >
+              <FiDollarSign size={28} className="text-green-300" />
+              <span>Share & Earn&nbsp;&nbsp;</span>
+            </button>
             
-            <div className="inline-block">
-              <button
-                onClick={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('medium');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
+            <button
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.impactOccurred('medium');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
                   }
-                  setShowLamboLottery(true);
-                }}
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
-              >
-                <FiDollarSign size={28} className="text-yellow-300" />
-                <span className="text-yellow-300">BUY A LAMBO</span>
-              </button>
-            </div>
+                }
+                setShowLamboLottery(true);
+              }}
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+            >
+              <FiDollarSign size={28} className="text-yellow-300" />
+              <span className="text-yellow-300">BUY A LAMBO</span>
+            </button>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.notificationOccurred('success');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
+            <button
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.notificationOccurred('success');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
                   }
-                  sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
-                }}
-                className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
-              >
-                <FiGift size={28} className="text-[#5D6AFF]" />
-                <span className="animate-chessneon">Claim $CHESS</span>
-              </button>
-              
-              <button
-                onClick={() => setShowWeatherLotto(true)}
-                className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-gray-600 hover:bg-gray-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer w-full sm:w-auto"
-              >
-                <span className="text-2xl">☀️🌧️</span>
-                <div className="flex flex-col items-start">
-                  <span>SUNNY/RAINY</span>
-                  <span className="text-xs opacity-80">Under Development</span>
-                </div>
-              </button>
-            </div>
+                }
+                sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
+              }}
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+            >
+              <FiGift size={28} className="text-[#5D6AFF]" />
+              <span className="animate-chessneon">Claim $CHESS</span>
+            </button>
+            
+            <button
+              onClick={() => setShowWeatherLotto(true)}
+              className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-gray-600 hover:bg-gray-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer w-full sm:w-auto"
+            >
+              <span className="text-2xl">☀️🌧️</span>
+              <div className="flex flex-col items-start">
+                <span>SUNNY/RAINY</span>
+                <span className="text-xs opacity-80">Under Development</span>
+              </div>
+            </button>
           </div>
 
           <div className="flex justify-end items-center max-w-2xl mx-auto mb-1 px-2">
