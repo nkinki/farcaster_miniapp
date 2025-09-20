@@ -277,8 +277,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   <p className="text-sm text-blue-300">Maximum 10 tickets per user per round.{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
                 </div>
                 
-                <div className="grid grid-cols-10 gap-2 mb-4">
-                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-10 h-10 rounded text-sm font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white scale-110' : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-105'}`}>{number}</button>))}
+                <div className="grid grid-cols-10 gap-1 mb-4">
+                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-8 h-8 rounded text-xs font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}>{number}</button>))}
                 </div>
                 
                 {errorMessage && (
