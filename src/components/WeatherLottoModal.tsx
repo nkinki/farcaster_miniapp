@@ -353,10 +353,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         <div className="text-sm text-orange-600">100k CHESS base</div>
                         <div className="mt-2 pt-2 border-t border-orange-200">
                           <div className="text-sm text-green-600 font-semibold">
-                            Win: {currentRound && currentRound.sunny_tickets > 0 ? formatNumber(70000 / currentRound.sunny_tickets) : '0'} CHESS
+                            Win: {currentRound && currentRound.sunny_tickets > 0 ? formatNumber(7000 / currentRound.sunny_tickets) : '0'} CHESS
                           </div>
                           <div className="text-sm text-orange-600">
-                            ROI: {currentRound && currentRound.sunny_tickets > 0 ? (((70000 / currentRound.sunny_tickets) / 100000 - 1) * 100).toFixed(1) : '0'}%
+                            ROI: {currentRound && currentRound.sunny_tickets > 0 ? (((7000 / currentRound.sunny_tickets) / 100 - 1) * 100).toFixed(1) : '0'}%
                           </div>
                         </div>
                       </div>
@@ -376,10 +376,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         <div className="text-sm text-blue-600">100k CHESS base</div>
                         <div className="mt-2 pt-2 border-t border-blue-200">
                           <div className="text-sm text-green-600 font-semibold">
-                            Win: {currentRound && currentRound.rainy_tickets > 0 ? formatNumber(70000 / currentRound.rainy_tickets) : '0'} CHESS
+                            Win: {currentRound && currentRound.rainy_tickets > 0 ? formatNumber(7000 / currentRound.rainy_tickets) : '0'} CHESS
                           </div>
                           <div className="text-sm text-blue-600">
-                            ROI: {currentRound && currentRound.rainy_tickets > 0 ? (((70000 / currentRound.rainy_tickets) / 100000 - 1) * 100).toFixed(1) : '0'}%
+                            ROI: {currentRound && currentRound.rainy_tickets > 0 ? (((7000 / currentRound.rainy_tickets) / 100 - 1) * 100).toFixed(1) : '0'}%
                           </div>
                         </div>
                       </div>
@@ -417,13 +417,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       <div className="text-center">
                         <div className="text-xs text-gray-600 mb-1">
                           Win with {quantity} ticket{quantity > 1 ? 's' : ''}: {currentRound ? formatNumber(
-                            (70000 / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + quantity, 1)) * quantity
+                            (7000 / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + quantity, 1)) * quantity
                           ) : '0'} CHESS
                         </div>
                         <div className="text-xs text-gray-500">
                           ROI: {currentRound ? (
-                            (((70000 / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + quantity, 1)) * quantity) / 
-                            (100000 * quantity) - 1
+                            (((7000 / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + quantity, 1)) * quantity) / 
+                            (100 * quantity) - 1
                           ) * 100).toFixed(1) : '0'}%
                         </div>
                       </div>
@@ -487,9 +487,9 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       const currentSideTickets = ticket.side === 'sunny' ? (currentRound?.sunny_tickets || 0) : (currentRound?.rainy_tickets || 0);
                       const otherSideTickets = ticket.side === 'sunny' ? (currentRound?.rainy_tickets || 0) : (currentRound?.sunny_tickets || 0);
                       
-                      // If this side wins: 70k CHESS pool / total tickets on this side * ticket quantity
-                      const potentialWin = currentSideTickets > 0 ? (70000 / currentSideTickets) * ticket.quantity : 0;
-                      const potentialLoss = Number(ticket.total_cost);
+                      // If this side wins: 7k CHESS pool / total tickets on this side * ticket quantity
+                      const potentialWin = currentSideTickets > 0 ? (7000 / currentSideTickets) * ticket.quantity : 0;
+                      const potentialLoss = Number(ticket.total_cost) / 100000000000000000000000; // Convert from wei to CHESS
                       const netResult = potentialWin - potentialLoss;
                       
                       return (
