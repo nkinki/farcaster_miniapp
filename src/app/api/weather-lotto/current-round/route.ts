@@ -39,9 +39,23 @@ export async function GET() {
           RETURNING *
         `);
         
+        const newRound = newRoundResult.rows[0];
+        
+        // Return the new round with calculated values
         return NextResponse.json({
           success: true,
-          round: newRoundResult.rows[0]
+          round: {
+            ...newRound,
+            sunny_tickets: 0,
+            rainy_tickets: 0,
+            total_tickets: 0,
+            current_total_pool: "200000000000000000000000",
+            winners_pool: "140000000000000000000000", // 70% of 200k
+            treasury_amount: "60000000000000000000000", // 30% of 200k
+            time_remaining: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+            sunny_odds: "0",
+            rainy_odds: "0"
+          }
         });
       }
 
@@ -82,9 +96,9 @@ export async function GET() {
       const winnersPool = (currentTotalPool * BigInt(70)) / BigInt(100); // 70% winners
       const treasuryPool = currentTotalPool - winnersPool; // 30% treasury
 
-      // Calculate odds
-      const sunnyOdds = sunnyTickets > 0 ? Number(winnersPool) / sunnyTickets : 0;
-      const rainyOdds = rainyTickets > 0 ? Number(winnersPool) / rainyTickets : 0;
+      // Calculate odds (avoid Number conversion for very large BigInts)
+      const sunnyOdds = sunnyTickets > 0 ? winnersPool / BigInt(sunnyTickets) : BigInt(0);
+      const rainyOdds = rainyTickets > 0 ? winnersPool / BigInt(rainyTickets) : BigInt(0);
 
       return NextResponse.json({
         success: true,
@@ -97,8 +111,8 @@ export async function GET() {
           winners_pool: winnersPool.toString(),
           treasury_amount: treasuryPool.toString(),
           time_remaining: timeRemaining,
-          sunny_odds: sunnyOdds,
-          rainy_odds: rainyOdds
+          sunny_odds: sunnyOdds.toString(),
+          rainy_odds: rainyOdds.toString()
         }
       });
 
