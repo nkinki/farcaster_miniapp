@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
               NOW(),
               NOW() + INTERVAL '1 day',
               'active',
-              200000000000000000000,
-              200000000000000000000
+              200000000000000000000000,
+              200000000000000000000000
             )
             RETURNING *
           `);
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         }
         
         const round = currentRound[0];
-        const ticketPrice = 100; // 100 CHESS per ticket (smaller for testing)
+        const ticketPrice = 100000; // 100k CHESS per ticket
         const totalCost = BigInt(ticketPrice * quantity * 1e18); // Convert to wei
         
         // Insert ticket
