@@ -33,8 +33,8 @@ export async function GET() {
             NOW(),
             NOW() + INTERVAL '1 day',
             'active',
-            200000000000000000000000,
-            200000000000000000000000
+            200000,
+            200000
           )
           RETURNING *
         `);
@@ -49,9 +49,9 @@ export async function GET() {
             sunny_tickets: 0,
             rainy_tickets: 0,
             total_tickets: 0,
-            current_total_pool: "200000000000000000000000",
-            winners_pool: "140000000000000000000000", // 70% of 200k
-            treasury_amount: "60000000000000000000000", // 30% of 200k
+            current_total_pool: "200000",
+            winners_pool: "140000", // 70% of 200k
+            treasury_amount: "60000", // 30% of 200k
             time_remaining: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
             sunny_odds: "0",
             rainy_odds: "0"
@@ -96,9 +96,9 @@ export async function GET() {
 
       // Calculate current pools
       const totalTickets = sunnyTickets + rainyTickets;
-      const ticketPrice = BigInt(100000000000000000000000); // 100k CHESS per ticket
+      const ticketPrice = BigInt(100); // 100 CHESS per ticket
       const playerPool = BigInt(totalTickets) * ticketPrice;
-      const houseBase = BigInt(200000000000000000000000); // 200k CHESS house base
+      const houseBase = BigInt(200000); // 200k CHESS house base
       const currentTotalPool = houseBase + playerPool;
       const winnersPool = (currentTotalPool * BigInt(70)) / BigInt(100); // 70% winners
       const treasuryPool = currentTotalPool - winnersPool; // 30% treasury
