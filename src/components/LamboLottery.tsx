@@ -255,9 +255,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                     {currentRound && (
                       <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow mx-auto" style={{ animationDuration: '4s' }}>
                         <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
-                          <div className="text-center min-w-0"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
-                          <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-4 min-w-0 w-full"><div className="text-xs font-bold text-yellow-300 mb-1">JACKPOT</div><div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatChessTokens(currentRound.prize_pool)}</div></div>
-                          <div className="text-center min-w-0"><div className="text-xs font-bold text-yellow-300 mb-1">LAST DRAW</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{lastWinningNumber || 'N/A'}</div></div>
+                          <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
+                          <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-6 min-w-0 w-full flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">JACKPOT</div><div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatChessTokens(currentRound.prize_pool)}</div></div>
+                          <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">LAST DRAW</div><div className="text-sm font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{lastWinningNumber || 'N/A'}</div></div>
                         </div>
                       </div>
                     )}
