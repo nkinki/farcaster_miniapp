@@ -75,8 +75,10 @@ export async function GET() {
 
       // Calculate current pools
       const totalTickets = sunnyTickets + rainyTickets;
-      const playerPool = BigInt(totalTickets) * BigInt(100000000000000000000000); // 100k CHESS per ticket
-      const currentTotalPool = BigInt(200000000000000000000000) + playerPool; // House base + player pool
+      const ticketPrice = BigInt(100000000000000000000000); // 100k CHESS per ticket
+      const playerPool = BigInt(totalTickets) * ticketPrice;
+      const houseBase = BigInt(200000000000000000000000); // 200k CHESS house base
+      const currentTotalPool = houseBase + playerPool;
       const winnersPool = (currentTotalPool * BigInt(70)) / BigInt(100); // 70% winners
       const treasuryPool = currentTotalPool - winnersPool; // 30% treasury
 
