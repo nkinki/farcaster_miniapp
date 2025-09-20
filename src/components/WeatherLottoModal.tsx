@@ -359,6 +359,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     <FiSun className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
                     <div className="font-semibold text-gray-900">Sunny ☀️</div>
                     <div className="text-sm text-gray-600">Current: {currentRound?.sunny_tickets || 0} tickets</div>
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <div className="text-xs text-green-600 font-semibold">
+                        Win: {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.sunny_tickets || 0) + 1))} CHESS
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        ROI: {(((currentRound?.winners_pool || 0) / ((currentRound?.sunny_tickets || 0) + 1)) / Number(TICKET_PRICE) - 1) * 100}%
+                      </div>
+                    </div>
                   </div>
                 </button>
 
@@ -374,6 +382,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     <FiCloudRain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
                     <div className="font-semibold text-gray-900">Rainy 🌧️</div>
                     <div className="text-sm text-gray-600">Current: {currentRound?.rainy_tickets || 0} tickets</div>
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <div className="text-xs text-green-600 font-semibold">
+                        Win: {formatNumber((currentRound?.winners_pool || 0) / ((currentRound?.rainy_tickets || 0) + 1))} CHESS
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        ROI: {(((currentRound?.winners_pool || 0) / ((currentRound?.rainy_tickets || 0) + 1)) / Number(TICKET_PRICE) - 1) * 100}%
+                      </div>
+                    </div>
                   </div>
                 </button>
               </div>
