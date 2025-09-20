@@ -7,6 +7,7 @@ import type { IconType } from "react-icons";
 import React from "react"
 import Image from "next/image"
 import LamboLottery from "@/components/LamboLottery"
+import WeatherLottoModal from "@/components/WeatherLottoModal"
 
 // Tipusok
 interface Miniapp {
@@ -128,6 +129,7 @@ export default function Home() {
   const [openMiniappIndex, setOpenMiniappIndex] = useState<number | null>(null)
   const [hapticsSupported, setHapticsSupported] = useState(false)
   const [showLamboLottery, setShowLamboLottery] = useState(false)
+  const [showWeatherLotto, setShowWeatherLotto] = useState(false)
   const [userFid, setUserFid] = useState<number>(0)
 
   useEffect(() => {
@@ -265,6 +267,16 @@ export default function Home() {
         }}
       />
 
+      {/* Weather Lotto Modal */}
+      <WeatherLottoModal 
+        isOpen={showWeatherLotto}
+        onClose={() => setShowWeatherLotto(false)}
+        userFid={userFid}
+        onPurchaseSuccess={() => {
+          console.log('Weather Lotto tickets purchased successfully!');
+        }}
+      />
+
 
       {openMiniapp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -362,7 +374,7 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="inline-block">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={async () => {
                   if (hapticsSupported) {
@@ -378,6 +390,17 @@ export default function Home() {
               >
                 <FiGift size={28} className="text-[#5D6AFF]" />
                 <span className="animate-chessneon">Claim $CHESS</span>
+              </button>
+              
+              <button
+                onClick={() => setShowWeatherLotto(true)}
+                className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer w-full sm:w-auto"
+              >
+                <span className="text-2xl">☀️🌧️</span>
+                <div className="flex flex-col items-start">
+                  <span>Weather Lotto</span>
+                  <span className="text-xs opacity-80">Under Development</span>
+                </div>
               </button>
             </div>
           </div>
