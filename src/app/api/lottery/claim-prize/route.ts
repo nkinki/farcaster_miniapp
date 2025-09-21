@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { createPublicClient, createWalletClient, http, parseUnits } from 'viem';
+import { base } from 'viem/chains';
+import { privateKeyToAccount } from 'viem/accounts';
+import { LOTTO_PAYMENT_ROUTER_ABI, LOTTO_PAYMENT_ROUTER_ADDRESS } from '@/abis/LottoPaymentRouter';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -47,14 +51,66 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // For now, just mark as claimed - onchain payment will be handled separately
-      // The treasury balance will be updated when the actual onchain payment is made
+      // Perform onchain payout using the LottoPaymentRouter contract
+      let transactionHash = null;
+      
+      try {
+        // Create wallet client for treasury operations
+        const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY;
+        if (!treasuryPrivateKey) {
+          throw new Error('Treasury private key not configured');
+        }
+        
+        const account = privateKeyToAccount(treasuryPrivateKey as `0x${string}`);
+        
+        const publicClient = createPublicClient({
+          chain: base,
+          transport: http()
+        });
+        
+        const walletClient = createWalletClient({
+          account,
+          chain: base,
+          transport: http()
+        });
+        
+        // Convert amount to wei (assuming amount_won is in CHESS tokens, not wei)
+        const amountInWei = parseUnits(winning.amount_won.toString(), 18);
+        
+        // Call the payout function on the contract
+        const hash = await walletClient.writeContract({
+          address: LOTTO_PAYMENT_ROUTER_ADDRESS as `0x${string}`,
+          abi: LOTTO_PAYMENT_ROUTER_ABI,
+          functionName: 'payout',
+          args: [winning.player_address as `0x${string}`, amountInWei]
+        });
+        
+        transactionHash = hash;
+        console.log('✅ Onchain payout successful:', hash);
+        
+      } catch (onchainError) {
+        console.error('❌ Onchain payout failed:', onchainError);
+        // Don't mark as claimed if onchain payment fails
+        return NextResponse.json({
+          success: false,
+          error: 'Onchain payment failed: ' + (onchainError as Error).message
+        }, { status: 500 });
+      }
+      
+      // Update treasury balance (subtract the claimed amount)
+      await client.query(`
+        UPDATE lottery_stats 
+        SET total_jackpot = total_jackpot - $1
+        WHERE id = 1
+      `, [winning.amount_won]);
+      
+      // Mark as claimed with transaction hash
       const updateResult = await client.query(`
         UPDATE lottery_winnings 
-        SET claimed_at = NOW()
+        SET claimed_at = NOW(), transaction_hash = $2
         WHERE id = $1
         RETURNING *
-      `, [winningId]);
+      `, [winningId, transactionHash]);
 
       client.release();
 
