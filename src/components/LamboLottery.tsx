@@ -146,15 +146,33 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const updateTimer = () => {
       const now = new Date();
       const drawTime = new Date();
-      drawTime.setUTCHours(20, 0, 0, 0);
-      if (now.getTime() > drawTime.getTime()) { drawTime.setDate(drawTime.getDate() + 1); }
+      drawTime.setUTCHours(19, 5, 0, 0); // 19:05 UTC
+      
+      // Check if we're in the draw period (19:05-19:09)
+      const drawStart = new Date();
+      drawStart.setUTCHours(19, 5, 0, 0);
+      const drawEnd = new Date();
+      drawEnd.setUTCHours(19, 9, 0, 0);
+      
+      if (now >= drawStart && now <= drawEnd) {
+        setTimeRemaining("Draw in progress");
+        return;
+      }
+      
+      // If past draw time today, set for tomorrow
+      if (now.getTime() > drawTime.getTime()) { 
+        drawTime.setDate(drawTime.getDate() + 1); 
+      }
+      
       const difference = drawTime.getTime() - now.getTime();
       if (difference > 0) {
         const hours = Math.floor(difference / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
         setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      } else { setTimeRemaining("00:00:00"); }
+      } else { 
+        setTimeRemaining("00:00:00"); 
+      }
     };
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
