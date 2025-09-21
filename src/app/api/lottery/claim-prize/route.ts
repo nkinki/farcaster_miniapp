@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       // Update treasury balance (subtract the claimed amount)
       await client.query(`
         UPDATE lottery_stats 
-        SET treasury_balance = treasury_balance - $1
+        SET total_jackpot = total_jackpot - $1
         WHERE id = 1
       `, [winning.amount_won]);
 
