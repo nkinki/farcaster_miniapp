@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       // Perform onchain payout using the LottoPaymentRouter contract
       let transactionHash = null;
       
-      const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY;
+      const treasuryPrivateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
       
       if (treasuryPrivateKey) {
         try {
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
           }, { status: 500 });
         }
       } else {
-        console.log('⚠️ Treasury private key not configured - marking as claimed without onchain payment');
+        console.log('⚠️ Backend wallet private key not configured - marking as claimed without onchain payment');
       }
       
       // Update treasury balance (subtract the claimed amount)
