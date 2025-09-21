@@ -47,14 +47,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Update treasury balance first (subtract the claimed amount)
-      await client.query(`
-        UPDATE lottery_stats 
-        SET total_jackpot = total_jackpot - $1
-        WHERE id = 1
-      `, [winning.amount_won]);
-
-      // Only update the winning as claimed if treasury update was successful
+      // For now, just mark as claimed - onchain payment will be handled separately
+      // The treasury balance will be updated when the actual onchain payment is made
       const updateResult = await client.query(`
         UPDATE lottery_winnings 
         SET claimed_at = NOW()
