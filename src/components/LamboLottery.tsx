@@ -240,6 +240,35 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     }
   };
 
+  const handleClaimPrize = async (winningId: number) => {
+    try {
+      setErrorMessage(null);
+      
+      const response = await fetch('/api/lottery/claim-prize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          winningId: winningId,
+          playerFid: userFid
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Prize claimed successfully:', result);
+        // Refresh data
+        fetchLotteryData();
+      } else {
+        console.error('❌ Claim failed:', result.error);
+        setErrorMessage(result.error || 'Claim failed');
+      }
+    } catch (error: any) {
+      console.error('❌ Claim error:', error);
+      setErrorMessage('Claim failed');
+    }
+  };
+
   const handleNumberSelect = (number: number) => {
     if (selectedNumbers.includes(number)) { setSelectedNumbers(selectedNumbers.filter(n => n !== number)); } 
     else if (userTickets.length + selectedNumbers.length < 10) { setSelectedNumbers([...selectedNumbers, number]); }
@@ -381,7 +410,12 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                         </div>
                         <div className="text-sm text-gray-300 mb-3">Winning Number: <span className="text-yellow-400 font-bold">{winning.winning_number}</span> | Your Ticket: <span className="text-cyan-400 font-bold">{winning.ticket_number}</span></div>
                         {!winning.claimed_at ? (
-                          <button className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105">🎯 Claim Prize</button>
+                          <button 
+                            onClick={() => handleClaimPrize(winning.id)}
+                            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
+                          >
+                            🎯 Claim Prize
+                          </button>
                         ) : (
                           <div className="text-center text-green-400 font-bold">✅ Claimed on {new Date(winning.claimed_at).toLocaleDateString()}</div>
                         )}
