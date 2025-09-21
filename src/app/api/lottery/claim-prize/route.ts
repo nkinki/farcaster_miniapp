@@ -54,47 +54,48 @@ export async function POST(request: NextRequest) {
       // Perform onchain payout using the LottoPaymentRouter contract
       let transactionHash = null;
       
-      try {
-        // Create wallet client for treasury operations
-        const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY;
-        if (!treasuryPrivateKey) {
-          throw new Error('Treasury private key not configured');
+      const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY;
+      
+      if (treasuryPrivateKey) {
+        try {
+          // Create wallet client for treasury operations
+          const account = privateKeyToAccount(treasuryPrivateKey as `0x${string}`);
+          
+          const publicClient = createPublicClient({
+            chain: base,
+            transport: http()
+          });
+          
+          const walletClient = createWalletClient({
+            account,
+            chain: base,
+            transport: http()
+          });
+          
+          // Convert amount to wei (assuming amount_won is in CHESS tokens, not wei)
+          const amountInWei = parseUnits(winning.amount_won.toString(), 18);
+          
+          // Call the payout function on the contract
+          const hash = await walletClient.writeContract({
+            address: LOTTO_PAYMENT_ROUTER_ADDRESS as `0x${string}`,
+            abi: LOTTO_PAYMENT_ROUTER_ABI,
+            functionName: 'payout',
+            args: [winning.player_address as `0x${string}`, amountInWei]
+          });
+          
+          transactionHash = hash;
+          console.log('✅ Onchain payout successful:', hash);
+          
+        } catch (onchainError) {
+          console.error('❌ Onchain payout failed:', onchainError);
+          // Don't mark as claimed if onchain payment fails
+          return NextResponse.json({
+            success: false,
+            error: 'Onchain payment failed: ' + (onchainError as Error).message
+          }, { status: 500 });
         }
-        
-        const account = privateKeyToAccount(treasuryPrivateKey as `0x${string}`);
-        
-        const publicClient = createPublicClient({
-          chain: base,
-          transport: http()
-        });
-        
-        const walletClient = createWalletClient({
-          account,
-          chain: base,
-          transport: http()
-        });
-        
-        // Convert amount to wei (assuming amount_won is in CHESS tokens, not wei)
-        const amountInWei = parseUnits(winning.amount_won.toString(), 18);
-        
-        // Call the payout function on the contract
-        const hash = await walletClient.writeContract({
-          address: LOTTO_PAYMENT_ROUTER_ADDRESS as `0x${string}`,
-          abi: LOTTO_PAYMENT_ROUTER_ABI,
-          functionName: 'payout',
-          args: [winning.player_address as `0x${string}`, amountInWei]
-        });
-        
-        transactionHash = hash;
-        console.log('✅ Onchain payout successful:', hash);
-        
-      } catch (onchainError) {
-        console.error('❌ Onchain payout failed:', onchainError);
-        // Don't mark as claimed if onchain payment fails
-        return NextResponse.json({
-          success: false,
-          error: 'Onchain payment failed: ' + (onchainError as Error).message
-        }, { status: 500 });
+      } else {
+        console.log('⚠️ Treasury private key not configured - marking as claimed without onchain payment');
       }
       
       // Update treasury balance (subtract the claimed amount)
