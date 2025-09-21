@@ -19,15 +19,13 @@ export async function POST(request: NextRequest) {
     const client = await pool.connect();
     
     try {
-      // Check if the winning exists and is not already claimed
+      // Check if the winning exists and is owned by the user
       const checkResult = await client.query(`
         SELECT 
           lw.id,
           lw.amount_won,
-          lw.claimed_at,
-          lt.player_address
+          lw.claimed_at
         FROM lottery_winnings lw
-        JOIN lottery_tickets lt ON lw.ticket_id = lt.id
         WHERE lw.id = $1 AND lw.player_fid = $2
       `, [winningId, playerFid]);
 
@@ -40,33 +38,33 @@ export async function POST(request: NextRequest) {
 
       const winning = checkResult.rows[0];
 
-      if (winning.claimed_at) {
+      if (!winning.claimed_at) {
         return NextResponse.json(
-          { success: false, error: 'Prize already claimed' },
+          { success: false, error: 'Prize is not claimed yet' },
           { status: 400 }
         );
       }
 
-      // Update treasury balance first (subtract the claimed amount)
-      await client.query(`
-        UPDATE lottery_stats 
-        SET total_jackpot = total_jackpot - $1
-        WHERE id = 1
-      `, [winning.amount_won]);
-
-      // Only update the winning as claimed if treasury update was successful
+      // Reset the claim status
       const updateResult = await client.query(`
         UPDATE lottery_winnings 
-        SET claimed_at = NOW()
+        SET claimed_at = NULL
         WHERE id = $1
         RETURNING *
       `, [winningId]);
+
+      // Add back the amount to treasury
+      await client.query(`
+        UPDATE lottery_stats 
+        SET total_jackpot = total_jackpot + $1
+        WHERE id = 1
+      `, [winning.amount_won]);
 
       client.release();
 
       return NextResponse.json({
         success: true,
-        message: 'Prize claimed successfully',
+        message: 'Claim status reset successfully',
         winning: updateResult.rows[0]
       });
 
@@ -76,9 +74,9 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error claiming prize:', error);
+    console.error('Error resetting claim:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to claim prize' },
+      { success: false, error: 'Failed to reset claim' },
       { status: 500 }
     );
   }
