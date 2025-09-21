@@ -3,7 +3,6 @@ import { Pool } from 'pg';
 import { createPublicClient, createWalletClient, http, parseUnits } from 'viem';
 import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
-import { LOTTO_PAYMENT_ROUTER_ABI, LOTTO_PAYMENT_ROUTER_ADDRESS } from '@/abis/LottoPaymentRouter';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -75,11 +74,31 @@ export async function POST(request: NextRequest) {
           // Convert amount to wei (assuming amount_won is in CHESS tokens, not wei)
           const amountInWei = parseUnits(winning.amount_won.toString(), 18);
           
-          // Call the payout function on the contract
+          // Get CHESS token address from environment
+          const chessTokenAddress = process.env.NEXT_PUBLIC_CHESS_TOKEN_ADDRESS;
+          if (!chessTokenAddress) {
+            throw new Error('CHESS token address not configured');
+          }
+          
+          // ERC20 transfer function ABI
+          const erc20Abi = [
+            {
+              "inputs": [
+                { "internalType": "address", "name": "to", "type": "address" },
+                { "internalType": "uint256", "name": "amount", "type": "uint256" }
+              ],
+              "name": "transfer",
+              "outputs": [ { "internalType": "bool", "name": "", "type": "bool" } ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ] as const;
+          
+          // Direct ERC20 transfer from backend wallet to winner
           const hash = await walletClient.writeContract({
-            address: LOTTO_PAYMENT_ROUTER_ADDRESS as `0x${string}`,
-            abi: LOTTO_PAYMENT_ROUTER_ABI,
-            functionName: 'payout',
+            address: chessTokenAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: 'transfer',
             args: [winning.player_address as `0x${string}`, amountInWei]
           });
           
