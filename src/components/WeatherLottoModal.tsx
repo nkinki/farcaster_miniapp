@@ -260,9 +260,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       if (result.success) {
         console.log('✅ Manual draw successful:', result);
         // Refresh data
-        fetchCurrentRound();
-        fetchUserTickets();
-        fetchStats();
+        fetchWeatherLottoData();
       } else {
         console.error('❌ Manual draw failed:', result.error);
         setErrorMessage(result.error || 'Manual draw failed');
