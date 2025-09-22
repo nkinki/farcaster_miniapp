@@ -581,8 +581,12 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       <span className="font-semibold text-cyan-400">{stats?.total_rounds || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Tickets:</span>
-                      <span className="font-semibold text-cyan-400">{stats?.total_tickets_sold || 0}</span>
+                      <span className="text-gray-300">Current Round:</span>
+                      <span className="font-semibold text-cyan-400">{currentRound?.total_tickets || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">☀️ / 🌧️:</span>
+                      <span className="font-semibold text-orange-400">{currentRound?.sunny_tickets || 0} / {currentRound?.rainy_tickets || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">Volume:</span>
