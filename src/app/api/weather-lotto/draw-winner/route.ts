@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       } else {
         const roundResult = await client.query(`
           SELECT * FROM weather_lotto_rounds 
-          WHERE status = 'active' AND end_time <= NOW()
+          WHERE status = 'active'
           ORDER BY round_number DESC 
           LIMIT 1
         `);
