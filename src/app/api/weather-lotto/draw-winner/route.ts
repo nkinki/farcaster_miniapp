@@ -129,18 +129,18 @@ export async function POST(request: NextRequest) {
         `, [round.total_pool, round.id]);
       }
 
-      // Update stats
+      // Update stats (create if not exists)
       await client.query(`
-        UPDATE weather_lotto_stats 
-        SET 
-          total_rounds = total_rounds + 1,
-          total_treasury = total_treasury + $1,
-          total_payouts = total_payouts + $2,
+        INSERT INTO weather_lotto_stats (id, total_rounds, total_treasury, total_payouts, current_total_pool)
+        VALUES (1, 1, $1, $2, 200000000000000000000000)
+        ON CONFLICT (id) DO UPDATE SET
+          total_rounds = weather_lotto_stats.total_rounds + 1,
+          total_treasury = weather_lotto_stats.total_treasury + $1,
+          total_payouts = weather_lotto_stats.total_payouts + $2,
           current_sunny_tickets = 0,
           current_rainy_tickets = 0,
           current_total_pool = 200000000000000000000000,
           updated_at = NOW()
-        WHERE id = 1
       `, [
         parseInt(round.treasury_amount) || 0,
         totalPayouts
