@@ -640,7 +640,6 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     )}
                   </div>
                 </div>
-              )}
 
           </div>
         )}
