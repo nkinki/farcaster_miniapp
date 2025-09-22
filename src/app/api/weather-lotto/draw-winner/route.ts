@@ -7,7 +7,14 @@ const pool = new Pool({
 
 export async function POST(request: NextRequest) {
   try {
-    const { round_id } = await request.json();
+    let round_id = null;
+    try {
+      const body = await request.json();
+      round_id = body.round_id;
+    } catch (error) {
+      // No JSON body provided, use null round_id (will find active round)
+      round_id = null;
+    }
 
     const client = await pool.connect();
     
