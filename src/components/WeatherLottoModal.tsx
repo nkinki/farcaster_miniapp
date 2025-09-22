@@ -644,7 +644,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-300">Total Pool:</span>
-                              <span className="font-semibold text-yellow-400">{formatNumber(currentRound.total_pool)}</span>
+                              <span className="font-semibold text-yellow-400">{formatNumber(currentRound.current_total_pool)}</span>
                             </div>
                           </div>
                         </div>
