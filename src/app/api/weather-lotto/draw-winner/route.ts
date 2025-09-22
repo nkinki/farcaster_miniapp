@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       const totalTickets = ticketsResult.rows.length;
       let winningSide: 'sunny' | 'rainy' | null = null;
       let winners: any[] = [];
+      let totalPayouts = 0;
 
       if (totalTickets > 0) {
         // Generate random winning side (50/50 chance)
@@ -82,6 +83,8 @@ export async function POST(request: NextRequest) {
               SET payout_amount = $1
               WHERE id = $2
             `, [totalPayout.toString(), winner.id]);
+            
+            totalPayouts += totalPayout;
 
             // Create claim record
             await client.query(`
@@ -139,8 +142,8 @@ export async function POST(request: NextRequest) {
           updated_at = NOW()
         WHERE id = 1
       `, [
-        round.treasury_amount || 0,
-        winners.reduce((sum, w) => sum + (w.payout_amount || 0), 0)
+        parseInt(round.treasury_amount) || 0,
+        totalPayouts
       ]);
 
       await client.query('COMMIT');
