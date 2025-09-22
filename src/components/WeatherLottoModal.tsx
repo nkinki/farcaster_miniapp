@@ -643,11 +643,6 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           </div>
         )}
         </div>
-        
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto pr-2">
-          <div className="space-y-4">
-      </div>
       <style jsx>{`
         @keyframes pulseGlow {
           0% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
