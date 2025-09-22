@@ -360,7 +360,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] flex flex-col border border-[#a64d79] relative shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
+        <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[95vh] flex flex-col border border-[#a64d79] relative shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
           <div className="relative z-10 flex flex-col items-center mb-6">
             <div className="w-full flex justify-center items-center mb-2">
               <div className="flex items-center justify-center gap-2">
@@ -675,10 +675,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                           <div className="text-sm font-semibold text-cyan-400 mb-2 text-center">
                             📊 Last 5 Rounds
                           </div>
-                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                          <div className="space-y-2 max-h-60 overflow-y-auto">
                             {recentRounds.slice(0, 5).map((round) => (
-                              <div key={round.id} className="bg-gray-800 rounded p-2 text-xs">
-                                <div className="flex justify-between items-center mb-1">
+                              <div key={round.id} className="bg-gray-800 rounded p-3 text-xs">
+                                <div className="flex justify-between items-center mb-2">
                                   <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
                                   <div className="flex items-center gap-1">
                                     {round.winning_side === 'sunny' ? (
@@ -691,16 +691,37 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                                     <span className="text-gray-300 capitalize">{round.winning_side || 'Pending'}</span>
                                   </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-1 text-xs">
+                                
+                                {/* Tickets */}
+                                <div className="grid grid-cols-2 gap-2 mb-2">
                                   <div className="text-center">
-                                    <div className="text-orange-400">☀️ {round.sunny_tickets}</div>
+                                    <div className="text-orange-400 font-semibold">☀️ {round.sunny_tickets}</div>
+                                    <div className="text-gray-400 text-xs">tickets</div>
                                   </div>
                                   <div className="text-center">
-                                    <div className="text-blue-400">🌧️ {round.rainy_tickets}</div>
+                                    <div className="text-blue-400 font-semibold">🌧️ {round.rainy_tickets}</div>
+                                    <div className="text-gray-400 text-xs">tickets</div>
+                                  </div>
+                                </div>
+                                
+                                {/* Winnings & Treasury */}
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="text-center">
+                                    <div className="text-green-400 font-semibold">
+                                      {round.winning_side ? formatNumber(round.winners_pool) : '0'}
+                                    </div>
+                                    <div className="text-gray-400 text-xs">Winner Prize</div>
                                   </div>
                                   <div className="text-center">
-                                    <div className="text-purple-400">💰 {formatNumber(round.treasury_amount)}</div>
+                                    <div className="text-purple-400 font-semibold">{formatNumber(round.treasury_amount)}</div>
+                                    <div className="text-gray-400 text-xs">Treasury</div>
                                   </div>
+                                </div>
+                                
+                                {/* Total Pool */}
+                                <div className="text-center mt-2 pt-2 border-t border-gray-700">
+                                  <div className="text-yellow-400 font-semibold">{formatNumber(round.total_pool)}</div>
+                                  <div className="text-gray-400 text-xs">Total Pool</div>
                                 </div>
                               </div>
                             ))}
@@ -726,3 +747,4 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     </>
   );
 }
+
