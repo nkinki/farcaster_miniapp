@@ -104,19 +104,23 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const fetchWeatherLottoData = useCallback(async () => {
     try {
       setLoading(true);
-      const [roundRes, ticketsRes, statsRes] = await Promise.all([
+      const [roundRes, statsRes] = await Promise.all([
         fetch('/api/weather-lotto/current-round'),
-        userFid ? fetch(`/api/weather-lotto/user-tickets?fid=${userFid}`) : Promise.resolve(null),
         fetch('/api/weather-lotto/stats')
       ]);
 
       if (roundRes.ok) {
         const roundData = await roundRes.json();
         setCurrentRound(roundData.round);
-      }
-      if (ticketsRes?.ok) {
-        const ticketsData = await ticketsRes.json();
-        setUserTickets(ticketsData.tickets || []);
+        
+        // Fetch tickets for current round only
+        if (userFid && roundData.round) {
+          const ticketsRes = await fetch(`/api/weather-lotto/user-tickets?fid=${userFid}&round_id=${roundData.round.id}`);
+          if (ticketsRes.ok) {
+            const ticketsData = await ticketsRes.json();
+            setUserTickets(ticketsData.tickets || []);
+          }
+        }
       }
       if (statsRes.ok) {
         const statsData = await statsRes.json();
