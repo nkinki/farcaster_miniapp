@@ -601,12 +601,12 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       <span className="font-semibold text-green-400">{formatNumber(stats?.total_payouts || 0)}</span>
                     </div>
                     
-                    {/* Current Round Results */}
+                    {/* Last Round Results */}
                     {currentRound && currentRound.status === 'completed' && (
                       <>
                         <div className="border-t border-gray-600 pt-3 mt-3">
                           <div className="text-sm font-semibold text-cyan-400 mb-2 text-center">
-                            🏆 Round #{currentRound.round_number} Results
+                            🏆 Last Round Results
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className="flex justify-between">
@@ -627,20 +627,24 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                               <span className="font-semibold text-cyan-400">{currentRound.total_tickets}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-300">☀️:</span>
-                              <span className="font-semibold text-orange-400">{currentRound.sunny_tickets}</span>
+                              <span className="text-gray-300">☀️ Won:</span>
+                              <span className="font-semibold text-orange-400">
+                                {currentRound.winning_side === 'sunny' ? formatNumber(currentRound.winners_pool) : '0'}
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-300">🌧️:</span>
-                              <span className="font-semibold text-blue-400">{currentRound.rainy_tickets}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Winners:</span>
-                              <span className="font-semibold text-green-400">{formatNumber(currentRound.winners_pool)}</span>
+                              <span className="text-gray-300">🌧️ Won:</span>
+                              <span className="font-semibold text-blue-400">
+                                {currentRound.winning_side === 'rainy' ? formatNumber(currentRound.winners_pool) : '0'}
+                              </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-300">Treasury:</span>
                               <span className="font-semibold text-purple-400">{formatNumber(currentRound.treasury_amount)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Total Pool:</span>
+                              <span className="font-semibold text-yellow-400">{formatNumber(currentRound.total_pool)}</span>
                             </div>
                           </div>
                         </div>
