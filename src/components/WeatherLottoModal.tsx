@@ -593,53 +593,56 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       <span className="text-gray-300">Payouts:</span>
                       <span className="font-semibold text-green-400">{formatNumber(stats.total_payouts)}</span>
                     </div>
+                    
+                    {/* Current Round Results */}
+                    {currentRound && currentRound.status === 'completed' && (
+                      <>
+                        <div className="border-t border-gray-600 pt-3 mt-3">
+                          <div className="text-sm font-semibold text-cyan-400 mb-2 text-center">
+                            🏆 Round #{currentRound.round_number} Results
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Winner:</span>
+                              <div className="flex items-center gap-1">
+                                {currentRound.winning_side === 'sunny' ? (
+                                  <FiSun className="w-3 h-3 text-orange-500" />
+                                ) : (
+                                  <FiCloudRain className="w-3 h-3 text-blue-500" />
+                                )}
+                                <span className="font-semibold text-yellow-400 capitalize">
+                                  {currentRound.winning_side}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Tickets:</span>
+                              <span className="font-semibold text-cyan-400">{currentRound.total_tickets}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">☀️:</span>
+                              <span className="font-semibold text-orange-400">{currentRound.sunny_tickets}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">🌧️:</span>
+                              <span className="font-semibold text-blue-400">{currentRound.rainy_tickets}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Winners:</span>
+                              <span className="font-semibold text-green-400">{formatNumber(currentRound.winners_pool)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Treasury:</span>
+                              <span className="font-semibold text-purple-400">{formatNumber(currentRound.treasury_amount)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Round Results Section - Compact */}
-              {currentRound && currentRound.status === 'completed' && (
-                <div className="bg-[#23283a] rounded-lg p-3 border border-[#a64d79]">
-                  <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center justify-center gap-2">
-                    🏆 Round #{currentRound.round_number} Results
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Winner:</span>
-                      <div className="flex items-center gap-1">
-                        {currentRound.winning_side === 'sunny' ? (
-                          <FiSun className="w-4 h-4 text-orange-500" />
-                        ) : (
-                          <FiCloudRain className="w-4 h-4 text-blue-500" />
-                        )}
-                        <span className="font-semibold text-yellow-400 capitalize text-xs">
-                          {currentRound.winning_side}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Tickets:</span>
-                      <span className="font-semibold text-cyan-400">{currentRound.total_tickets}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">☀️:</span>
-                      <span className="font-semibold text-orange-400">{currentRound.sunny_tickets}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">🌧️:</span>
-                      <span className="font-semibold text-blue-400">{currentRound.rainy_tickets}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Winners:</span>
-                      <span className="font-semibold text-green-400">{formatNumber(currentRound.winners_pool)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Treasury:</span>
-                      <span className="font-semibold text-purple-400">{formatNumber(currentRound.treasury_amount)}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
           </div>
         )}
         </div>
