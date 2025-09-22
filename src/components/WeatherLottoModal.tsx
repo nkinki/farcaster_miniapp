@@ -643,6 +643,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           </div>
         )}
         </div>
+      </div>
       <style jsx>{`
         @keyframes pulseGlow {
           0% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
