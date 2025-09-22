@@ -52,6 +52,21 @@ interface WeatherLottoStats {
   pending_amount: bigint;
 }
 
+interface RecentRound {
+  id: number;
+  round_number: number;
+  start_time: string;
+  end_time: string;
+  status: string;
+  winning_side?: string;
+  sunny_tickets: number;
+  rainy_tickets: number;
+  total_tickets: number;
+  total_pool: string;
+  winners_pool: string;
+  treasury_amount: string;
+}
+
 interface WeatherLottoModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -78,6 +93,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [currentRound, setCurrentRound] = useState<WeatherLottoRound | null>(null);
   const [userTickets, setUserTickets] = useState<WeatherLottoTicket[]>([]);
   const [stats, setStats] = useState<WeatherLottoStats | null>(null);
+  const [recentRounds, setRecentRounds] = useState<RecentRound[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSide, setSelectedSide] = useState<'sunny' | 'rainy' | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -125,6 +141,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData.stats);
+        setRecentRounds(statsData.recent_rounds || []);
       }
     } catch (error) {
       console.error('Failed to fetch weather lotto data:', error);
@@ -646,6 +663,47 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                               <span className="text-gray-300">Total Pool:</span>
                               <span className="font-semibold text-yellow-400">{formatNumber(currentRound.current_total_pool)}</span>
                             </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* Last 5 Rounds */}
+                    {recentRounds.length > 0 && (
+                      <>
+                        <div className="border-t border-gray-600 pt-3 mt-3">
+                          <div className="text-sm font-semibold text-cyan-400 mb-2 text-center">
+                            📊 Last 5 Rounds
+                          </div>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {recentRounds.slice(0, 5).map((round) => (
+                              <div key={round.id} className="bg-gray-800 rounded p-2 text-xs">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
+                                  <div className="flex items-center gap-1">
+                                    {round.winning_side === 'sunny' ? (
+                                      <FiSun className="w-3 h-3 text-orange-500" />
+                                    ) : round.winning_side === 'rainy' ? (
+                                      <FiCloudRain className="w-3 h-3 text-blue-500" />
+                                    ) : (
+                                      <span className="text-gray-400">-</span>
+                                    )}
+                                    <span className="text-gray-300 capitalize">{round.winning_side || 'Pending'}</span>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1 text-xs">
+                                  <div className="text-center">
+                                    <div className="text-orange-400">☀️ {round.sunny_tickets}</div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="text-blue-400">🌧️ {round.rainy_tickets}</div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="text-purple-400">💰 {formatNumber(round.treasury_amount)}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </>
