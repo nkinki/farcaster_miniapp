@@ -573,25 +573,24 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </div>
               )}
 
-              {stats && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Statistics</h3>
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Statistics</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-300">Rounds:</span>
-                      <span className="font-semibold text-cyan-400">{stats.total_rounds}</span>
+                      <span className="font-semibold text-cyan-400">{stats?.total_rounds || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">Tickets:</span>
-                      <span className="font-semibold text-cyan-400">{stats.total_tickets_sold}</span>
+                      <span className="font-semibold text-cyan-400">{stats?.total_tickets_sold || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">Volume:</span>
-                      <span className="font-semibold text-green-400">{formatNumber(stats.total_volume)}</span>
+                      <span className="font-semibold text-green-400">{formatNumber(stats?.total_volume || 0)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">Payouts:</span>
-                      <span className="font-semibold text-green-400">{formatNumber(stats.total_payouts)}</span>
+                      <span className="font-semibold text-green-400">{formatNumber(stats?.total_payouts || 0)}</span>
                     </div>
                     
                     {/* Current Round Results */}
