@@ -391,9 +391,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             {/* Manual Draw Button */}
             <button 
               onClick={handleManualDraw}
-              className="mt-3 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg"
+              disabled={!currentRound || (currentRound.current_total_pool * 0.3) < 200000}
+              className={`mt-3 px-4 py-2 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg ${
+                !currentRound || (currentRound.current_total_pool * 0.3) < 200000
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
+              }`}
             >
-              🎲 Manual Draw
+              🎲 Manual Draw {!currentRound || (currentRound.current_total_pool * 0.3) < 200000 ? '(Min 200k treasury needed)' : ''}
             </button>
             
             <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
