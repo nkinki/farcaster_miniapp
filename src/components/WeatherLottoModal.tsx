@@ -195,9 +195,11 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
   useEffect(() => {
     if (isApproved && step === PurchaseStep.ApproveConfirming) {
+      console.log('✅ Approve confirmed, refreshing allowance...');
+      refetchAllowance();
       setStep(PurchaseStep.ReadyToPurchase);
     }
-  }, [isApproved, step]);
+  }, [isApproved, step, refetchAllowance]);
 
   useEffect(() => {
     console.log('🔍 Purchase effect:', { isPurchased, step, purchaseTxHash });
@@ -298,9 +300,11 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
     try {
       setErrorMessage(null);
+      console.log('🔍 Starting purchase:', { allowance: allowance?.toString(), totalCost: totalCost.toString() });
 
       // Check allowance
       if (!allowance || allowance < totalCost) {
+        console.log('⚠️ Insufficient allowance, requesting approve...');
         setStep(PurchaseStep.Approving);
         const approveHash = await writeContractAsync({
           address: CHESS_TOKEN_ADDRESS,
@@ -312,6 +316,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         setStep(PurchaseStep.ApproveConfirming);
         return;
       }
+
+      console.log('✅ Sufficient allowance, proceeding with purchase...');
 
       // Purchase tickets
       setStep(PurchaseStep.Purchasing);
