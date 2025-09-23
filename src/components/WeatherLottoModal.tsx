@@ -407,7 +407,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               className={`mt-3 px-4 py-2 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg ${
                 !currentRound || currentRound.total_tickets < 6 || isManualDrawing
                   ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
+                  : 'bg-gradient-to-r from-red-500 via-purple-500 via-blue-500 to-green-500 bg-[length:400%_400%] pulse-color shadow-[0_0_20px_rgba(255,0,255,0.6)] hover:shadow-[0_0_30px_rgba(0,255,255,0.8)]'
               }`}
             >
               {isManualDrawing ? '🎲 Drawing...' : `🎲 Manual Draw ${!currentRound || currentRound.total_tickets < 6 ? '(Min 6 tickets)' : ''}`}
@@ -684,7 +684,15 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           50% { box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff; }
           100% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
         }
+        @keyframes pulseColor {
+          0% { background-position: 0% 50%; }
+          25% { background-position: 100% 50%; }
+          50% { background-position: 100% 50%; }
+          75% { background-position: 0% 50%; }
+          100% { background-position: 0% 50%; }
+        }
         .pulse-glow { animation: pulseGlow 3.5s ease-in-out infinite; border: 2px solid #a259ff; }
+        .pulse-color { animation: pulseColor 3s ease-in-out infinite; }
       `}</style>
     </>
   );
