@@ -99,7 +99,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [recentRounds, setRecentRounds] = useState<RecentRound[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSide, setSelectedSide] = useState<'sunny' | 'rainy' | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity] = useState(1); // Fixed to 1 ticket only
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   
   const [step, setStep] = useState<PurchaseStep>(PurchaseStep.Idle);
@@ -252,13 +252,18 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       });
 
       if (response.ok) {
+        console.log('✅ Purchase successful, refreshing modal...');
         await fetchWeatherLottoData();
         onPurchaseSuccess?.();
         setStep(PurchaseStep.Idle);
         setSelectedSide(null);
-        setQuantity(1);
         setErrorMessage(null);
         setPurchaseTxHash(undefined);
+        setApproveTxHash(undefined);
+        // Force refresh the modal state
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         const error = await response.json();
         setErrorMessage(error.error || 'Failed to save ticket to database');
@@ -463,20 +468,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 <div className="space-y-2">
                   <div>
                     <label className="block text-sm font-medium text-cyan-400 mb-2">
-                      Tickets: {quantity}
+                      Tickets: 1 (Fixed)
                     </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
-                      <span>1</span>
-                      <span>10</span>
-                    </div>
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-2">
@@ -489,14 +482,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     <div className="pt-1 border-t border-gray-200">
                       <div className="text-center">
                         <div className="text-xs text-gray-600 mb-1">
-                          Win with {quantity} ticket{quantity > 1 ? 's' : ''}: {currentRound ? formatNumber(
-                            ((currentRound.total_tickets * 100000 * 0.7) / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + quantity, 1)) * quantity
+                          Win with 1 ticket: {currentRound ? formatNumber(
+                            ((currentRound.total_tickets * 100000 * 0.7) / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + 1, 1))
                           ) : '0'} CHESS
                         </div>
                         <div className="text-xs text-gray-500">
                           ROI: {currentRound ? (
-                            ((((currentRound.total_tickets * 100000 * 0.7) / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + quantity, 1)) * quantity) / 
-                            (100000 * quantity) - 1
+                            ((((currentRound.total_tickets * 100000 * 0.7) / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + 1, 1)) / 
+                            100000 - 1
                           ) * 100).toFixed(1) : '0'}%
                         </div>
                       </div>
