@@ -398,7 +398,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
 
-              <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-lg">
+              <div className="bg-white rounded-xl p-4 border border-[#a64d79] shadow-lg pulse-glow">
                 <h3 className="text-xl font-bold text-gray-800 mb-4 text-center"><FiZap className="inline mr-2" /> Choose Your Side</h3>
               
                 <div className="grid grid-cols-2 gap-4">
