@@ -37,6 +37,12 @@ interface WeatherLottoTicket {
   payout_amount: string;
   is_claimed: boolean;
   created_at: string;
+  // Additional fields from JOIN with rounds
+  round_number: number;
+  round_status: string;
+  winning_side?: string;
+  end_time: string;
+  claim_status?: string;
 }
 
 interface WeatherLottoStats {
