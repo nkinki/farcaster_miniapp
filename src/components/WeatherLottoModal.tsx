@@ -311,8 +311,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           winner: result.winningSide || 'unknown',
           round: result.roundNumber || 0
         });
-        // Hide result after 4 seconds
-        setTimeout(() => setDrawResult(null), 4000);
+        // Hide result after 8 seconds
+        setTimeout(() => setDrawResult(null), 8000);
         // Refresh data
         await fetchWeatherLottoData();
       } else {
@@ -727,7 +727,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-yellow-400 font-bold">2️⃣</span>
-                    <span><span className="text-green-400 font-semibold">Sorsolj magad, dönts te!</span></span>
+                    <span><span className="text-green-400 font-semibold">Draw yourself, decide your fate!</span></span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-yellow-400 font-bold">3️⃣</span>
