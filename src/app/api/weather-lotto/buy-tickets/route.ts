@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
       playerName, 
       playerAvatar, 
       side, 
-      quantity 
+      quantity,
+      transactionHash
     } = await request.json();
 
     // Validation
@@ -84,8 +85,9 @@ export async function POST(request: NextRequest) {
           player_avatar,
           side,
           quantity,
-          total_cost
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          total_cost,
+          transaction_hash
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
       `, [
         round.id,
@@ -95,7 +97,8 @@ export async function POST(request: NextRequest) {
         playerAvatar || null,
         side,
         quantity,
-        totalCost.toString()
+        totalCost.toString(),
+        transactionHash || null
       ]);
 
       // Update round statistics

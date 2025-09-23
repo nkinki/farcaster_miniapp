@@ -88,6 +88,9 @@ enum PurchaseStep {
 export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchaseSuccess }: WeatherLottoModalProps) {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
+  const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: undefined,
+  });
 
   // --- Állapotok ---
   const [currentRound, setCurrentRound] = useState<WeatherLottoRound | null>(null);
@@ -195,13 +198,38 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   useEffect(() => {
     if (isPurchased && step === PurchaseStep.PurchaseConfirming) {
       setStep(PurchaseStep.Saving);
-      handleSaveTicket();
+      handleSaveToDatabase();
     }
   }, [isPurchased, step]);
 
   const handleSaveTicket = async () => {
     try {
       if (!selectedSide || !address) return;
+
+      setStep(PurchaseStep.Purchasing);
+
+      // Onchain transaction
+      const functionName = selectedSide === 'sunny' ? 'buySunnyTickets' : 'buyRainyTickets';
+      
+      const hash = await writeContractAsync({
+        address: WEATHER_LOTTO_ADDRESS,
+        abi: WEATHER_LOTTO_ABI,
+        functionName: functionName,
+        args: [BigInt(quantity)]
+      });
+
+      setStep(PurchaseStep.PurchaseConfirming);
+      setPurchaseTxHash(hash);
+    } catch (error) {
+      console.error('Error purchasing ticket:', error);
+      setErrorMessage('Failed to purchase ticket: ' + (error as Error).message);
+      setStep(PurchaseStep.Idle);
+    }
+  };
+
+  const handleSaveToDatabase = async () => {
+    try {
+      if (!selectedSide || !address || !purchaseTxHash) return;
 
       const response = await fetch('/api/weather-lotto/buy-tickets', {
         method: 'POST',
@@ -210,7 +238,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           playerFid: userFid,
           playerAddress: address,
           side: selectedSide,
-          quantity: quantity
+          quantity: quantity,
+          transactionHash: purchaseTxHash
         })
       });
 
@@ -221,14 +250,15 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         setSelectedSide(null);
         setQuantity(1);
         setErrorMessage(null);
+        setPurchaseTxHash(undefined);
       } else {
         const error = await response.json();
-        setErrorMessage(error.error || 'Failed to save ticket');
+        setErrorMessage(error.error || 'Failed to save ticket to database');
         setStep(PurchaseStep.Idle);
       }
     } catch (error) {
-      console.error('Error saving ticket:', error);
-      setErrorMessage('Failed to save ticket');
+      console.error('Error saving ticket to database:', error);
+      setErrorMessage('Failed to save ticket to database');
       setStep(PurchaseStep.Idle);
     }
   };
