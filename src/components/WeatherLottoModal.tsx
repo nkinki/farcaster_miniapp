@@ -404,7 +404,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
 
-              <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <div className="py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
                   <h3 className="text-xl font-bold text-white mb-4 text-center drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"><FiZap className="inline mr-2" /> Choose Your Side</h3>
               
@@ -460,7 +460,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
               {/* Round Info - Always visible */}
               {currentRound && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                   <div className="py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
                     <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
                       <div className="text-center min-w-0"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
