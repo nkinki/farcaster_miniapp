@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { createPublicClient, createWalletClient, http, parseUnits } from 'viem';
+import { base } from 'viem/chains';
+import { privateKeyToAccount } from 'viem/accounts';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -51,15 +54,82 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Update claim status to paid (in real implementation, this would be after successful blockchain transaction)
+      // Perform onchain payout
+      let transactionHash = null;
+      const backendWalletPrivateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
+      
+      if (backendWalletPrivateKey) {
+        try {
+          // Create wallet client for treasury operations
+          const account = privateKeyToAccount(backendWalletPrivateKey as `0x${string}`);
+          
+          const publicClient = createPublicClient({
+            chain: base,
+            transport: http()
+          });
+          
+          const walletClient = createWalletClient({
+            account,
+            chain: base,
+            transport: http()
+          });
+          
+          // Convert amount to wei (assuming total_payout is in CHESS tokens, not wei)
+          const amountInWei = parseUnits(claim.total_payout.toString(), 18);
+          
+          // Get CHESS token address from environment
+          const chessTokenAddress = process.env.NEXT_PUBLIC_CHESS_TOKEN_ADDRESS;
+          if (!chessTokenAddress) {
+            throw new Error('CHESS token address not configured');
+          }
+          
+          // ERC20 transfer function ABI
+          const erc20Abi = [
+            {
+              "inputs": [
+                { "internalType": "address", "name": "to", "type": "address" },
+                { "internalType": "uint256", "name": "amount", "type": "uint256" }
+              ],
+              "name": "transfer",
+              "outputs": [ { "internalType": "bool", "name": "", "type": "bool" } ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ] as const;
+          
+          // Direct ERC20 transfer from backend wallet to winner
+          const hash = await walletClient.writeContract({
+            address: chessTokenAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: 'transfer',
+            args: [claim.player_address as `0x${string}`, amountInWei]
+          });
+          
+          transactionHash = hash;
+          console.log('✅ Weather Lotto onchain payout successful:', hash);
+          
+        } catch (onchainError) {
+          console.error('❌ Weather Lotto onchain payout failed:', onchainError);
+          await client.query('ROLLBACK');
+          return NextResponse.json({
+            success: false,
+            error: 'Onchain payment failed: ' + (onchainError as Error).message
+          }, { status: 500 });
+        }
+      } else {
+        console.log('⚠️ Backend wallet private key not configured - marking as paid without onchain payment');
+      }
+
+      // Update claim status to paid with transaction hash
       await client.query(`
         UPDATE weather_lotto_claims 
         SET 
           status = 'paid',
           paid_at = NOW(),
+          transaction_hash = $2,
           updated_at = NOW()
         WHERE id = $1
-      `, [claim.id]);
+      `, [claim.id, transactionHash]);
 
       // Update corresponding tickets as claimed
       await client.query(`
