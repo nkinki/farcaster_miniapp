@@ -173,27 +173,32 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   }, [isOpen, fetchWeatherLottoData]);
 
   useEffect(() => {
-    if (currentRound) {
-      const updateTimer = () => {
-        const now = new Date().getTime();
-        const endTime = new Date(currentRound.end_time).getTime();
-        const timeLeft = Math.max(0, endTime - now);
+    const updateTimer = () => {
+      const now = new Date();
+      const today = new Date(now);
+      today.setUTCHours(20, 5, 0, 0); // 20:05 UTC today
+      
+      // If 20:05 has passed today, set to tomorrow
+      if (now.getTime() > today.getTime()) {
+        today.setUTCDate(today.getUTCDate() + 1);
+      }
+      
+      const timeLeft = Math.max(0, today.getTime() - now.getTime());
 
-        if (timeLeft > 0) {
-          const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-          const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-          setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-        } else {
-          setTimeRemaining("00:00:00");
-        }
-      };
+      if (timeLeft > 0) {
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      } else {
+        setTimeRemaining("00:00:00");
+      }
+    };
 
-      updateTimer();
-      const interval = setInterval(updateTimer, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [currentRound]);
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (selectedSide && isConnected) {
@@ -735,7 +740,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-yellow-400 font-bold">4️⃣</span>
-                    <span>Daily draw at <span className="text-cyan-400 font-semibold">19:05 UTC</span></span>
+                    <span>Daily draw at <span className="text-cyan-400 font-semibold">20:05 UTC</span></span>
                   </div>
                 </div>
               </div>
