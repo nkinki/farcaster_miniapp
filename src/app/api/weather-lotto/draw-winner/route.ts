@@ -77,8 +77,9 @@ export async function POST(request: NextRequest) {
         // Calculate payouts
         if (winners.length > 0) {
           const totalWinningTickets = winners.reduce((sum, ticket) => sum + ticket.quantity, 0);
-          const winnersPool = Math.floor(parseInt(round.total_pool) * 0.7); // 70% winners
-          const treasuryAmount = parseInt(round.total_pool) - winnersPool; // 30% treasury
+          // Simplified payout calculation - use smaller numbers
+          const winnersPool = Math.floor(parseInt(round.total_pool) * 0.7 / 100000000000000000000000); // Convert to CHESS
+          const treasuryAmount = Math.floor(parseInt(round.total_pool) * 0.3 / 100000000000000000000000); // Convert to CHESS
 
           // Update ticket payouts
           for (const winner of winners) {

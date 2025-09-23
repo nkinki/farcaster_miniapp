@@ -338,6 +338,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       return;
     }
 
+    // Find the ticket to get its round_id
+    const ticket = userTickets.find(t => t.id === ticketId);
+    if (!ticket) {
+      setErrorMessage('Ticket not found');
+      return;
+    }
+
     try {
       setClaimingTicket(ticketId);
       setErrorMessage(null);
@@ -347,7 +354,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           player_fid: userFid,
-          round_id: currentRound?.id
+          round_id: ticket.round_id
         })
       });
 
