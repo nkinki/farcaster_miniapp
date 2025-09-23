@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     try {
       await client.query('BEGIN');
 
-      // Get winning tickets for this player and round
+      // Get winning tickets for this player and round that are NOT already claimed
       const ticketsResult = await client.query(`
         SELECT 
           t.*,
@@ -36,13 +36,13 @@ export async function POST(request: NextRequest) {
           r.status as round_status
         FROM weather_lotto_tickets t
         JOIN weather_lotto_rounds r ON t.round_id = r.id
-        WHERE t.player_fid = $1 AND t.round_id = $2 AND r.status = 'completed' AND r.winning_side = t.side AND t.payout_amount > 0
+        WHERE t.player_fid = $1 AND t.round_id = $2 AND r.status = 'completed' AND r.winning_side = t.side AND t.payout_amount > 0 AND t.is_claimed = FALSE
       `, [player_fid, round_id]);
 
       if (ticketsResult.rows.length === 0) {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { success: false, error: 'No winning tickets found for this player and round' },
+          { success: false, error: 'No unclaimed winning tickets found for this player and round' },
           { status: 400 }
         );
       }

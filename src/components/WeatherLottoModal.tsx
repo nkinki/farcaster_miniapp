@@ -680,8 +680,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                             <div>Payout: {ticket.payout_amount} | Claim: {ticket.claim_status}</div>
                           </div>
                           
-                          {/* Claim Button - Simple condition */}
-                          {ticket.round_status === 'completed' && ticket.winning_side === ticket.side && (
+                          {/* Claim Button - Only show if not already claimed */}
+                          {ticket.round_status === 'completed' && ticket.winning_side === ticket.side && !ticket.is_claimed && (
                             <div className="mt-3 pt-2 border-t border-gray-600">
                               <div className="flex justify-between items-center">
                                 <div className="text-sm">
@@ -707,6 +707,22 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                                     : '💰 Claim Prize'
                                   }
                                 </button>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Show "Already Claimed" if ticket is claimed */}
+                          {ticket.round_status === 'completed' && ticket.winning_side === ticket.side && ticket.is_claimed && (
+                            <div className="mt-3 pt-2 border-t border-gray-600">
+                              <div className="flex justify-between items-center">
+                                <div className="text-sm">
+                                  <span className="text-green-400 font-semibold">
+                                    Won: {ticket.payout_amount ? formatNumber(ticket.payout_amount) : 'Calculating...'} CHESS
+                                  </span>
+                                </div>
+                                <div className="px-3 py-1 text-xs font-bold rounded-lg bg-gray-600 text-gray-400">
+                                  ✅ Already Claimed
+                                </div>
                               </div>
                             </div>
                           )}
