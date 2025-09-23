@@ -727,7 +727,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-yellow-400 font-bold">2️⃣</span>
-                    <span>Each purchase is <span className="text-green-400 font-semibold">1 ticket only</span></span>
+                    <span><span className="text-green-400 font-semibold">Sorsolj magad, dönts te!</span></span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-yellow-400 font-bold">3️⃣</span>
