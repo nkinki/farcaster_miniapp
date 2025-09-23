@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
             transport: http()
           });
           
-          // Convert amount to wei (assuming total_payout is in CHESS tokens, not wei)
-          const amountInWei = parseUnits(totalPayout.toString(), 18);
+          // totalPayout is already in wei, no need to convert
+          const amountInWei = BigInt(totalPayout);
           
           // Get CHESS token address from environment
           const chessTokenAddress = process.env.NEXT_PUBLIC_CHESS_TOKEN_ADDRESS;
