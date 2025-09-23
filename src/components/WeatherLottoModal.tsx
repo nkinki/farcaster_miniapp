@@ -107,6 +107,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [purchaseTxHash, setPurchaseTxHash] = useState<Hash | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isManualDrawing, setIsManualDrawing] = useState(false);
+  const [drawResult, setDrawResult] = useState<{winner: string, round: number} | null>(null);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
     hash: approveTxHash
@@ -298,6 +299,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       
       if (result.success) {
         console.log('✅ Manual draw successful:', result);
+        // Show draw result
+        setDrawResult({
+          winner: result.winningSide || 'unknown',
+          round: result.roundNumber || 0
+        });
+        // Hide result after 4 seconds
+        setTimeout(() => setDrawResult(null), 4000);
         // Refresh data
         await fetchWeatherLottoData();
       } else {
@@ -391,6 +399,26 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[95vh] flex flex-col border border-[#a64d79] relative shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
+          
+          {/* Draw Result Overlay */}
+          {drawResult && (
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
+              <div className="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-8 rounded-2xl shadow-2xl text-center animate-pulse">
+                <div className="text-6xl mb-4">
+                  {drawResult.winner === 'sunny' ? '☀️' : '🌧️'}
+                </div>
+                <div className="text-3xl font-bold text-white mb-2">
+                  {drawResult.winner === 'sunny' ? 'SUNNY WINS!' : 'RAINY WINS!'}
+                </div>
+                <div className="text-xl text-white/90">
+                  Round #{drawResult.round}
+                </div>
+                <div className="text-sm text-white/70 mt-2">
+                  🎉 Congratulations! 🎉
+                </div>
+              </div>
+            </div>
+          )}
           <div className="relative z-10 flex flex-col items-center mb-6">
             <div className="w-full flex justify-center items-center mb-2">
               <div className="flex items-center justify-center gap-2">
@@ -634,12 +662,12 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               </div>
 
               <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
-                <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Last 10 Rounds</h3>
+                <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Last 5 Rounds</h3>
                 
                 {/* Last 10 Rounds - Simple List */}
                 {recentRounds.length > 0 ? (
                   <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {recentRounds.slice(0, 10).map((round) => (
+                    {recentRounds.slice(0, 5).map((round) => (
                       <div key={round.id} className="bg-gray-800 rounded p-2 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
