@@ -145,9 +145,9 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         const roundData = await roundRes.json();
         setCurrentRound(roundData.round);
         
-        // Fetch tickets for current round only
-        if (userFid && roundData.round) {
-          const ticketsRes = await fetch(`/api/weather-lotto/user-tickets?fid=${userFid}&round_id=${roundData.round.id}`);
+        // Fetch tickets for all rounds
+        if (userFid) {
+          const ticketsRes = await fetch(`/api/weather-lotto/user-tickets?fid=${userFid}`);
           if (ticketsRes.ok) {
             const ticketsData = await ticketsRes.json();
             setUserTickets(ticketsData.tickets || []);
