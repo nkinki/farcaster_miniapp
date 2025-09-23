@@ -511,20 +511,24 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         onClick={handlePurchase}
                         disabled={step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase}
                         className={`w-full py-4 px-6 rounded-xl font-bold text-xl transition-all duration-300 disabled:cursor-not-allowed hover:scale-105 shadow-lg pulse-glow ${
-                          step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase
+                          step === PurchaseStep.Approving || step === PurchaseStep.ApproveConfirming
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
+                            : step === PurchaseStep.Purchasing || step === PurchaseStep.PurchaseConfirming || step === PurchaseStep.Saving
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
+                            : step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase
                             ? 'bg-gray-600 text-gray-400'
                             : selectedSide === 'sunny'
                             ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
                             : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white'
                         }`}
                       >
-                        {step === PurchaseStep.Approving && 'Approving...'}
-                        {step === PurchaseStep.ApproveConfirming && 'Confirming Approval...'}
-                        {step === PurchaseStep.ReadyToPurchase && 'Purchase Tickets'}
-                        {step === PurchaseStep.Purchasing && 'Purchasing...'}
-                        {step === PurchaseStep.PurchaseConfirming && 'Confirming Purchase...'}
-                        {step === PurchaseStep.Saving && 'Saving...'}
-                        {step === PurchaseStep.Idle && 'Purchase Tickets'}
+                        {step === PurchaseStep.Approving && '1️⃣ Approving CHESS...'}
+                        {step === PurchaseStep.ApproveConfirming && '1️⃣ Confirming Approval...'}
+                        {step === PurchaseStep.ReadyToPurchase && '2️⃣ Buy Ticket'}
+                        {step === PurchaseStep.Purchasing && '2️⃣ Buying Ticket...'}
+                        {step === PurchaseStep.PurchaseConfirming && '2️⃣ Confirming Purchase...'}
+                        {step === PurchaseStep.Saving && '2️⃣ Saving...'}
+                        {step === PurchaseStep.Idle && '1️⃣ Approve & 2️⃣ Buy Ticket'}
                       </button>
                     )}
 
@@ -581,6 +585,33 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   </div>
                 </div>
               )}
+
+              {/* Rules Section */}
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center justify-center gap-2">📋 Rules</h3>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-400 font-bold">1️⃣</span>
+                    <span>You can buy tickets for <span className="text-orange-400 font-semibold">both Sunny and Rainy</span> sides</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-400 font-bold">2️⃣</span>
+                    <span>Each purchase is <span className="text-green-400 font-semibold">1 ticket only</span></span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-400 font-bold">3️⃣</span>
+                    <span>House provides <span className="text-purple-400 font-semibold">100k CHESS</span> base for each side</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-400 font-bold">4️⃣</span>
+                    <span>Winners get <span className="text-green-400 font-semibold">70%</span> of total pool, <span className="text-purple-400 font-semibold">30%</span> goes to treasury</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-400 font-bold">5️⃣</span>
+                    <span>Daily draw at <span className="text-cyan-400 font-semibold">19:05 UTC</span></span>
+                  </div>
+                </div>
+              </div>
 
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Statistics</h3>
