@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       }
 
       const winningTickets = ticketsResult.rows;
-      const totalPayout = winningTickets.reduce((sum, ticket) => sum + parseInt(ticket.payout_amount), 0);
+      const totalPayout = winningTickets.reduce((sum, ticket) => sum + BigInt(ticket.payout_amount), 0n);
 
       // Verify the round is completed
       if (winningTickets[0].round_status !== 'completed') {
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
             transport: http()
           });
           
-          // totalPayout is already in wei, no need to convert
-          const amountInWei = BigInt(totalPayout);
+          // totalPayout is already in wei as BigInt
+          const amountInWei = totalPayout;
           
           // Get CHESS token address from environment
           const chessTokenAddress = process.env.NEXT_PUBLIC_CHESS_TOKEN_ADDRESS;
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
           total_payout: BigInt(totalPayout),
           status: 'paid'
         },
-        message: `Successfully claimed ${totalPayout} CHESS for ${winningTickets.length} winning tickets`
+        message: `Successfully claimed ${totalPayout.toString()} CHESS for ${winningTickets.length} winning tickets`
       });
 
     } catch (error) {
