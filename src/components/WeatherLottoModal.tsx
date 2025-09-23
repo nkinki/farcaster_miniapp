@@ -107,8 +107,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [purchaseTxHash, setPurchaseTxHash] = useState<Hash | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ hash: approveTxHash });
-  const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ hash: purchaseTxHash });
+  const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
+    hash: approveTxHash,
+    enabled: !!approveTxHash
+  });
+  const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ 
+    hash: purchaseTxHash,
+    enabled: !!purchaseTxHash
+  });
 
   const totalCost = TICKET_PRICE * BigInt(quantity);
 
@@ -196,11 +202,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   }, [isApproved, step]);
 
   useEffect(() => {
+    console.log('🔍 Purchase effect:', { isPurchased, step, purchaseTxHash });
     if (isPurchased && step === PurchaseStep.PurchaseConfirming) {
+      console.log('✅ Transaction confirmed, saving to database...');
       setStep(PurchaseStep.Saving);
       handleSaveToDatabase();
     }
-  }, [isPurchased, step]);
+  }, [isPurchased, step, purchaseTxHash]);
 
   const handleSaveTicket = async () => {
     try {
