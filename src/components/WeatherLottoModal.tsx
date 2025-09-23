@@ -260,10 +260,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         setErrorMessage(null);
         setPurchaseTxHash(undefined);
         setApproveTxHash(undefined);
-        // Force refresh the modal state
+        // Reset all states for next purchase
         setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+          setErrorMessage('✅ Purchase successful! You can now buy tickets for the other side.');
+        }, 500);
       } else {
         const error = await response.json();
         setErrorMessage(error.error || 'Failed to save ticket to database');
@@ -489,8 +489,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         <div className="text-xs text-gray-500">
                           ROI: {currentRound ? (
                             ((((currentRound.total_tickets * 100000 * 0.7) / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + 1, 1)) / 
-                            100000 - 1
-                          ) * 100).toFixed(1) : '0'}%
+                            100000 - 1) * 100).toFixed(1)
+                          ) : '0'}%
                         </div>
                       </div>
                     </div>
