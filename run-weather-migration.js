@@ -1,58 +1,63 @@
 const https = require('https');
 
-// This script will call the Weather Lotto database setup API endpoint
-async function setupWeatherDB() {
-  try {
-    console.log('🚀 Setting up Weather Lotto database via API...');
-    
-    const options = {
-      hostname: 'farcaster-miniapp.vercel.app', // Replace with your actual Vercel domain
-      port: 443,
-      path: '/api/weather-lotto/setup-db',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
+async function runMigration() {
+  const data = JSON.stringify({
+    migrationName: 'add_transaction_hash'
+  });
 
+  const options = {
+    hostname: 'farc-nu.vercel.app',
+    port: 443,
+    path: '/api/weather-lotto/run-migration',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': data.length
+    }
+  };
+
+  return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
-      let data = '';
+      let responseData = '';
 
       res.on('data', (chunk) => {
-        data += chunk;
+        responseData += chunk;
       });
 
       res.on('end', () => {
         try {
-          const result = JSON.parse(data);
-          console.log('📊 Weather Lotto Database Setup Results:');
-          console.log(JSON.stringify(result, null, 2));
-          
-          if (result.success) {
-            if (result.status === 'created') {
-              console.log('✅ Weather Lotto database created successfully!');
-              console.log('📊 Created tables:', result.tables.join(', '));
-            } else if (result.status === 'already_exists') {
-              console.log('✅ Weather Lotto database already exists!');
-            }
+          const result = JSON.parse(responseData);
+          if (res.statusCode === 200) {
+            console.log('✅ Migration successful:', result);
+            resolve(result);
           } else {
-            console.log('❌ Database setup failed:', result.error);
+            console.error('❌ Migration failed:', result);
+            reject(new Error(result.error || 'Migration failed'));
           }
         } catch (error) {
-          console.log('📄 Raw response:', data);
+          console.error('❌ Failed to parse response:', error);
+          reject(error);
         }
       });
     });
 
     req.on('error', (error) => {
       console.error('❌ Request failed:', error);
+      reject(error);
     });
 
+    req.write(data);
     req.end();
-    
-  } catch (error) {
-    console.error('❌ Database setup script failed:', error);
-  }
+  });
 }
 
-setupWeatherDB();
+// Run the migration
+runMigration()
+  .then(() => {
+    console.log('🎉 Migration completed successfully!');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('💥 Migration failed:', error.message);
+    process.exit(1);
+  });
