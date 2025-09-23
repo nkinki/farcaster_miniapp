@@ -398,7 +398,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
 
-              <div className="bg-white rounded-xl p-4 border border-[#a64d79] shadow-lg pulse-glow">
+              <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg pulse-glow">
                 <h3 className="text-xl font-bold text-gray-800 mb-4 text-center"><FiZap className="inline mr-2" /> Choose Your Side</h3>
               
                 <div className="grid grid-cols-2 gap-4">
@@ -604,10 +604,6 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-yellow-400 font-bold">4️⃣</span>
-                    <span>Winners get <span className="text-green-400 font-semibold">70%</span> of total pool, <span className="text-purple-400 font-semibold">30%</span> goes to treasury</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-yellow-400 font-bold">5️⃣</span>
                     <span>Daily draw at <span className="text-cyan-400 font-semibold">19:05 UTC</span></span>
                   </div>
                 </div>
