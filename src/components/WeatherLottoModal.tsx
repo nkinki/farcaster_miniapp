@@ -410,7 +410,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
               }`}
             >
-              {isManualDrawing ? '🎲 Sorsolás...' : `🎲 Sorsolj magad ${!currentRound || currentRound.total_tickets < 6 ? '(Min 6 tickets)' : ''}`}
+              {isManualDrawing ? '🎲 Drawing...' : `🎲 Manual Draw ${!currentRound || currentRound.total_tickets < 6 ? '(Min 6 tickets)' : ''}`}
             </button>
             
             <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
