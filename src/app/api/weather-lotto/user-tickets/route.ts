@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
           c.status as claim_status
         FROM weather_lotto_tickets t
         JOIN weather_lotto_rounds r ON t.round_id = r.id
-        LEFT JOIN weather_lotto_claims c ON t.id = c.ticket_id
+        LEFT JOIN weather_lotto_claims c ON t.round_id = c.round_id AND t.player_fid = c.player_fid
         WHERE t.player_fid = $1
       `;
       
