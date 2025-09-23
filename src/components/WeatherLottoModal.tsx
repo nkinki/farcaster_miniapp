@@ -427,6 +427,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               </div>
             </div>
             <p className="text-purple-200 text-sm font-medium mt-1 text-center">Weather Lottery</p>
+            <p className="text-cyan-300 text-xs font-medium mt-1 text-center">The decision is in your hands - choose your side, draw your fate!</p>
             
             {/* Manual Draw Button */}
             <button 
