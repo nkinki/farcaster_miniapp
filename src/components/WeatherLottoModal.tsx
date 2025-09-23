@@ -108,6 +108,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isManualDrawing, setIsManualDrawing] = useState(false);
   const [drawResult, setDrawResult] = useState<{winner: string, round: number} | null>(null);
+  const [claimingTicket, setClaimingTicket] = useState<number | null>(null);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
     hash: approveTxHash
@@ -317,6 +318,45 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       setErrorMessage('Manual draw failed');
     } finally {
       setIsManualDrawing(false);
+    }
+  };
+
+  const handleClaimWinnings = async (ticketId: number) => {
+    if (!address || !isConnected) {
+      setErrorMessage('Please connect your wallet to claim winnings');
+      return;
+    }
+
+    try {
+      setClaimingTicket(ticketId);
+      setErrorMessage(null);
+
+      const response = await fetch('/api/weather-lotto/claim-winnings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          player_fid: user?.fid,
+          round_id: currentRound?.id
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Claim successful:', result);
+        // Refresh data
+        await fetchWeatherLottoData();
+        setErrorMessage('✅ Winnings claimed successfully!');
+        setTimeout(() => setErrorMessage(null), 3000);
+      } else {
+        console.error('❌ Claim failed:', result.error);
+        setErrorMessage(result.error || 'Claim failed');
+      }
+    } catch (error) {
+      console.error('❌ Claim error:', error);
+      setErrorMessage('Claim failed');
+    } finally {
+      setClaimingTicket(null);
     }
   };
 
@@ -632,6 +672,38 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                               </span>
                             </div>
                           </div>
+                          
+                          {/* Claim Button for winning tickets */}
+                          {ticket.round_status === 'completed' && 
+                           ticket.winning_side === ticket.side && 
+                           ticket.payout_amount && 
+                           ticket.payout_amount > 0 && (
+                            <div className="mt-3 pt-2 border-t border-gray-600">
+                              <div className="flex justify-between items-center">
+                                <div className="text-sm">
+                                  <span className="text-green-400 font-semibold">Won: {formatNumber(ticket.payout_amount)} CHESS</span>
+                                </div>
+                                <button
+                                  onClick={() => handleClaimWinnings(ticket.id)}
+                                  disabled={claimingTicket === ticket.id || ticket.claim_status === 'paid'}
+                                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all duration-300 ${
+                                    ticket.claim_status === 'paid'
+                                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                      : claimingTicket === ticket.id
+                                      ? 'bg-yellow-600 text-white cursor-not-allowed'
+                                      : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-105'
+                                  }`}
+                                >
+                                  {ticket.claim_status === 'paid' 
+                                    ? '✅ Claimed' 
+                                    : claimingTicket === ticket.id 
+                                    ? '⏳ Claiming...' 
+                                    : '💰 Claim Prize'
+                                  }
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
