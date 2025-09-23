@@ -688,7 +688,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                           {ticket.round_status === 'completed' && 
                            ticket.winning_side === ticket.side && 
                            ticket.payout_amount && 
-                           ticket.payout_amount > 0 && (
+                           Number(ticket.payout_amount) > 0 && (
                             <div className="mt-3 pt-2 border-t border-gray-600">
                               <div className="flex justify-between items-center">
                                 <div className="text-sm">
