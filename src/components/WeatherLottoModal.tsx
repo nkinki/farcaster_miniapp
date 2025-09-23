@@ -599,7 +599,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               )}
 
               {/* Rules Section */}
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+              <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                 <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center justify-center gap-2">📋 Rules</h3>
                 <div className="space-y-2 text-sm text-gray-300">
                   <div className="flex items-start gap-2">
@@ -621,14 +621,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </div>
               </div>
 
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+              <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                 <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Last 10 Rounds</h3>
                 
                 {/* Last 10 Rounds - Simple List */}
                 {recentRounds.length > 0 ? (
-                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
                     {recentRounds.slice(0, 10).map((round) => (
-                      <div key={round.id} className="bg-gray-800 rounded p-3 text-sm">
+                      <div key={round.id} className="bg-gray-800 rounded p-2 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
                           <div className="flex items-center gap-2">
