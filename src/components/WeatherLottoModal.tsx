@@ -106,6 +106,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
   const [purchaseTxHash, setPurchaseTxHash] = useState<Hash | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isManualDrawing, setIsManualDrawing] = useState(false);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
     hash: approveTxHash
@@ -278,7 +279,16 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
 
   const handleManualDraw = async () => {
+    // Prevent double-clicking during manual draw
+    if (isManualDrawing) {
+      console.log('⚠️ Manual draw already in progress, ignoring click');
+      return;
+    }
+
     try {
+      setIsManualDrawing(true);
+      setErrorMessage(null);
+      
       const response = await fetch('/api/weather-lotto/draw-winner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -289,7 +299,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       if (result.success) {
         console.log('✅ Manual draw successful:', result);
         // Refresh data
-        fetchWeatherLottoData();
+        await fetchWeatherLottoData();
       } else {
         console.error('❌ Manual draw failed:', result.error);
         setErrorMessage(result.error || 'Manual draw failed');
@@ -297,6 +307,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     } catch (error) {
       console.error('❌ Manual draw error:', error);
       setErrorMessage('Manual draw failed');
+    } finally {
+      setIsManualDrawing(false);
     }
   };
 
@@ -391,14 +403,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             {/* Manual Draw Button */}
             <button 
               onClick={handleManualDraw}
-              disabled={!currentRound || (currentRound.current_total_pool * 0.3) < 200000}
+              disabled={!currentRound || currentRound.total_tickets < 6 || isManualDrawing}
               className={`mt-3 px-4 py-2 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg ${
-                !currentRound || (currentRound.current_total_pool * 0.3) < 200000
+                !currentRound || currentRound.total_tickets < 6 || isManualDrawing
                   ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
               }`}
             >
-              🎲 Manual Draw {!currentRound || (currentRound.current_total_pool * 0.3) < 200000 ? '(Min 200k treasury needed)' : ''}
+              {isManualDrawing ? '🎲 Sorsolás...' : `🎲 Sorsolj magad ${!currentRound || currentRound.total_tickets < 6 ? '(Min 6 tickets)' : ''}`}
             </button>
             
             <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
