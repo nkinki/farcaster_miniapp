@@ -686,13 +686,11 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                           
                           {/* Claim Button for winning tickets */}
                           {ticket.round_status === 'completed' && 
-                           ticket.winning_side === ticket.side && 
-                           ticket.payout_amount && 
-                           Number(ticket.payout_amount) > 0 && (
+                           ticket.winning_side === ticket.side && (
                             <div className="mt-3 pt-2 border-t border-gray-600">
                               <div className="flex justify-between items-center">
                                 <div className="text-sm">
-                                  <span className="text-green-400 font-semibold">Won: {formatNumber(ticket.payout_amount)} CHESS</span>
+                                  <span className="text-green-400 font-semibold">Won: {ticket.payout_amount ? formatNumber(ticket.payout_amount) : 'Calculating...'} CHESS</span>
                                 </div>
                                 <button
                                   onClick={() => handleClaimWinnings(ticket.id)}

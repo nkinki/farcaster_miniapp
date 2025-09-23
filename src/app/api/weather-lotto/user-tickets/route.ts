@@ -27,9 +27,11 @@ export async function GET(request: NextRequest) {
           r.round_number,
           r.status as round_status,
           r.winning_side,
-          r.end_time
+          r.end_time,
+          c.status as claim_status
         FROM weather_lotto_tickets t
         JOIN weather_lotto_rounds r ON t.round_id = r.id
+        LEFT JOIN weather_lotto_claims c ON t.id = c.ticket_id
         WHERE t.player_fid = $1
       `;
       
