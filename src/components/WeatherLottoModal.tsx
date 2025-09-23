@@ -668,18 +668,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                           </div>
                           
                           {/* Claim Button for winning tickets */}
-                          {(() => {
-                            console.log('🔍 Ticket debug:', {
-                              id: ticket.id,
-                              round_status: ticket.round_status,
-                              winning_side: ticket.winning_side,
-                              ticket_side: ticket.side,
-                              payout_amount: ticket.payout_amount,
-                              claim_status: ticket.claim_status
-                            });
-                            return ticket.round_status === 'completed' && 
-                                   ticket.winning_side === ticket.side;
-                          })() && (
+                          {ticket.round_status === 'completed' && 
+                           ticket.winning_side === ticket.side && (
                             <div className="mt-3 pt-2 border-t border-gray-600">
                               <div className="flex justify-between items-center">
                                 <div className="text-sm">
