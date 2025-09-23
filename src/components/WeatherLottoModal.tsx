@@ -335,7 +335,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          player_fid: user?.fid,
+          player_fid: userFid,
           round_id: currentRound?.id
         })
       });
