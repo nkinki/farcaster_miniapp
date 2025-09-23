@@ -614,142 +614,45 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               </div>
 
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Statistics</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Rounds:</span>
-                      <span className="font-semibold text-cyan-400">{stats?.total_rounds || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Current Round:</span>
-                      <span className="font-semibold text-cyan-400">{currentRound?.total_tickets || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">☀️ / 🌧️:</span>
-                      <span className="font-semibold text-orange-400">{currentRound?.sunny_tickets || 0} / {currentRound?.rainy_tickets || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Volume:</span>
-                      <span className="font-semibold text-green-400">{formatNumber(stats?.total_volume || 0)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Payouts:</span>
-                      <span className="font-semibold text-green-400">{formatNumber(stats?.total_payouts || 0)}</span>
-                    </div>
-                    
-                    {/* Last Round Results */}
-                    {currentRound && currentRound.status === 'completed' && (
-                      <>
-                        <div className="border-t border-gray-600 pt-3 mt-3">
-                          <div className="text-sm font-semibold text-cyan-400 mb-2 text-center">
-                            🏆 Last Round Results
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Winner:</span>
-                              <div className="flex items-center gap-1">
-                                {currentRound.winning_side === 'sunny' ? (
-                                  <FiSun className="w-3 h-3 text-orange-500" />
-                                ) : (
-                                  <FiCloudRain className="w-3 h-3 text-blue-500" />
-                                )}
-                                <span className="font-semibold text-yellow-400 capitalize">
-                                  {currentRound.winning_side}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Tickets:</span>
-                              <span className="font-semibold text-cyan-400">{currentRound.total_tickets}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">☀️ Won:</span>
-                              <span className="font-semibold text-orange-400">
-                                {currentRound.winning_side === 'sunny' ? formatNumber(currentRound.winners_pool) : '0'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">🌧️ Won:</span>
-                              <span className="font-semibold text-blue-400">
-                                {currentRound.winning_side === 'rainy' ? formatNumber(currentRound.winners_pool) : '0'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Treasury:</span>
-                              <span className="font-semibold text-purple-400">{formatNumber(currentRound.treasury_amount)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Total Pool:</span>
-                              <span className="font-semibold text-yellow-400">{formatNumber(currentRound.current_total_pool)}</span>
-                            </div>
+                <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Last 10 Rounds</h3>
+                
+                {/* Last 10 Rounds - Simple List */}
+                {recentRounds.length > 0 ? (
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {recentRounds.slice(0, 10).map((round) => (
+                      <div key={round.id} className="bg-gray-800 rounded p-3 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
+                          <div className="flex items-center gap-2">
+                            {round.winning_side === 'sunny' ? (
+                              <>
+                                <FiSun className="w-4 h-4 text-orange-500" />
+                                <span className="text-orange-400 font-semibold">☀️ Sunny</span>
+                              </>
+                            ) : round.winning_side === 'rainy' ? (
+                              <>
+                                <FiCloudRain className="w-4 h-4 text-blue-500" />
+                                <span className="text-blue-400 font-semibold">🌧️ Rainy</span>
+                              </>
+                            ) : (
+                              <span className="text-gray-400">Pending</span>
+                            )}
                           </div>
                         </div>
-                      </>
-                    )}
-                    
-                    {/* Last 5 Rounds */}
-                    {recentRounds.length > 0 && (
-                      <>
-                        <div className="border-t border-gray-600 pt-3 mt-3">
-                          <div className="text-sm font-semibold text-cyan-400 mb-2 text-center">
-                            📊 Last 5 Rounds
+                        {round.winning_side && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            ☀️ {round.sunny_tickets} / 🌧️ {round.rainy_tickets} tickets
                           </div>
-                          <div className="space-y-2 max-h-60 overflow-y-auto">
-                            {recentRounds.slice(0, 5).map((round) => (
-                              <div key={round.id} className="bg-gray-800 rounded p-3 text-xs">
-                                <div className="flex justify-between items-center mb-2">
-                                  <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
-                                  <div className="flex items-center gap-1">
-                                    {round.winning_side === 'sunny' ? (
-                                      <FiSun className="w-3 h-3 text-orange-500" />
-                                    ) : round.winning_side === 'rainy' ? (
-                                      <FiCloudRain className="w-3 h-3 text-blue-500" />
-                                    ) : (
-                                      <span className="text-gray-400">-</span>
-                                    )}
-                                    <span className="text-gray-300 capitalize">{round.winning_side || 'Pending'}</span>
-                                  </div>
-                                </div>
-                                
-                                {/* Tickets */}
-                                <div className="grid grid-cols-2 gap-2 mb-2">
-                                  <div className="text-center">
-                                    <div className="text-orange-400 font-semibold">☀️ {round.sunny_tickets}</div>
-                                    <div className="text-gray-400 text-xs">tickets</div>
-                                  </div>
-                                  <div className="text-center">
-                                    <div className="text-blue-400 font-semibold">🌧️ {round.rainy_tickets}</div>
-                                    <div className="text-gray-400 text-xs">tickets</div>
-                                  </div>
-                                </div>
-                                
-                                {/* Winnings & Treasury */}
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="text-center">
-                                    <div className="text-green-400 font-semibold">
-                                      {round.winning_side ? formatNumber(round.winners_pool) : '0'}
-                                    </div>
-                                    <div className="text-gray-400 text-xs">Winner Prize</div>
-                                  </div>
-                                  <div className="text-center">
-                                    <div className="text-purple-400 font-semibold">{formatNumber(round.treasury_amount)}</div>
-                                    <div className="text-gray-400 text-xs">Treasury</div>
-                                  </div>
-                                </div>
-                                
-                                {/* Total Pool */}
-                                <div className="text-center mt-2 pt-2 border-t border-gray-700">
-                                  <div className="text-yellow-400 font-semibold">{formatNumber(round.total_pool)}</div>
-                                  <div className="text-gray-400 text-xs">Total Pool</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center text-gray-400 py-4">
+                    No completed rounds yet
+                  </div>
+                )}
+              </div>
 
           </div>
         )}
