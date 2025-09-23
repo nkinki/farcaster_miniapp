@@ -61,12 +61,12 @@ export async function POST(request: NextRequest) {
 
       // Perform onchain payout
       let transactionHash = null;
-      const backendWalletPrivateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
+      const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY;
       
-      if (backendWalletPrivateKey) {
+      if (treasuryPrivateKey) {
         try {
           // Create wallet client for treasury operations
-          const account = privateKeyToAccount(backendWalletPrivateKey as `0x${string}`);
+          const account = privateKeyToAccount(treasuryPrivateKey as `0x${string}`);
           
           const publicClient = createPublicClient({
             chain: base,
@@ -78,6 +78,10 @@ export async function POST(request: NextRequest) {
             chain: base,
             transport: http()
           });
+
+          // Get current gas price and add 20% buffer
+          const gasPrice = await publicClient.getGasPrice();
+          const gasPriceWithBuffer = (gasPrice * BigInt(120)) / BigInt(100); // 20% buffer
           
           // totalPayout is already in wei as BigInt
           const amountInWei = totalPayout;
@@ -102,12 +106,13 @@ export async function POST(request: NextRequest) {
             }
           ] as const;
           
-          // Direct ERC20 transfer from backend wallet to winner
+          // Direct ERC20 transfer from treasury wallet to winner
           const hash = await walletClient.writeContract({
             address: chessTokenAddress as `0x${string}`,
             abi: erc20Abi,
             functionName: 'transfer',
-            args: [winningTickets[0].player_address as `0x${string}`, amountInWei]
+            args: [winningTickets[0].player_address as `0x${string}`, amountInWei],
+            gasPrice: gasPriceWithBuffer
           });
           
           transactionHash = hash;
@@ -122,7 +127,7 @@ export async function POST(request: NextRequest) {
           }, { status: 500 });
         }
       } else {
-        console.log('⚠️ Backend wallet private key not configured - marking as paid without onchain payment');
+        console.log('⚠️ Treasury wallet private key not configured - marking as paid without onchain payment');
       }
 
       // Update claim status to paid with transaction hash
@@ -144,7 +149,7 @@ export async function POST(request: NextRequest) {
           round_number: winningTickets[0].round_number,
           winning_side: winningTickets[0].winning_side,
           total_tickets: winningTickets.length,
-          total_payout: BigInt(totalPayout),
+          total_payout: totalPayout.toString(),
           status: 'paid'
         },
         message: `Successfully claimed ${totalPayout.toString()} CHESS for ${winningTickets.length} winning tickets`
