@@ -27,29 +27,31 @@ export async function POST(request: NextRequest) {
     try {
       await client.query('BEGIN');
 
-      // Get pending claims for this player and round
-      const claimsResult = await client.query(`
+      // Get winning tickets for this player and round
+      const ticketsResult = await client.query(`
         SELECT 
-          c.*,
+          t.*,
           r.round_number,
-          r.winning_side
-        FROM weather_lotto_claims c
-        JOIN weather_lotto_rounds r ON c.round_id = r.id
-        WHERE c.player_fid = $1 AND c.round_id = $2 AND c.status = 'pending'
+          r.winning_side,
+          r.status as round_status
+        FROM weather_lotto_tickets t
+        JOIN weather_lotto_rounds r ON t.round_id = r.id
+        WHERE t.player_fid = $1 AND t.round_id = $2 AND r.status = 'completed' AND r.winning_side = t.side AND t.payout_amount > 0
       `, [player_fid, round_id]);
 
-      if (claimsResult.rows.length === 0) {
+      if (ticketsResult.rows.length === 0) {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { success: false, error: 'No pending claims found for this player and round' },
+          { success: false, error: 'No winning tickets found for this player and round' },
           { status: 400 }
         );
       }
 
-      const claim = claimsResult.rows[0];
+      const winningTickets = ticketsResult.rows;
+      const totalPayout = winningTickets.reduce((sum, ticket) => sum + parseInt(ticket.payout_amount), 0);
 
       // Verify the round is completed
-      if (claim.round_status !== 'completed') {
+      if (winningTickets[0].round_status !== 'completed') {
         await client.query('ROLLBACK');
         return NextResponse.json(
           { success: false, error: 'Round is not completed yet' },
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
           });
           
           // Convert amount to wei (assuming total_payout is in CHESS tokens, not wei)
-          const amountInWei = parseUnits(claim.total_payout.toString(), 18);
+          const amountInWei = parseUnits(totalPayout.toString(), 18);
           
           // Get CHESS token address from environment
           const chessTokenAddress = process.env.NEXT_PUBLIC_CHESS_TOKEN_ADDRESS;
@@ -105,7 +107,7 @@ export async function POST(request: NextRequest) {
             address: chessTokenAddress as `0x${string}`,
             abi: erc20Abi,
             functionName: 'transfer',
-            args: [claim.player_address as `0x${string}`, amountInWei]
+            args: [winningTickets[0].player_address as `0x${string}`, amountInWei]
           });
           
           transactionHash = hash;
@@ -124,17 +126,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Update claim status to paid with transaction hash
-      await client.query(`
-        UPDATE weather_lotto_claims 
-        SET 
-          status = 'paid',
-          paid_at = NOW(),
-          transaction_hash = $2,
-          updated_at = NOW()
-        WHERE id = $1
-      `, [claim.id, transactionHash]);
-
-      // Update corresponding tickets as claimed
+      // Update winning tickets as claimed
       await client.query(`
         UPDATE weather_lotto_tickets 
         SET 
@@ -142,21 +134,20 @@ export async function POST(request: NextRequest) {
           claimed_at = NOW(),
           updated_at = NOW()
         WHERE round_id = $1 AND player_fid = $2 AND side = $3
-      `, [round_id, player_fid, claim.winning_side]);
+      `, [round_id, player_fid, winningTickets[0].winning_side]);
 
       await client.query('COMMIT');
 
       return NextResponse.json({
         success: true,
         claim: {
-          id: claim.id,
-          round_number: claim.round_number,
-          winning_side: claim.winning_side,
-          total_tickets: claim.total_tickets,
-          total_payout: BigInt(claim.total_payout),
+          round_number: winningTickets[0].round_number,
+          winning_side: winningTickets[0].winning_side,
+          total_tickets: winningTickets.length,
+          total_payout: BigInt(totalPayout),
           status: 'paid'
         },
-        message: `Successfully claimed ${claim.total_payout} CHESS for ${claim.total_tickets} winning tickets`
+        message: `Successfully claimed ${totalPayout} CHESS for ${winningTickets.length} winning tickets`
       });
 
     } catch (error) {
