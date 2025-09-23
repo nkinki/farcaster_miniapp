@@ -345,6 +345,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       return;
     }
 
+    console.log('🔍 Frontend claim request:', { 
+      ticketId, 
+      userFid, 
+      round_id: ticket.round_id,
+      ticket: ticket 
+    });
+
     try {
       setClaimingTicket(ticketId);
       setErrorMessage(null);

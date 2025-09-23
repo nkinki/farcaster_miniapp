@@ -11,8 +11,11 @@ const pool = new Pool({
 export async function POST(request: NextRequest) {
   try {
     const { player_fid, round_id } = await request.json();
+    
+    console.log('🔍 Claim API request:', { player_fid, round_id });
 
     if (!player_fid || !round_id) {
+      console.log('❌ Missing required fields:', { player_fid, round_id });
       return NextResponse.json(
         { success: false, error: 'Player FID and round ID are required' },
         { status: 400 }
