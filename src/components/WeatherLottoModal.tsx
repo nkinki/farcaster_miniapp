@@ -302,6 +302,12 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
   const handlePurchase = async () => {
     if (!selectedSide || !address || !isConnected) return;
+    
+    // Prevent double-clicking during transaction
+    if (step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase) {
+      console.log('⚠️ Purchase already in progress, ignoring click');
+      return;
+    }
 
     try {
       setErrorMessage(null);
