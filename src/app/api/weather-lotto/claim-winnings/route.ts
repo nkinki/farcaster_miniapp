@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       }
 
       const winningTickets = ticketsResult.rows;
-      const totalPayout = winningTickets.reduce((sum, ticket) => sum + BigInt(ticket.payout_amount), 0n);
+      const totalPayout = winningTickets.reduce((sum, ticket) => sum + BigInt(ticket.payout_amount), BigInt(0));
 
       // Verify the round is completed
       if (winningTickets[0].round_status !== 'completed') {
