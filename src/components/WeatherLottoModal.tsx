@@ -576,29 +576,6 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     </label>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-2">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-600">Cost:</span>
-                      <span className="font-semibold">{formatNumber(totalCost)} CHESS</span>
-                    </div>
-                    
-                    {/* Real-time win calculation - ultra compact */}
-                    <div className="pt-1 border-t border-gray-200">
-                      <div className="text-center">
-                        <div className="text-xs text-gray-600 mb-1">
-                          Win with 1 ticket: {currentRound ? formatNumber(
-                            ((currentRound.total_tickets * 100000 * 0.7) / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + 1, 1))
-                          ) : '0'} CHESS
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ROI: {currentRound ? (
-                            ((((currentRound.total_tickets * 100000 * 0.7) / Math.max((selectedSide === 'sunny' ? currentRound.sunny_tickets : currentRound.rainy_tickets) + 1, 1)) / 
-                            100000 - 1) * 100).toFixed(1)
-                          ) : '0'}%
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
                   {errorMessage && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3">
