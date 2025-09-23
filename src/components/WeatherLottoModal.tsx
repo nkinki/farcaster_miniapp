@@ -400,7 +400,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
               <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                 <div className="py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
-                  <h3 className="text-xl font-bold text-yellow-300 mb-4 text-center drop-shadow-[0_0_8px_rgba(255,255,0,0.8)]"><FiZap className="inline mr-2" /> Choose Your Side</h3>
+                  <h3 className="text-xl font-bold text-white mb-4 text-center drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"><FiZap className="inline mr-2" /> Choose Your Side</h3>
               
                 <div className="grid grid-cols-2 gap-4">
                   <button
