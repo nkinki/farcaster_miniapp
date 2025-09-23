@@ -108,12 +108,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
-    hash: approveTxHash,
-    enabled: !!approveTxHash
+    hash: approveTxHash
   });
   const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ 
-    hash: purchaseTxHash,
-    enabled: !!purchaseTxHash
+    hash: purchaseTxHash
   });
 
   const totalCost = TICKET_PRICE * BigInt(quantity);
