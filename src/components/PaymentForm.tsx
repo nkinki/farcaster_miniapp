@@ -275,7 +275,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
           }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
-          🚧 Comment (Under Development)
+          💬 Comment
         </button>
       </div>
       

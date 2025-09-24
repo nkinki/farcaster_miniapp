@@ -1611,9 +1611,10 @@ export default function PromotePage() {
                   <p className="font-semibold mb-1">Comment Process:</p>
                   <ol className="list-decimal list-inside space-y-1 text-xs">
                     <li>Choose a comment template below</li>
-                    <li>Copy the template text</li>
-                    <li>Paste it as a reply to the original post</li>
-                    <li>Click "Submit Comment" to claim your reward</li>
+                    <li>Click "1️⃣ Copy" to copy the template</li>
+                    <li>Click "2️⃣ Open Post" to open the original post</li>
+                    <li>Paste the comment as a reply</li>
+                    <li>Click "3️⃣ Verify" to claim your reward</li>
                   </ol>
                 </div>
               </div>
@@ -1683,7 +1684,7 @@ export default function PromotePage() {
                       }}
                       className="mt-2 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors active:scale-95"
                     >
-                      📋 Copy Comment to Clipboard
+                      1️⃣ Copy Comment to Clipboard
                     </button>
                   </div>
                 )}
@@ -1711,7 +1712,7 @@ export default function PromotePage() {
                   disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                 >
-                  {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '📱 Open Post & Comment'}
+                  {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '2️⃣ Open Post & Comment'}
                 </button>
               )}
 
@@ -1781,7 +1782,7 @@ export default function PromotePage() {
                   disabled={sharingPromoId === selectedCommentPromo.id.toString()}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                 >
-                  {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '✅ Verify Comment'}
+                  {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '3️⃣ Verify Comment'}
                 </button>
               )}
             </div>
