@@ -65,6 +65,8 @@ export async function POST(request: NextRequest) {
       let winningSide: 'sunny' | 'rainy' | null = null;
       let winners: any[] = [];
       let totalPayouts = 0;
+      let winnersPoolWei = BigInt(0);
+      let treasuryAmountWei = BigInt(0);
 
       if (totalTickets > 0) {
         // Generate random winning side (50/50 chance)
@@ -79,8 +81,8 @@ export async function POST(request: NextRequest) {
           const totalWinningTickets = winners.reduce((sum, ticket) => sum + ticket.quantity, 0);
           // Calculate winners pool (70% of total pool) - keep in wei
           const totalPoolWei = BigInt(round.total_pool);
-          const winnersPoolWei = (totalPoolWei * BigInt(70)) / BigInt(100); // 70% in wei
-          const treasuryAmountWei = totalPoolWei - winnersPoolWei; // 30% in wei
+          winnersPoolWei = (totalPoolWei * BigInt(70)) / BigInt(100); // 70% in wei
+          treasuryAmountWei = totalPoolWei - winnersPoolWei; // 30% in wei
 
           // Update ticket payouts
           for (const winner of winners) {
