@@ -401,6 +401,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       if (!allowance || allowance < totalCost) {
         console.log('⚠️ Insufficient allowance, requesting approve...');
         setStep(PurchaseStep.Approving);
+        
+        // Prevent multiple approve calls
+        if (isPending) {
+          console.log('⚠️ Transaction already pending, ignoring approve request');
+          return;
+        }
+        
         const approveHash = await writeContractAsync({
           address: CHESS_TOKEN_ADDRESS,
           abi: CHESS_TOKEN_ABI,
@@ -416,6 +423,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
       // Purchase tickets
       setStep(PurchaseStep.Purchasing);
+      
+      // Prevent multiple purchase calls
+      if (isPending) {
+        console.log('⚠️ Transaction already pending, ignoring purchase request');
+        return;
+      }
+      
       const purchaseHash = await writeContractAsync({
         address: WEATHER_LOTTO_ADDRESS,
         abi: WEATHER_LOTTO_ABI,

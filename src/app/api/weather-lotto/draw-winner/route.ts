@@ -77,22 +77,23 @@ export async function POST(request: NextRequest) {
         // Calculate payouts
         if (winners.length > 0) {
           const totalWinningTickets = winners.reduce((sum, ticket) => sum + ticket.quantity, 0);
-          // Simplified payout calculation - use smaller numbers
-          const winnersPool = Math.floor(parseInt(round.total_pool) * 0.7 / 100000000000000000000000); // Convert to CHESS
-          const treasuryAmount = Math.floor(parseInt(round.total_pool) * 0.3 / 100000000000000000000000); // Convert to CHESS
+          // Calculate winners pool (70% of total pool) - keep in wei
+          const totalPoolWei = BigInt(round.total_pool);
+          const winnersPoolWei = (totalPoolWei * BigInt(70)) / BigInt(100); // 70% in wei
+          const treasuryAmountWei = totalPoolWei - winnersPoolWei; // 30% in wei
 
           // Update ticket payouts
           for (const winner of winners) {
-            const payoutPerTicket = Math.floor(winnersPool / totalWinningTickets);
-            const totalPayout = payoutPerTicket * winner.quantity;
+            const payoutPerTicketWei = winnersPoolWei / BigInt(totalWinningTickets);
+            const totalPayoutWei = payoutPerTicketWei * BigInt(winner.quantity);
 
             await client.query(`
               UPDATE weather_lotto_tickets 
               SET payout_amount = $1
               WHERE id = $2
-            `, [totalPayout.toString(), winner.id]);
+            `, [totalPayoutWei.toString(), winner.id]);
             
-            totalPayouts += totalPayout;
+            totalPayouts += Number(totalPayoutWei);
 
             // Create claim record
             await client.query(`
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
               winner.player_fid,
               winner.player_address,
               winner.quantity,
-              totalPayout.toString()
+              totalPayoutWei.toString()
             ]);
           }
 
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
               treasury_amount = $3,
               updated_at = NOW()
             WHERE id = $4
-          `, [winningSide, winnersPool.toString(), treasuryAmount.toString(), round.id]);
+          `, [winningSide, winnersPoolWei.toString(), treasuryAmountWei.toString(), round.id]);
         }
       } else {
         // No tickets sold - just complete the round
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
           updated_at = NOW()
       `, [
         parseInt(round.treasury_amount) || 0,
-        totalPayouts
+        totalPayouts || 0
       ]);
 
       await client.query('COMMIT');
@@ -164,8 +165,8 @@ export async function POST(request: NextRequest) {
           winning_side: winningSide,
           total_tickets: totalTickets,
           winners_count: winners.length,
-          winners_pool: winners.length > 0 ? Math.floor(parseInt(round.total_pool) * 0.7) : 0,
-          treasury_amount: winners.length > 0 ? parseInt(round.total_pool) - Math.floor(parseInt(round.total_pool) * 0.7) : parseInt(round.total_pool)
+          winners_pool: winners.length > 0 ? winnersPoolWei.toString() : '0',
+          treasury_amount: winners.length > 0 ? treasuryAmountWei.toString() : round.total_pool
         },
         message: `Round ${round.round_number} completed. Winning side: ${winningSide || 'none'}`
       });
