@@ -643,6 +643,49 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </div>
               )}
 
+            {/* My Tickets Section - Show all tickets */}
+            {userTickets.length > 0 && (
+              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> My Tickets ({userTickets.length})</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {userTickets.slice(0, 10).map((ticket) => (
+                    <div key={ticket.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          {ticket.side === 'sunny' ? (
+                            <FiSun className="w-4 h-4 text-orange-500" />
+                          ) : (
+                            <FiCloudRain className="w-4 h-4 text-blue-500" />
+                          )}
+                          <span className="font-medium capitalize text-sm text-gray-300">{ticket.side}</span>
+                          <span className="text-xs text-gray-400">Round #{ticket.round_number}</span>
+                        </div>
+                        <div className="text-sm text-yellow-400">
+                          {formatNumber(ticket.total_cost)} CHESS
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        <div className="flex justify-between">
+                          <span>Status:</span>
+                          <span className={ticket.round_status === 'completed' ? 'text-green-400' : 'text-yellow-400'}>
+                            {ticket.round_status === 'completed' ? 'Completed' : 'Active'}
+                          </span>
+                        </div>
+                        {ticket.round_status === 'completed' && (
+                          <div className="flex justify-between">
+                            <span>Result:</span>
+                            <span className={ticket.winning_side === ticket.side ? 'text-green-400' : 'text-red-400'}>
+                              {ticket.winning_side === ticket.side ? 'Won' : 'Lost'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {userTickets.length > 0 && (() => {
               // Filter tickets that can be claimed (winning tickets from completed rounds)
               const claimableTickets = userTickets.filter(ticket => 
@@ -655,7 +698,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               return claimableTickets.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                   <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Claimable Winnings ({claimableTickets.length})</h3>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {claimableTickets.map((ticket) => {
                       // Calculate potential win/loss for this ticket
                       const currentSideTickets = ticket.side === 'sunny' ? (currentRound?.sunny_tickets || 0) : (currentRound?.rainy_tickets || 0);
@@ -700,7 +743,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                           {/* Debug info */}
                           <div className="mt-2 p-2 bg-gray-900 rounded text-xs text-gray-400">
                             <div>Round: {ticket.round_status} | Winner: {ticket.winning_side} | Side: {ticket.side}</div>
-                            <div>Payout: {ticket.payout_amount} | Claim: {ticket.claim_status}</div>
+                            <div>Payout: {formatNumber(ticket.payout_amount)} CHESS | Claim: {ticket.claim_status}</div>
                           </div>
                           
                           {/* Claim Button - Only show if not already claimed */}
