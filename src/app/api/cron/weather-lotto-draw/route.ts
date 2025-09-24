@@ -7,7 +7,7 @@ const pool = new Pool({
 
 async function performWeatherLottoDraw() {
   const client = await pool.connect();
-  console.log('🌤️ --- Starting Weather Lotto Draw (19:00 Budapest Time) --- 🌤️');
+  console.log('🌤️ --- Starting Weather Lotto Draw (20:05 UTC) --- 🌤️');
   
   try {
     console.log('[1/8] Connecting to database and starting transaction...');
@@ -64,29 +64,29 @@ async function performWeatherLottoDraw() {
     let treasuryAmount = 0;
 
     if (totalWinningTickets > 0) {
-      // Calculate payouts
-      const totalPool = parseInt(round.total_pool);
-      const winnersPool = Math.floor(totalPool * 0.7); // 70% winners
-      treasuryAmount = totalPool - winnersPool; // 30% treasury
+      // Calculate payouts using BigInt
+      const totalPoolWei = BigInt(round.total_pool);
+      const winnersPoolWei = (totalPoolWei * BigInt(70)) / BigInt(100); // 70% winners
+      const treasuryAmountWei = totalPoolWei - winnersPoolWei; // 30% treasury
       
-      console.log(`💰 Total pool: ${(totalPool / 1e18).toFixed(2)} CHESS`);
-      console.log(`🏆 Winners pool (70%): ${(winnersPool / 1e18).toFixed(2)} CHESS`);
-      console.log(`🏛️ Treasury (30%): ${(treasuryAmount / 1e18).toFixed(2)} CHESS`);
+      console.log(`💰 Total pool: ${(Number(totalPoolWei) / 1e18).toFixed(2)} CHESS`);
+      console.log(`🏆 Winners pool (70%): ${(Number(winnersPoolWei) / 1e18).toFixed(2)} CHESS`);
+      console.log(`🏛️ Treasury (30%): ${(Number(treasuryAmountWei) / 1e18).toFixed(2)} CHESS`);
 
       // Update ticket payouts and create claims
       for (const ticket of winningTickets) {
-        const payoutPerTicket = Math.floor(winnersPool / totalWinningTickets);
-        const totalTicketPayout = payoutPerTicket * ticket.quantity;
-        totalPayout += totalTicketPayout;
+        const payoutPerTicketWei = winnersPoolWei / BigInt(totalWinningTickets);
+        const totalTicketPayoutWei = payoutPerTicketWei * BigInt(ticket.quantity);
+        totalPayout += Number(totalTicketPayoutWei);
 
-        console.log(`🎫 Ticket ID ${ticket.id}: ${ticket.quantity} tickets → ${(totalTicketPayout / 1e18).toFixed(2)} CHESS`);
+        console.log(`🎫 Ticket ID ${ticket.id}: ${ticket.quantity} tickets → ${(Number(totalTicketPayoutWei) / 1e18).toFixed(2)} CHESS`);
 
         // Update ticket payout
         await client.query(`
           UPDATE weather_lotto_tickets 
           SET payout_amount = $1
           WHERE id = $2
-        `, [totalTicketPayout.toString(), ticket.id]);
+        `, [totalTicketPayoutWei.toString(), ticket.id]);
 
         // Create claim record
         await client.query(`
@@ -103,12 +103,14 @@ async function performWeatherLottoDraw() {
           ticket.player_fid,
           ticket.player_address,
           ticket.quantity,
-          totalTicketPayout.toString()
+          totalTicketPayoutWei.toString()
         ]);
       }
+      
+      treasuryAmount = Number(treasuryAmountWei);
     } else {
       // No winning tickets - all goes to treasury
-      treasuryAmount = parseInt(round.total_pool);
+      treasuryAmount = Number(BigInt(round.total_pool));
       console.log(`😔 No winning tickets. All ${(treasuryAmount / 1e18).toFixed(2)} CHESS goes to treasury.`);
     }
 

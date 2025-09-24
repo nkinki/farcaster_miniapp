@@ -802,23 +802,23 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             })()}
 
               {/* Rules Section */}
-              <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
-                <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center justify-center gap-2">📋 Rules</h3>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <div className="flex items-start gap-2">
-                    <span className="text-yellow-400 font-bold">1️⃣</span>
+              <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
+                <h3 className="text-sm font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2">📋 Rules</h3>
+                <div className="space-y-1 text-xs text-gray-300">
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">1️⃣</span>
                     <span>You can buy tickets for <span className="text-orange-400 font-semibold">both Sunny and Rainy</span> sides</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-yellow-400 font-bold">2️⃣</span>
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">2️⃣</span>
                     <span><span className="text-green-400 font-semibold">Draw yourself, decide your fate!</span></span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-yellow-400 font-bold">3️⃣</span>
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">3️⃣</span>
                     <span>House provides <span className="text-purple-400 font-semibold">100k CHESS</span> base for each side</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-yellow-400 font-bold">4️⃣</span>
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">4️⃣</span>
                     <span>Daily draw at <span className="text-cyan-400 font-semibold">20:05 UTC</span></span>
                   </div>
                 </div>
@@ -827,38 +827,43 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                 <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Last 5 Rounds</h3>
                 
-                {/* Last 10 Rounds - Simple List */}
-                {recentRounds.length > 0 ? (
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {recentRounds.slice(0, 5).map((round) => (
-                      <div key={round.id} className="bg-gray-800 rounded p-2 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
-                          <div className="flex items-center gap-2">
-                            {round.winning_side === 'sunny' ? (
-                              <>
-                                <FiSun className="w-4 h-4 text-orange-500" />
-                                <span className="text-orange-400 font-semibold">☀️ Sunny</span>
-                              </>
-                            ) : round.winning_side === 'rainy' ? (
-                              <>
-                                <FiCloudRain className="w-4 h-4 text-blue-500" />
-                                <span className="text-blue-400 font-semibold">🌧️ Rainy</span>
-                              </>
-                            ) : (
-                              <span className="text-gray-400">Pending</span>
-                            )}
+                {/* Last 5 Completed Rounds - Simple List */}
+                {recentRounds.length > 0 ? (() => {
+                  // Filter out pending rounds and get only completed ones
+                  const completedRounds = recentRounds.filter(round => round.status === 'completed' && round.winning_side);
+                  
+                  return completedRounds.length > 0 ? (
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      {completedRounds.slice(0, 5).map((round) => (
+                        <div key={round.id} className="bg-gray-800 rounded p-2 text-sm">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
+                            <div className="flex items-center gap-2">
+                              {round.winning_side === 'sunny' ? (
+                                <>
+                                  <FiSun className="w-4 h-4 text-orange-500" />
+                                  <span className="text-orange-400 font-semibold">☀️ Sunny</span>
+                                </>
+                              ) : round.winning_side === 'rainy' ? (
+                                <>
+                                  <FiCloudRain className="w-4 h-4 text-blue-500" />
+                                  <span className="text-blue-400 font-semibold">🌧️ Rainy</span>
+                                </>
+                              ) : null}
+                            </div>
                           </div>
-                        </div>
-                        {round.winning_side && (
                           <div className="text-xs text-gray-400 mt-1">
                             ☀️ {round.sunny_tickets} / 🌧️ {round.rainy_tickets} tickets
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400 py-4">
+                      No completed rounds yet
+                    </div>
+                  );
+                })() : (
                   <div className="text-center text-gray-400 py-4">
                     No completed rounds yet
                   </div>

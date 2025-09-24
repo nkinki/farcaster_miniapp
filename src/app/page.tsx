@@ -388,13 +388,22 @@ export default function Home() {
             </button>
             
             <button
-              onClick={() => setShowWeatherLotto(true)}
-              className="flex items-center gap-3 px-6 py-4 text-lg font-bold bg-gray-600 hover:bg-gray-700 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer w-full sm:w-auto"
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.impactOccurred('medium');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
+                  }
+                }
+                setShowWeatherLotto(true);
+              }}
+              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
             >
               <span className="text-2xl">☀️🌧️</span>
               <div className="flex flex-col items-start">
                 <span>SUNNY/RAINY</span>
-                <span className="text-xs opacity-80">Under Development</span>
+                <span className="text-xs opacity-80">Testing</span>
               </div>
             </button>
           </div>
