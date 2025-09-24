@@ -313,8 +313,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
         console.log('✅ Manual draw successful:', result);
         // Show draw result
         setDrawResult({
-          winner: result.winningSide || 'unknown',
-          round: result.roundNumber || 0
+          winner: result.round?.winning_side || 'unknown',
+          round: result.round?.round_number || 0
         });
         // Hide result after 8 seconds
         setTimeout(() => setDrawResult(null), 8000);
@@ -629,11 +629,20 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </div>
               )}
 
-            {userTickets.length > 0 && (
+            {userTickets.length > 0 && (() => {
+              // Filter tickets that can be claimed (winning tickets from completed rounds)
+              const claimableTickets = userTickets.filter(ticket => 
+                ticket.round_status === 'completed' && 
+                ticket.winning_side === ticket.side && 
+                ticket.payout_amount && 
+                parseInt(ticket.payout_amount) > 0
+              );
+              
+              return claimableTickets.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
-                  <div className="space-y-2">
-                    {userTickets.slice(0, 5).map((ticket) => {
+                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Claimable Winnings ({claimableTickets.length})</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {claimableTickets.map((ticket) => {
                       // Calculate potential win/loss for this ticket
                       const currentSideTickets = ticket.side === 'sunny' ? (currentRound?.sunny_tickets || 0) : (currentRound?.rainy_tickets || 0);
                       const otherSideTickets = ticket.side === 'sunny' ? (currentRound?.rainy_tickets || 0) : (currentRound?.sunny_tickets || 0);
@@ -732,7 +741,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     })}
                   </div>
                 </div>
-              )}
+              );
+            })()}
 
               {/* Rules Section */}
               <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
