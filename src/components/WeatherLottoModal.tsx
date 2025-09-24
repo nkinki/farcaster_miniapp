@@ -645,40 +645,27 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
             {/* My Tickets Section - Show all tickets */}
             {userTickets.length > 0 && (
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> My Tickets ({userTickets.length})</h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {userTickets.slice(0, 10).map((ticket) => (
-                    <div key={ticket.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center gap-2">
+              <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
+                <h3 className="text-lg font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2"><FiUsers /> My Tickets ({userTickets.length})</h3>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {userTickets.slice(0, 8).map((ticket) => (
+                    <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-1">
                           {ticket.side === 'sunny' ? (
-                            <FiSun className="w-4 h-4 text-orange-500" />
+                            <FiSun className="w-3 h-3 text-orange-500" />
                           ) : (
-                            <FiCloudRain className="w-4 h-4 text-blue-500" />
+                            <FiCloudRain className="w-3 h-3 text-blue-500" />
                           )}
-                          <span className="font-medium capitalize text-sm text-gray-300">{ticket.side}</span>
-                          <span className="text-xs text-gray-400">Round #{ticket.round_number}</span>
+                          <span className="font-medium capitalize text-xs text-gray-300">{ticket.side}</span>
+                          <span className="text-xs text-gray-400">#{ticket.round_number}</span>
                         </div>
-                        <div className="text-sm text-yellow-400">
-                          {formatNumber(ticket.total_cost)} CHESS
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        <div className="flex justify-between">
-                          <span>Status:</span>
-                          <span className={ticket.round_status === 'completed' ? 'text-green-400' : 'text-yellow-400'}>
-                            {ticket.round_status === 'completed' ? 'Completed' : 'Active'}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-yellow-400">{formatNumber(ticket.total_cost)}</span>
+                          <span className={`text-xs ${ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'text-green-400' : 'text-red-400') : 'text-yellow-400'}`}>
+                            {ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'W' : 'L') : 'A'}
                           </span>
                         </div>
-                        {ticket.round_status === 'completed' && (
-                          <div className="flex justify-between">
-                            <span>Result:</span>
-                            <span className={ticket.winning_side === ticket.side ? 'text-green-400' : 'text-red-400'}>
-                              {ticket.winning_side === ticket.side ? 'Won' : 'Lost'}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   ))}

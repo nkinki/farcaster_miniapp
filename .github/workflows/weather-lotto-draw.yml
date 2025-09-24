@@ -1,0 +1,45 @@
+name: Weather Lotto Daily Draw
+
+on:
+  schedule:
+    # Run at 20:05 UTC daily
+    - cron: '5 20 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  weather-lotto-draw:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+        
+    - name: Trigger Weather Lotto Draw
+      run: |
+        echo "🌤️ Triggering Weather Lotto Draw at $(date)"
+        curl -X POST "${{ secrets.VERCEL_URL }}/api/cron/weather-lotto-draw" \
+          -H "Authorization: Bearer ${{ secrets.VERCEL_CRON_SECRET }}" \
+          -H "Content-Type: application/json" \
+          -d '{"trigger": "github-action"}'
+      env:
+        VERCEL_URL: ${{ secrets.VERCEL_URL }}
+        VERCEL_CRON_SECRET: ${{ secrets.VERCEL_CRON_SECRET }}
+        
+    - name: Notify success
+      if: success()
+      run: |
+        echo "✅ Weather Lotto draw completed successfully"
+        
+    - name: Notify failure
+      if: failure()
+      run: |
+        echo "❌ Weather Lotto draw failed"
