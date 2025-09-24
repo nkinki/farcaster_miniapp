@@ -547,10 +547,21 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         <div className="text-sm text-orange-600">100k CHESS base</div>
                         <div className="mt-2 pt-2 border-t border-orange-200">
                           <div className="text-sm text-green-600 font-semibold">
-                            Win: {currentRound ? (currentRound.sunny_tickets > 0 ? formatNumber((currentRound.total_tickets * 100000 * 0.7) / currentRound.sunny_tickets) : '100k') : '100k'} CHESS
+                            Win: {currentRound ? (() => {
+                              const totalPool = (currentRound.sunny_tickets + currentRound.rainy_tickets) * 100000 + 200000; // 200k base
+                              const winnersPool = totalPool * 0.7;
+                              const winPerTicket = currentRound.sunny_tickets > 0 ? winnersPool / currentRound.sunny_tickets : winnersPool;
+                              return formatNumber(winPerTicket);
+                            })() : '100k'} CHESS
                           </div>
                           <div className="text-sm text-orange-600">
-                            ROI: {currentRound && currentRound.sunny_tickets > 0 ? ((((currentRound.total_tickets * 100000 * 0.7) / currentRound.sunny_tickets) / 100000 - 1) * 100).toFixed(1) : '0'}%
+                            ROI: {currentRound ? (() => {
+                              const totalPool = (currentRound.sunny_tickets + currentRound.rainy_tickets) * 100000 + 200000;
+                              const winnersPool = totalPool * 0.7;
+                              const winPerTicket = currentRound.sunny_tickets > 0 ? winnersPool / currentRound.sunny_tickets : winnersPool;
+                              const roi = ((winPerTicket / 100000) - 1) * 100;
+                              return roi.toFixed(1);
+                            })() : '0'}%
                           </div>
                         </div>
                       </div>
@@ -570,10 +581,21 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         <div className="text-sm text-blue-600">100k CHESS base</div>
                         <div className="mt-2 pt-2 border-t border-blue-200">
                           <div className="text-sm text-green-600 font-semibold">
-                            Win: {currentRound ? (currentRound.rainy_tickets > 0 ? formatNumber((currentRound.total_tickets * 100000 * 0.7) / currentRound.rainy_tickets) : '100k') : '100k'} CHESS
+                            Win: {currentRound ? (() => {
+                              const totalPool = (currentRound.sunny_tickets + currentRound.rainy_tickets) * 100000 + 200000; // 200k base
+                              const winnersPool = totalPool * 0.7;
+                              const winPerTicket = currentRound.rainy_tickets > 0 ? winnersPool / currentRound.rainy_tickets : winnersPool;
+                              return formatNumber(winPerTicket);
+                            })() : '100k'} CHESS
                           </div>
                           <div className="text-sm text-blue-600">
-                            ROI: {currentRound && currentRound.rainy_tickets > 0 ? ((((currentRound.total_tickets * 100000 * 0.7) / currentRound.rainy_tickets) / 100000 - 1) * 100).toFixed(1) : '0'}%
+                            ROI: {currentRound ? (() => {
+                              const totalPool = (currentRound.sunny_tickets + currentRound.rainy_tickets) * 100000 + 200000;
+                              const winnersPool = totalPool * 0.7;
+                              const winPerTicket = currentRound.rainy_tickets > 0 ? winnersPool / currentRound.rainy_tickets : winnersPool;
+                              const roi = ((winPerTicket / 100000) - 1) * 100;
+                              return roi.toFixed(1);
+                            })() : '0'}%
                           </div>
                         </div>
                       </div>
