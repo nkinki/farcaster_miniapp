@@ -517,7 +517,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   : 'bg-gradient-to-r from-red-500 via-purple-500 via-blue-500 to-green-500 bg-[length:400%_400%] pulse-color shadow-[0_0_20px_rgba(255,0,255,0.6)] hover:shadow-[0_0_30px_rgba(0,255,255,0.8)]'
               }`}
             >
-              {isManualDrawing ? '🎲 Drawing...' : `🎲 Manual Draw ${!currentRound || currentRound.total_tickets < 6 ? '(Min 6 tickets)' : ''}`}
+              {isManualDrawing ? '🎲 Drawing...' : `🎲 Manual Draw ${!currentRound || currentRound.total_tickets < 6 ? '(Need 6+ total tickets)' : ''}`}
             </button>
             
             <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
@@ -811,8 +811,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </div>
               </div>
 
-              <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
-                <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center justify-center gap-2">📊 Last 5 Rounds</h3>
+              <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
+                <h3 className="text-sm font-bold text-purple-400 mb-2 flex items-center justify-center gap-2">📊 Last 5 Rounds</h3>
                 
                 {/* Last 5 Completed Rounds - Simple List */}
                 {recentRounds.length > 0 ? (() => {
@@ -820,38 +820,38 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   const completedRounds = recentRounds.filter(round => round.status === 'completed' && round.winning_side);
                   
                   return completedRounds.length > 0 ? (
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
                       {completedRounds.slice(0, 5).map((round) => (
-                        <div key={round.id} className="bg-gray-800 rounded p-2 text-sm">
+                        <div key={round.id} className="bg-gray-800 rounded p-1.5 text-xs">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold text-yellow-400">Round #{round.round_number}</span>
-                            <div className="flex items-center gap-2">
+                            <span className="font-semibold text-yellow-400">#{round.round_number}</span>
+                            <div className="flex items-center gap-1">
                               {round.winning_side === 'sunny' ? (
                                 <>
-                                  <FiSun className="w-4 h-4 text-orange-500" />
-                                  <span className="text-orange-400 font-semibold">☀️ Sunny</span>
+                                  <FiSun className="w-3 h-3 text-orange-500" />
+                                  <span className="text-orange-400 font-semibold">☀️</span>
                                 </>
                               ) : round.winning_side === 'rainy' ? (
                                 <>
-                                  <FiCloudRain className="w-4 h-4 text-blue-500" />
-                                  <span className="text-blue-400 font-semibold">🌧️ Rainy</span>
+                                  <FiCloudRain className="w-3 h-3 text-blue-500" />
+                                  <span className="text-blue-400 font-semibold">🌧️</span>
                                 </>
                               ) : null}
                             </div>
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            ☀️ {round.sunny_tickets} / 🌧️ {round.rainy_tickets} tickets
+                          <div className="text-xs text-gray-400">
+                            ☀️{round.sunny_tickets} 🌧️{round.rainy_tickets}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center text-gray-400 py-4">
+                    <div className="text-center text-gray-400 py-2 text-xs">
                       No completed rounds yet
                     </div>
                   );
                 })() : (
-                  <div className="text-center text-gray-400 py-4">
+                  <div className="text-center text-gray-400 py-2 text-xs">
                     No completed rounds yet
                   </div>
                 )}

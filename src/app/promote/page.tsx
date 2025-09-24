@@ -1233,7 +1233,7 @@ export default function PromotePage() {
                                       ? 'Processing...' 
                                       : isCountingDown 
                                         ? `⏳ Wait ${countdown}s to Comment` 
-                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS (Under Development)`
+                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
@@ -1601,6 +1601,22 @@ export default function PromotePage() {
               >
                 ✕
               </button>
+            </div>
+            
+            {/* Comment Process Info Box */}
+            <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg">
+              <div className="flex items-start gap-2">
+                <span className="text-blue-400 text-sm">ℹ️</span>
+                <div className="text-blue-300 text-xs">
+                  <p className="font-semibold mb-1">Comment Process:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Choose a comment template below</li>
+                    <li>Copy the template text</li>
+                    <li>Paste it as a reply to the original post</li>
+                    <li>Click "Submit Comment" to claim your reward</li>
+                  </ol>
+                </div>
+              </div>
             </div>
             
             {/* Original Post Preview */}
