@@ -586,10 +586,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               {currentRound && (
                 <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                   <div className="py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
-                    <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
-                      <div className="text-center min-w-0"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
-                      <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-4 min-w-0 w-full"><div className="text-xs font-bold text-yellow-300 mb-1">POOL</div><div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatNumber(currentRound.current_total_pool)} CHESS</div></div>
-                      <div className="text-center min-w-0"><div className="text-xs font-bold text-yellow-300 mb-1">ROUND</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">#{currentRound.round_number}</div></div>
+                    <div className="w-full grid grid-cols-12 items-center justify-items-center gap-2">
+                      <div className="col-span-3 text-center"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
+                      <div className="col-span-6 text-center border-l-2 border-r-2 border-yellow-400/30 px-4"><div className="text-xs font-bold text-yellow-300 mb-1">POOL</div><div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatNumber(currentRound.current_total_pool)} CHESS</div></div>
+                      <div className="col-span-3 text-center"><div className="text-xs font-bold text-yellow-300 mb-1">ROUND</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">#{currentRound.round_number}</div></div>
                     </div>
                   </div>
                 </div>
