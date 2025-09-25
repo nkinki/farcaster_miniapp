@@ -20,7 +20,7 @@ jobs:
           cache: 'npm'
       - run: npm install
       - name: Run notification script for Lotto Morning Update
-        run: npx tsx scripts/sendLottoNotifications.ts
+        run: node scripts/sendLottoNotifications.js
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NOTIFICATION_TYPE: 'LOTTO_MORNING'
@@ -30,8 +30,14 @@ jobs:
     if: github.event.schedule == '0 12 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      # ... a többi lépés ugyanaz ...
-      - run: npx tsx scripts/sendLottoNotifications.ts
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm install
+      - name: Run notification script for Lotto Midday Update
+        run: node scripts/sendLottoNotifications.js
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NOTIFICATION_TYPE: 'LOTTO_MIDDAY'
@@ -41,8 +47,14 @@ jobs:
     if: github.event.schedule == '0 18 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      # ... a többi lépés ugyanaz ...
-      - run: npx tsx scripts/sendLottoNotifications.ts
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm install
+      - name: Run notification script for Lotto Pre-Draw Update
+        run: node scripts/sendLottoNotifications.js
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NOTIFICATION_TYPE: 'LOTTO_PRE_DRAW'
