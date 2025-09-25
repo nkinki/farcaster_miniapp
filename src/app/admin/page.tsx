@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw } from 'react-icons/fi';
+import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause } from 'react-icons/fi';
 import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 
 
@@ -58,6 +58,8 @@ export default function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [shareablePromos, setShareablePromos] = useState<ShareablePromo[]>([]);
   const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments'>('stats');
+  const [selectedPromos, setSelectedPromos] = useState<Set<number>>(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -91,6 +93,57 @@ export default function AdminPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const togglePromoSelection = (promoId: number) => {
+    const newSelected = new Set(selectedPromos);
+    if (newSelected.has(promoId)) {
+      newSelected.delete(promoId);
+    } else {
+      newSelected.add(promoId);
+    }
+    setSelectedPromos(newSelected);
+  };
+
+  const selectAllPromos = () => {
+    setSelectedPromos(new Set(shareablePromos.map(promo => promo.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedPromos(new Set());
+  };
+
+  const handleBulkStatusChange = async (newStatus: 'active' | 'paused') => {
+    if (selectedPromos.size === 0) return;
+    
+    setBulkActionLoading(true);
+    try {
+      const promises = Array.from(selectedPromos).map(promoId => 
+        fetch('/api/promotions/status', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promotionId: promoId,
+            status: newStatus
+          })
+        })
+      );
+
+      await Promise.all(promises);
+      
+      // Ne töltse újra az adatokat, csak frissítse a lokális state-et
+      setShareablePromos(prev => prev.map(promo => 
+        selectedPromos.has(promo.id) 
+          ? { ...promo, status: newStatus }
+          : promo
+      ));
+      
+      setSelectedPromos(new Set());
+    } catch (error) {
+      console.error('Bulk status change error:', error);
+    } finally {
+      setBulkActionLoading(false);
+    }
   };
 
 
@@ -342,21 +395,85 @@ export default function AdminPage() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-white">Shareable Promotions</h2>
-              <button
-                onClick={fetchShareablePromos}
-                className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
-              >
-                <FiRefreshCw />
-                Refresh
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={fetchShareablePromos}
+                  className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+                >
+                  <FiRefreshCw />
+                  Refresh
+                </button>
+              </div>
             </div>
+
+            {/* Bulk Actions */}
+            {shareablePromos.length > 0 && (
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedPromos.size === shareablePromos.length && shareablePromos.length > 0}
+                        onChange={selectedPromos.size === shareablePromos.length ? clearSelection : selectAllPromos}
+                        className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-white text-sm">
+                        {selectedPromos.size > 0 ? `${selectedPromos.size} selected` : 'Select All'}
+                      </span>
+                    </div>
+                    {selectedPromos.size > 0 && (
+                      <button
+                        onClick={clearSelection}
+                        className="text-gray-400 hover:text-white text-sm"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  
+                  {selectedPromos.size > 0 && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleBulkStatusChange('active')}
+                        disabled={bulkActionLoading}
+                        className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm disabled:opacity-50"
+                      >
+                        <FiPlay size={12} />
+                        Activate ({selectedPromos.size})
+                      </button>
+                      <button
+                        onClick={() => handleBulkStatusChange('paused')}
+                        disabled={bulkActionLoading}
+                        className="flex items-center gap-1 px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-sm disabled:opacity-50"
+                      >
+                        <FiPause size={12} />
+                        Pause ({selectedPromos.size})
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {shareablePromos.map((promo) => (
               <div key={promo.id} className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
-                  <div>
-                    <div className="text-purple-300 text-xs font-semibold">ID</div>
-                    <div className="text-white font-bold">#{promo.id}</div>
-                  </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedPromos.has(promo.id)}
+                    onChange={() => togglePromoSelection(promo.id)}
+                    className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
+                  />
+                  <span className="text-white text-sm font-medium">#{promo.id}</span>
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                    promo.status === 'active' ? 'bg-green-600 text-white' :
+                    promo.status === 'paused' ? 'bg-yellow-600 text-white' :
+                    'bg-red-600 text-white'
+                  }`}>
+                    {promo.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
                   <div>
                     <div className="text-purple-300 text-xs font-semibold">Promoter</div>
                     <div className="text-cyan-400 font-medium">@{promo.author_username}</div>
