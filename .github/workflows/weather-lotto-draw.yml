@@ -23,16 +23,13 @@ jobs:
     - name: Install dependencies
       run: npm ci
         
-    - name: Trigger Weather Lotto Draw
+    - name: Run Weather Lotto Draw Script
       run: |
-        echo "🌤️ Triggering Weather Lotto Draw at $(date)"
-        curl -X POST "${{ secrets.VERCEL_URL }}/api/cron/weather-lotto-draw" \
-          -H "Authorization: Bearer ${{ secrets.VERCEL_CRON_SECRET }}" \
-          -H "Content-Type: application/json" \
-          -d '{"trigger": "github-action"}'
+        echo "🌤️ Running Weather Lotto Draw at $(date)"
+        node scripts/weather-lotto-draw.js
       env:
-        VERCEL_URL: ${{ secrets.VERCEL_URL }}
-        VERCEL_CRON_SECRET: ${{ secrets.VERCEL_CRON_SECRET }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        FORCE_DRAW_NOW: 'true'
         
     - name: Notify success
       if: success()
