@@ -19,7 +19,7 @@ import { formatUnits } from 'viem';
 
 // Share szövegek promótereknek - $CHESS token és ingyenes promóció
 // TEMPORARILY DISABLED - No promotional messages
-const SHARE_TEXTS = [
+const SHARE_TEXTS: string[] = [
   // "🚀 Free promotion + earn $CHESS tokens! Try AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
   // "⭐ Promote for FREE & get $CHESS rewards! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
   // "🌐 Free promo + $CHESS earnings! Check AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
