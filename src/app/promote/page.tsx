@@ -157,6 +157,8 @@ export default function PromotePage() {
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
   const [showCommentTemplates, setShowCommentTemplates] = useState(false);
+  const [templateSortOrder, setTemplateSortOrder] = useState<'default' | 'random' | 'compact'>('default');
+  const [templateDisplayMode, setTemplateDisplayMode] = useState<'full' | 'compact'>('full');
 
   // Comment templates - same as in PaymentForm
   const COMMENT_TEMPLATES = [
@@ -195,6 +197,28 @@ export default function PromotePage() {
     "Actionable and clean.",
     "Mind opening perspective."
   ];
+
+  // Template management functions
+  const getSortedTemplates = (templates: string[]) => {
+    switch (templateSortOrder) {
+      case 'random':
+        return [...templates].sort(() => Math.random() - 0.5);
+      case 'compact':
+        return templates.slice(0, 8); // Show only first 8 templates
+      default:
+        return templates;
+    }
+  };
+
+  const toggleTemplateSort = () => {
+    const order = templateSortOrder === 'default' ? 'random' : 
+                  templateSortOrder === 'random' ? 'compact' : 'default';
+    setTemplateSortOrder(order);
+  };
+
+  const toggleDisplayMode = () => {
+    setTemplateDisplayMode(prev => prev === 'full' ? 'compact' : 'full');
+  };
 
   const {
     promotions: allPromotions,
@@ -1644,15 +1668,40 @@ export default function PromotePage() {
 
             {/* Comment Templates - show promoter's selected templates */}
             <div className="mb-6">
-                <p className="text-sm text-gray-300 mb-3">Choose a comment template:</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {(selectedCommentPromo.commentTemplates && selectedCommentPromo.commentTemplates.length > 0 
-                    ? selectedCommentPromo.commentTemplates 
-                    : COMMENT_TEMPLATES).map((template, index) => (
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-sm text-gray-300">Choose a comment template:</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={toggleTemplateSort}
+                      className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                    >
+                      {templateSortOrder === 'default' ? '🔄 Random' : 
+                       templateSortOrder === 'random' ? '📦 Compact' : '📋 Default'}
+                    </button>
+                    <button
+                      onClick={toggleDisplayMode}
+                      className="px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                    >
+                      {templateDisplayMode === 'full' ? '📱 Compact' : '📄 Full'}
+                    </button>
+                  </div>
+                </div>
+                <div className={`grid gap-2 ${
+                  templateDisplayMode === 'compact' 
+                    ? 'grid-cols-2' 
+                    : 'grid-cols-1'
+                }`}>
+                  {getSortedTemplates(
+                    selectedCommentPromo.commentTemplates && selectedCommentPromo.commentTemplates.length > 0 
+                      ? selectedCommentPromo.commentTemplates 
+                      : COMMENT_TEMPLATES
+                  ).map((template, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedCommentTemplate(template)}
-                      className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
+                      className={`${
+                        templateDisplayMode === 'compact' ? 'p-2 text-xs' : 'p-3 text-sm'
+                      } rounded-lg font-medium transition-all duration-200 text-left ${
                         selectedCommentTemplate === template
                           ? 'bg-green-600 text-white border border-green-500'
                           : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
