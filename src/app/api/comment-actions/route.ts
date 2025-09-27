@@ -58,6 +58,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Promotion budget exhausted' }, { status: 400 });
     }
 
+    // Reserve budget immediately when comment is submitted (pending)
+    // This prevents multiple users from exhausting the budget
+    await sql`
+      UPDATE promotions 
+      SET remaining_budget = remaining_budget - ${rewardAmount},
+          updated_at = NOW()
+      WHERE id = ${promotionId}
+    `;
+
     // Check if action type matches
     if (promo.action_type !== 'comment') {
       return NextResponse.json({ error: 'This promotion is not for comment actions' }, { status: 400 });

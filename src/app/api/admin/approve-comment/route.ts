@@ -71,11 +71,10 @@ export async function POST(request: NextRequest) {
 
       const actionId = result[0].id;
 
-      // Update promotion budget
+      // Update promotion stats (budget already reduced when comment was submitted)
       await sql`
         UPDATE promotions 
-        SET remaining_budget = remaining_budget - ${comment.reward_amount},
-            shares_count = shares_count + 1,
+        SET shares_count = shares_count + 1,
             updated_at = NOW()
         WHERE id = ${comment.promotion_id}
       `;
@@ -102,9 +101,17 @@ export async function POST(request: NextRequest) {
     } else {
       console.log(`❌ Comment ${pendingCommentId} rejected`);
       
+      // Return budget when comment is rejected
+      await sql`
+        UPDATE promotions 
+        SET remaining_budget = remaining_budget + ${comment.reward_amount},
+            updated_at = NOW()
+        WHERE id = ${comment.promotion_id}
+      `;
+      
       return NextResponse.json({ 
         success: true, 
-        message: 'Comment rejected. No reward credited.',
+        message: 'Comment rejected. Budget returned to promotion.',
         reviewNotes: reviewNotes
       }, { status: 200 });
     }
