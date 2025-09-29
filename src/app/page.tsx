@@ -375,7 +375,7 @@ export default function Home() {
               className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🏎️</span>
+                <span className="text-2xl">🏁</span>
               </div>
               <div className="text-center">
                 <div className="text-yellow-300">Buy a Lambo</div>
@@ -424,7 +424,11 @@ export default function Home() {
                 <span className="text-2xl">☀️🌧️</span>
               </div>
               <div className="text-center">
-                <div className="text-cyan-300">SUNNY/RAINY</div>
+                <div className="flex items-center gap-1">
+                  <span className="text-orange-400">SUNNY</span>
+                  <span className="text-gray-400">/</span>
+                  <span className="text-blue-400">RAINY</span>
+                </div>
                 <div className="text-xs text-gray-400">Testing</div>
               </div>
             </button>
