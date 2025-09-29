@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react";
-import { FiX, FiSun, FiCloudRain, FiTrendingUp, FiUsers, FiClock, FiZap, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiX, FiSun, FiCloudRain, FiTrendingUp, FiUsers, FiClock, FiZap, FiChevronDown, FiChevronUp, FiDollarSign, FiBookOpen } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
 import { WEATHER_LOTTO_ADDRESS, WEATHER_LOTTO_ABI, TICKET_PRICE } from '@/abis/WeatherLotto';
@@ -714,7 +714,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <FiUsers /> Claimable Winnings ({claimableTickets.length})
+                      <FiDollarSign /> Claimable Winnings ({claimableTickets.length})
                     </div>
                     {isClaimableWinningsOpen ? <FiChevronUp /> : <FiChevronDown />}
                   </button>
@@ -765,10 +765,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
                 <button 
                   onClick={() => setIsLastRoundsOpen(!isLastRoundsOpen)}
-                  className="w-full flex items-center justify-between text-sm font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
+                  className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    📊 Last 10 Rounds
+                    <FiTrendingUp /> Last 10 Rounds
                   </div>
                   {isLastRoundsOpen ? <FiChevronUp /> : <FiChevronDown />}
                 </button>
@@ -823,10 +823,10 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
                 <button 
                   onClick={() => setIsRulesOpen(!isRulesOpen)}
-                  className="w-full flex items-center justify-between text-sm font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
+                  className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    📋 Rules
+                    <FiBookOpen /> Rules
                   </div>
                   {isRulesOpen ? <FiChevronUp /> : <FiChevronDown />}
                 </button>
