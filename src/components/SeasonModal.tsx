@@ -287,7 +287,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                 <div className="flex justify-between">
                   <span className="text-gray-400">Total Rewards:</span>
                   <span className="text-yellow-400 font-semibold">
-                    {formatNumber(Number(seasonData.total_rewards))} CHESS
+                    0 CHESS
                   </span>
                 </div>
                 <div className="flex justify-between">

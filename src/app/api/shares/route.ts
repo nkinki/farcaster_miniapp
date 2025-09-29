@@ -94,6 +94,48 @@ export async function POST(request: NextRequest) {
 
     console.log(`Share recorded successfully for user ${sharerFid}`);
 
+    // Add season points for share/quote actions
+    try {
+      // Get current active season ID
+      const [seasonResult] = await sql`
+        SELECT id FROM seasons WHERE status = 'active' ORDER BY created_at DESC LIMIT 1
+      `;
+      
+      if (seasonResult) {
+        const seasonId = seasonResult.id;
+        
+        // Add point transaction
+        await sql`
+          INSERT INTO point_transactions (
+            user_fid, season_id, action_type, points_earned, metadata
+          ) VALUES (${sharerFid}, ${seasonId}, ${promo.action_type || 'quote'}, 1, ${JSON.stringify({ 
+            promotion_id: promotionId,
+            cast_hash: castHash,
+            timestamp: new Date().toISOString()
+          })})
+        `;
+
+        // Update user season summary
+        await sql`
+          INSERT INTO user_season_summary (
+            user_fid, season_id, total_points, total_shares, 
+            last_activity
+          ) VALUES (${sharerFid}, ${seasonId}, 1, 1, NOW())
+          ON CONFLICT (user_fid, season_id) 
+          DO UPDATE SET 
+            total_points = user_season_summary.total_points + 1,
+            total_shares = user_season_summary.total_shares + 1,
+            last_activity = NOW(),
+            updated_at = NOW()
+        `;
+
+        console.log(`✅ Season points added for ${promo.action_type || 'quote'} action`);
+      }
+    } catch (seasonError) {
+      console.warn('⚠️ Season tracking failed (non-critical):', seasonError);
+      // Don't fail the main transaction for season tracking
+    }
+
     // Add note for like_recast promotions
     const responseData: any = { success: true, message: "Share recorded successfully" };
     if (promo.action_type === 'like_recast') {

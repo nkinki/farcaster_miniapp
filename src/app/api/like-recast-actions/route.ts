@@ -156,6 +156,48 @@ export async function POST(request: NextRequest) {
           
           console.log(`✅ User action inserted:`, userActionResult.rows[0]);
 
+          // Add season points for like/recast actions
+          try {
+            // Get current active season ID
+            const seasonResult = await client.query(`
+              SELECT id FROM seasons WHERE status = 'active' ORDER BY created_at DESC LIMIT 1
+            `);
+            
+            if (seasonResult.rows.length > 0) {
+              const seasonId = seasonResult.rows[0].id;
+              
+              // Add point transaction
+              await client.query(`
+                INSERT INTO point_transactions (
+                  user_fid, season_id, action_type, points_earned, metadata
+                ) VALUES ($1, $2, $3, 1, $4)
+              `, [userFid, seasonId, action, JSON.stringify({ 
+                promotion_id: promotionId,
+                cast_hash: castHash,
+                timestamp: new Date().toISOString()
+              })]);
+
+              // Update user season summary
+              await client.query(`
+                INSERT INTO user_season_summary (
+                  user_fid, season_id, total_points, ${action === 'like' ? 'total_likes' : 'total_recasts'}, 
+                  last_activity
+                ) VALUES ($1, $2, 1, 1, NOW())
+                ON CONFLICT (user_fid, season_id) 
+                DO UPDATE SET 
+                  total_points = user_season_summary.total_points + 1,
+                  ${action === 'like' ? 'total_likes' : 'total_recasts'} = user_season_summary.${action === 'like' ? 'total_likes' : 'total_recasts'} + 1,
+                  last_activity = NOW(),
+                  updated_at = NOW()
+              `, [userFid, seasonId]);
+
+              console.log(`✅ Season points added for ${action} action`);
+            }
+          } catch (seasonError) {
+            console.warn('⚠️ Season tracking failed (non-critical):', seasonError);
+            // Don't fail the main transaction for season tracking
+          }
+
           // Insert into like_recast_actions (main tracking table)
           const actionResult = await client.query(`
             INSERT INTO like_recast_actions (
