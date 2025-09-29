@@ -101,7 +101,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
     setCheckResult(null);
 
     try {
-      const chessBalanceWei = chessBalance || 0n;
+      const chessBalanceWei = chessBalance || BigInt(0);
       const chessBalanceFormatted = formatUnits(chessBalanceWei, 18);
       const chessPoints = Math.floor(Number(chessBalanceFormatted) / 1000000); // 1M CHESS = 1 point
 
