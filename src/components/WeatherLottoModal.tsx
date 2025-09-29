@@ -120,6 +120,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [isMyTicketsOpen, setIsMyTicketsOpen] = useState(false);
   const [isClaimableWinningsOpen, setIsClaimableWinningsOpen] = useState(false);
   const [isLastRoundsOpen, setIsLastRoundsOpen] = useState(false);
+  const [isRulesOpen, setIsRulesOpen] = useState(false);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
     hash: approveTxHash
@@ -531,7 +532,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           {loading ? (
             <div className="flex-1 flex items-center justify-center"><div className="text-cyan-400 text-2xl font-bold animate-pulse">Loading weather lotto...</div></div>
           ) : (
-            <div className="relative z-10 flex-1 overflow-y-auto space-y-3">
+            <div className="relative z-10 flex-1 overflow-y-auto space-y-4">
 
               <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                 <div className="py-3 px-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
@@ -818,10 +819,19 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 )}
               </div>
 
-              {/* Rules Section */}
+              {/* Rules Section - Collapsible */}
               <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
-                <h3 className="text-sm font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2">📋 Rules</h3>
-                <div className="space-y-1 text-xs text-gray-300">
+                <button 
+                  onClick={() => setIsRulesOpen(!isRulesOpen)}
+                  className="w-full flex items-center justify-between text-sm font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    📋 Rules
+                  </div>
+                  {isRulesOpen ? <FiChevronUp /> : <FiChevronDown />}
+                </button>
+                {isRulesOpen && (
+                  <div className="space-y-1 text-xs text-gray-300">
                   <div className="flex items-start gap-1">
                     <span className="text-yellow-400 font-bold text-xs">1️⃣</span>
                     <span>You can buy tickets for <span className="text-orange-400 font-semibold">both Sunny and Rainy</span> sides</span>
@@ -838,7 +848,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     <span className="text-yellow-400 font-bold text-xs">4️⃣</span>
                     <span>Daily draw at <span className="text-cyan-400 font-semibold">20:05 UTC</span></span>
                   </div>
-                </div>
+                  </div>
+                )}
               </div>
 
           </div>
