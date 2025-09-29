@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift } from "react-icons/fi"
+import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiTrophy } from "react-icons/fi"
 import type { IconType } from "react-icons";
 import React from "react"
 import Image from "next/image"
@@ -375,7 +375,7 @@ export default function Home() {
               className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🏁</span>
+                <FiTrophy size={32} className="text-white" />
               </div>
               <div className="text-center">
                 <div className="text-yellow-300">Buy a Lambo</div>
