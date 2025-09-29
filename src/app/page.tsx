@@ -420,7 +420,7 @@ export default function Home() {
               }}
               className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 via-yellow-400 to-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                 <span className="text-2xl">☀️🌧️</span>
               </div>
               <div className="text-center">

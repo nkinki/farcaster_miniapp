@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react";
-import { FiX, FiSun, FiCloudRain, FiTrendingUp, FiUsers, FiClock, FiZap } from "react-icons/fi";
+import { FiX, FiSun, FiCloudRain, FiTrendingUp, FiUsers, FiClock, FiZap, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
 import { WEATHER_LOTTO_ADDRESS, WEATHER_LOTTO_ABI, TICKET_PRICE } from '@/abis/WeatherLotto';
@@ -115,6 +115,11 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [isManualDrawing, setIsManualDrawing] = useState(false);
   const [drawResult, setDrawResult] = useState<{winner: string, round: number} | null>(null);
   const [claimingTicket, setClaimingTicket] = useState<number | null>(null);
+  
+  // Collapsible sections state
+  const [isMyTicketsOpen, setIsMyTicketsOpen] = useState(false);
+  const [isClaimableWinningsOpen, setIsClaimableWinningsOpen] = useState(false);
+  const [isLastRoundsOpen, setIsLastRoundsOpen] = useState(false);
 
   const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
     hash: approveTxHash
@@ -653,11 +658,20 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </div>
               )}
 
-            {/* My Tickets Section - Show all tickets */}
+            {/* My Tickets Section - Collapsible */}
             {userTickets.length > 0 && (
               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
-                <h3 className="text-lg font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2"><FiUsers /> My Tickets ({userTickets.length})</h3>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
+                <button 
+                  onClick={() => setIsMyTicketsOpen(!isMyTicketsOpen)}
+                  className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <FiUsers /> My Tickets ({userTickets.length})
+                  </div>
+                  {isMyTicketsOpen ? <FiChevronUp /> : <FiChevronDown />}
+                </button>
+                {isMyTicketsOpen && (
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
                   {userTickets.slice(0, 8).map((ticket) => (
                     <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
                       <div className="flex justify-between items-center">
@@ -679,7 +693,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       </div>
                     </div>
                   ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -694,8 +709,17 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               
               return claimableTickets.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-lg font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2"><FiUsers /> Claimable Winnings ({claimableTickets.length})</h3>
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                  <button 
+                    onClick={() => setIsClaimableWinningsOpen(!isClaimableWinningsOpen)}
+                    className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiUsers /> Claimable Winnings ({claimableTickets.length})
+                    </div>
+                    {isClaimableWinningsOpen ? <FiChevronUp /> : <FiChevronDown />}
+                  </button>
+                  {isClaimableWinningsOpen && (
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
                     {claimableTickets.map((ticket) => (
                       <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
                         <div className="flex justify-between items-center">
@@ -731,14 +755,24 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         </div>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })()}
 
-              {/* Last 10 Rounds Section */}
+              {/* Last 10 Rounds Section - Collapsible */}
               <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
-                <h3 className="text-sm font-bold text-purple-400 mb-2 flex items-center justify-center gap-2">📊 Last 10 Rounds</h3>
+                <button 
+                  onClick={() => setIsLastRoundsOpen(!isLastRoundsOpen)}
+                  className="w-full flex items-center justify-between text-sm font-bold text-purple-400 mb-2 hover:text-purple-300 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    📊 Last 10 Rounds
+                  </div>
+                  {isLastRoundsOpen ? <FiChevronUp /> : <FiChevronDown />}
+                </button>
+                {isLastRoundsOpen && (
                 
                 {/* Last 10 Completed Rounds - Scrollable */}
                 {recentRounds.length > 0 ? (() => {
@@ -780,6 +814,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                   <div className="text-center text-gray-400 py-2 text-xs">
                     No completed rounds yet
                   </div>
+                )}
                 )}
               </div>
 
