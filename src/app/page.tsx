@@ -335,7 +335,9 @@ export default function Home() {
              </p>
            </header>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
+          {/* 2x2 Grid Layout for Main Action Buttons */}
+          <div className="grid grid-cols-2 gap-4 mb-6 max-w-2xl mx-auto">
+            {/* Share & Earn */}
             <button
               onClick={async () => {
                 if (hapticsSupported) {
@@ -347,12 +349,18 @@ export default function Home() {
                 }
                 window.location.href = '/promote';
               }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
-              <FiDollarSign size={28} className="text-green-300" />
-              <span>Share & Earn&nbsp;&nbsp;</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                <FiDollarSign size={32} className="text-white" />
+              </div>
+              <div className="text-center">
+                <div className="text-green-300">Share & Earn</div>
+                <div className="text-xs text-gray-400">Earn $CHESS</div>
+              </div>
             </button>
             
+            {/* Buy a Lambo */}
             <button
               onClick={async () => {
                 if (hapticsSupported) {
@@ -364,12 +372,18 @@ export default function Home() {
                 }
                 setShowLamboLottery(true);
               }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
-              <FiDollarSign size={28} className="text-yellow-300" />
-              <span className="text-yellow-300">BUY A LAMBO</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🏎️</span>
+              </div>
+              <div className="text-center">
+                <div className="text-yellow-300">Buy a Lambo</div>
+                <div className="text-xs text-gray-400">Lottery</div>
+              </div>
             </button>
 
+            {/* Claim $CHESS */}
             <button
               onClick={async () => {
                 if (hapticsSupported) {
@@ -381,12 +395,18 @@ export default function Home() {
                 }
                 sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
               }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
-              <FiGift size={28} className="text-[#5D6AFF]" />
-              <span className="animate-chessneon">Claim $CHESS</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                <FiGift size={32} className="text-white" />
+              </div>
+              <div className="text-center">
+                <div className="text-[#5D6AFF] animate-chessneon">Claim $CHESS</div>
+                <div className="text-xs text-gray-400">Free Tokens</div>
+              </div>
             </button>
             
+            {/* Sunny/Rainy */}
             <button
               onClick={async () => {
                 if (hapticsSupported) {
@@ -398,12 +418,14 @@ export default function Home() {
                 }
                 setShowWeatherLotto(true);
               }}
-              className="flex items-center gap-3 px-8 py-4 text-xl font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow w-full sm:w-auto"
+              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
-              <span className="text-2xl">☀️🌧️</span>
-              <div className="flex flex-col items-start">
-                <span>SUNNY/RAINY</span>
-                <span className="text-xs opacity-80">Testing</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 via-yellow-400 to-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-2xl">☀️🌧️</span>
+              </div>
+              <div className="text-center">
+                <div className="text-cyan-300">SUNNY/RAINY</div>
+                <div className="text-xs text-gray-400">Testing</div>
               </div>
             </button>
           </div>
