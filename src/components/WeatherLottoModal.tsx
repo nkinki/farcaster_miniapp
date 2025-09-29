@@ -852,6 +852,9 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 )}
               </div>
 
+              {/* Empty spacer block to prevent content from being hidden behind bottom buttons */}
+              <div className="h-20"></div>
+
           </div>
         )}
         </div>
