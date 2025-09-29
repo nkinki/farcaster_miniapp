@@ -526,7 +526,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
           {loading ? (
             <div className="flex-1 flex items-center justify-center"><div className="text-cyan-400 text-2xl font-bold animate-pulse">Loading weather lotto...</div></div>
           ) : (
-            <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
+            <div className="relative z-10 flex-1 overflow-y-auto space-y-3">
 
               <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                 <div className="py-3 px-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
@@ -683,134 +683,50 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               );
               
               return claimableTickets.length > 0 && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Claimable Winnings ({claimableTickets.length})</h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {claimableTickets.map((ticket) => {
-                      // Calculate potential win/loss for this ticket
-                      const currentSideTickets = ticket.side === 'sunny' ? (currentRound?.sunny_tickets || 0) : (currentRound?.rainy_tickets || 0);
-                      const otherSideTickets = ticket.side === 'sunny' ? (currentRound?.rainy_tickets || 0) : (currentRound?.sunny_tickets || 0);
-                      
-                      // If this side wins: 7k CHESS pool / total tickets on this side * ticket quantity
-                      const potentialWin = currentSideTickets > 0 ? ((currentRound?.total_tickets || 0) * 100000 * 0.7 / currentSideTickets) * ticket.quantity : 0;
-                      const potentialLoss = Number(ticket.total_cost) / 100000000000000000000000; // Convert from wei to CHESS
-                      const netResult = potentialWin - potentialLoss;
-                      
-                      return (
-                        <div key={ticket.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2">
-                              {ticket.side === 'sunny' ? (
-                                <FiSun className="w-5 h-5 text-orange-500" />
-                              ) : (
-                                <FiCloudRain className="w-5 h-5 text-blue-500" />
-                              )}
-                              <span className="font-medium capitalize text-sm text-gray-300">{ticket.side}</span>
-                              <span className="text-xs text-gray-400">x{ticket.quantity}</span>
-                            </div>
-                            <div className="text-sm text-yellow-400">
-                              {formatNumber(ticket.total_cost)} CHESS
-                            </div>
+                <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
+                  <h3 className="text-lg font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2"><FiUsers /> Claimable Winnings ({claimableTickets.length})</h3>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {claimableTickets.map((ticket) => (
+                      <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-1">
+                            {ticket.side === 'sunny' ? (
+                              <FiSun className="w-3 h-3 text-orange-500" />
+                            ) : (
+                              <FiCloudRain className="w-3 h-3 text-blue-500" />
+                            )}
+                            <span className="font-medium capitalize text-xs text-gray-300">{ticket.side}</span>
+                            <span className="text-xs text-gray-400">#{ticket.round_number}</span>
                           </div>
-                          <div className="text-xs text-gray-400 border-t border-gray-600 pt-2">
-                            <div className="flex justify-between">
-                              <span>If {ticket.side} wins:</span>
-                              <span className={netResult >= 0 ? 'text-green-400' : 'text-red-400'}>
-                                {netResult >= 0 ? '+' : ''}{formatNumber(netResult)} CHESS
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>If {ticket.side === 'sunny' ? 'rainy' : 'sunny'} wins:</span>
-                              <span className="text-red-400">
-                                0 CHESS
-                              </span>
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-green-400 font-semibold">
+                              {ticket.payout_amount ? formatNumber(ticket.payout_amount) : 'Calculating...'} CHESS
+                            </span>
+                            {!ticket.is_claimed ? (
+                              <button
+                                onClick={() => handleClaimWinnings(ticket.id)}
+                                disabled={claimingTicket === ticket.id}
+                                className={`px-2 py-1 text-xs font-bold rounded transition-all duration-300 ${
+                                  claimingTicket === ticket.id
+                                    ? 'bg-yellow-600 text-white cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-105'
+                                }`}
+                              >
+                                {claimingTicket === ticket.id ? '⏳' : '💰'}
+                              </button>
+                            ) : (
+                              <span className="text-xs text-gray-400">✅</span>
+                            )}
                           </div>
-                          
-                          {/* Debug info */}
-                          <div className="mt-2 p-2 bg-gray-900 rounded text-xs text-gray-400">
-                            <div>Round: {ticket.round_status} | Winner: {ticket.winning_side} | Side: {ticket.side}</div>
-                            <div>Payout: {formatNumber(ticket.payout_amount)} CHESS | Claim: {ticket.claim_status}</div>
-                          </div>
-                          
-                          {/* Claim Button - Only show if not already claimed */}
-                          {ticket.round_status === 'completed' && ticket.winning_side === ticket.side && !ticket.is_claimed && (
-                            <div className="mt-3 pt-2 border-t border-gray-600">
-                              <div className="flex justify-between items-center">
-                                <div className="text-sm">
-                                  <span className="text-green-400 font-semibold">
-                                    Won: {ticket.payout_amount ? formatNumber(ticket.payout_amount) : 'Calculating...'} CHESS
-                                  </span>
-                                </div>
-                                <button
-                                  onClick={() => handleClaimWinnings(ticket.id)}
-                                  disabled={claimingTicket === ticket.id || ticket.claim_status === 'paid'}
-                                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all duration-300 ${
-                                    ticket.claim_status === 'paid'
-                                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                      : claimingTicket === ticket.id
-                                      ? 'bg-yellow-600 text-white cursor-not-allowed'
-                                      : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-105'
-                                  }`}
-                                >
-                                  {ticket.claim_status === 'paid' 
-                                    ? '✅ Claimed' 
-                                    : claimingTicket === ticket.id 
-                                    ? '⏳ Claiming...' 
-                                    : '💰 Claim Prize'
-                                  }
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Show "Already Claimed" if ticket is claimed */}
-                          {ticket.round_status === 'completed' && ticket.winning_side === ticket.side && ticket.is_claimed && (
-                            <div className="mt-3 pt-2 border-t border-gray-600">
-                              <div className="flex justify-between items-center">
-                                <div className="text-sm">
-                                  <span className="text-green-400 font-semibold">
-                                    Won: {ticket.payout_amount ? formatNumber(ticket.payout_amount) : 'Calculating...'} CHESS
-                                  </span>
-                                </div>
-                                <div className="px-3 py-1 text-xs font-bold rounded-lg bg-gray-600 text-gray-400">
-                                  ✅ Already Claimed
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
             })()}
 
-              {/* Rules Section */}
-              <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
-                <h3 className="text-sm font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2">📋 Rules</h3>
-                <div className="space-y-1 text-xs text-gray-300">
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">1️⃣</span>
-                    <span>You can buy tickets for <span className="text-orange-400 font-semibold">both Sunny and Rainy</span> sides</span>
-                  </div>
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">2️⃣</span>
-                    <span><span className="text-green-400 font-semibold">Draw yourself, decide your fate!</span></span>
-                  </div>
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">3️⃣</span>
-                    <span>House provides <span className="text-purple-400 font-semibold">100k CHESS</span> base for each side</span>
-                  </div>
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">4️⃣</span>
-                    <span>Daily draw at <span className="text-cyan-400 font-semibold">20:05 UTC</span></span>
-                  </div>
-                </div>
-              </div>
-
+              {/* Last 10 Rounds Section */}
               <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
                 <h3 className="text-sm font-bold text-purple-400 mb-2 flex items-center justify-center gap-2">📊 Last 10 Rounds</h3>
                 
@@ -855,6 +771,29 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     No completed rounds yet
                   </div>
                 )}
+              </div>
+
+              {/* Rules Section */}
+              <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
+                <h3 className="text-sm font-bold text-cyan-400 mb-2 flex items-center justify-center gap-2">📋 Rules</h3>
+                <div className="space-y-1 text-xs text-gray-300">
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">1️⃣</span>
+                    <span>You can buy tickets for <span className="text-orange-400 font-semibold">both Sunny and Rainy</span> sides</span>
+                  </div>
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">2️⃣</span>
+                    <span><span className="text-green-400 font-semibold">Draw yourself, decide your fate!</span></span>
+                  </div>
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">3️⃣</span>
+                    <span>House provides <span className="text-purple-400 font-semibold">100k CHESS</span> base for each side</span>
+                  </div>
+                  <div className="flex items-start gap-1">
+                    <span className="text-yellow-400 font-bold text-xs">4️⃣</span>
+                    <span>Daily draw at <span className="text-cyan-400 font-semibold">20:05 UTC</span></span>
+                  </div>
+                </div>
               </div>
 
           </div>
