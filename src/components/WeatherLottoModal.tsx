@@ -663,7 +663,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-yellow-400">{formatNumber(ticket.total_cost)}</span>
                           <span className={`text-xs ${ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'text-green-400' : 'text-red-400') : 'text-yellow-400'}`}>
-                            {ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'W' : 'L') : 'A'}
+                            {ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'Won' : 'Lost') : 'Active'}
                           </span>
                         </div>
                       </div>
