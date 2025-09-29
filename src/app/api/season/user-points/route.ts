@@ -19,11 +19,37 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Get current active season ID
+    const seasonResult = await client.query(`
+      SELECT id FROM seasons WHERE status = 'active' ORDER BY created_at DESC LIMIT 1
+    `);
+    
+    if (seasonResult.rows.length === 0) {
+      return NextResponse.json({
+        success: true,
+        points: {
+          total_points: 0,
+          daily_checks: 0,
+          total_likes: 0,
+          total_recasts: 0,
+          total_quotes: 0,
+          total_shares: 0,
+          total_comments: 0,
+          total_lambo_tickets: 0,
+          total_weather_tickets: 0,
+          total_chess_points: 0,
+          last_activity: null
+        }
+      });
+    }
+    
+    const seasonId = seasonResult.rows[0].id;
+
     // Get user season summary
     const summaryResult = await client.query(`
       SELECT * FROM user_season_summary 
-      WHERE user_fid = $1 AND season_id = 1
-    `, [fid]);
+      WHERE user_fid = $1 AND season_id = $2
+    `, [fid, seasonId]);
 
     if (summaryResult.rows.length === 0) {
       return NextResponse.json({

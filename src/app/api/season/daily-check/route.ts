@@ -32,6 +32,20 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Get current active season ID
+    const seasonResult = await client.query(`
+      SELECT id FROM seasons WHERE status = 'active' ORDER BY created_at DESC LIMIT 1
+    `);
+    
+    if (seasonResult.rows.length === 0) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'No active season found' 
+      }, { status: 400 });
+    }
+    
+    const seasonId = seasonResult.rows[0].id;
+
     await client.query('BEGIN');
 
     const totalPoints = 1 + chess_points; // Daily check + CHESS points
@@ -53,16 +67,16 @@ export async function POST(request: NextRequest) {
         INSERT INTO user_daily_points (
           user_fid, season_id, date, daily_check, 
           chess_holdings_points, total_points
-        ) VALUES ($1, 1, $2, true, $3, $4)
-      `, [user_fid, today, chess_points, totalPoints]);
+        ) VALUES ($1, $2, $3, true, $4, $5)
+      `, [user_fid, seasonId, today, chess_points, totalPoints]);
     }
 
     // Add transaction record
     await client.query(`
       INSERT INTO point_transactions (
         user_fid, season_id, action_type, points_earned, metadata
-      ) VALUES ($1, 1, 'daily_check', $2, $3)
-    `, [user_fid, totalPoints, JSON.stringify({ 
+      ) VALUES ($1, $2, 'daily_check', $3, $4)
+    `, [user_fid, seasonId, totalPoints, JSON.stringify({ 
       chess_balance, 
       chess_points,
       timestamp: new Date().toISOString()
@@ -73,15 +87,15 @@ export async function POST(request: NextRequest) {
       INSERT INTO user_season_summary (
         user_fid, season_id, total_points, daily_checks, 
         total_chess_points, last_activity
-      ) VALUES ($1, 1, $2, 1, $3, NOW())
+      ) VALUES ($1, $2, $3, 1, $4, NOW())
       ON CONFLICT (user_fid, season_id) 
       DO UPDATE SET 
-        total_points = user_season_summary.total_points + $2,
+        total_points = user_season_summary.total_points + $3,
         daily_checks = user_season_summary.daily_checks + 1,
-        total_chess_points = user_season_summary.total_chess_points + $3,
+        total_chess_points = user_season_summary.total_chess_points + $4,
         last_activity = NOW(),
         updated_at = NOW()
-    `, [user_fid, totalPoints, chess_points]);
+    `, [user_fid, seasonId, totalPoints, chess_points]);
 
     await client.query('COMMIT');
 
