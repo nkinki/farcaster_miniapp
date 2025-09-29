@@ -762,7 +762,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             })()}
 
               {/* Last 10 Rounds Section - Collapsible */}
-              <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
+              <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
                 <button 
                   onClick={() => setIsLastRoundsOpen(!isLastRoundsOpen)}
                   className="w-full flex items-center justify-between text-sm font-bold text-purple-400 mb-2 hover:text-purple-300 transition-colors"
@@ -820,7 +820,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               </div>
 
               {/* Rules Section - Collapsible */}
-              <div className="bg-transparent rounded-xl p-3 border border-[#a64d79] shadow-lg">
+              <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
                 <button 
                   onClick={() => setIsRulesOpen(!isRulesOpen)}
                   className="w-full flex items-center justify-between text-sm font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
