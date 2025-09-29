@@ -531,6 +531,12 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               <div className="bg-transparent rounded-xl p-4 border border-[#a64d79] shadow-lg">
                 <div className="py-3 px-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow" style={{ animationDuration: '4s' }}>
                   <h3 className="text-xl font-bold text-white mb-4 text-center drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"><FiZap className="inline mr-2" /> Choose Your Side</h3>
+                  {selectedSide === null && (
+                    <div className="text-center mb-4">
+                      <div className="text-yellow-300 text-lg font-bold animate-bounce">🎯 Pick Your Side!</div>
+                      <div className="text-yellow-200 text-sm">Both buttons are pulsing - choose wisely!</div>
+                    </div>
+                  )}
               
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -538,6 +544,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     className={`p-6 rounded-xl border-2 transition-all ${
                       selectedSide === 'sunny'
                         ? 'border-orange-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg'
+                        : selectedSide === null
+                        ? 'border-orange-400 bg-gradient-to-br from-yellow-200 to-orange-200 shadow-lg animate-pulse hover:scale-105'
                         : 'border-gray-600 hover:border-orange-300 hover:bg-gradient-to-br hover:from-yellow-50 hover:to-orange-50'
                     }`}
                   >
@@ -561,6 +569,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     className={`p-6 rounded-xl border-2 transition-all ${
                       selectedSide === 'rainy'
                         ? 'border-blue-400 bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg'
+                        : selectedSide === null
+                        ? 'border-blue-400 bg-gradient-to-br from-blue-200 to-indigo-200 shadow-lg animate-pulse hover:scale-105'
                         : 'border-gray-600 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50'
                     }`}
                   >
