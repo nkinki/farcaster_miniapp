@@ -828,12 +828,12 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                             <div className="flex items-center gap-1">
                               {round.winning_side === 'sunny' ? (
                                 <>
-                                  <FiSun className="w-3 h-3 text-orange-500" />
+                                  <span className="text-xs text-gray-400">Won:</span>
                                   <span className="text-orange-400 font-semibold">☀️</span>
                                 </>
                               ) : round.winning_side === 'rainy' ? (
                                 <>
-                                  <FiCloudRain className="w-3 h-3 text-blue-500" />
+                                  <span className="text-xs text-gray-400">Won:</span>
                                   <span className="text-blue-400 font-semibold">🌧️</span>
                                 </>
                               ) : null}
