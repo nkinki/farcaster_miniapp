@@ -765,7 +765,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
                 <button 
                   onClick={() => setIsLastRoundsOpen(!isLastRoundsOpen)}
-                  className="w-full flex items-center justify-between text-sm font-bold text-purple-400 mb-2 hover:text-purple-300 transition-colors"
+                  className="w-full flex items-center justify-between text-sm font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     📊 Last 10 Rounds
