@@ -150,7 +150,7 @@ export async function POST() {
     console.error('❌ Migration failed:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Migration failed: ' + error.message 
+      error: 'Migration failed: ' + (error instanceof Error ? error.message : String(error))
     }, { status: 500 });
   } finally {
     client.release();
