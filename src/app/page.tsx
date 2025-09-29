@@ -352,7 +352,7 @@ export default function Home() {
               className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
               <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                <FiShare2 size={32} className="text-white" />
+                <FiUsers size={32} className="text-white" />
               </div>
               <div className="text-center">
                 <div className="text-green-300">Share & Earn</div>
