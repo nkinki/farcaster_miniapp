@@ -85,7 +85,7 @@ VALUES (
   'Season 1 - Under Development', 
   NOW(), 
   NOW() + INTERVAL '30 days', 
-  1000000000000000000000000, -- 1M CHESS in wei
+  1000000, -- 1M CHESS (human readable format)
   'active'
 ) ON CONFLICT DO NOTHING;
 
