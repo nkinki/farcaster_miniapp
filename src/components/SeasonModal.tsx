@@ -51,7 +51,9 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
     abi: CHESS_TOKEN_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
-    enabled: !!address && isConnected
+    query: {
+      enabled: !!address && isConnected
+    }
   });
 
   // Fetch season data
