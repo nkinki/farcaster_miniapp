@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward } from "react-icons/fi"
+import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2 } from "react-icons/fi"
 import type { IconType } from "react-icons";
 import React from "react"
 import Image from "next/image"
@@ -352,7 +352,7 @@ export default function Home() {
               className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
               <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                <FiDollarSign size={32} className="text-white" />
+                <FiShare2 size={32} className="text-white" />
               </div>
               <div className="text-center">
                 <div className="text-green-300">Share & Earn</div>
@@ -375,7 +375,7 @@ export default function Home() {
               className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
             >
               <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
-                <FiAward size={32} className="text-white" />
+                <FiDollarSign size={32} className="text-white" />
               </div>
               <div className="text-center">
                 <div className="text-yellow-300">Buy a Lambo</div>
