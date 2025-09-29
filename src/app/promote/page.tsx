@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle } from "react-icons/fi";
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle, FiCalendar } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import CampaignManager from "../../components/CampaignManager";
 import MyCampaignsDropdown from "@/components/MyCampaignsDropdown";
 import LuckyBox from "@/components/LuckyBox";
+import SeasonModal from "@/components/SeasonModal";
 import { usePromotions } from "@/hooks/usePromotions"
 import { usePromotionsWithComments } from "@/hooks/usePromotionsWithComments";
 import type { PromoCast } from "@/types/promotions";
@@ -143,6 +144,9 @@ export default function PromotePage() {
   const [showLuckyBox, setShowLuckyBox] = useState(false);
   const [luckyBoxReward, setLuckyBoxReward] = useState<number>(0);
   const [isLuckyBoxPreview, setIsLuckyBoxPreview] = useState(false);
+  
+  // Season modal state
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
   
   // Filter state for promotion types
   const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast' | 'comment'>('all');
@@ -1411,8 +1415,20 @@ export default function PromotePage() {
           />
         )} 
 
+        {/* Daily Check Season 1 Button */}
+        <div className="flex justify-center mt-6 mb-4">
+          <button
+            onClick={() => setShowSeasonModal(true)}
+            className="flex items-center gap-3 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 border border-purple-400 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white shadow-xl transition-all duration-300 pulse-glow"
+          >
+            <FiCalendar className="w-6 h-6" />
+            <span>Daily Check Season 1</span>
+            <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full">Under Dev</span>
+          </button>
+        </div>
+
         {/* AppRank Group gomb közelebb a Share & Earn szekcióhoz */}
-        <div className="flex justify-center mt-6 mb-8">
+        <div className="flex justify-center mt-2 mb-8">
           <button
             onClick={() => {
               try {
@@ -1879,6 +1895,13 @@ export default function PromotePage() {
           border: 2px solid #a259ff;
         }
       `}</style>
+
+      {/* Season Modal */}
+      <SeasonModal 
+        isOpen={showSeasonModal}
+        onClose={() => setShowSeasonModal(false)}
+        userFid={profile?.fid}
+      />
     </div>
   );
 }
