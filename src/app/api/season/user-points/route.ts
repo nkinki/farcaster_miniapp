@@ -81,13 +81,16 @@ export async function GET(request: NextRequest) {
         WHERE sharer_fid = $1
       `, [fid]),
       
-      // Comments from shares table (action_type = 'comment')
+      // Comments from both shares table (approved) and pending_comments table (pending + approved)
       client.query(`
         SELECT 
           COUNT(*) as total_comments,
           MAX(created_at) as last_comment
-        FROM shares 
-        WHERE sharer_fid = $1 AND action_type = 'comment'
+        FROM (
+          SELECT created_at FROM shares WHERE sharer_fid = $1 AND action_type = 'comment'
+          UNION ALL
+          SELECT created_at FROM pending_comments WHERE user_fid = $1
+        ) as all_comments
       `, [fid]),
       
       // Lambo tickets from lottery_tickets
