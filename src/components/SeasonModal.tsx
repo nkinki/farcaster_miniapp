@@ -252,15 +252,19 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                   <span className="text-white">{userPoints.total_quotes}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Shares:</span>
-                  <span className="text-white">{userPoints.total_shares}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-gray-400">Comments:</span>
                   <span className="text-white">{userPoints.total_comments}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">CHESS Points:</span>
+                  <span className="text-gray-400">Buy a Lambo:</span>
+                  <span className="text-white">{userPoints.total_lambo_tickets}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Sunny/Rainy:</span>
+                  <span className="text-white">{userPoints.total_weather_tickets}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">CHESS Game:</span>
                   <span className="text-white">{userPoints.total_chess_points}</span>
                 </div>
               </div>
@@ -316,3 +320,4 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
     </div>
   );
 }
+
