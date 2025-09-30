@@ -40,6 +40,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   const [seasonData, setSeasonData] = useState<SeasonData | null>(null);
   const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [isLoadingPoints, setIsLoadingPoints] = useState(false);
   const [checkResult, setCheckResult] = useState<{points: number, chessBalance: string} | null>(null);
   const [error, setError] = useState<string | null>(null);
   
@@ -79,7 +80,11 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   const fetchUserPoints = async () => {
     if (!userFid) return;
     
+    setIsLoadingPoints(true);
     try {
+      // Add a small delay for animation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const response = await fetch(`/api/season/user-points?fid=${userFid}`);
       if (response.ok) {
         const data = await response.json();
@@ -87,6 +92,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
       }
     } catch (error) {
       console.error('Error fetching user points:', error);
+    } finally {
+      setIsLoadingPoints(false);
     }
   };
 
@@ -224,7 +231,20 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
           </div>
 
           {/* Points Summary */}
-          {userPoints && (
+          {isLoadingPoints ? (
+            <div className="bg-[#23283a] rounded-xl p-6 border border-[#a64d79]">
+              <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                <FiTrendingUp className="w-6 h-6" />
+                Your Points
+              </h3>
+              <div className="flex items-center justify-center py-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-cyan-400 font-semibold">Loading your points...</span>
+                </div>
+              </div>
+            </div>
+          ) : userPoints && (
             <div className="bg-[#23283a] rounded-xl p-6 border border-[#a64d79]">
               <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
                 <FiTrendingUp className="w-6 h-6" />
