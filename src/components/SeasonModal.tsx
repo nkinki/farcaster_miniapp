@@ -42,6 +42,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [isChecking, setIsChecking] = useState(false);
   const [isLoadingPoints, setIsLoadingPoints] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [checkResult, setCheckResult] = useState<{points: number, chessBalance: string} | null>(null);
   const [error, setError] = useState<string | null>(null);
   
@@ -108,6 +109,44 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
       }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
+    }
+  };
+
+  const handleResetPoints = async () => {
+    if (!userFid) {
+      setError('User FID not available');
+      return;
+    }
+
+    if (!confirm('⚠️ Are you sure you want to reset ALL your points? This cannot be undone!')) {
+      return;
+    }
+
+    setIsResetting(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/season/reset-user-points', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_fid: userFid })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setUserPoints(null);
+        setLeaderboard([]);
+        setCheckResult(null);
+        alert('✅ All points reset successfully! You can start fresh now.');
+      } else {
+        setError(result.error || 'Reset failed');
+      }
+    } catch (err) {
+      console.error('Reset error:', err);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -240,6 +279,31 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                     <div className="text-red-400 text-center">{error}</div>
                   </div>
                 )}
+
+                {/* Reset Points Button */}
+                <div className="mt-4 pt-4 border-t border-gray-600">
+                  <button
+                    onClick={handleResetPoints}
+                    disabled={isResetting}
+                    className={`w-full px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                      isResetting
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                  >
+                    {isResetting ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Resetting...</span>
+                      </div>
+                    ) : (
+                      '🗑️ Reset All Points (Testing)'
+                    )}
+                  </button>
+                  <p className="text-xs text-gray-400 text-center mt-1">
+                    ⚠️ This will delete ALL your points permanently
+                  </p>
+                </div>
               </div>
             )}
           </div>
