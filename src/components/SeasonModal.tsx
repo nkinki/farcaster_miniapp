@@ -39,6 +39,7 @@ interface UserPoints {
 export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalProps) {
   const [seasonData, setSeasonData] = useState<SeasonData | null>(null);
   const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [isChecking, setIsChecking] = useState(false);
   const [isLoadingPoints, setIsLoadingPoints] = useState(false);
   const [checkResult, setCheckResult] = useState<{points: number, chessBalance: string} | null>(null);
@@ -62,6 +63,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
     if (isOpen && userFid) {
       fetchSeasonData();
       fetchUserPoints();
+      fetchLeaderboard();
     }
   }, [isOpen, userFid]);
 
@@ -94,6 +96,18 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
       console.error('Error fetching user points:', error);
     } finally {
       setIsLoadingPoints(false);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await fetch('/api/season/leaderboard');
+      if (response.ok) {
+        const data = await response.json();
+        setLeaderboard(data.leaderboard || []);
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
     }
   };
 
@@ -172,9 +186,9 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Daily Check Section */}
-          <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-6 border border-purple-400/50">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <FiCheckCircle className="w-6 h-6 text-green-400" />
+          <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-4 border border-purple-400/50 pulse-glow">
+            <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+              <FiCheckCircle className="w-5 h-5 text-green-400" />
               Daily Check-in
             </h3>
             
@@ -232,37 +246,37 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
           {/* Points Summary */}
           {isLoadingPoints ? (
-            <div className="bg-[#23283a] rounded-xl p-6 border border-[#a64d79]">
-              <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
-                <FiTrendingUp className="w-6 h-6" />
+            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+              <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                <FiTrendingUp className="w-5 h-5" />
                 Your Points
               </h3>
-              <div className="flex items-center justify-center py-8">
+              <div className="flex items-center justify-center py-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-cyan-400 font-semibold">Loading your points...</span>
+                  <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-cyan-400 font-semibold text-sm">Loading your points...</span>
                 </div>
               </div>
             </div>
           ) : userPoints && (
-            <div className="bg-[#23283a] rounded-xl p-6 border border-[#a64d79]">
-              <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
-                <FiTrendingUp className="w-6 h-6" />
+            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+              <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                <FiTrendingUp className="w-5 h-5" />
                 Your Points
               </h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-yellow-400">{userPoints.total_points}</div>
-                  <div className="text-sm text-gray-400">Total Points</div>
+                  <div className="text-2xl font-bold text-yellow-400">{userPoints.total_points}</div>
+                  <div className="text-xs text-gray-400">Total Points</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-400">{userPoints.daily_checks}</div>
-                  <div className="text-sm text-gray-400">Daily Checks</div>
+                  <div className="text-2xl font-bold text-green-400">{userPoints.daily_checks}</div>
+                  <div className="text-xs text-gray-400">Daily Checks</div>
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+              <div className="mt-3 grid grid-cols-2 gap-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Like/Recast:</span>
                   <span className="text-white">{userPoints.total_likes + userPoints.total_recasts}</span>
@@ -291,30 +305,57 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
             </div>
           )}
 
+          {/* Leaderboard */}
+          {leaderboard.length > 0 && (
+            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+              <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                <FiTrendingUp className="w-5 h-5" />
+                Top Players
+              </h3>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {leaderboard.slice(0, 10).map((user, index) => (
+                  <div key={user.user_fid} className={`flex justify-between items-center p-2 rounded-lg ${
+                    user.user_fid === userFid ? 'bg-cyan-900/30 border border-cyan-400' : 'bg-gray-800/30'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-yellow-400 font-bold text-sm">#{index + 1}</span>
+                      <span className="text-white text-sm">
+                        {user.user_fid === userFid ? 'You' : `FID ${user.user_fid}`}
+                      </span>
+                    </div>
+                    <span className="text-cyan-400 font-bold">{user.total_points} pts</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Season Info */}
           {seasonData && (
-            <div className="bg-[#23283a] rounded-xl p-6 border border-[#a64d79]">
-              <h3 className="text-xl font-bold text-purple-400 mb-4 flex items-center gap-2">
-                <FiGift className="w-6 h-6" />
+            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
+              <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2">
+                <FiGift className="w-5 h-5" />
                 Season Info
               </h3>
               
-              <div className="space-y-3">
-                <div className="flex justify-between">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Status:</span>
                   <span className="text-green-400 font-semibold">{seasonData.status}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Total Rewards:</span>
-                  <span className="text-yellow-400 font-semibold">
-                    0 CHESS
-                  </span>
-                </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-400">End Date:</span>
                   <span className="text-white">
                     {new Date(seasonData.end_date).toLocaleDateString()}
                   </span>
+                </div>
+                <div className="mt-3">
+                  <button 
+                    disabled
+                    className="w-full px-3 py-2 bg-gray-600 text-gray-400 rounded-lg cursor-not-allowed text-xs font-semibold"
+                  >
+                    Claim Rewards (Coming Soon)
+                  </button>
                 </div>
               </div>
             </div>
