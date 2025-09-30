@@ -62,9 +62,9 @@ export async function POST(request: NextRequest) {
       // Credit the reward to the user
       const result = await sql`
         INSERT INTO shares (
-          promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount
+          promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, action_type
         ) VALUES (
-          ${comment.promotion_id}, ${comment.user_fid}, ${comment.username}, ${comment.cast_hash}, ${comment.reward_amount}
+          ${comment.promotion_id}, ${comment.user_fid}, ${comment.username}, ${comment.cast_hash}, ${comment.reward_amount}, 'comment'
         )
         RETURNING id
       `;
