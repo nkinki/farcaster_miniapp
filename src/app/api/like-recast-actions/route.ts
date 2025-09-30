@@ -178,18 +178,33 @@ export async function POST(request: NextRequest) {
               })]);
 
               // Update user season summary
-              await client.query(`
-                INSERT INTO user_season_summary (
-                  user_fid, season_id, total_points, ${action === 'like' ? 'total_likes' : 'total_recasts'}, 
-                  last_activity
-                ) VALUES ($1, $2, 1, 1, NOW())
-                ON CONFLICT (user_fid, season_id) 
-                DO UPDATE SET 
-                  total_points = user_season_summary.total_points + 1,
-                  ${action === 'like' ? 'total_likes' : 'total_recasts'} = user_season_summary.${action === 'like' ? 'total_likes' : 'total_recasts'} + 1,
-                  last_activity = NOW(),
-                  updated_at = NOW()
-              `, [userFid, seasonId]);
+              if (action === 'like') {
+                await client.query(`
+                  INSERT INTO user_season_summary (
+                    user_fid, season_id, total_points, total_likes, 
+                    last_activity
+                  ) VALUES ($1, $2, 1, 1, NOW())
+                  ON CONFLICT (user_fid, season_id) 
+                  DO UPDATE SET 
+                    total_points = user_season_summary.total_points + 1,
+                    total_likes = user_season_summary.total_likes + 1,
+                    last_activity = NOW(),
+                    updated_at = NOW()
+                `, [userFid, seasonId]);
+              } else if (action === 'recast') {
+                await client.query(`
+                  INSERT INTO user_season_summary (
+                    user_fid, season_id, total_points, total_recasts, 
+                    last_activity
+                  ) VALUES ($1, $2, 1, 1, NOW())
+                  ON CONFLICT (user_fid, season_id) 
+                  DO UPDATE SET 
+                    total_points = user_season_summary.total_points + 1,
+                    total_recasts = user_season_summary.total_recasts + 1,
+                    last_activity = NOW(),
+                    updated_at = NOW()
+                `, [userFid, seasonId]);
+              }
 
               console.log(`✅ Season points added for ${action} action`);
             }

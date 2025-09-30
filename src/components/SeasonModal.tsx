@@ -244,12 +244,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
               <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Likes:</span>
-                  <span className="text-white">{userPoints.total_likes}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Recasts:</span>
-                  <span className="text-white">{userPoints.total_recasts}</span>
+                  <span className="text-gray-400">Like/Recast:</span>
+                  <span className="text-white">{userPoints.total_likes + userPoints.total_recasts}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Quotes:</span>
