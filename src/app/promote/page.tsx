@@ -1039,23 +1039,47 @@ export default function PromotePage() {
           </button>
         </div>
         
+        {/* Create Promotion Modal */}
         {showForm && ( 
-          <div id="promo-form" className="bg-[#23283a] rounded-2xl p-6 mb-8 border border-[#a64d79] relative pulse-glow"> 
-            <button className="absolute top-3 right-3 text-gray-400 hover:text-white" onClick={handleCreateCancel}>
-              <FiX size={24} />
-            </button> 
-            <PaymentForm user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} /> 
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] max-w-2xl w-full max-h-[90vh] overflow-hidden pulse-glow">
+              <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <FiPlus className="text-purple-300" />
+                  Create Promotion
+                </h2>
+                <button 
+                  onClick={handleCreateCancel}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+              <div className="overflow-y-auto max-h-[80vh] p-6">
+                <PaymentForm user={currentUser} onSuccess={handleCreateSuccess} onCancel={handleCreateCancel} /> 
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] overflow-hidden pulse-glow">
-            <button onClick={() => setIsShareListOpen(!isShareListOpen)} className="w-full flex items-center p-4 text-left text-white font-semibold text-lg hover:bg-[#2a2f42] transition-colors">
-                <FiShare2 className="text-purple-300 w-6" />
-                <span className="flex-1 text-center">Share & Earn ({availablePromos.length})</span>
-                <div className="w-6">{isShareListOpen ? <FiChevronUp /> : <FiChevronDown />}</div>
-            </button>
-            {isShareListOpen && (
-                <div className="p-4 border-t border-gray-700 space-y-4">
+        {/* Share & Earn Modal */}
+        {isShareListOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] max-w-4xl w-full max-h-[90vh] overflow-hidden pulse-glow">
+              <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <FiShare2 className="text-purple-300" />
+                  Share & Earn ({availablePromos.length})
+                </h2>
+                <button 
+                  onClick={() => setIsShareListOpen(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+              <div className="overflow-y-auto max-h-[80vh]">
+                <div className="p-4 space-y-4">
                   {/* Promotion Type Filter */}
                   <div className="flex gap-2 mb-4">
                     <button
@@ -1471,6 +1495,11 @@ export default function PromotePage() {
           />
         )} 
 
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Lucky Box Preview - TEMPORARILY DISABLED */}
         {false && (
