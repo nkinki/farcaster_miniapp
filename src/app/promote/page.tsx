@@ -1481,8 +1481,10 @@ export default function PromotePage() {
                     </div>
                   )}
                 </div>
-            )}
-        </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {showCampaignManager && managingPromo && (
           <CampaignManager 
