@@ -1495,12 +1495,6 @@ export default function PromotePage() {
           />
         )} 
 
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Lucky Box Preview - TEMPORARILY DISABLED */}
         {false && (
           <div className="flex justify-center mt-4 mb-6">
