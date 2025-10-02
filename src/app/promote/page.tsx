@@ -973,14 +973,70 @@ export default function PromotePage() {
           currentUserFid={currentUser.fid}
         />
         
-        <div className="flex justify-center my-8">
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-6 py-3 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg pulse-glow"
-              style={{ position: 'relative', overflow: 'hidden' }}
-            >
-              <FiPlus size={20} />Create Promotion
-            </button>
+        {/* 2x2 Grid Menu */}
+        <div className="grid grid-cols-2 gap-4 my-8 max-w-md mx-auto">
+          {/* Create Promotion */}
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiPlus size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-purple-300">Create Promotion</div>
+              <div className="text-xs text-gray-400">Start Campaign</div>
+            </div>
+          </button>
+
+          {/* Share & Earn */}
+          <button
+            onClick={() => setIsShareListOpen(!isShareListOpen)}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiShare2 size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-green-300">Share & Earn</div>
+              <div className="text-xs text-gray-400">({availablePromos.length}) Campaigns</div>
+            </div>
+          </button>
+
+          {/* Daily Check */}
+          <button
+            onClick={() => setShowSeasonModal(true)}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiCalendar size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-blue-300">Daily Check</div>
+              <div className="text-xs text-gray-400">Season 1</div>
+            </div>
+          </button>
+
+          {/* Join AppRank */}
+          <button
+            onClick={() => {
+              try {
+                (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
+              } catch (error) {
+                console.log('SDK openUrl error:', error);
+                window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
+              }
+            }}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiUsers size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-orange-300">Join AppRank</div>
+              <div className="text-xs text-gray-400">Community</div>
+            </div>
+          </button>
         </div>
         
         {showForm && ( 
@@ -1415,35 +1471,6 @@ export default function PromotePage() {
           />
         )} 
 
-        {/* Daily Check Season 1 Button */}
-        <div className="flex justify-center mt-6 mb-4">
-          <button
-            onClick={() => setShowSeasonModal(true)}
-            className="flex items-center gap-3 px-6 py-3 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 border border-purple-400 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white shadow-xl transition-all duration-300 pulse-glow"
-          >
-            <FiCalendar className="w-6 h-6" />
-            <span>Daily Check Season 1</span>
-            <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full">Under Dev</span>
-          </button>
-        </div>
-
-        {/* AppRank Group gomb közelebb a Share & Earn szekcióhoz */}
-        <div className="flex justify-center mt-2 mb-8">
-          <button
-            onClick={() => {
-              try {
-                (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
-              } catch (error) {
-                console.log('SDK openUrl error:', error);
-                // Fallback to window.open if SDK fails
-                window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
-              }
-            }}
-            className="flex items-center gap-4 px-8 py-4 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-xl transition-all duration-300 pulse-glow"
-          >
-            👥 Join AppRank Group
-          </button>
-        </div>
 
         {/* Lucky Box Preview - TEMPORARILY DISABLED */}
         {false && (
