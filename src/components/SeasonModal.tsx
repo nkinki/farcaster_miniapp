@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle } from "react-icons/fi";
-import { useAccount } from 'wagmi';
-import { useReadContract } from 'wagmi';
-import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
-import { formatUnits } from 'viem';
+// Removed wallet dependencies - using user info data instead
 
 interface SeasonModalProps {
   isOpen: boolean;
@@ -43,21 +40,10 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   const [isChecking, setIsChecking] = useState(false);
   const [isLoadingPoints, setIsLoadingPoints] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [checkResult, setCheckResult] = useState<{points: number, chessBalance: string} | null>(null);
+  const [checkResult, setCheckResult] = useState<{points: number} | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const { address, isConnected } = useAccount();
-  
-  // CHESS balance reading
-  const { data: chessBalance } = useReadContract({
-    address: CHESS_TOKEN_ADDRESS,
-    abi: CHESS_TOKEN_ABI,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address && isConnected
-    }
-  });
+  // No wallet connection needed - using user info data
 
   // Fetch season data
   useEffect(() => {
@@ -151,8 +137,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   };
 
   const handleDailyCheck = async () => {
-    if (!userFid || !address) {
-      setError('Please connect your wallet');
+    if (!userFid) {
+      setError('User FID not available');
       return;
     }
 
@@ -161,17 +147,11 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
     setCheckResult(null);
 
     try {
-      const chessBalanceWei = chessBalance || BigInt(0);
-      const chessBalanceFormatted = formatUnits(chessBalanceWei, 18);
-      const chessPoints = Math.floor(Number(chessBalanceFormatted) / 1000000); // 1M CHESS = 1 point
-
       const response = await fetch('/api/season/daily-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_fid: userFid,
-          chess_balance: chessBalanceWei.toString(),
-          chess_points: chessPoints
+          user_fid: userFid
         })
       });
 
@@ -179,8 +159,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
       if (result.success) {
         setCheckResult({
-          points: result.points_earned,
-          chessBalance: chessBalanceFormatted
+          points: result.points_earned
         });
         await fetchUserPoints(); // Refresh points
       } else {
@@ -231,12 +210,9 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
               Daily Check-in
             </h3>
             
-            {!isConnected ? (
+            {!userFid ? (
               <div className="text-center py-8">
-                <p className="text-gray-400 mb-4">Connect your wallet to participate</p>
-                <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
-                  Connect Wallet
-                </button>
+                <p className="text-gray-400 mb-4">User not found</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -253,7 +229,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                     {isChecking ? (
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Checking CHESS balance...</span>
+                        <span>Processing...</span>
                       </div>
                     ) : (
                       '✅ Daily Check'
@@ -268,7 +244,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                         🎯 +{checkResult.points} points earned!
                       </div>
                       <div className="text-gray-300 text-sm">
-                        💰 {formatNumber(Number(checkResult.chessBalance))} CHESS detected
+                        🎯 Daily check completed successfully!
                       </div>
                     </div>
                   </div>

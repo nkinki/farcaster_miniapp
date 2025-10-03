@@ -9,12 +9,12 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
-    const { user_fid, chess_balance, chess_points } = await request.json();
+    const { user_fid } = await request.json();
 
-    if (!user_fid || chess_balance === undefined || chess_points === undefined) {
+    if (!user_fid) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Missing required fields' 
+        error: 'User FID is required' 
       }, { status: 400 });
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     await client.query('BEGIN');
 
-    const totalPoints = 1 + chess_points; // Daily check + CHESS points
+    const totalPoints = 1; // Just daily check point (CHESS points calculated separately)
 
     if (existingCheck.rows.length > 0) {
       // Update existing record
@@ -56,19 +56,18 @@ export async function POST(request: NextRequest) {
         UPDATE user_daily_points 
         SET 
           daily_check = true,
-          chess_holdings_points = $1,
-          total_points = total_points + $2,
+          total_points = total_points + $1,
           updated_at = NOW()
-        WHERE user_fid = $3 AND date = $4
-      `, [chess_points, totalPoints, user_fid, today]);
+        WHERE user_fid = $2 AND date = $3
+      `, [totalPoints, user_fid, today]);
     } else {
       // Create new record
       await client.query(`
         INSERT INTO user_daily_points (
           user_fid, season_id, date, daily_check, 
-          chess_holdings_points, total_points
-        ) VALUES ($1, $2, $3, true, $4, $5)
-      `, [user_fid, seasonId, today, chess_points, totalPoints]);
+          total_points
+        ) VALUES ($1, $2, $3, true, $4)
+      `, [user_fid, seasonId, today, totalPoints]);
     }
 
     // Add transaction record
@@ -77,8 +76,6 @@ export async function POST(request: NextRequest) {
         user_fid, season_id, action_type, points_earned, metadata
       ) VALUES ($1, $2, 'daily_check', $3, $4)
     `, [user_fid, seasonId, totalPoints, JSON.stringify({ 
-      chess_balance, 
-      chess_points,
       timestamp: new Date().toISOString()
     })]);
 
@@ -86,23 +83,21 @@ export async function POST(request: NextRequest) {
     await client.query(`
       INSERT INTO user_season_summary (
         user_fid, season_id, total_points, daily_checks, 
-        total_chess_points, last_activity
-      ) VALUES ($1, $2, $3, 1, $4, NOW())
+        last_activity
+      ) VALUES ($1, $2, $3, 1, NOW())
       ON CONFLICT (user_fid, season_id) 
       DO UPDATE SET 
         total_points = user_season_summary.total_points + $3,
         daily_checks = user_season_summary.daily_checks + 1,
-        total_chess_points = user_season_summary.total_chess_points + $4,
         last_activity = NOW(),
         updated_at = NOW()
-    `, [user_fid, seasonId, totalPoints, chess_points]);
+    `, [user_fid, seasonId, totalPoints]);
 
     await client.query('COMMIT');
 
     return NextResponse.json({
       success: true,
       points_earned: totalPoints,
-      chess_balance: chess_balance,
       message: `Daily check completed! Earned ${totalPoints} points.`
     });
 
