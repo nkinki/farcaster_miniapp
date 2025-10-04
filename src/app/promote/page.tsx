@@ -163,7 +163,7 @@ export default function PromotePage() {
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
   const [showCommentTemplates, setShowCommentTemplates] = useState(false);
   const [templateSortOrder, setTemplateSortOrder] = useState<'default' | 'random' | 'compact'>('default');
-  const [templateDisplayMode, setTemplateDisplayMode] = useState<'full' | 'compact'>('full');
+  // Only compact view for comment templates
 
   // Comment templates - same as in PaymentForm
   const COMMENT_TEMPLATES = [
@@ -221,9 +221,7 @@ export default function PromotePage() {
     setTemplateSortOrder(order);
   };
 
-  const toggleDisplayMode = () => {
-    setTemplateDisplayMode(prev => prev === 'full' ? 'compact' : 'full');
-  };
+  // Display mode toggle removed - only compact view
 
   const {
     promotions: allPromotions,
@@ -1747,19 +1745,10 @@ export default function PromotePage() {
                       {templateSortOrder === 'default' ? '🔄 Random' : 
                        templateSortOrder === 'random' ? '📦 Compact' : '📋 Default'}
                     </button>
-                    <button
-                      onClick={toggleDisplayMode}
-                      className="px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
-                    >
-                      {templateDisplayMode === 'full' ? '📱 Compact' : '📄 Full'}
-                    </button>
+                    {/* Display mode toggle removed - only compact view */}
                   </div>
                 </div>
-                <div className={`grid gap-2 ${
-                  templateDisplayMode === 'compact' 
-                    ? 'grid-cols-2' 
-                    : 'grid-cols-1'
-                }`}>
+                <div className="grid gap-2 grid-cols-2">
                   {getSortedTemplates(
                     selectedCommentPromo.commentTemplates && selectedCommentPromo.commentTemplates.length > 0 
                       ? selectedCommentPromo.commentTemplates 
@@ -1768,9 +1757,7 @@ export default function PromotePage() {
                     <button
                       key={index}
                       onClick={() => setSelectedCommentTemplate(template)}
-                      className={`${
-                        templateDisplayMode === 'compact' ? 'p-2 text-xs' : 'p-3 text-sm'
-                      } rounded-lg font-medium transition-all duration-200 text-left ${
+                      className="p-2 text-xs rounded-lg font-medium transition-all duration-200 text-left ${
                         selectedCommentTemplate === template
                           ? 'bg-green-600 text-white border border-green-500'
                           : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
