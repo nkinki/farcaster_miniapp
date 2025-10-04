@@ -94,7 +94,6 @@ export async function GET() {
       FROM user_stats
       WHERE (daily_checks + like_recast_count + shares_count + comments_count + lambo_tickets + weather_tickets + chess_points) > 0
       ORDER BY total_points DESC, last_activity DESC
-      LIMIT 20
     `, [seasonId]);
 
     return NextResponse.json({
