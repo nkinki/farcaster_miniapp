@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { createPublicClient, http } from 'viem';
+import { base } from 'viem/chains';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -48,7 +50,72 @@ export async function POST(request: NextRequest) {
 
     await client.query('BEGIN');
 
-    const totalPoints = 1; // Just daily check point (CHESS points calculated separately)
+    // Get user's wallet address from database
+    const userResult = await client.query(`
+      SELECT wallet_address FROM users WHERE fid = $1
+    `, [user_fid]);
+    
+    let chessPoints = 0;
+    if (userResult.rows.length > 0 && userResult.rows[0].wallet_address) {
+      try {
+        // Create Viem client for Base mainnet
+        const client = createPublicClient({
+          chain: base,
+          transport: http()
+        });
+        
+        // CHESS token contract address (Base mainnet)
+        const CHESS_TOKEN_ADDRESS = '0x7c6b91D9Be155A6Db01f749817dD64eF24ebc1b2';
+        
+        // Get CHESS balance
+        const balance = await client.readContract({
+          address: CHESS_TOKEN_ADDRESS,
+          abi: [
+            {
+              "inputs": [{"name": "account", "type": "address"}],
+              "name": "balanceOf",
+              "outputs": [{"name": "", "type": "uint256"}],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "decimals",
+              "outputs": [{"name": "", "type": "uint8"}],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ],
+          functionName: 'balanceOf',
+          args: [userResult.rows[0].wallet_address]
+        });
+        
+        // Get decimals
+        const decimals = await client.readContract({
+          address: CHESS_TOKEN_ADDRESS,
+          abi: [
+            {
+              "inputs": [],
+              "name": "decimals",
+              "outputs": [{"name": "", "type": "uint8"}],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ],
+          functionName: 'decimals'
+        });
+        
+        // Calculate points: 1M CHESS = 1 point
+        const balanceFormatted = Number(balance) / Math.pow(10, Number(decimals));
+        chessPoints = Math.floor(balanceFormatted / 1000000); // 1M CHESS = 1 point
+        
+      } catch (error) {
+        console.warn('Failed to fetch CHESS balance:', error);
+        chessPoints = 0;
+      }
+    }
+
+    const totalPoints = 1 + chessPoints; // Daily check + CHESS points
 
     if (existingCheck.rows.length > 0) {
       // Update existing record
@@ -56,18 +123,19 @@ export async function POST(request: NextRequest) {
         UPDATE user_daily_points 
         SET 
           daily_check = true,
-          total_points = total_points + $1,
+          chess_holdings_points = $1,
+          total_points = total_points + $2,
           updated_at = NOW()
-        WHERE user_fid = $2 AND date = $3
-      `, [totalPoints, user_fid, today]);
+        WHERE user_fid = $3 AND date = $4
+      `, [chessPoints, totalPoints, user_fid, today]);
     } else {
       // Create new record
       await client.query(`
         INSERT INTO user_daily_points (
           user_fid, season_id, date, daily_check, 
-          total_points
-        ) VALUES ($1, $2, $3, true, $4)
-      `, [user_fid, seasonId, today, totalPoints]);
+          chess_holdings_points, total_points
+        ) VALUES ($1, $2, $3, true, $4, $5)
+      `, [user_fid, seasonId, today, chessPoints, totalPoints]);
     }
 
     // Add transaction record
@@ -83,22 +151,24 @@ export async function POST(request: NextRequest) {
     await client.query(`
       INSERT INTO user_season_summary (
         user_fid, season_id, total_points, daily_checks, 
-        last_activity
-      ) VALUES ($1, $2, $3, 1, NOW())
+        total_chess_points, last_activity
+      ) VALUES ($1, $2, $3, 1, $4, NOW())
       ON CONFLICT (user_fid, season_id) 
       DO UPDATE SET 
         total_points = user_season_summary.total_points + $3,
         daily_checks = user_season_summary.daily_checks + 1,
+        total_chess_points = user_season_summary.total_chess_points + $4,
         last_activity = NOW(),
         updated_at = NOW()
-    `, [user_fid, seasonId, totalPoints]);
+    `, [user_fid, seasonId, totalPoints, chessPoints]);
 
     await client.query('COMMIT');
 
     return NextResponse.json({
       success: true,
       points_earned: totalPoints,
-      message: `Daily check completed! Earned ${totalPoints} points.`
+      chess_points: chessPoints,
+      message: `Daily check completed! Earned ${totalPoints} points (${chessPoints} from CHESS holdings).`
     });
 
   } catch (error) {
