@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { createPublicClient, http } from 'viem';
-import { base } from 'viem/chains';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -50,70 +48,9 @@ export async function POST(request: NextRequest) {
 
     await client.query('BEGIN');
 
-    // Get user's wallet address from database
-    const userResult = await client.query(`
-      SELECT wallet_address FROM users WHERE fid = $1
-    `, [user_fid]);
-    
+    // For now, skip CHESS balance calculation since wallet_address column doesn't exist
+    // TODO: Add wallet_address column to users table or implement alternative method
     let chessPoints = 0;
-    if (userResult.rows.length > 0 && userResult.rows[0].wallet_address) {
-      try {
-        // Create Viem client for Base mainnet
-        const client = createPublicClient({
-          chain: base,
-          transport: http()
-        });
-        
-        // CHESS token contract address (Base mainnet)
-        const CHESS_TOKEN_ADDRESS = '0x7c6b91D9Be155A6Db01f749817dD64eF24ebc1b2';
-        
-        // Get CHESS balance
-        const balance = await client.readContract({
-          address: CHESS_TOKEN_ADDRESS,
-          abi: [
-            {
-              "inputs": [{"name": "account", "type": "address"}],
-              "name": "balanceOf",
-              "outputs": [{"name": "", "type": "uint256"}],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [],
-              "name": "decimals",
-              "outputs": [{"name": "", "type": "uint8"}],
-              "stateMutability": "view",
-              "type": "function"
-            }
-          ],
-          functionName: 'balanceOf',
-          args: [userResult.rows[0].wallet_address]
-        });
-        
-        // Get decimals
-        const decimals = await client.readContract({
-          address: CHESS_TOKEN_ADDRESS,
-          abi: [
-            {
-              "inputs": [],
-              "name": "decimals",
-              "outputs": [{"name": "", "type": "uint8"}],
-              "stateMutability": "view",
-              "type": "function"
-            }
-          ],
-          functionName: 'decimals'
-        });
-        
-        // Calculate points: 1M CHESS = 1 point
-        const balanceFormatted = Number(balance) / Math.pow(10, Number(decimals));
-        chessPoints = Math.floor(balanceFormatted / 1000000); // 1M CHESS = 1 point
-        
-      } catch (error) {
-        console.warn('Failed to fetch CHESS balance:', error);
-        chessPoints = 0;
-      }
-    }
 
     const totalPoints = 1 + chessPoints; // Daily check + CHESS points
 
