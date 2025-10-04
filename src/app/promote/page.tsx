@@ -1757,7 +1757,7 @@ export default function PromotePage() {
                     <button
                       key={index}
                       onClick={() => setSelectedCommentTemplate(template)}
-                      className="p-2 text-xs rounded-lg font-medium transition-all duration-200 text-left ${
+                      className={`p-2 text-xs rounded-lg font-medium transition-all duration-200 text-left ${
                         selectedCommentTemplate === template
                           ? 'bg-green-600 text-white border border-green-500'
                           : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
