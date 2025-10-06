@@ -53,9 +53,41 @@ export async function POST(request: NextRequest) {
     // Check if promotion exists and has enough budget
     console.log('🔍 Checking promotion:', { promotionId, status: 'active', actionType: 'follow' });
     
+    // First check if promotion exists (without action_type filter)
+    const promotionCheckResult = await pool.query(
+      'SELECT id, status, action_type FROM promotions WHERE id = $1',
+      [promotionId]
+    );
+    
+    if (promotionCheckResult.rows.length === 0) {
+      return NextResponse.json({ 
+        error: 'Promotion not found' 
+      }, { status: 404 });
+    }
+    
+    const promotion = promotionCheckResult.rows[0];
+    console.log('🔍 Found promotion:', promotion);
+    
+    // Check if it's a follow promotion
+    if (promotion.action_type !== 'follow') {
+      return NextResponse.json({ 
+        error: 'This promotion is not a follow promotion',
+        actualActionType: promotion.action_type
+      }, { status: 400 });
+    }
+    
+    // Check if promotion is active
+    if (promotion.status !== 'active') {
+      return NextResponse.json({ 
+        error: 'Promotion is not active',
+        actualStatus: promotion.status
+      }, { status: 400 });
+    }
+    
+    // Get full promotion data
     const promotionResult = await pool.query(
-      'SELECT * FROM promotions WHERE id = $1 AND status = $2 AND action_type = $3',
-      [promotionId, 'active', 'follow']
+      'SELECT * FROM promotions WHERE id = $1',
+      [promotionId]
     );
 
     console.log('🔍 Promotion query result:', {
@@ -64,17 +96,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (promotionResult.rows.length === 0) {
-      // Try to find the promotion with any action_type for debugging
-      const debugResult = await pool.query(
-        'SELECT id, status, action_type FROM promotions WHERE id = $1',
-        [promotionId]
-      );
-      
-      console.log('🔍 Debug - promotion exists with different criteria:', debugResult.rows[0] || 'NOT FOUND');
-      
       return NextResponse.json({ 
-        error: 'Promotion not found, not active, or not a follow promotion',
-        debug: debugResult.rows[0] || null
+        error: 'Promotion not found' 
       }, { status: 404 });
     }
 
