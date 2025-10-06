@@ -18,7 +18,7 @@ export interface PromoCast {
     username: string
     displayName: string
   }
-  actionType: 'quote' | 'like_recast' | 'comment' // Add actionType field
+  actionType: 'quote' | 'like_recast' | 'comment' | 'follow' // Add actionType field
   // Comment functionality fields
   commentTemplates?: string[] // Array of selected comment templates
   customComment?: string | null // Custom comment text
@@ -40,7 +40,7 @@ export interface Promotion {
   status: string
   created_at: string
   updated_at: string
-  action_type: 'quote' | 'like_recast' | 'comment' // Add action_type field
+  action_type: 'quote' | 'like_recast' | 'comment' | 'follow' // Add action_type field
   // Comment functionality fields
   comment_templates?: string[] | null // Array of selected comment templates (JSON from DB)
   custom_comment?: string | null // Custom comment text
