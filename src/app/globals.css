@@ -50,4 +50,12 @@ body {
   .animate-claimSuccess {
     animation: claimSuccess 0.6s ease-in-out;
   }
+  
+  @keyframes slideInRight {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  .animate-slideInRight {
+    animation: slideInRight 0.3s ease-out;
+  }
 }

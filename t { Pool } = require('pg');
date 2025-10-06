@@ -1,0 +1,74 @@
+[33mcommit add3b6c5b5bad18d94bcfc27155a0f06c3eb73a2[m
+Author: nkinki <nkinki2014@gmail.com>
+Date:   Mon Oct 6 11:44:56 2025 +0200
+
+    feat: Implement Farcaster Frame structure with two buttons
+
+[1mdiff --git a/.github/workflows/lambo-lottery-draw.yml b/.github/workflows/lambo-lottery-draw.yml[m
+[1mindex d9070e4..555c84f 100644[m
+[1m--- a/.github/workflows/lambo-lottery-draw.yml[m
+[1m+++ b/.github/workflows/lambo-lottery-draw.yml[m
+[36m@@ -2,17 +2,17 @@[m [mname: Lambo Lottery Daily Draw[m
+ [m
+ on:[m
+   schedule:[m
+[31m-    - cron: '0 19 * * *'[m
+[32m+[m[32m    - cron: '5 19 * * *'[m
+   workflow_dispatch: # Engedélyezi a manuális indítást is.[m
+ [m
+ jobs:[m
+   lottery-draw:[m
+     runs-on: ubuntu-latest[m
+[31m-    [m
+[32m+[m
+     steps:[m
+     - name: Checkout code[m
+       uses: actions/checkout@v4[m
+[31m-      [m
+[32m+[m
+     - name: Check server time in different timezones[m
+       run: |[m
+         echo "--- Time Check ---"[m
+[36m@@ -21,32 +21,28 @@[m [mjobs:[m
+         echo ""[m
+         echo "Budapest Time (Europe/Budapest):"[m
+         TZ=Europe/Budapest date[m
+[31m-        echo "Lottery draw scheduled for 19:00 UTC (21:00 Budapest)"[m
+[32m+[m[32m        echo "Lottery draw scheduled for 19:05 UTC (21:05 Budapest)"[m
+         echo "------------------"[m
+[31m-      [m
+[32m+[m
+     - name: Setup Node.js[m
+       uses: actions/setup-node@v4[m
+       with:[m
+[31m-        node-version: '20'[m
+[31m-        [m
+[31m-    - name: Setup pnpm[m
+[31m-      uses: pnpm/action-setup@v2[m
+[31m-      with:[m
+[31m-        version: 8[m
+[31m-        [m
+[32m+[m[32m        node-version: '22'[m
+[32m+[m[32m        cache: 'npm'[m
+[32m+[m
+     - name: Install dependencies[m
+[31m-      run: pnpm install[m
+[31m-      [m
+[32m+[m[32m      run: npm ci[m
+[32m+[m
+     - name: Run lottery draw[m
+       env:[m
+         DATABASE_URL: ${{ secrets.DATABASE_URL }}[m
+         FORCE_DRAW_NOW: 'true'[m
+       run: node scripts/lambo-lottery-draw.js --force-now[m
+[31m-      [m
+[32m+[m
+     - name: Notify on success[m
+       if: success()[m
+       run: echo "🎰 Lottery draw completed successfully!"[m
+[31m-      [m
+[32m+[m
+     - name: Notify on failure[m
+       if: failure()[m
+       run: echo "❌ Lottery draw failed!"[m
+\ No newline at end of file[m

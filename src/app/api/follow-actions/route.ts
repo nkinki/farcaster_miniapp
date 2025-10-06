@@ -108,17 +108,20 @@ export async function POST(request: NextRequest) {
 
     const fullPromotion = promotionResult.rows[0];
 
-    // Check if user already completed this action
-    const existingAction = await pool.query(
-      'SELECT id FROM follow_actions WHERE promotion_id = $1 AND user_fid = $2',
-      [promotionId, userFid]
-    );
+  // Check if user already completed this action
+  const existingAction = await pool.query(
+    'SELECT id, status FROM follow_actions WHERE promotion_id = $1 AND user_fid = $2',
+    [promotionId, userFid]
+  );
 
-    if (existingAction.rows.length > 0) {
-      return NextResponse.json({ 
-        error: 'You have already completed this follow action' 
-      }, { status: 409 });
-    }
+  if (existingAction.rows.length > 0) {
+    const action = existingAction.rows[0];
+    return NextResponse.json({ 
+      error: `You have already completed this follow action (Status: ${action.status})`,
+      actionId: action.id,
+      status: action.status
+    }, { status: 409 });
+  }
 
   // Check if user already has a pending follow for this promotion
   // First check if pending_follows table exists

@@ -139,6 +139,8 @@ export default function PromotePage() {
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [sharingPromoId, setSharingPromoId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [showFollowToast, setShowFollowToast] = useState(false);
+  const [followToastMessage, setFollowToastMessage] = useState('');
   
   // Lucky Box state
   const [showLuckyBox, setShowLuckyBox] = useState(false);
@@ -666,6 +668,13 @@ export default function PromotePage() {
       const data = await response.json();
       
       if (!response.ok) {
+        if (response.status === 409) {
+          // User already completed this action
+          setFollowToastMessage(`✅ You already completed this follow action! (Status: ${data.status || 'completed'})`);
+          setShowFollowToast(true);
+          await refreshAllData();
+          return;
+        }
         throw new Error(data.error || 'Failed to submit follow action');
       }
 
@@ -673,12 +682,18 @@ export default function PromotePage() {
       setShareError(null);
       console.log('✅ Follow action submitted successfully!');
       
-      // Show success message
+      // Show success toast
       if (data.message?.includes('admin approval')) {
-        setShareError('✅ Follow submitted for admin approval! Reward will be credited after review.');
+        setFollowToastMessage('✅ Follow submitted for admin approval! Reward will be credited after review.');
       } else {
-        setShareError('✅ Follow action completed!');
+        setFollowToastMessage('✅ Follow action completed!');
       }
+      setShowFollowToast(true);
+      
+      // Auto-hide toast after 5 seconds
+      setTimeout(() => {
+        setShowFollowToast(false);
+      }, 5000);
       
       // Refresh data
       await refreshAllData();
@@ -1034,6 +1049,26 @@ export default function PromotePage() {
             <button onClick={() => setShareError(null)} className="ml-auto text-red-400 hover:text-red-200">
               <FiX size={16} />
             </button>
+          </div>
+        )}
+
+        {/* Follow Toast Notification */}
+        {showFollowToast && (
+          <div className="fixed top-4 right-4 z-50 bg-green-900/90 border border-green-600 rounded-lg p-4 shadow-lg animate-slideInRight max-w-sm">
+            <div className="flex items-center gap-3">
+              <div className="text-green-400 text-xl">👥</div>
+              <div className="flex-1">
+                <div className="text-green-200 font-medium text-sm">
+                  {followToastMessage}
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowFollowToast(false)} 
+                className="text-green-400 hover:text-green-200 transition-colors"
+              >
+                <FiX size={16} />
+              </button>
+            </div>
           </div>
         )}
 
