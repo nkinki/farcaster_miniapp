@@ -169,14 +169,14 @@ export async function POST(request: NextRequest) {
   console.log('📝 Creating pending follow for admin approval...');
   
   try {
-    const result = await pool.query(`
-      INSERT INTO pending_follows (
-        promotion_id, user_fid, username, target_username, target_user_fid, reward_amount, status
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, 'pending'
-      )
-      RETURNING id
-    `, [promotionId, userFid, username, targetUsername, targetUserFid, rewardAmount]);
+      const result = await pool.query(`
+        INSERT INTO pending_follows (
+          promotion_id, user_fid, username, target_username, target_user_fid, reward_amount, status
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, 'pending'
+        )
+        RETURNING id
+      `, [promotionId, userFid, username, targetUsername, targetUserFid, rewardAmount]);
 
     const pendingFollowId = result.rows[0].id;
 

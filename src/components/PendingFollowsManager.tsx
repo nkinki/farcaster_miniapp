@@ -12,7 +12,7 @@ interface PendingFollow {
   target_user_fid: string;
   reward_amount: number;
   status: 'pending' | 'approved' | 'rejected';
-  submitted_at: string;
+  created_at: string;
   reviewed_at?: string;
   reviewed_by?: number;
   review_notes?: string;
@@ -147,7 +147,7 @@ export default function PendingFollowsManager({ promoterFid }: PendingFollowsMan
                 Reward: <span className="text-green-400 font-semibold">{follow.reward_amount} $CHESS</span>
               </div>
               <div className="text-xs text-gray-500">
-                Submitted: {new Date(follow.submitted_at).toLocaleString()}
+                Submitted: {new Date(follow.created_at).toLocaleString()}
               </div>
             </div>
             <span className={`px-2 py-1 rounded text-xs font-semibold ${

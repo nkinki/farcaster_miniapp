@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS pending_follows (
     target_user_fid VARCHAR(255), -- Store as string for now, can be FID later
     reward_amount NUMERIC NOT NULL,
     status VARCHAR(25) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     reviewed_at TIMESTAMP WITH TIME ZONE,
     reviewed_by INTEGER, -- Admin FID who reviewed
     review_notes TEXT,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS pending_follows (
 CREATE INDEX IF NOT EXISTS idx_pending_follows_promotion_id ON pending_follows(promotion_id);
 CREATE INDEX IF NOT EXISTS idx_pending_follows_user_fid ON pending_follows(user_fid);
 CREATE INDEX IF NOT EXISTS idx_pending_follows_status ON pending_follows(status);
-CREATE INDEX IF NOT EXISTS idx_pending_follows_created_at ON pending_follows(created_at);
+CREATE INDEX IF NOT EXISTS idx_pending_follows_submitted_at ON pending_follows(submitted_at);
 
 -- Composite indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_pending_follows_promotion_status ON pending_follows(promotion_id, status);

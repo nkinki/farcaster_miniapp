@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         FROM pending_follows pf
         JOIN promotions p ON pf.promotion_id = p.id
         WHERE p.fid = ${parseInt(promoterFid)}
-        ORDER BY pf.submitted_at DESC
+        ORDER BY pf.created_at DESC
       `;
     } catch (tableError: any) {
       if (tableError.code === '42P01') { // Table doesn't exist

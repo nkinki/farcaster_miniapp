@@ -12,7 +12,7 @@ interface PendingFollow {
   target_user_fid: string;
   reward_amount: number;
   status: 'pending' | 'approved' | 'rejected';
-  submitted_at: string;
+  created_at: string;
   reviewed_at?: string;
   reviewed_by?: number;
   review_notes?: string;
@@ -169,7 +169,7 @@ export default function AdminPendingFollowsManager() {
                 </div>
                 <div>
                   <div className="text-purple-300 text-xs font-semibold">Submitted</div>
-                  <div className="text-gray-300">{new Date(follow.submitted_at).toLocaleString()}</div>
+                  <div className="text-gray-300">{new Date(follow.created_at).toLocaleString()}</div>
                 </div>
               </div>
 

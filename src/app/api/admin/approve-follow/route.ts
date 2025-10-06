@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
       SET status = ${action === 'approve' ? 'approved' : 'rejected'},
           reviewed_at = NOW(),
           reviewed_by = ${adminFid},
-          review_notes = ${reviewNotes || null}
+          review_notes = ${reviewNotes || null},
+          updated_at = NOW()
       WHERE id = ${pendingFollowId}
     `;
 
