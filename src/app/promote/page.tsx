@@ -753,6 +753,13 @@ export default function PromotePage() {
       setShowFollowModal(false);
       await refreshAllData();
       
+      // Show completed state message
+      setTimeout(() => {
+        setFollowToastMessage('🎉 Follow completed! You can no longer follow this campaign.');
+        setShowFollowToast(true);
+        setTimeout(() => setShowFollowToast(false), 3000);
+      }, 1000);
+      
     } catch (error: any) {
       console.error('❌ Follow verification failed:', error);
       setShareError(error.message || 'Failed to verify follow action');
@@ -1558,7 +1565,11 @@ export default function PromotePage() {
                                         }
                                       }} 
                                       disabled={isDisabled || completedActions[promo.id]} 
-                                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                                      className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-95 ${
+                                        completedActions[promo.id] 
+                                          ? 'bg-gradient-to-r from-green-600 to-green-700' 
+                                          : 'bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 disabled:from-slate-600 disabled:to-slate-700'
+                                      }`}
                                     >
                                       {sharingPromoId === promo.id.toString() ? (
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -2163,8 +2174,11 @@ export default function PromotePage() {
 
             <div className="mb-4 p-3 bg-pink-900/20 border border-pink-600/30 rounded-lg">
               <div className="text-pink-400 text-sm font-medium mb-1">👥 Follow Action</div>
-              <div className="text-gray-300 text-xs">
+              <div className="text-gray-300 text-xs mb-2">
                 Follow the user above to earn <span className="text-pink-400 font-bold">{selectedFollowPromo.rewardPerShare} $CHESS</span>
+              </div>
+              <div className="text-yellow-400 text-xs font-medium">
+                ⚠️ You can only follow once per campaign
               </div>
             </div>
 
