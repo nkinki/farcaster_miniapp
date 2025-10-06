@@ -1465,6 +1465,9 @@ export default function PromotePage() {
                                         : `👥 Follow & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
+                                  <div className="text-xs text-yellow-400 text-center mt-1">
+                                    🚧 Under Development
+                                  </div>
                                 );
                               } else {
                                 // Fallback for unknown types - default to quote with countdown

@@ -328,6 +328,13 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         </button>
       </div>
       
+      {/* Follow Development Notice */}
+      {selectedAction === 'follow' && (
+        <div className="text-xs text-yellow-400 text-center bg-yellow-900/20 py-2 px-3 rounded-md border border-yellow-600/30">
+          🚧 Follow functionality is under development
+        </div>
+      )}
+      
       <div>
         <label htmlFor="castUrl" className="block text-xs font-medium text-slate-400 mb-1">Cast URL*</label>
         <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" disabled={step >= CreationStep.ReadyToCreate} />
