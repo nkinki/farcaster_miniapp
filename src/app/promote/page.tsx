@@ -149,7 +149,7 @@ export default function PromotePage() {
   const [showSeasonModal, setShowSeasonModal] = useState(false);
   
   // Filter state for promotion types
-  const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast' | 'comment'>('all');
+  const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast' | 'comment' | 'follow'>('all');
   
   // Track completed actions for each promotion
   const [completedActions, setCompletedActions] = useState<Record<string, boolean>>({});
@@ -612,6 +612,67 @@ export default function PromotePage() {
     setSelectedCommentTemplate('');
   };
 
+  const handleFollowAction = async (promo: PromoCast, e?: React.MouseEvent) => {
+    console.log('🚀 handleFollowAction called!');
+    console.log('📊 Promo:', promo);
+    console.log('📱 Event:', e);
+    
+    // Prevent default behavior to avoid page reload
+    if (e) {
+      console.log('🛑 Preventing default behavior...');
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('✅ Default behavior prevented');
+    }
+    
+    if (!isAuthenticated || !currentUser.fid) {
+      setShareError("Please connect your Farcaster account first.");
+      return;
+    }
+    
+    setShareError(null);
+    setSharingPromoId(promo.id.toString());
+    
+    try {
+      // Extract cast hash from URL
+      const castHash = promo.castUrl.split('/').pop() || '';
+      
+      // Submit the follow action to our API
+      const response = await fetch('/api/follow-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promotionId: promo.id,
+          userFid: currentUser.fid,
+          username: currentUser.username,
+          actionType: 'follow',
+          castHash,
+          rewardAmount: promo.rewardPerShare,
+          proofUrl: promo.castUrl // For manual verification
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit follow action');
+      }
+
+      // Show success message
+      setShareError(null);
+      console.log('✅ Follow action submitted successfully!');
+      
+      // Refresh data
+      await refreshAllData();
+      
+    } catch (error: any) {
+      console.error('❌ Follow action failed:', error);
+      setShareError(error.message || 'Failed to submit follow action');
+    } finally {
+      setSharingPromoId(null);
+    }
+  };
+
   const handleCommentSubmit = async () => {
     if (!selectedCommentPromo || !selectedCommentTemplate) {
       setShareError("Please select a comment template first.");
@@ -840,6 +901,7 @@ export default function PromotePage() {
       if (promotionFilter === 'quote' && promoActionType !== 'quote') return false;
       if (promotionFilter === 'like_recast' && promoActionType !== 'like_recast') return false;
       if (promotionFilter === 'comment' && promoActionType !== 'comment') return false;
+      if (promotionFilter === 'follow' && promoActionType !== 'follow') return false;
     }
     
     return true;
@@ -858,8 +920,9 @@ export default function PromotePage() {
       // Check if this should be in countdown section
       // For comment: only show in countdown if not completed yet (can be done again after 48h)
       // For quote: show in countdown if in 48h cooldown
+      // For follow: show in countdown if in 48h cooldown
       const shouldBeInCountdown = !canShare && timerInfo && timerInfo.timeRemaining > 0 && 
-        ((promo.actionType === 'comment' && !isCompleted) || promo.actionType === 'quote');
+        ((promo.actionType === 'comment' && !isCompleted) || promo.actionType === 'quote' || promo.actionType === 'follow');
       
       if (shouldBeInCountdown) {
         countdown.push(promo);
@@ -885,9 +948,9 @@ export default function PromotePage() {
       const isCompletedA = completedActions[a.id] || false;
       const isCompletedB = completedActions[b.id] || false;
       
-      // Priority levels: 1=Active, 2=Completed Like/Recast, 3=Completed Comment
+      // Priority levels: 1=Active, 2=Completed Like/Recast, 3=Completed Comment/Follow
       const getPriority = (promo: any, canShare: boolean, isCompleted: boolean) => {
-        if (promo.actionType === 'comment' && isCompleted) return 3; // Completed comment - bottom
+        if ((promo.actionType === 'comment' || promo.actionType === 'follow') && isCompleted) return 3; // Completed comment/follow - bottom
         if (promo.actionType === 'like_recast' && isCompleted) return 2; // Completed like/recast - middle
         return 1; // Active (all types available) - top
       };
@@ -1120,6 +1183,16 @@ export default function PromotePage() {
                     >
                       💬 Comment
                     </button>
+                    <button
+                      onClick={() => setPromotionFilter('follow')}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+                        promotionFilter === 'follow'
+                          ? 'bg-pink-600 text-white border border-pink-500'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+                      }`}
+                    >
+                      👥 Follow
+                    </button>
                   </div>
                   {/* Available Promotions Section */}
                   {sortedAvailablePromos.length > 0 && (
@@ -1344,6 +1417,55 @@ export default function PromotePage() {
                                     }
                                   </button>
                                 );
+                              } else if (promo.actionType === 'follow') {
+                                // Check if user already completed this action
+                                const isCompleted = completedActions[promo.id];
+                                
+                                if (isCompleted) {
+                                  return (
+                                    <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-green-400 text-white text-sm font-bold rounded-xl shadow-lg">
+                                      <span>✅</span>
+                                      <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
+                                    </div>
+                                  );
+                                }
+                                
+                                const countdown = buttonCountdowns[promo.id.toString()];
+                                const isCountingDown = countdown > 0;
+                                const isDisabled = sharingPromoId === promo.id.toString() || !canShare || isCountingDown;
+                                
+                                return (
+                                  <button 
+                                    onClick={(e) => {
+                                      if (!isCountingDown) {
+                                        console.log('🔘 Follow button clicked!');
+                                        // Add click animation
+                                        e.currentTarget.style.transform = 'scale(0.95)';
+                                        setTimeout(() => {
+                                          e.currentTarget.style.transform = 'scale(1)';
+                                        }, 150);
+                                        startButtonCountdown(promo.id.toString());
+                                        setTimeout(() => handleFollowAction(promo, e), 10000);
+                                      }
+                                    }} 
+                                    disabled={isDisabled} 
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                                  >
+                                    {sharingPromoId === promo.id.toString() ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    ) : isCountingDown ? (
+                                      <FiClock size={14} />
+                                    ) : (
+                                      '👥'
+                                    )}
+                                    {sharingPromoId === promo.id.toString() 
+                                      ? 'Processing...' 
+                                      : isCountingDown 
+                                        ? `⏳ Wait ${countdown}s to Follow` 
+                                        : `👥 Follow & Earn ${promo.rewardPerShare} $CHESS`
+                                    }
+                                  </button>
+                                );
                               } else {
                                 // Fallback for unknown types - default to quote with countdown
                                 const countdown = buttonCountdowns[promo.id.toString()];
@@ -1462,7 +1584,9 @@ export default function PromotePage() {
                               <span>
                                 {promo.actionType === 'comment' 
                                   ? `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Comment Again`
-                                  : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
+                                  : promo.actionType === 'follow'
+                                    ? `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Follow Again`
+                                    : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
                                 }
                               </span>
                             </div>

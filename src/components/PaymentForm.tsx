@@ -110,7 +110,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
   const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
   
   // Action selection state
-  const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast' | 'comment'>('quote');
+  const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast' | 'comment' | 'follow'>('quote');
   
   // Comment functionality state (only used if ENABLE_COMMENTS is true)
   const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
@@ -276,6 +276,18 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
           disabled={step >= CreationStep.ReadyToCreate}
         >
           💬 Comment
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedAction('follow')}
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+            selectedAction === 'follow'
+              ? 'bg-pink-600 text-white border border-pink-500'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+          }`}
+          disabled={step >= CreationStep.ReadyToCreate}
+        >
+          👥 Follow
         </button>
       </div>
       
