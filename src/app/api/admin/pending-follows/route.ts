@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get pending follows for the promoter's campaigns
-    let pendingFollows = [];
+    let pendingFollows: any[] = [];
     try {
       pendingFollows = await sql`
         SELECT 
