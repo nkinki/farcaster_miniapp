@@ -6,7 +6,7 @@ const sql = neon(process.env.DATABASE_URL!);
 export async function GET(request: NextRequest) {
   try {
     // Get all pending follows for admin review
-    let pendingFollows = [];
+    let pendingFollows: any[] = [];
     try {
       pendingFollows = await sql`
         SELECT 
