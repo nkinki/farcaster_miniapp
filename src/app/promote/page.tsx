@@ -1022,9 +1022,13 @@ export default function PromotePage() {
       // For follow actions: if completed (pending status), move to countdown section
       const isFollowCompleted = promo.actionType === 'follow' && isCompleted;
       
+      // For follow actions: if completed, don't show in available section at all
+      const isFollowAndCompleted = promo.actionType === 'follow' && isCompleted;
+      
       if (shouldBeInCountdown || isFollowCompleted) {
         countdown.push(promo);
-      } else {
+      } else if (!isFollowAndCompleted) {
+        // Only add to available if it's not a completed follow
         available.push(promo);
       }
     });
