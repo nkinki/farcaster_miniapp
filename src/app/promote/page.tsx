@@ -634,8 +634,12 @@ export default function PromotePage() {
     setSharingPromoId(promo.id.toString());
     
     try {
-      // Extract cast hash from URL
-      const castHash = promo.castUrl.split('/').pop() || '';
+      // Extract target user FID from cast URL (e.g., https://farcaster.xyz/ifun -> ifun)
+      const targetUsername = promo.castUrl.split('/').pop() || '';
+      
+      // For now, we'll use a placeholder FID for the target user
+      // In a real implementation, you'd need to resolve username to FID
+      const targetUserFid = 0; // Placeholder - should be resolved from username
       
       // Submit the follow action to our API
       const response = await fetch('/api/follow-actions', {
@@ -646,7 +650,7 @@ export default function PromotePage() {
           userFid: currentUser.fid,
           username: currentUser.username,
           actionType: 'follow',
-          castHash,
+          targetUserFid,
           rewardAmount: promo.rewardPerShare,
           proofUrl: promo.castUrl // For manual verification
         })

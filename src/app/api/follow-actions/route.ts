@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       userFid, 
       username, 
       actionType, 
-      castHash, 
+      targetUserFid, // Changed from castHash to targetUserFid
       rewardAmount, 
       proofUrl 
     } = body;
@@ -20,15 +20,27 @@ export async function POST(request: NextRequest) {
       userFid,
       username,
       actionType,
-      castHash,
+      targetUserFid,
       rewardAmount
     });
 
     // Validate required fields
-    if (!promotionId || !userFid || !castHash || !rewardAmount) {
+    if (!promotionId || !userFid || !targetUserFid || !rewardAmount) {
       return NextResponse.json({ 
-        error: 'Missing required fields: promotionId, userFid, castHash, rewardAmount' 
+        error: 'Missing required fields: promotionId, userFid, targetUserFid, rewardAmount' 
       }, { status: 400 });
+    }
+
+    // Check if follow_actions table exists first
+    try {
+      await pool.query('SELECT 1 FROM follow_actions LIMIT 1');
+    } catch (error: any) {
+      if (error.code === '42P01') { // Table doesn't exist
+        return NextResponse.json({ 
+          error: 'Follow functionality is not available yet. Database migration required.' 
+        }, { status: 503 });
+      }
+      throw error;
     }
 
     // Check if promotion exists and has enough budget
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
     // Simple trust-based validation - user claims they followed
     console.log('🔍 Trust-based follow validation...');
     console.log('👤 User FID:', userFid);
-    console.log('🔗 Cast hash:', castHash);
+    console.log('👥 Target User FID:', targetUserFid);
     
     // For now, we trust the user that they followed
     // This can be enhanced later with more sophisticated validation
@@ -92,7 +104,7 @@ export async function POST(request: NextRequest) {
       follow: {
         hash: 'trust-validation-' + Date.now(),
         follower: { fid: userFid },
-        target: { hash: castHash },
+        target: { fid: targetUserFid },
         timestamp: new Date().toISOString()
       },
       message: 'Follow validated using trust-based approach',
@@ -117,7 +129,7 @@ export async function POST(request: NextRequest) {
           reward_amount, status, verified_at, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW())
         RETURNING id, action_type, created_at
-      `, [promotionId, userFid, username, actionType, castHash, rewardAmount, 'verified']);
+      `, [promotionId, userFid, username, actionType, targetUserFid, rewardAmount, 'verified']);
 
       console.log(`✅ Follow action inserted:`, followActionResult.rows[0]);
 
@@ -139,7 +151,7 @@ export async function POST(request: NextRequest) {
             ) VALUES ($1, $2, $3, $4, $5)
           `, [userFid, seasonId, 'follow', 1, JSON.stringify({ 
             promotion_id: promotionId,
-            cast_hash: castHash,
+            target_user_fid: targetUserFid,
             timestamp: new Date().toISOString()
           })]);
 
@@ -149,7 +161,7 @@ export async function POST(request: NextRequest) {
               user_fid, season_id, total_points, total_follows, 
               last_activity
             ) VALUES ($1, $2, $3, $4, NOW())
-            ON CONFLICT (user_fid, season_id) 
+           ON CONFLICT (user_fid, season_id)
             DO UPDATE SET 
               total_points = user_season_summary.total_points + $3,
               total_follows = user_season_summary.total_follows + $4,
@@ -202,9 +214,9 @@ export async function POST(request: NextRequest) {
         await client.query('UPDATE promotions SET status = $1 WHERE id = $2', ['completed', promotionId]);
         console.log(`Campaign ${promotionId} marked as completed - insufficient budget for next follow`);
         completionInserted = true;
-      }
+    }
 
-      await client.query('COMMIT');
+    await client.query('COMMIT');
 
       console.log('✅ Follow action completed successfully:', {
         promotionId,
@@ -223,17 +235,17 @@ export async function POST(request: NextRequest) {
         remainingBudget: promotion.remaining_budget - rewardAmount
       }, { status: 200 });
 
-    } catch (error: any) {
+  } catch (error: any) {
       console.error('❌ Transaction error, rolling back:', error.message);
       try {
-        await client.query('ROLLBACK');
+    await client.query('ROLLBACK');
         console.log('🔄 Transaction rolled back successfully');
       } catch (rollbackError: any) {
         console.error('❌ Rollback failed:', rollbackError.message);
-      }
+    }
       throw error;
-    } finally {
-      client.release();
+  } finally {
+    client.release();
       console.log('🔌 Database connection released');
     }
 

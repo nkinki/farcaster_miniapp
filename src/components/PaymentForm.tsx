@@ -299,8 +299,23 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       )}
       
       <div>
-        <label htmlFor="castUrl" className="block text-xs font-medium text-slate-400 mb-1">Cast URL*</label>
-        <input type="text" id="castUrl" value={castUrl} onChange={(e) => setCastUrl(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" disabled={step >= CreationStep.ReadyToCreate} />
+        <label htmlFor="castUrl" className="block text-xs font-medium text-slate-400 mb-1">
+          {selectedAction === 'follow' ? 'Target User Profile URL*' : 'Cast URL*'}
+        </label>
+        <input 
+          type="text" 
+          id="castUrl" 
+          value={castUrl} 
+          onChange={(e) => setCastUrl(e.target.value)} 
+          placeholder={selectedAction === 'follow' ? 'https://farcaster.xyz/username' : 'https://farcaster.xyz/username/0x...'}
+          className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" 
+          disabled={step >= CreationStep.ReadyToCreate} 
+        />
+        {selectedAction === 'follow' && (
+          <p className="text-xs text-slate-500 mt-1">
+            Enter the profile URL of the user you want people to follow
+          </p>
+        )}
       </div>
 
       {/* Comment Templates Section - removed for create promotion flow */}
