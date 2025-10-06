@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiSettings, FiUsers, FiTrendingUp, FiDollarSign, FiActivity, FiStar, FiTrash, FiClock } from 'react-icons/fi';
 import { PromoCast } from '@/types/promotions';
 import PendingCommentsManager from './PendingCommentsManager';
+import PendingFollowsManager from './PendingFollowsManager';
 
 interface MyCampaignsDropdownProps {
   myPromos: PromoCast[];
@@ -24,6 +25,7 @@ const calculateProgress = (promo: PromoCast): number => {
 export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteClick, currentUserFid }: MyCampaignsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showPendingComments, setShowPendingComments] = useState(false);
+  const [showPendingFollows, setShowPendingFollows] = useState(false);
 
   // Automatikus státusz korrekció: ha nincs elég budget, akkor completed
   const correctedPromos = myPromos.map(promo => {
@@ -81,6 +83,28 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
               {showPendingComments && (
                 <div className="mt-3">
                   <PendingCommentsManager promoterFid={currentUserFid} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pending Follows Section */}
+          {currentUserFid && (
+            <div className="mb-4">
+              <button
+                onClick={() => setShowPendingFollows(!showPendingFollows)}
+                className="w-full flex items-center justify-between p-3 bg-pink-900/30 border border-pink-600/50 rounded-lg hover:bg-pink-900/50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <FiUsers className="text-pink-400" />
+                  <span className="text-pink-200 font-medium">Pending Follows</span>
+                </div>
+                <div className="w-4">{showPendingFollows ? <FiChevronUp /> : <FiChevronDown />}</div>
+              </button>
+              
+              {showPendingFollows && (
+                <div className="mt-3">
+                  <PendingFollowsManager promoterFid={currentUserFid} />
                 </div>
               )}
             </div>
