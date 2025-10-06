@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause } from 'react-icons/fi';
+import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers } from 'react-icons/fi';
 import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
+import AdminPendingFollowsManager from '@/components/AdminPendingFollowsManager';
 
 
 interface AdminStats {
@@ -57,7 +58,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [shareablePromos, setShareablePromos] = useState<ShareablePromo[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments' | 'follows'>('stats');
   const [selectedPromos, setSelectedPromos] = useState<Set<number>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
@@ -190,6 +191,17 @@ export default function AdminPage() {
             >
               <FiMessageSquare className="inline mr-2" size={16} />
               Pending Comments
+            </button>
+            <button
+              onClick={() => setActiveTab('follows')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'follows'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              <FiUsers className="inline mr-2" size={16} />
+              Pending Follows
             </button>
           </div>
         </div>
@@ -538,6 +550,17 @@ export default function AdminPage() {
               <p className="text-gray-300">Review and approve pending comment submissions</p>
             </div>
             <AdminPendingCommentsManager />
+          </div>
+        )}
+
+        {/* Pending Follows Tab */}
+        {activeTab === 'follows' && (
+          <div>
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-white mb-2">👥 Pending Follows</h2>
+              <p className="text-gray-300">Review and approve pending follow submissions</p>
+            </div>
+            <AdminPendingFollowsManager />
           </div>
         )}
 

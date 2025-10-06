@@ -5,16 +5,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const promoterFid = searchParams.get('promoterFid');
-
-    if (!promoterFid) {
-      return NextResponse.json({ 
-        error: 'promoterFid parameter is required' 
-      }, { status: 400 });
-    }
-
-    // Get pending follows for the promoter's campaigns
+    // Get all pending follows for admin review
     let pendingFollows = [];
     try {
       pendingFollows = await sql`
@@ -25,7 +16,6 @@ export async function GET(request: NextRequest) {
           p.reward_per_share
         FROM pending_follows pf
         JOIN promotions p ON pf.promotion_id = p.id
-        WHERE p.fid = ${parseInt(promoterFid)}
         ORDER BY pf.submitted_at DESC
       `;
     } catch (tableError: any) {
@@ -43,7 +33,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 });
 
   } catch (error: any) {
-    console.error('❌ Pending Follows API Error:', error);
+    console.error('❌ All Pending Follows API Error:', error);
     return NextResponse.json({ 
       error: error.message || 'Internal server error' 
     }, { status: 500 });
