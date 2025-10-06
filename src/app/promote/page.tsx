@@ -634,12 +634,19 @@ export default function PromotePage() {
     setSharingPromoId(promo.id.toString());
     
     try {
-      // Extract target user FID from cast URL (e.g., https://farcaster.xyz/ifun -> ifun)
+      // Extract target username from cast URL (e.g., https://farcaster.xyz/ifun -> ifun)
       const targetUsername = promo.castUrl.split('/').pop() || '';
       
-      // For now, we'll use a placeholder FID for the target user
-      // In a real implementation, you'd need to resolve username to FID
-      const targetUserFid = 0; // Placeholder - should be resolved from username
+      // For now, we'll use the username as a string identifier
+      // In a real implementation, you'd resolve username to FID via Farcaster API
+      const targetUserFid = targetUsername; // Use username as identifier for now
+      
+      console.log('🔍 Follow action details:', {
+        promotionId: promo.id,
+        targetUsername,
+        targetUserFid,
+        castUrl: promo.castUrl
+      });
       
       // Submit the follow action to our API
       const response = await fetch('/api/follow-actions', {

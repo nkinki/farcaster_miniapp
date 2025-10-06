@@ -31,6 +31,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Validate targetUserFid is not empty string or 0
+    if (!targetUserFid || targetUserFid === '0' || targetUserFid === 0) {
+      return NextResponse.json({ 
+        error: 'Invalid target user identifier. Please provide a valid username or FID.' 
+      }, { status: 400 });
+    }
+
     // Check if follow_actions table exists first
     try {
       await pool.query('SELECT 1 FROM follow_actions LIMIT 1');
