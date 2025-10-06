@@ -164,6 +164,10 @@ export default function PromotePage() {
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
   const [showCommentTemplates, setShowCommentTemplates] = useState(false);
+  
+  // Follow modal state
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [selectedFollowPromo, setSelectedFollowPromo] = useState<PromoCast | null>(null);
   const [templateSortOrder, setTemplateSortOrder] = useState<'default' | 'random' | 'compact'>('default');
   // Only compact view for comment templates
 
@@ -633,35 +637,79 @@ export default function PromotePage() {
     }
     
     setShareError(null);
-    setSharingPromoId(promo.id.toString());
+    setSelectedFollowPromo(promo);
+    setShowFollowModal(true);
+  };
+
+  const handleFollowSubmit = async () => {
+    if (!selectedFollowPromo) {
+      setShareError("No follow promotion selected.");
+      return;
+    }
+
+    setShareError(null);
+    setSharingPromoId(selectedFollowPromo.id.toString());
     
     try {
-      // Extract target username from cast URL (e.g., https://farcaster.xyz/ifun -> ifun)
-      const targetUsername = promo.castUrl.split('/').pop() || '';
+      console.log('📝 Opening profile for follow...');
+      console.log('🔗 Profile URL:', selectedFollowPromo.castUrl);
       
-      // For now, we'll use the username as a string identifier
-      // In a real implementation, you'd resolve username to FID via Farcaster API
-      const targetUserFid = targetUsername; // Use username as identifier for now
+      // Extract username from URL
+      const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
       
-      console.log('🔍 Follow action details:', {
-        promotionId: promo.id,
+      console.log('🔍 Follow details:', {
         targetUsername,
-        targetUserFid,
-        castUrl: promo.castUrl
+        profileUrl: selectedFollowPromo.castUrl
       });
       
-      // Submit the follow action to our API
+      // Try to open the profile for manual following
+      try {
+        await (miniAppSdk as any).actions.viewCast({ hash: targetUsername });
+        console.log('✅ Profile opened for manual follow');
+        
+        setShareError('📱 Profile opened! Please follow the user, then click "Verify Follow" below.');
+        
+      } catch (viewError) {
+        console.log('⚠️ Could not open profile');
+        setShareError('📱 Please manually navigate to the profile and follow. Then click "Verify Follow" below.');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Follow action failed:', error);
+      setShareError(error.message || 'Failed to complete follow action');
+    } finally {
+      setSharingPromoId(null);
+    }
+  };
+
+  const handleFollowVerify = async () => {
+    if (!selectedFollowPromo) return;
+    
+    // Prevent multiple clicks
+    if (sharingPromoId === selectedFollowPromo.id.toString()) {
+      console.log('⏳ Already processing, please wait...');
+      return;
+    }
+    
+    console.log('🔍 Verifying follow manually...');
+    setShareError('🔍 Verifying follow...');
+    setSharingPromoId(selectedFollowPromo.id.toString());
+    
+    try {
+      const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
+      const targetUserFid = targetUsername;
+      
       const response = await fetch('/api/follow-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          promotionId: promo.id,
+          promotionId: selectedFollowPromo.id,
           userFid: currentUser.fid,
           username: currentUser.username,
           actionType: 'follow',
           targetUserFid,
-          rewardAmount: promo.rewardPerShare,
-          proofUrl: promo.castUrl // For manual verification
+          rewardAmount: selectedFollowPromo.rewardPerShare,
+          proofUrl: selectedFollowPromo.castUrl
         })
       });
 
@@ -669,24 +717,26 @@ export default function PromotePage() {
       
       if (!response.ok) {
         if (response.status === 409) {
-          // User already completed this action
           setFollowToastMessage(`✅ You already completed this follow action! (Status: ${data.status || 'completed'})`);
           setShowFollowToast(true);
+          setShowFollowModal(false);
           await refreshAllData();
           return;
         }
-        throw new Error(data.error || 'Failed to submit follow action');
+        throw new Error(data.error || 'Failed to verify follow action');
       }
 
-      // Show success message
-      setShareError(null);
-      console.log('✅ Follow action submitted successfully!');
+      // Mark this promotion as completed
+      setCompletedActions(prev => ({
+        ...prev,
+        [selectedFollowPromo.id]: true
+      }));
       
       // Show success toast
       if (data.message?.includes('admin approval')) {
         setFollowToastMessage('✅ Follow submitted for admin approval! Reward will be credited after review.');
       } else {
-        setFollowToastMessage('✅ Follow action completed!');
+        setFollowToastMessage('✅ Follow verified! Reward will be credited soon.');
       }
       setShowFollowToast(true);
       
@@ -695,12 +745,12 @@ export default function PromotePage() {
         setShowFollowToast(false);
       }, 5000);
       
-      // Refresh data
+      setShowFollowModal(false);
       await refreshAllData();
       
     } catch (error: any) {
-      console.error('❌ Follow action failed:', error);
-      setShareError(error.message || 'Failed to submit follow action');
+      console.error('❌ Follow verification failed:', error);
+      setShareError(error.message || 'Failed to verify follow action');
     } finally {
       setSharingPromoId(null);
     }
@@ -2070,6 +2120,77 @@ export default function PromotePage() {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                 >
                   {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '3️⃣ Verify Comment'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Follow Modal */}
+      {showFollowModal && selectedFollowPromo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Follow User</h3>
+              <button
+                onClick={() => {
+                  setShowFollowModal(false);
+                  setSelectedFollowPromo(null);
+                  setShareError(null);
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <div className="mb-4 p-3 bg-slate-700 rounded-lg">
+              <p className="text-xs text-gray-400 mb-1">Target Profile:</p>
+              <p className="text-sm text-white break-all">{selectedFollowPromo.castUrl}</p>
+            </div>
+
+            <div className="mb-4 p-3 bg-pink-900/20 border border-pink-600/30 rounded-lg">
+              <div className="text-pink-400 text-sm font-medium mb-1">👥 Follow Action</div>
+              <div className="text-gray-300 text-xs">
+                Follow the user above to earn <span className="text-pink-400 font-bold">{selectedFollowPromo.rewardPerShare} $CHESS</span>
+              </div>
+            </div>
+
+            {shareError && (
+              <div className="mb-4 p-3 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
+                <FiAlertTriangle className="text-red-400" />
+                <span className="text-red-200 text-sm">{shareError}</span>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowFollowModal(false);
+                  setSelectedFollowPromo(null);
+                  setShareError(null);
+                }}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              
+              {!shareError?.includes('Profile opened') ? (
+                <button
+                  onClick={handleFollowSubmit}
+                  disabled={sharingPromoId === selectedFollowPromo.id.toString()}
+                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
+                >
+                  {sharingPromoId === selectedFollowPromo.id.toString() ? 'Opening...' : '1️⃣ Open Profile & Follow'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleFollowVerify}
+                  disabled={sharingPromoId === selectedFollowPromo.id.toString()}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
+                >
+                  {sharingPromoId === selectedFollowPromo.id.toString() ? '⏳ Verifying...' : '2️⃣ Verify Follow'}
                 </button>
               )}
             </div>
