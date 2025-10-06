@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
-import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle, FiCalendar } from "react-icons/fi";
+import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle, FiCalendar, FiInfo, FiCheck } from "react-icons/fi";
 import Link from "next/link";
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
@@ -670,8 +670,8 @@ export default function PromotePage() {
         setShareError('📱 Profile opened! Please follow the user, then click "Verify Follow" below.');
         
       } catch (viewError) {
-        console.log('⚠️ Could not open profile');
-        setShareError('📱 Please manually navigate to the profile and follow. Then click "Verify Follow" below.');
+        console.log('⚠️ Could not open profile:', viewError);
+        setShareError('❌ Could not reach Farcaster. Check your connection. Please manually navigate to the profile and follow, then click "Verify Follow" below.');
       }
       
     } catch (error: any) {
@@ -1541,7 +1541,7 @@ export default function PromotePage() {
                                   <div>
                                     <button 
                                       onClick={(e) => {
-                                        if (!isCountingDown) {
+                                        if (!isCountingDown && !completedActions[promo.id]) {
                                           console.log('🔘 Follow button clicked!');
                                           // Add click animation
                                           e.currentTarget.style.transform = 'scale(0.95)';
@@ -1552,11 +1552,13 @@ export default function PromotePage() {
                                           setTimeout(() => handleFollowAction(promo, e), 10000);
                                         }
                                       }} 
-                                      disabled={isDisabled} 
+                                      disabled={isDisabled || completedActions[promo.id]} 
                                       className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-sm active:scale-95"
                                     >
                                       {sharingPromoId === promo.id.toString() ? (
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                      ) : completedActions[promo.id] ? (
+                                        <FiCheck size={14} />
                                       ) : isCountingDown ? (
                                         <FiClock size={14} />
                                       ) : (
@@ -1564,9 +1566,11 @@ export default function PromotePage() {
                                       )}
                                       {sharingPromoId === promo.id.toString() 
                                         ? 'Processing...' 
-                                        : isCountingDown 
-                                          ? `⏳ Wait ${countdown}s to Follow` 
-                                          : `👥 Follow & Earn ${promo.rewardPerShare} $CHESS`
+                                        : completedActions[promo.id]
+                                          ? '✅ Followed & Earned'
+                                          : isCountingDown 
+                                            ? `⏳ Wait ${countdown}s to Follow` 
+                                            : `👥 Follow & Earn ${promo.rewardPerShare} $CHESS`
                                       }
                                     </button>
                                     <div className="text-xs text-yellow-400 text-center mt-1">
@@ -2158,9 +2162,19 @@ export default function PromotePage() {
             </div>
 
             {shareError && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-600 rounded-lg flex items-center gap-2">
-                <FiAlertTriangle className="text-red-400" />
-                <span className="text-red-200 text-sm">{shareError}</span>
+              <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${
+                shareError.includes('❌') 
+                  ? 'bg-red-900/50 border border-red-600' 
+                  : 'bg-blue-900/50 border border-blue-600'
+              }`}>
+                {shareError.includes('❌') ? (
+                  <FiAlertTriangle className="text-red-400" />
+                ) : (
+                  <FiInfo className="text-blue-400" />
+                )}
+                <span className={`text-sm ${
+                  shareError.includes('❌') ? 'text-red-200' : 'text-blue-200'
+                }`}>{shareError}</span>
               </div>
             )}
 
