@@ -1015,18 +1015,21 @@ export default function PromotePage() {
       // Check if this should be in countdown section
       // For comment: only show in countdown if not completed yet (can be done again after 48h)
       // For quote: show in countdown if in 48h cooldown
-      // For follow: show in countdown if in 48h cooldown
+      // For follow: show in countdown if in 48h cooldown OR if completed (pending status)
       const shouldBeInCountdown = !canShare && timerInfo && timerInfo.timeRemaining > 0 && 
         ((promo.actionType === 'comment' && !isCompleted) || promo.actionType === 'quote' || promo.actionType === 'follow');
       
-      if (shouldBeInCountdown) {
+      // For follow actions: if completed (pending status), move to countdown section
+      const isFollowCompleted = promo.actionType === 'follow' && isCompleted;
+      
+      if (shouldBeInCountdown || isFollowCompleted) {
         countdown.push(promo);
       } else {
         available.push(promo);
       }
     });
     
-    return { 
+    return {
       availablePromos: available, 
       countdownPromos: countdown 
     };
@@ -1640,7 +1643,7 @@ export default function PromotePage() {
                     <div className="mb-6">
                       <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                         <span className="bg-yellow-600 text-white px-2 py-1 rounded-md text-sm">⏰</span>
-                        Countdown Campaigns ({sortedCountdownPromos.length})
+                        Countdown & Pending Campaigns ({sortedCountdownPromos.length})
                       </h3>
                       {sortedCountdownPromos.map((promo) => {
                         const timerInfo = shareTimers[promo.id.toString()];
@@ -1706,14 +1709,16 @@ export default function PromotePage() {
                               <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${calculateProgress(promo)}%` }}></div>
                             </div>
                             
-                            {/* Countdown Timer */}
+                            {/* Countdown Timer or Pending Status */}
                             <div className="w-full flex items-center justify-center gap-2 text-center text-yellow-400 font-semibold bg-yellow-900/50 py-2 px-4 rounded-lg">
                               <FiClock size={16} />
                               <span>
                                 {promo.actionType === 'comment' 
                                   ? `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Comment Again`
                                   : promo.actionType === 'follow'
-                                    ? `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Follow Again`
+                                    ? completedActions[promo.id]
+                                      ? `⏳ Pending Follow - Awaiting Admin Approval`
+                                      : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Follow Again`
                                     : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
                                 }
                               </span>
