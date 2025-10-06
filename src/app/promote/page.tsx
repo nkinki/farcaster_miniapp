@@ -664,7 +664,12 @@ export default function PromotePage() {
       
       // Try to open the profile for manual following
       try {
-        await (miniAppSdk as any).actions.viewCast({ hash: targetUsername });
+        // Use the correct profile URL format: https://farcaster.xyz/username
+        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+        console.log('🔗 Opening profile URL:', profileUrl);
+        
+        // Try to open the profile URL directly
+        window.open(profileUrl, '_blank');
         console.log('✅ Profile opened for manual follow');
         
         setShareError('📱 Profile opened! Please follow the user, then click "Verify Follow" below.');
@@ -2151,7 +2156,9 @@ export default function PromotePage() {
 
             <div className="mb-4 p-3 bg-slate-700 rounded-lg">
               <p className="text-xs text-gray-400 mb-1">Target Profile:</p>
-              <p className="text-sm text-white break-all">{selectedFollowPromo.castUrl}</p>
+              <p className="text-sm text-white break-all">
+                https://farcaster.xyz/{selectedFollowPromo.castUrl.split('/').pop()}
+              </p>
             </div>
 
             <div className="mb-4 p-3 bg-pink-900/20 border border-pink-600/30 rounded-lg">
