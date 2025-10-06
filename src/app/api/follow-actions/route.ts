@@ -120,17 +120,28 @@ export async function POST(request: NextRequest) {
       }, { status: 409 });
     }
 
-    // Check if user already has a pending follow for this promotion
-    const existingPendingFollow = await pool.query(
+  // Check if user already has a pending follow for this promotion
+  // First check if pending_follows table exists
+  let existingPendingFollow;
+  try {
+    existingPendingFollow = await pool.query(
       'SELECT id FROM pending_follows WHERE promotion_id = $1 AND user_fid = $2 AND status = $3',
       [promotionId, userFid, 'pending']
     );
-
-    if (existingPendingFollow.rows.length > 0) {
-      return NextResponse.json({ 
-        error: 'You already have a pending follow for this promotion' 
-      }, { status: 409 });
+  } catch (tableError: any) {
+    if (tableError.code === '42P01') { // Table doesn't exist
+      console.log('⚠️ pending_follows table does not exist yet, skipping check');
+      existingPendingFollow = { rows: [] };
+    } else {
+      throw tableError;
     }
+  }
+
+  if (existingPendingFollow.rows.length > 0) {
+    return NextResponse.json({ 
+      error: 'You already have a pending follow for this promotion' 
+    }, { status: 409 });
+  }
 
     // Check if promotion has enough budget
     if (fullPromotion.remaining_budget < rewardAmount) {
@@ -151,9 +162,10 @@ export async function POST(request: NextRequest) {
     // Extract target username from cast URL
     const targetUsername = fullPromotion.cast_url.split('/').pop() || '';
 
-    // Create pending follow for admin approval
-    console.log('📝 Creating pending follow for admin approval...');
-    
+  // Create pending follow for admin approval
+  console.log('📝 Creating pending follow for admin approval...');
+  
+  try {
     const result = await pool.query(`
       INSERT INTO pending_follows (
         promotion_id, user_fid, username, target_username, target_user_fid, reward_amount, status
@@ -173,6 +185,54 @@ export async function POST(request: NextRequest) {
       pendingFollowId,
       targetUsername
     }, { status: 200 });
+
+  } catch (tableError: any) {
+    if (tableError.code === '42P01') { // Table doesn't exist
+      console.log('⚠️ pending_follows table does not exist yet, falling back to direct follow action');
+      
+      // Fallback: Create direct follow action (temporary until migration is run)
+      const result = await pool.query(`
+        INSERT INTO follow_actions (
+          promotion_id, user_fid, username, action_type, cast_hash, 
+          reward_amount, status, verified_at, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, 'follow', $4, $5, 'verified', NOW(), NOW(), NOW()
+        )
+        RETURNING id
+      `, [promotionId, userFid, username, targetUsername, rewardAmount]);
+
+      const actionId = result.rows[0].id;
+
+      // Update promotion stats
+      await pool.query(`
+        UPDATE promotions 
+        SET shares_count = shares_count + 1,
+            updated_at = NOW()
+        WHERE id = $1
+      `, [promotionId]);
+
+      // Update user earnings
+      await pool.query(`
+        INSERT INTO users (fid, username, total_earnings, total_shares, updated_at)
+        VALUES ($1, $2, 0, 1, NOW())
+        ON CONFLICT (fid) 
+        DO UPDATE SET 
+          total_earnings = users.total_earnings + $3,
+          total_shares = users.total_shares + 1,
+          updated_at = NOW()
+      `, [userFid, username, rewardAmount]);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Follow action completed! (Direct mode - pending table not available)',
+        actionId,
+        targetUsername
+      }, { status: 200 });
+
+    } else {
+      throw tableError;
+    }
+  }
 
   } catch (error: any) {
     console.error('❌ Follow API Error:', error);

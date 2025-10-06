@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS pending_follows (
     user_fid INTEGER NOT NULL,
     username VARCHAR(255) NOT NULL,
     target_username VARCHAR(255) NOT NULL, -- The username to follow
-    target_user_fid INTEGER, -- Optional: resolved FID
+    target_user_fid VARCHAR(255), -- Store as string for now, can be FID later
     reward_amount NUMERIC NOT NULL,
     status VARCHAR(25) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
