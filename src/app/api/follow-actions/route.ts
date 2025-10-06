@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    const promotion = promotionResult.rows[0];
+    const fullPromotion = promotionResult.rows[0];
 
     // Check if user already completed this action
     const existingAction = await pool.query(
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if promotion has enough budget
-    if (promotion.remaining_budget < rewardAmount) {
+    if (fullPromotion.remaining_budget < rewardAmount) {
       return NextResponse.json({ 
         error: 'Promotion budget exhausted' 
       }, { status: 400 });
@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
           : `Follow completed! Earned ${rewardAmount} $CHESS`,
         totalReward: rewardAmount,
         completionInserted,
-        remainingBudget: promotion.remaining_budget - rewardAmount
+        remainingBudget: fullPromotion.remaining_budget - rewardAmount
       }, { status: 200 });
 
   } catch (error: any) {
