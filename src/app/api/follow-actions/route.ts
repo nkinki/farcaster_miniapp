@@ -120,6 +120,18 @@ export async function POST(request: NextRequest) {
       }, { status: 409 });
     }
 
+    // Check if user already has a pending follow for this promotion
+    const existingPendingFollow = await pool.query(
+      'SELECT id FROM pending_follows WHERE promotion_id = $1 AND user_fid = $2 AND status = $3',
+      [promotionId, userFid, 'pending']
+    );
+
+    if (existingPendingFollow.rows.length > 0) {
+      return NextResponse.json({ 
+        error: 'You already have a pending follow for this promotion' 
+      }, { status: 409 });
+    }
+
     // Check if promotion has enough budget
     if (fullPromotion.remaining_budget < rewardAmount) {
       return NextResponse.json({ 
@@ -127,172 +139,40 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Simple trust-based validation - user claims they followed
-    console.log('🔍 Trust-based follow validation...');
-    console.log('👤 User FID:', userFid);
-    console.log('👥 Target User FID:', targetUserFid);
-    
-    // For now, we trust the user that they followed
-    // This can be enhanced later with more sophisticated validation
-    const validationData = {
-      validated: true,
-      follow: {
-        hash: 'trust-validation-' + Date.now(),
-        follower: { fid: userFid },
-        target: { fid: targetUserFid },
-        timestamp: new Date().toISOString()
-      },
-      message: 'Follow validated using trust-based approach',
-      validationMethod: 'trust-based'
-    };
-
-    console.log('✅ Follow validation successful (trust-based):', validationData.follow?.hash);
-
-    // Start transaction
-    console.log('🔄 Starting database transaction...');
-    const client = await pool.connect();
-    
-    try {
-      console.log('🔄 Beginning transaction...');
-      await client.query('BEGIN');
-      console.log('✅ Transaction started successfully');
-
-      // Insert follow action
-      console.log(`🔄 Inserting follow action for user ${userFid} on promotion ${promotionId}`);
-      console.log('📝 Insert data:', {
-        promotionId,
-        userFid,
-        username,
-        actionType,
-        targetUserFid,
-        rewardAmount
-      });
-      
-      const followActionResult = await client.query(`
-        INSERT INTO follow_actions (
-          promotion_id, user_fid, username, action_type, cast_hash, 
-          reward_amount, status, verified_at, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW())
-        RETURNING id, action_type, created_at
-      `, [promotionId, userFid, username, actionType, targetUserFid, rewardAmount, 'verified']);
-
-      console.log(`✅ Follow action inserted:`, followActionResult.rows[0]);
-
-      // Add season points for follow action
-      try {
-        // Get current active season ID
-        const seasonResult = await client.query(
-          'SELECT id FROM seasons WHERE status = $1 ORDER BY created_at DESC LIMIT 1',
-          ['active']
-        );
-        
-        if (seasonResult.rows.length > 0) {
-          const seasonId = seasonResult.rows[0].id;
-          
-          // Add point transaction
-          await client.query(`
-            INSERT INTO point_transactions (
-              user_fid, season_id, action_type, points_earned, metadata
-            ) VALUES ($1, $2, $3, $4, $5)
-          `, [userFid, seasonId, 'follow', 1, JSON.stringify({ 
-            promotion_id: promotionId,
-            target_user_fid: targetUserFid,
-            timestamp: new Date().toISOString()
-          })]);
-
-          // Update user season summary
-          await client.query(`
-            INSERT INTO user_season_summary (
-              user_fid, season_id, total_points, total_follows, 
-              last_activity
-            ) VALUES ($1, $2, $3, $4, NOW())
-           ON CONFLICT (user_fid, season_id)
-            DO UPDATE SET 
-              total_points = user_season_summary.total_points + $3,
-              total_follows = user_season_summary.total_follows + $4,
-              last_activity = NOW(),
-              updated_at = NOW()
-          `, [userFid, seasonId, 1, 1]);
-
-          console.log(`✅ Season points added for follow action`);
-        }
-      } catch (seasonError) {
-        console.warn('⚠️ Season tracking failed (non-critical):', seasonError);
-        // Don't fail the main transaction for season tracking
-      }
-
-      // Update promotion stats
-      await client.query(`
-        UPDATE promotions 
-        SET 
-          shares_count = shares_count + 1,
-          remaining_budget = remaining_budget - $1,
+    // Reserve budget immediately when follow is submitted (pending)
+    // This prevents multiple users from exhausting the budget
+    await pool.query(`
+      UPDATE promotions 
+      SET remaining_budget = remaining_budget - $1,
           updated_at = NOW()
-        WHERE id = $2
-      `, [rewardAmount, promotionId]);
+      WHERE id = $2
+    `, [rewardAmount, promotionId]);
 
-      // Update user earnings
-      await client.query(`
-        INSERT INTO users (fid, username, total_earnings, total_shares, updated_at)
-        VALUES ($1, $2, $3, $4, NOW())
-        ON CONFLICT (fid) 
-        DO UPDATE SET 
-          total_earnings = users.total_earnings + $3,
-          total_shares = users.total_shares + $4,
-          updated_at = NOW()
-      `, [userFid, username, rewardAmount, 1]);
+    // Extract target username from cast URL
+    const targetUsername = fullPromotion.cast_url.split('/').pop() || '';
 
-      // Check if promotion should be marked as completed
-      const updatedPromoResult = await client.query(
-        'SELECT remaining_budget, reward_per_share FROM promotions WHERE id = $1',
-        [promotionId]
-      );
+    // Create pending follow for admin approval
+    console.log('📝 Creating pending follow for admin approval...');
+    
+    const result = await pool.query(`
+      INSERT INTO pending_follows (
+        promotion_id, user_fid, username, target_username, target_user_fid, reward_amount, status
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, 'pending'
+      )
+      RETURNING id
+    `, [promotionId, userFid, username, targetUsername, targetUserFid, rewardAmount]);
 
-      const updatedPromo = updatedPromoResult.rows[0];
-      let completionInserted = false;
+    const pendingFollowId = result.rows[0].id;
 
-      if (updatedPromo && updatedPromo.remaining_budget <= 0) {
-        await client.query('UPDATE promotions SET status = $1 WHERE id = $2', ['completed', promotionId]);
-        console.log(`Campaign ${promotionId} marked as completed - budget exhausted`);
-        completionInserted = true;
-      } else if (updatedPromo && updatedPromo.remaining_budget < updatedPromo.reward_per_share) {
-        await client.query('UPDATE promotions SET status = $1 WHERE id = $2', ['completed', promotionId]);
-        console.log(`Campaign ${promotionId} marked as completed - insufficient budget for next follow`);
-        completionInserted = true;
-    }
+    console.log(`📝 Created pending follow ${pendingFollowId} for admin approval`);
 
-    await client.query('COMMIT');
-
-      console.log('✅ Follow action completed successfully:', {
-        promotionId,
-        userFid,
-        totalReward: rewardAmount,
-        completionInserted
-      });
-
-      return NextResponse.json({
-        success: true,
-        message: completionInserted 
-          ? `Follow completed! Earned ${rewardAmount} $CHESS. Campaign finished!` 
-          : `Follow completed! Earned ${rewardAmount} $CHESS`,
-        totalReward: rewardAmount,
-        completionInserted,
-        remainingBudget: fullPromotion.remaining_budget - rewardAmount
-      }, { status: 200 });
-
-  } catch (error: any) {
-      console.error('❌ Transaction error, rolling back:', error.message);
-      try {
-    await client.query('ROLLBACK');
-        console.log('🔄 Transaction rolled back successfully');
-      } catch (rollbackError: any) {
-        console.error('❌ Rollback failed:', rollbackError.message);
-    }
-      throw error;
-  } finally {
-    client.release();
-      console.log('🔌 Database connection released');
-    }
+    return NextResponse.json({
+      success: true,
+      message: 'Follow submitted for admin approval! Reward will be credited after review.',
+      pendingFollowId,
+      targetUsername
+    }, { status: 200 });
 
   } catch (error: any) {
     console.error('❌ Follow API Error:', error);

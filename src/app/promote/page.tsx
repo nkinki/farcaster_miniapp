@@ -673,6 +673,9 @@ export default function PromotePage() {
       setShareError(null);
       console.log('✅ Follow action submitted successfully!');
       
+      // Show pending approval message
+      setShareError('✅ Follow submitted for admin approval! Reward will be credited after review.');
+      
       // Refresh data
       await refreshAllData();
       
