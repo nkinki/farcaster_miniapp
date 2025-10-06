@@ -40,8 +40,11 @@ export async function POST(request: NextRequest) {
 
     // Check if follow_actions table exists first
     try {
+      console.log('🔍 Checking follow_actions table exists...');
       await pool.query('SELECT 1 FROM follow_actions LIMIT 1');
+      console.log('✅ follow_actions table exists');
     } catch (error: any) {
+      console.log('❌ follow_actions table check failed:', error.message);
       if (error.code === '42P01') { // Table doesn't exist
         return NextResponse.json({ 
           error: 'Follow functionality is not available yet. Database migration required.' 
@@ -54,10 +57,12 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Checking promotion:', { promotionId, status: 'active', actionType: 'follow' });
     
     // First check if promotion exists (without action_type filter)
+    console.log('🔍 Querying promotion by ID:', promotionId);
     const promotionCheckResult = await pool.query(
       'SELECT id, status, action_type FROM promotions WHERE id = $1',
       [promotionId]
     );
+    console.log('✅ Promotion query result:', promotionCheckResult.rows);
     
     if (promotionCheckResult.rows.length === 0) {
       return NextResponse.json({ 
@@ -144,14 +149,24 @@ export async function POST(request: NextRequest) {
     console.log('✅ Follow validation successful (trust-based):', validationData.follow?.hash);
 
     // Start transaction
+    console.log('🔄 Starting database transaction...');
     const client = await pool.connect();
     
     try {
+      console.log('🔄 Beginning transaction...');
       await client.query('BEGIN');
-      console.log('🔄 Transaction started');
+      console.log('✅ Transaction started successfully');
 
       // Insert follow action
       console.log(`🔄 Inserting follow action for user ${userFid} on promotion ${promotionId}`);
+      console.log('📝 Insert data:', {
+        promotionId,
+        userFid,
+        username,
+        actionType,
+        targetUserFid,
+        rewardAmount
+      });
       
       const followActionResult = await client.query(`
         INSERT INTO follow_actions (
