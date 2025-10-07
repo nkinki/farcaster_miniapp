@@ -670,11 +670,7 @@ export default function PromotePage() {
       }
       
       // Show instruction message
-      setShareError('📱 Cast opened! Please follow the user, then wait for verification...');
-      
-      // Wait 5 seconds for user to complete follow
-      console.log('⏳ Waiting 5 seconds for user to complete follow...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      setShareError('📱 Cast opened! Please follow the user, then the action will be verified automatically...');
       
       // Now submit the follow action
       console.log('📝 Submitting follow action...');
