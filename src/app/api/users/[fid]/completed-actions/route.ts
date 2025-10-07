@@ -72,12 +72,33 @@ export async function GET(
         }
       }
 
+      // Get pending comment actions for this user from pending_comments table
+      let pendingCommentResult = { rows: [] };
+      try {
+        console.log(`🔍 Checking pending_comments for user ${fid}...`);
+        pendingCommentResult = await client.query(`
+          SELECT DISTINCT promotion_id
+          FROM pending_comments
+          WHERE user_fid = $1 AND status = 'pending'
+        `, [fid]);
+        console.log(`✅ Found ${pendingCommentResult.rows.length} pending comments for user ${fid}`);
+      } catch (tableError: any) {
+        if (tableError.code === '42P01') { // Table doesn't exist
+          console.log('⚠️ pending_comments table does not exist yet');
+          pendingCommentResult = { rows: [] };
+        } else {
+          console.error('❌ Error querying pending_comments:', tableError);
+          throw tableError;
+        }
+      }
+
       // Combine all completed actions (including pending ones)
       const allCompletedActions = [
         ...likeRecastResult.rows,
         ...commentResult.rows,
         ...followResult.rows,
-        ...pendingFollowResult.rows
+        ...pendingFollowResult.rows,
+        ...pendingCommentResult.rows
       ];
 
       console.log(`📊 Completed actions summary for user ${fid}:`, {
@@ -85,6 +106,7 @@ export async function GET(
         comments: commentResult.rows.length,
         followActions: followResult.rows.length,
         pendingFollows: pendingFollowResult.rows.length,
+        pendingComments: pendingCommentResult.rows.length,
         total: allCompletedActions.length
       });
 
