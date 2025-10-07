@@ -22,10 +22,17 @@ export async function GET(
     
     try {
       // Get completed like_recast actions for this user from shares table
-      const sharesResult = await client.query(`
+      const likeRecastResult = await client.query(`
         SELECT DISTINCT promotion_id
         FROM shares
         WHERE sharer_fid = $1 AND action_type = 'like_recast'
+      `, [fid]);
+
+      // Get completed comment actions for this user from shares table
+      const commentResult = await client.query(`
+        SELECT DISTINCT promotion_id
+        FROM shares
+        WHERE sharer_fid = $1 AND action_type = 'comment'
       `, [fid]);
 
       // Get completed follow actions for this user from follow_actions table
@@ -67,13 +74,15 @@ export async function GET(
 
       // Combine all completed actions (including pending ones)
       const allCompletedActions = [
-        ...sharesResult.rows,
+        ...likeRecastResult.rows,
+        ...commentResult.rows,
         ...followResult.rows,
         ...pendingFollowResult.rows
       ];
 
       console.log(`📊 Completed actions summary for user ${fid}:`, {
-        shares: sharesResult.rows.length,
+        likeRecast: likeRecastResult.rows.length,
+        comments: commentResult.rows.length,
         followActions: followResult.rows.length,
         pendingFollows: pendingFollowResult.rows.length,
         total: allCompletedActions.length
