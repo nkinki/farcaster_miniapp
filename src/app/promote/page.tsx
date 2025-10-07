@@ -740,6 +740,9 @@ export default function PromotePage() {
         [selectedFollowPromo.id]: true
       }));
       
+      // Force re-render immediately to update the UI
+      setForceUpdate(prev => prev + 1);
+      
       // Show success toast
       if (data.message?.includes('admin approval')) {
         setFollowToastMessage('✅ Follow submitted for admin approval! Reward will be credited after review.');
@@ -754,9 +757,6 @@ export default function PromotePage() {
       }, 5000);
       
       setShowFollowModal(false);
-      
-      // Force re-render by updating a dummy state
-      setForceUpdate(prev => prev + 1);
       
       await refreshAllData();
       
@@ -1075,7 +1075,7 @@ export default function PromotePage() {
       // Within same priority, sort by reward amount (highest first)
       return b.rewardPerShare - a.rewardPerShare;
     });
-  }, [trulyAvailable, shareTimers, completedActions]);
+  }, [trulyAvailable, shareTimers, completedActions, forceUpdate]);
 
   const sortedCountdownPromos = useMemo(() => {
     return [...countdownPromos].sort((a, b) => {
@@ -1093,7 +1093,7 @@ export default function PromotePage() {
       // Within same time, sort by reward amount (highest first)
       return b.rewardPerShare - a.rewardPerShare;
     });
-  }, [countdownPromos, shareTimers]);
+  }, [countdownPromos, shareTimers, forceUpdate]);
 
   if (loading || (promotionsLoading && allPromotions.length === 0)) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
