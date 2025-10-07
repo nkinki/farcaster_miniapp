@@ -156,6 +156,9 @@ export default function PromotePage() {
   // Track completed actions for each promotion
   const [completedActions, setCompletedActions] = useState<Record<string, boolean>>({});
   
+  // Force update state for immediate re-render
+  const [forceUpdate, setForceUpdate] = useState(0);
+  
   // 10-second countdown timer for share/like buttons
   const [buttonCountdowns, setButtonCountdowns] = useState<Record<string, number>>({});
 
@@ -751,6 +754,10 @@ export default function PromotePage() {
       }, 5000);
       
       setShowFollowModal(false);
+      
+      // Force re-render by updating a dummy state
+      setForceUpdate(prev => prev + 1);
+      
       await refreshAllData();
       
       // Show completed state message
@@ -1037,7 +1044,7 @@ export default function PromotePage() {
       availablePromos: available, 
       countdownPromos: countdown 
     };
-  }, [availablePromos, shareTimers, completedActions]);
+  }, [availablePromos, shareTimers, completedActions, forceUpdate]);
 
   const sortedAvailablePromos = useMemo(() => {
     return [...trulyAvailable].sort((a, b) => {
