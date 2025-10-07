@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: "Farcaster miniapp toplist and statistics",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.png?v=2",
         width: 1200,
         height: 630,
         alt: "APPRANK",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   other: {
     "fc:frame": "vNext",
-    "fc:frame:image": "https://farc-nu.vercel.app/og-image.png",
+    "fc:frame:image": "https://farc-nu.vercel.app/og-image.png?v=2",
     "fc:frame:button:1": "🏆 View Rankings",
     "fc:frame:post_url": "https://farc-nu.vercel.app/api/frame",
     "fc:frame:input:text": "optional",
@@ -44,6 +44,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta property="og:image" content="https://farc-nu.vercel.app/og-image.png?v=2" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="APPRANK - Farcaster miniapp toplist" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://farc-nu.vercel.app/og-image.png?v=2" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Web3Providers>
           {children}

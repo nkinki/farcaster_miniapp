@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       <html>
         <head>
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://farc-nu.vercel.app/og-image.png" />
+          <meta property="fc:frame:image" content="https://farc-nu.vercel.app/og-image.png?v=2" />
           <meta property="fc:frame:button:1" content="Open AppRank" />
           <meta property="fc:frame:post_url" content="https://farc-nu.vercel.app/api/frame" />
         </head>
@@ -57,7 +57,7 @@ export async function GET() {
   // Return frame metadata
   return NextResponse.json({
     version: 'next',
-    imageUrl: 'https://farc-nu.vercel.app/og-image.png',
+    imageUrl: 'https://farc-nu.vercel.app/og-image.png?v=2',
     buttons: [
       {
         label: '🏆 View Rankings',
