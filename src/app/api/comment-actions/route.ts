@@ -95,6 +95,19 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Comment validation successful (trust-based):', validationData.comment?.hash);
 
+    // Create comment in shares table (for completed-actions API)
+    const sharesResult = await sql`
+      INSERT INTO shares (
+        promotion_id, sharer_fid, sharer_username, action_type, cast_hash, reward_amount, created_at
+      ) VALUES (
+        ${promotionId}, ${userFid}, ${username}, 'comment', ${castHash}, ${rewardAmount}, NOW()
+      )
+      RETURNING id
+    `;
+
+    const shareId = sharesResult[0].id;
+    console.log(`📝 Created comment share ${shareId}`);
+
     // Create pending comment for admin approval
     const result = await sql`
       INSERT INTO pending_comments (

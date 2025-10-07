@@ -2132,15 +2132,15 @@ export default function PromotePage() {
                         [selectedCommentPromo.id]: true
                       }));
                       
-                      // Close modal after successful verification
-                      setTimeout(() => {
-                        setShowCommentModal(false);
-                        setSelectedCommentPromo(null);
-                        setSelectedCommentTemplate('');
-                        setShareError(null);
-                        setSharingPromoId(null);
-                        refreshAllData();
-                      }, 2000);
+                      // Close modal immediately and refresh data
+                      setShowCommentModal(false);
+                      setSelectedCommentPromo(null);
+                      setSelectedCommentTemplate('');
+                      setShareError(null);
+                      setSharingPromoId(null);
+                      
+                      // Refresh data in background
+                      refreshAllData();
                       
                     } catch (error: any) {
                       console.error('❌ Comment verification failed:', error);
