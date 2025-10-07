@@ -20,15 +20,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if user already completed this action
-    const existingAction = await sql`
-      SELECT id FROM shares 
-      WHERE promotion_id = ${promotionId} AND sharer_fid = ${userFid}
-    `;
-
-    if (existingAction.length > 0) {
-      return NextResponse.json({ error: 'You have already completed this comment action' }, { status: 409 });
-    }
+    // Check if user already completed this action (only check pending_comments, not shares)
+    // The shares table is used for completed-actions API, not for conflict checking
 
     // Check if user already has a pending comment for this promotion
     const existingPendingComment = await sql`
