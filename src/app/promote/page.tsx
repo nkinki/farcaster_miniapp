@@ -660,20 +660,21 @@ export default function PromotePage() {
       
       console.log('🔍 Target username:', targetUsername);
       
-      // First, open the profile so user can follow
-      console.log('📱 Opening profile for user to follow...');
+      // First, open the cast so user can see it and follow
+      console.log('📱 Opening cast for user to view and follow...');
       try {
-        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-        console.log('🔗 Opening profile URL:', profileUrl);
-        window.open(profileUrl, '_blank');
-        console.log('✅ Profile opened successfully');
+        await (miniAppSdk as any).actions.viewCast({ hash: promo.castUrl.split('/').pop() || '' });
+        console.log('✅ Cast opened successfully');
       } catch (viewError) {
-        console.log('⚠️ Could not open profile, continuing with follow...');
+        console.log('⚠️ Could not open cast, continuing with follow...');
       }
       
-      // Wait a moment for user to follow
-      console.log('⏳ Waiting for user to follow...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Show instruction message
+      setShareError('📱 Cast opened! Please follow the user, then wait for verification...');
+      
+      // Wait 5 seconds for user to complete follow
+      console.log('⏳ Waiting 5 seconds for user to complete follow...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Now submit the follow action
       console.log('📝 Submitting follow action...');
