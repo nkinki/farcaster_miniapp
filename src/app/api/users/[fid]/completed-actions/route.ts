@@ -35,6 +35,23 @@ export async function GET(
         WHERE user_fid = $1 AND status IN ('verified', 'rewarded')
       `, [fid]);
 
+      // Get pending follow actions for this user from pending_follows table
+      let pendingFollowResult = { rows: [] };
+      try {
+        pendingFollowResult = await client.query(`
+          SELECT DISTINCT promotion_id
+          FROM pending_follows
+          WHERE user_fid = $1 AND status = 'pending'
+        `, [fid]);
+      } catch (tableError: any) {
+        if (tableError.code === '42P01') { // Table doesn't exist
+          console.log('⚠️ pending_follows table does not exist yet');
+          pendingFollowResult = { rows: [] };
+        } else {
+          throw tableError;
+        }
+      }
+
       // Get completed comment actions for this user from comment_actions table
       const commentResult = await client.query(`
         SELECT DISTINCT promotion_id
@@ -42,11 +59,30 @@ export async function GET(
         WHERE user_fid = $1 AND status IN ('verified', 'rewarded')
       `, [fid]);
 
-      // Combine all completed actions
+      // Get pending comment actions for this user from pending_comments table
+      let pendingCommentResult = { rows: [] };
+      try {
+        pendingCommentResult = await client.query(`
+          SELECT DISTINCT promotion_id
+          FROM pending_comments
+          WHERE user_fid = $1 AND status = 'pending'
+        `, [fid]);
+      } catch (tableError: any) {
+        if (tableError.code === '42P01') { // Table doesn't exist
+          console.log('⚠️ pending_comments table does not exist yet');
+          pendingCommentResult = { rows: [] };
+        } else {
+          throw tableError;
+        }
+      }
+
+      // Combine all completed actions (including pending ones)
       const allCompletedActions = [
         ...sharesResult.rows,
         ...followResult.rows,
-        ...commentResult.rows
+        ...commentResult.rows,
+        ...pendingFollowResult.rows,
+        ...pendingCommentResult.rows
       ];
 
       return NextResponse.json({
