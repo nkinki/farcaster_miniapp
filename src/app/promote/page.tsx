@@ -156,8 +156,6 @@ export default function PromotePage() {
   // Track completed actions for each promotion
   const [completedActions, setCompletedActions] = useState<Record<string, boolean>>({});
   
-  // Force update state for immediate re-render
-  const [forceUpdate, setForceUpdate] = useState(0);
   
   // 10-second countdown timer for share/like buttons
   const [buttonCountdowns, setButtonCountdowns] = useState<Record<string, number>>({});
@@ -740,10 +738,7 @@ export default function PromotePage() {
         [selectedFollowPromo.id]: true
       }));
       
-      // Force re-render immediately to update the UI
-      setForceUpdate(prev => prev + 1);
-      
-      // Show success toast
+      // Show success message
       if (data.message?.includes('admin approval')) {
         setFollowToastMessage('✅ Follow submitted for admin approval! Reward will be credited after review.');
       } else {
@@ -758,6 +753,7 @@ export default function PromotePage() {
       
       setShowFollowModal(false);
       
+      // Refresh data (like like/recast does)
       await refreshAllData();
       
       // Show completed state message
@@ -1044,7 +1040,7 @@ export default function PromotePage() {
       availablePromos: available, 
       countdownPromos: countdown 
     };
-  }, [availablePromos, shareTimers, completedActions, forceUpdate]);
+  }, [availablePromos, shareTimers, completedActions]);
 
   const sortedAvailablePromos = useMemo(() => {
     return [...trulyAvailable].sort((a, b) => {
@@ -1075,7 +1071,7 @@ export default function PromotePage() {
       // Within same priority, sort by reward amount (highest first)
       return b.rewardPerShare - a.rewardPerShare;
     });
-  }, [trulyAvailable, shareTimers, completedActions, forceUpdate]);
+  }, [trulyAvailable, shareTimers, completedActions]);
 
   const sortedCountdownPromos = useMemo(() => {
     return [...countdownPromos].sort((a, b) => {
@@ -1093,7 +1089,7 @@ export default function PromotePage() {
       // Within same time, sort by reward amount (highest first)
       return b.rewardPerShare - a.rewardPerShare;
     });
-  }, [countdownPromos, shareTimers, forceUpdate]);
+  }, [countdownPromos, shareTimers]);
 
   if (loading || (promotionsLoading && allPromotions.length === 0)) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 flex items-center justify-center"><div className="text-purple-400 text-2xl font-bold animate-pulse">Loading Promotions...</div></div>
