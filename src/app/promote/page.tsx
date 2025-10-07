@@ -362,14 +362,9 @@ export default function PromotePage() {
     if (isAuthenticated && profile?.fid) {
       refreshAllData();
       const interval = setInterval(fetchShareTimers, 60000);
-      // Also refresh completed actions every 30 seconds to catch admin approvals
-      const completedActionsInterval = setInterval(fetchCompletedActions, 30000);
-      return () => {
-        clearInterval(interval);
-        clearInterval(completedActionsInterval);
-      };
+      return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile, refreshAllData, fetchShareTimers, fetchCompletedActions]);
+  }, [isAuthenticated, profile]);
   
   const handleCreateSuccess = () => { 
     setShowForm(false); 
