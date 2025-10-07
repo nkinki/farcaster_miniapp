@@ -737,6 +737,13 @@ export default function PromotePage() {
           setFollowToastMessage(`✅ You already completed this follow action! (Status: ${data.status || 'completed'})`);
           setShowFollowToast(true);
           setShowFollowModal(false);
+          
+          // Mark as completed immediately
+          setCompletedActions(prev => ({
+            ...prev,
+            [selectedFollowPromo.id]: true
+          }));
+          
           await refreshAllData();
           return;
         }
