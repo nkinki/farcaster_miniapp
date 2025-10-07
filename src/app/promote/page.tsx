@@ -155,6 +155,8 @@ export default function PromotePage() {
   
   // Track completed actions for each promotion
   const [completedActions, setCompletedActions] = useState<Record<string, boolean>>({});
+  // Track pending actions for each promotion
+  const [pendingActions, setPendingActions] = useState<Record<string, boolean>>({});
   
   
   // 10-second countdown timer for share/like buttons
@@ -341,11 +343,20 @@ export default function PromotePage() {
       const response = await fetch(`/api/users/${currentUser.fid}/completed-actions`);
       if (response.ok) {
         const data = await response.json();
+        
+        // Set completed actions (verified/rewarded)
         const completed: Record<string, boolean> = {};
-        data.completedActions?.forEach((action: any) => {
+        data.completedActionsOnly?.forEach((action: any) => {
           completed[action.promotion_id] = true;
         });
         setCompletedActions(completed);
+        
+        // Set pending actions (awaiting approval)
+        const pending: Record<string, boolean> = {};
+        data.pendingActions?.forEach((action: any) => {
+          pending[action.promotion_id] = true;
+        });
+        setPendingActions(pending);
       }
     } catch (error) { 
       console.error("Failed to fetch completed actions:", error); 
@@ -1723,9 +1734,11 @@ export default function PromotePage() {
                                 {promo.actionType === 'comment' 
                                   ? `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Comment Again`
                                   : promo.actionType === 'follow'
-                                    ? completedActions[promo.id]
+                                    ? pendingActions[promo.id]
                                       ? `⏳ Pending Follow - Awaiting Admin Approval`
-                                      : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Follow Again`
+                                      : completedActions[promo.id]
+                                        ? `✅ Follow Completed - $CHESS Earned`
+                                        : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Follow Again`
                                     : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
                                 }
                               </span>

@@ -101,6 +101,18 @@ export async function GET(
         ...pendingCommentResult.rows
       ];
 
+      // Separate pending and completed actions for better frontend handling
+      const pendingActions = [
+        ...pendingFollowResult.rows,
+        ...pendingCommentResult.rows
+      ];
+
+      const completedActions = [
+        ...likeRecastResult.rows,
+        ...commentResult.rows,
+        ...followResult.rows
+      ];
+
       console.log(`📊 Completed actions summary for user ${fid}:`, {
         likeRecast: likeRecastResult.rows.length,
         comments: commentResult.rows.length,
@@ -112,6 +124,8 @@ export async function GET(
 
       return NextResponse.json({
         completedActions: allCompletedActions,
+        pendingActions: pendingActions,
+        completedActionsOnly: completedActions,
         count: allCompletedActions.length
       });
 
