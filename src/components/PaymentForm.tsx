@@ -340,6 +340,27 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         </div>
       )}
 
+      {/* Follow Process Info */}
+      {selectedAction === 'follow' && (
+        <div className="bg-pink-900/20 border border-pink-600 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-pink-300 mb-3">
+            👥 Follow Process
+          </h3>
+          <p className="text-sm text-gray-300 mb-3">
+            Users will be able to follow you on Farcaster to earn $CHESS tokens. 
+            The follow process will be guided with clear step-by-step instructions.
+          </p>
+          <div className="text-xs text-pink-200 space-y-1">
+            <p>• Click "Follow & Earn" button</p>
+            <p>• Open your profile link</p>
+            <p>• Follow you on Farcaster</p>
+            <p>• Click "Verify Follow"</p>
+            <p>• Get reward after promoter/admin approval</p>
+            <p>• ⚠️ One-time only - no back-and-forth follows</p>
+          </div>
+        </div>
+      )}
+
       {/* Custom Comment Section - Only shown when comment action is selected */}
       {selectedAction === 'comment' && (
         <div>
