@@ -660,17 +660,20 @@ export default function PromotePage() {
       
       console.log('🔍 Target username:', targetUsername);
       
-      // First, open the cast so user can see it and follow
-      console.log('📱 Opening cast for user to view and follow...');
+      // For follow actions, open the profile directly (not a cast)
+      console.log('📱 Opening profile for user to follow...');
       try {
-        await (miniAppSdk as any).actions.viewCast({ hash: promo.castUrl.split('/').pop() || '' });
-        console.log('✅ Cast opened successfully');
+        // Use the profile URL directly
+        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+        console.log('🔗 Opening profile URL:', profileUrl);
+        window.open(profileUrl, '_blank');
+        console.log('✅ Profile opened successfully');
       } catch (viewError) {
-        console.log('⚠️ Could not open cast, continuing with follow...');
+        console.log('⚠️ Could not open profile, continuing with follow...');
       }
       
       // Show instruction message
-      setShareError('📱 Cast opened! Please follow the user, then the action will be verified automatically...');
+      setShareError('📱 Profile opened! Please follow the user, then the action will be verified automatically...');
       
       // Now submit the follow action
       console.log('📝 Submitting follow action...');
