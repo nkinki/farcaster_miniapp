@@ -29,11 +29,31 @@ export const metadata: Metadata = {
     ],
   },
   other: {
-    "fc:frame": "vNext",
-    "fc:frame:image": "https://farc-nu.vercel.app/og-image.png?v=2",
-    "fc:frame:button:1": "🏆 View Rankings",
-    "fc:frame:post_url": "https://farc-nu.vercel.app/api/frame",
-    "fc:frame:input:text": "optional",
+    "fc:miniapp": JSON.stringify({
+      version: "1",
+      imageUrl: "https://farc-nu.vercel.app/og-image.png?v=2",
+      button: {
+        title: "🏆 View Rankings",
+        action: {
+          type: "launch_miniapp",
+          url: "https://farc-nu.vercel.app/",
+          name: "APPRANK"
+        }
+      }
+    }),
+    // For backward compatibility
+    "fc:frame": JSON.stringify({
+      version: "1",
+      imageUrl: "https://farc-nu.vercel.app/og-image.png?v=2",
+      button: {
+        title: "🏆 View Rankings",
+        action: {
+          type: "launch_frame",
+          url: "https://farc-nu.vercel.app/",
+          name: "APPRANK"
+        }
+      }
+    })
   },
 };
 

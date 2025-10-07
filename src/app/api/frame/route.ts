@@ -27,10 +27,8 @@ export async function POST(request: NextRequest) {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://farc-nu.vercel.app/og-image.png?v=2" />
-          <meta property="fc:frame:button:1" content="Open AppRank" />
-          <meta property="fc:frame:post_url" content="https://farc-nu.vercel.app/api/frame" />
+          <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://farc-nu.vercel.app/og-image.png?v=2","button":{"title":"🏆 View Rankings","action":{"type":"launch_miniapp","url":"https://farc-nu.vercel.app/","name":"APPRANK"}}}' />
+          <meta name="fc:frame" content='{"version":"1","imageUrl":"https://farc-nu.vercel.app/og-image.png?v=2","button":{"title":"🏆 View Rankings","action":{"type":"launch_frame","url":"https://farc-nu.vercel.app/","name":"APPRANK"}}}' />
         </head>
         <body>
           <script>
@@ -54,16 +52,17 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  // Return frame metadata
+  // Return miniapp metadata
   return NextResponse.json({
-    version: 'next',
-    imageUrl: 'https://farc-nu.vercel.app/og-image.png?v=2',
-    buttons: [
-      {
-        label: '🏆 View Rankings',
-        action: 'post',
-      },
-    ],
-    postUrl: 'https://farcaster-miniapp-rangsor.vercel.app/api/frame',
+    version: "1",
+    imageUrl: "https://farc-nu.vercel.app/og-image.png?v=2",
+    button: {
+      title: "🏆 View Rankings",
+      action: {
+        type: "launch_miniapp",
+        url: "https://farc-nu.vercel.app/",
+        name: "APPRANK"
+      }
+    }
   });
 }
