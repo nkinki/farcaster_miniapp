@@ -165,35 +165,17 @@ export async function POST(request: NextRequest) {
     // Extract target username from cast URL
     const targetUsername = fullPromotion.cast_url.split('/').pop() || '';
 
-  // Create pending follow for admin approval
-  console.log('📝 Creating pending follow for admin approval...');
-  
+  // Check if pending_follows table exists first
+  console.log('🔍 Checking pending_follows table exists...');
   try {
-      const result = await pool.query(`
-        INSERT INTO pending_follows (
-          promotion_id, user_fid, username, target_username, target_user_fid, reward_amount, status
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, 'pending'
-        )
-        RETURNING id
-      `, [promotionId, userFid, username, targetUsername, targetUserFid, rewardAmount]);
-
-    const pendingFollowId = result.rows[0].id;
-
-    console.log(`📝 Created pending follow ${pendingFollowId} for admin approval`);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Follow submitted for admin approval! Reward will be credited after review.',
-      pendingFollowId,
-      targetUsername
-    }, { status: 200 });
-
+    await pool.query('SELECT 1 FROM pending_follows LIMIT 1');
+    console.log('✅ pending_follows table exists');
   } catch (tableError: any) {
+    console.log('❌ pending_follows table check failed:', tableError.message);
     if (tableError.code === '42P01') { // Table doesn't exist
-      console.log('⚠️ pending_follows table does not exist yet, falling back to direct follow action');
+      console.log('⚠️ pending_follows table does not exist, falling back to direct follow action');
       
-      // Fallback: Create direct follow action (temporary until migration is run)
+      // Fallback: Create direct follow action
       const result = await pool.query(`
         INSERT INTO follow_actions (
           promotion_id, user_fid, username, action_type, cast_hash, 
@@ -231,10 +213,38 @@ export async function POST(request: NextRequest) {
         actionId,
         targetUsername
       }, { status: 200 });
-
     } else {
       throw tableError;
     }
+  }
+
+  // Create pending follow for admin approval
+  console.log('📝 Creating pending follow for admin approval...');
+  
+  try {
+      const result = await pool.query(`
+        INSERT INTO pending_follows (
+          promotion_id, user_fid, username, target_username, target_user_fid, reward_amount, status
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, 'pending'
+        )
+        RETURNING id
+      `, [promotionId, userFid, username, targetUsername, targetUserFid, rewardAmount]);
+
+    const pendingFollowId = result.rows[0].id;
+
+    console.log(`📝 Created pending follow ${pendingFollowId} for admin approval`);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Follow submitted for admin approval! Reward will be credited after review.',
+      pendingFollowId,
+      targetUsername
+    }, { status: 200 });
+
+  } catch (tableError: any) {
+    console.error('❌ Error creating pending follow:', tableError);
+    throw tableError;
   }
 
   } catch (error: any) {

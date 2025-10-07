@@ -38,16 +38,19 @@ export async function GET(
       // Get pending follow actions for this user from pending_follows table
       let pendingFollowResult = { rows: [] };
       try {
+        console.log(`🔍 Checking pending_follows for user ${fid}...`);
         pendingFollowResult = await client.query(`
           SELECT DISTINCT promotion_id
           FROM pending_follows
           WHERE user_fid = $1 AND status = 'pending'
         `, [fid]);
+        console.log(`✅ Found ${pendingFollowResult.rows.length} pending follows for user ${fid}`);
       } catch (tableError: any) {
         if (tableError.code === '42P01') { // Table doesn't exist
           console.log('⚠️ pending_follows table does not exist yet');
           pendingFollowResult = { rows: [] };
         } else {
+          console.error('❌ Error querying pending_follows:', tableError);
           throw tableError;
         }
       }
@@ -84,6 +87,15 @@ export async function GET(
         ...pendingFollowResult.rows,
         ...pendingCommentResult.rows
       ];
+
+      console.log(`📊 Completed actions summary for user ${fid}:`, {
+        shares: sharesResult.rows.length,
+        followActions: followResult.rows.length,
+        commentActions: commentResult.rows.length,
+        pendingFollows: pendingFollowResult.rows.length,
+        pendingComments: pendingCommentResult.rows.length,
+        total: allCompletedActions.length
+      });
 
       return NextResponse.json({
         completedActions: allCompletedActions,
