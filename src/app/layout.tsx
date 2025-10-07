@@ -30,9 +30,9 @@ export const metadata: Metadata = {
   },
   other: {
     "fc:frame": "vNext",
-    "fc:frame:image": "https://farcaster-miniapp-rangsor.vercel.app/og-image.png",
+    "fc:frame:image": "https://farc-nu.vercel.app/og-image.png",
     "fc:frame:button:1": "🏆 View Rankings",
-    "fc:frame:post_url": "https://farcaster-miniapp-rangsor.vercel.app/api/frame",
+    "fc:frame:post_url": "https://farc-nu.vercel.app/api/frame",
     "fc:frame:input:text": "optional",
   },
 };

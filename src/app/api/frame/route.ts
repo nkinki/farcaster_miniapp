@@ -28,13 +28,13 @@ export async function POST(request: NextRequest) {
       <html>
         <head>
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://farcaster-miniapp-rangsor.vercel.app/og-image.png" />
+          <meta property="fc:frame:image" content="https://farc-nu.vercel.app/og-image.png" />
           <meta property="fc:frame:button:1" content="Open AppRank" />
-          <meta property="fc:frame:post_url" content="https://farcaster-miniapp-rangsor.vercel.app/api/frame" />
+          <meta property="fc:frame:post_url" content="https://farc-nu.vercel.app/api/frame" />
         </head>
         <body>
           <script>
-            window.location.href = "https://farcaster-miniapp-rangsor.vercel.app/";
+            window.location.href = "https://farc-nu.vercel.app/";
           </script>
         </body>
       </html>
@@ -57,7 +57,7 @@ export async function GET() {
   // Return frame metadata
   return NextResponse.json({
     version: 'next',
-    imageUrl: 'https://farcaster-miniapp-rangsor.vercel.app/og-image.png',
+    imageUrl: 'https://farc-nu.vercel.app/og-image.png',
     buttons: [
       {
         label: '🏆 View Rankings',
