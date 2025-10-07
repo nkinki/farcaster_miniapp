@@ -704,7 +704,15 @@ export default function PromotePage() {
             [promo.id]: true
           }));
           
-          await refreshAllData();
+          // Also mark as pending if it's pending
+          if (data.status === 'pending') {
+            setPendingActions(prev => ({
+              ...prev,
+              [promo.id]: true
+            }));
+          }
+          
+          // Don't call refreshAllData() here as it might override our state changes
           return;
         }
         throw new Error(data.error || 'Failed to complete follow action');
@@ -1517,8 +1525,9 @@ export default function PromotePage() {
                               } else if (promo.actionType === 'follow') {
                                 // Check if user already completed this action
                                 const isCompleted = completedActions[promo.id];
+                                const isPending = pendingActions[promo.id];
                                 
-                                if (isCompleted) {
+                                if (isCompleted || isPending) {
                                   return (
                                     <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-green-400 text-white text-sm font-bold rounded-xl shadow-lg">
                                       <span>✅</span>
@@ -1535,7 +1544,7 @@ export default function PromotePage() {
                                   <div>
                                     <button 
                                       onClick={(e) => {
-                                        if (!isCountingDown && !completedActions[promo.id]) {
+                                        if (!isCountingDown && !completedActions[promo.id] && !isPending) {
                                           console.log('🔘 Follow button clicked!');
                                           // Add click animation
                                           e.currentTarget.style.transform = 'scale(0.95)';
@@ -1546,17 +1555,21 @@ export default function PromotePage() {
                                           setTimeout(() => handleFollowAction(promo, e), 10000);
                                         }
                                       }} 
-                                      disabled={isDisabled || completedActions[promo.id]} 
+                                      disabled={isDisabled || completedActions[promo.id] || isPending} 
                                       className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-95 ${
                                         completedActions[promo.id] 
                                           ? 'bg-gradient-to-r from-green-600 to-green-700' 
-                                          : 'bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 disabled:from-slate-600 disabled:to-slate-700'
+                                          : isPending
+                                            ? 'bg-gradient-to-r from-yellow-600 to-yellow-700'
+                                            : 'bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 disabled:from-slate-600 disabled:to-slate-700'
                                       }`}
                                     >
                                       {sharingPromoId === promo.id.toString() ? (
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                       ) : completedActions[promo.id] ? (
                                         <FiCheck size={14} />
+                                      ) : isPending ? (
+                                        <FiClock size={14} />
                                       ) : isCountingDown ? (
                                         <FiClock size={14} />
                                       ) : (
@@ -1566,9 +1579,11 @@ export default function PromotePage() {
                                         ? 'Processing...' 
                                         : completedActions[promo.id]
                                           ? '✅ Followed & Earned'
-                                          : isCountingDown 
-                                            ? `⏳ Wait ${countdown}s to Follow` 
-                                            : `👥 Follow & Earn ${promo.rewardPerShare} $CHESS`
+                                          : isPending
+                                            ? '⏳ Pending Follow - Awaiting Admin Approval'
+                                            : isCountingDown 
+                                              ? `⏳ Wait ${countdown}s to Follow` 
+                                              : `👥 Follow & Earn ${promo.rewardPerShare} $CHESS`
                                       }
                                     </button>
                                     <div className="text-xs text-yellow-400 text-center mt-1">
