@@ -660,23 +660,15 @@ export default function PromotePage() {
       
       console.log('🔍 Target username:', targetUsername);
       
-      // For follow actions, try to open the profile using miniAppSdk
+      // For follow actions, open the profile URL directly
       console.log('📱 Opening profile for user to follow...');
       try {
-        // Try to use miniAppSdk to open the profile
-        // Note: This might not work for profiles, but let's try
         const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-        console.log('🔗 Attempting to open profile URL:', profileUrl);
+        console.log('🔗 Opening profile URL:', profileUrl);
         
-        // Try miniAppSdk first
-        try {
-          await (miniAppSdk as any).actions.viewCast({ hash: targetUsername });
-          console.log('✅ Profile opened via miniAppSdk');
-        } catch (sdkError) {
-          console.log('⚠️ miniAppSdk failed, trying window.open...');
-          window.open(profileUrl, '_blank');
-          console.log('✅ Profile opened via window.open');
-        }
+        // Open profile URL directly - this should work in most browsers
+        window.open(profileUrl, '_blank');
+        console.log('✅ Profile opened successfully');
       } catch (viewError) {
         console.log('⚠️ Could not open profile, continuing with follow...');
       }
