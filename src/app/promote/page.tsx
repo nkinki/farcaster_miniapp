@@ -168,6 +168,10 @@ export default function PromotePage() {
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
   const [showCommentTemplates, setShowCommentTemplates] = useState(false);
   
+  // Follow modal state
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [selectedFollowPromo, setSelectedFollowPromo] = useState<PromoCast | null>(null);
+  
   const [templateSortOrder, setTemplateSortOrder] = useState<'default' | 'random' | 'compact'>('default');
   // Only compact view for comment templates
 
@@ -660,20 +664,8 @@ export default function PromotePage() {
       
       console.log('🔍 Target username:', targetUsername);
       
-      // For follow actions, open the profile URL directly
-      console.log('📱 Opening profile for user to follow...');
-      try {
-        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-        console.log('🔗 Opening profile URL:', profileUrl);
-        
-        // Open profile URL directly - this should work in most browsers
-        window.open(profileUrl, '_blank');
-        console.log('✅ Profile opened successfully');
-      } catch (viewError) {
-        console.log('⚠️ Could not open profile, continuing with follow...');
-      }
-      
-      // Show instruction message
+      // Profile already opened in modal, just show instruction
+      console.log('📱 Profile should already be opened from modal');
       setShareError('📱 Profile opened! Please follow the user, then the action will be verified automatically...');
       
       // Now submit the follow action
@@ -1552,8 +1544,8 @@ export default function PromotePage() {
                                           setTimeout(() => {
                                             e.currentTarget.style.transform = 'scale(1)';
                                           }, 150);
-                                          startButtonCountdown(promo.id.toString());
-                                          setTimeout(() => handleFollowAction(promo, e), 10000);
+                                          setSelectedFollowPromo(promo);
+                                          setShowFollowModal(true);
                                         }
                                       }} 
                                       disabled={isDisabled || completedActions[promo.id] || isPending} 
@@ -2149,6 +2141,73 @@ export default function PromotePage() {
         </div>
       )}
 
+      {/* Follow Modal */}
+      {showFollowModal && selectedFollowPromo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Follow User</h3>
+              <button
+                onClick={() => {
+                  setShowFollowModal(false);
+                  setSelectedFollowPromo(null);
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-slate-700 rounded-lg p-4">
+                <h4 className="text-white font-medium mb-2">Follow Instructions</h4>
+                <p className="text-gray-300 text-sm mb-3">
+                  To earn {selectedFollowPromo.rewardPerShare} $CHESS, please follow this user:
+                </p>
+                <div className="bg-slate-600 rounded p-3 mb-3">
+                  <p className="text-white font-mono text-sm">
+                    @{selectedFollowPromo.castUrl.split('/').pop()}
+                  </p>
+                </div>
+                <p className="text-yellow-400 text-xs">
+                  ⚠️ One-time only - no back-and-forth follows
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowFollowModal(false);
+                    setSelectedFollowPromo(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Open profile in new tab
+                    const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
+                    const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                    window.open(profileUrl, '_blank');
+                    
+                    // Start countdown and submit action
+                    startButtonCountdown(selectedFollowPromo.id.toString());
+                    setTimeout(() => handleFollowAction(selectedFollowPromo), 10000);
+                    
+                    // Close modal
+                    setShowFollowModal(false);
+                    setSelectedFollowPromo(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors active:scale-95"
+                >
+                  Open Profile & Follow
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Admin Access Button */}
       <div className="mt-12 pt-8 border-t border-gray-700">
