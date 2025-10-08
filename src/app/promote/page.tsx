@@ -2173,10 +2173,10 @@ export default function PromotePage() {
                 <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3 mb-3">
                   <h5 className="text-blue-300 font-medium text-sm mb-2">📱 How to follow:</h5>
                   <ol className="text-gray-300 text-xs space-y-1 list-decimal list-inside">
-                    <li>Click "Open Profile & Follow" below</li>
-                    <li>This will open the Farcaster app</li>
-                    <li>In the Farcaster app, find the follow button</li>
-                    <li>Click the follow button to follow the user</li>
+                    <li>Click "Open in Farcaster App" below</li>
+                    <li>This will open the user's profile</li>
+                    <li>Look for the "Follow" button on their profile</li>
+                    <li>Click the "Follow" button to follow them</li>
                     <li>Come back here - the action will be verified automatically</li>
                   </ol>
                 </div>
@@ -2199,17 +2199,36 @@ export default function PromotePage() {
                 <button
                   onClick={async () => {
                     try {
-                      // Try to open profile in Farcaster app using miniAppSdk
                       const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
-                      console.log('🔗 Opening profile in Farcaster app:', targetUsername);
+                      console.log('🔗 Opening profile for:', targetUsername);
                       
+                      // Try different methods to open profile
                       try {
-                        await (miniAppSdk as any).actions.viewCast({ hash: targetUsername });
-                        console.log('✅ Profile opened in Farcaster app');
+                        // Method 1: Try miniAppSdk openUrl if available
+                        if ((miniAppSdk as any).actions?.openUrl) {
+                          const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                          await (miniAppSdk as any).actions.openUrl(profileUrl);
+                          console.log('✅ Profile opened via miniAppSdk.openUrl');
+                        } else {
+                          throw new Error('openUrl not available');
+                        }
                       } catch (sdkError) {
-                        console.log('⚠️ miniAppSdk failed, trying web URL...');
-                        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-                        window.open(profileUrl, '_blank');
+                        console.log('⚠️ miniAppSdk.openUrl failed, trying window.open...');
+                        try {
+                          // Method 2: Try window.open with _blank
+                          const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                          const newWindow = window.open(profileUrl, '_blank', 'noopener,noreferrer');
+                          if (!newWindow) {
+                            throw new Error('Popup blocked');
+                          }
+                          console.log('✅ Profile opened via window.open');
+                        } catch (windowError) {
+                          console.log('⚠️ window.open failed, trying location.href...');
+                          // Method 3: Fallback to location.href
+                          const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                          window.location.href = profileUrl;
+                          console.log('✅ Profile opened via location.href');
+                        }
                       }
                       
                       // Start countdown and submit action
