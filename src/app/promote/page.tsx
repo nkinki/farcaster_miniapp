@@ -711,8 +711,8 @@ export default function PromotePage() {
         throw new Error(data.error || 'Failed to complete follow action');
       }
 
-      // Mark this promotion as completed
-      setCompletedActions(prev => ({
+      // Mark this promotion as pending (not completed yet)
+      setPendingActions(prev => ({
         ...prev,
         [promo.id]: true
       }));
@@ -730,8 +730,8 @@ export default function PromotePage() {
         setShowFollowToast(false);
       }, 5000);
       
-      // Refresh data (like like/recast does)
-      await refreshAllData();
+      // Refresh only completed actions to update pending state
+      await fetchCompletedActions();
       
       console.log(`✅ Follow action completed successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
@@ -1009,7 +1009,7 @@ export default function PromotePage() {
       }
     });
     
-    return {
+    return { 
       availablePromos: available, 
       countdownPromos: countdown 
     };
@@ -1708,7 +1708,7 @@ export default function PromotePage() {
                                       : completedActions[promo.id]
                                         ? `✅ Follow Completed - $CHESS Earned`
                                         : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Follow Again`
-                                    : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
+                                  : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
                                 }
                               </span>
                             </div>
@@ -2115,14 +2115,14 @@ export default function PromotePage() {
                       }));
                       
                       // Close modal immediately and refresh data
-                      setShowCommentModal(false);
-                      setSelectedCommentPromo(null);
-                      setSelectedCommentTemplate('');
-                      setShareError(null);
-                      setSharingPromoId(null);
+                        setShowCommentModal(false);
+                        setSelectedCommentPromo(null);
+                        setSelectedCommentTemplate('');
+                        setShareError(null);
+                        setSharingPromoId(null);
                       
                       // Refresh data in background
-                      refreshAllData();
+                        refreshAllData();
                       
                     } catch (error: any) {
                       console.error('❌ Comment verification failed:', error);
@@ -2258,8 +2258,8 @@ export default function PromotePage() {
                       setSelectedFollowPromo(null);
                       setSharingPromoId(null);
                       
-                      // Refresh data
-                      await refreshAllData();
+                      // Refresh only completed actions to update pending state
+                      await fetchCompletedActions();
                       
                     } catch (error: any) {
                       console.error('❌ Follow verification failed:', error);
