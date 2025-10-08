@@ -35,17 +35,24 @@ export async function POST(request: NextRequest) {
       amountInWei = parseUnits(amountToClaim.toString(), 18);
       console.log('DailyReward amount:', amountToClaim, 'CHESS');
     } else {
-      // RewardsClaim: adatbázisból lekérdezett összeg
-      const [userStats] = await sql`
-        SELECT COALESCE(SUM(reward_amount), 0) as total_earnings
+      // RewardsClaim: adatbázisból lekérdezett összeg (shares + follow_actions)
+      const [sharesStats] = await sql`
+        SELECT COALESCE(SUM(reward_amount), 0) as shares_earnings
         FROM shares WHERE sharer_fid = ${fid}
       `;
-      amountToClaim = Number(userStats.total_earnings);
+      
+      const [followStats] = await sql`
+        SELECT COALESCE(SUM(reward_amount), 0) as follow_earnings
+        FROM follow_actions WHERE user_fid = ${fid} AND status IN ('verified', 'rewarded')
+      `;
+      
+      const totalEarnings = Number(sharesStats.shares_earnings) + Number(followStats.follow_earnings);
+      amountToClaim = totalEarnings;
       if (amountToClaim <= 0) {
         throw new Error('No rewards to claim.');
       }
       amountInWei = parseUnits(amountToClaim.toString(), 18);
-      console.log('RewardsClaim amount:', amountToClaim, 'CHESS');
+      console.log('RewardsClaim amount:', amountToClaim, 'CHESS (shares:', sharesStats.shares_earnings, 'follows:', followStats.follow_earnings, ')');
     }
 
     // Nonce lekérdezése (DailyReward esetén 0, mert nincs nonce rendszer)
