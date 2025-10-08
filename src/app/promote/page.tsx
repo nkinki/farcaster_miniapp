@@ -2177,7 +2177,7 @@ export default function PromotePage() {
                     <li>This will open the user's profile</li>
                     <li>Look for the "Follow" button on their profile</li>
                     <li>Click the "Follow" button to follow them</li>
-                    <li>Come back here - the action will be verified automatically</li>
+                    <li>Come back here and click "Verify Follow"</li>
                   </ol>
                 </div>
                 
@@ -2231,13 +2231,9 @@ export default function PromotePage() {
                         }
                       }
                       
-                      // Start countdown and submit action
-                      startButtonCountdown(selectedFollowPromo.id.toString());
-                      setTimeout(() => handleFollowAction(selectedFollowPromo), 10000);
+                      // Show instruction message
+                      setShareError('📱 Profile opened! Please follow the user, then click "Verify Follow" below...');
                       
-                      // Close modal
-                      setShowFollowModal(false);
-                      setSelectedFollowPromo(null);
                     } catch (error) {
                       console.error('❌ Error opening profile:', error);
                     }
@@ -2245,6 +2241,36 @@ export default function PromotePage() {
                   className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors active:scale-95"
                 >
                   📱 Open in Farcaster App
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!selectedFollowPromo) return;
+                    
+                    setSharingPromoId(selectedFollowPromo.id.toString());
+                    setShareError(null);
+                    
+                    try {
+                      console.log('🔍 Verifying follow action...');
+                      await handleFollowAction(selectedFollowPromo);
+                      
+                      // Close modal and refresh data
+                      setShowFollowModal(false);
+                      setSelectedFollowPromo(null);
+                      setSharingPromoId(null);
+                      
+                      // Refresh data
+                      await refreshAllData();
+                      
+                    } catch (error: any) {
+                      console.error('❌ Follow verification failed:', error);
+                      setShareError(`❌ Verification failed: ${error.message}`);
+                      setSharingPromoId(null);
+                    }
+                  }}
+                  disabled={sharingPromoId === selectedFollowPromo.id.toString()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
+                >
+                  {sharingPromoId === selectedFollowPromo.id.toString() ? '⏳ Verifying...' : '✅ Verify Follow'}
                 </button>
               </div>
             </div>
