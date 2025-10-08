@@ -2169,6 +2169,18 @@ export default function PromotePage() {
                     @{selectedFollowPromo.castUrl.split('/').pop()}
                   </p>
                 </div>
+                
+                <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3 mb-3">
+                  <h5 className="text-blue-300 font-medium text-sm mb-2">📱 How to follow:</h5>
+                  <ol className="text-gray-300 text-xs space-y-1 list-decimal list-inside">
+                    <li>Click "Open Profile & Follow" below</li>
+                    <li>This will open the Farcaster app</li>
+                    <li>In the Farcaster app, find the follow button</li>
+                    <li>Click the follow button to follow the user</li>
+                    <li>Come back here - the action will be verified automatically</li>
+                  </ol>
+                </div>
+                
                 <p className="text-yellow-400 text-xs">
                   ⚠️ One-time only - no back-and-forth follows
                 </p>
@@ -2185,23 +2197,35 @@ export default function PromotePage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    // Open profile in new tab
-                    const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
-                    const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-                    window.open(profileUrl, '_blank');
-                    
-                    // Start countdown and submit action
-                    startButtonCountdown(selectedFollowPromo.id.toString());
-                    setTimeout(() => handleFollowAction(selectedFollowPromo), 10000);
-                    
-                    // Close modal
-                    setShowFollowModal(false);
-                    setSelectedFollowPromo(null);
+                  onClick={async () => {
+                    try {
+                      // Try to open profile in Farcaster app using miniAppSdk
+                      const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
+                      console.log('🔗 Opening profile in Farcaster app:', targetUsername);
+                      
+                      try {
+                        await (miniAppSdk as any).actions.viewCast({ hash: targetUsername });
+                        console.log('✅ Profile opened in Farcaster app');
+                      } catch (sdkError) {
+                        console.log('⚠️ miniAppSdk failed, trying web URL...');
+                        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                        window.open(profileUrl, '_blank');
+                      }
+                      
+                      // Start countdown and submit action
+                      startButtonCountdown(selectedFollowPromo.id.toString());
+                      setTimeout(() => handleFollowAction(selectedFollowPromo), 10000);
+                      
+                      // Close modal
+                      setShowFollowModal(false);
+                      setSelectedFollowPromo(null);
+                    } catch (error) {
+                      console.error('❌ Error opening profile:', error);
+                    }
                   }}
                   className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors active:scale-95"
                 >
-                  Open Profile & Follow
+                  📱 Open in Farcaster App
                 </button>
               </div>
             </div>
