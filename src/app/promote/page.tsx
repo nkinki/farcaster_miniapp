@@ -719,7 +719,7 @@ export default function PromotePage() {
       
       // Show success message
       if (data.message?.includes('admin approval')) {
-        setFollowToastMessage('✅ Follow submitted for admin approval! Reward will be credited after review.');
+        setFollowToastMessage('✅ Follow submitted for admin approval! Reward credited immediately.');
       } else {
         setFollowToastMessage('✅ Follow verified! Reward will be credited soon.');
       }

@@ -235,9 +235,22 @@ export async function POST(request: NextRequest) {
 
     console.log(`📝 Created pending follow ${pendingFollowId} for admin approval`);
 
+    // Update user earnings immediately (like like/recast actions)
+    await pool.query(`
+      INSERT INTO users (fid, username, total_earnings, total_shares, updated_at)
+      VALUES ($1, $2, 0, 1, NOW())
+      ON CONFLICT (fid) 
+      DO UPDATE SET 
+        total_earnings = users.total_earnings + $3,
+        total_shares = users.total_shares + 1,
+        updated_at = NOW()
+    `, [userFid, username, rewardAmount]);
+
+    console.log(`💰 User earnings updated: +${rewardAmount} $CHESS for user ${userFid}`);
+
     return NextResponse.json({
       success: true,
-      message: 'Follow submitted for admin approval! Reward will be credited after review.',
+      message: 'Follow submitted for admin approval! Reward credited immediately.',
       pendingFollowId,
       targetUsername
     }, { status: 200 });
