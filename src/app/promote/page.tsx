@@ -357,6 +357,7 @@ export default function PromotePage() {
         data.pendingActions?.forEach((action: any) => {
           pending[action.promotion_id] = true;
         });
+        console.log('🔍 Setting pending actions:', pending);
         setPendingActions(pending);
       }
     } catch (error) { 
