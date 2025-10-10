@@ -731,8 +731,8 @@ export default function PromotePage() {
         setShowFollowToast(false);
       }, 5000);
       
-      // Refresh only completed actions to update pending state
-      await fetchCompletedActions();
+      // Refresh all data to update pending state
+      await refreshAllData();
       
       console.log(`✅ Follow action completed successfully! You earned ${promo.rewardPerShare} $CHESS.`);
       
@@ -2259,8 +2259,8 @@ export default function PromotePage() {
                       setSelectedFollowPromo(null);
                       setSharingPromoId(null);
                       
-                      // Refresh only completed actions to update pending state
-                      await fetchCompletedActions();
+                      // Refresh all data to update pending state
+                      await refreshAllData();
                       
                     } catch (error: any) {
                       console.error('❌ Follow verification failed:', error);
