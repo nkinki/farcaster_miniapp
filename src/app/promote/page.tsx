@@ -1008,6 +1008,11 @@ export default function PromotePage() {
         // Only add to available if it's not a completed follow
         available.push(promo);
       }
+      
+      // Debug logging for follow actions
+      if (promo.actionType === 'follow') {
+        console.log(`🔍 Follow action ${promo.id}: isCompleted=${isCompleted}, shouldBeInCountdown=${shouldBeInCountdown}, isFollowCompleted=${isFollowCompleted}`);
+      }
     });
     
     return { 
