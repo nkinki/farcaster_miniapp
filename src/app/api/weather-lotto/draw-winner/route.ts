@@ -174,8 +174,8 @@ export async function POST(request: NextRequest) {
             },
             winningSide,
             winners: winners,
-            totalPayout: totalPayouts || 0,
-            treasuryAmount: parseInt(round.treasury_amount) || 0
+            totalPayout: winnersPoolWei.toString(),
+            treasuryAmount: treasuryAmountWei.toString()
           })
         });
 
