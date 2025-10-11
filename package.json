@@ -43,6 +43,7 @@
     "@types/lodash": "^4.17.20",
     "@types/node": "^20.19.9",
     "@types/node-fetch": "^2.6.12",
+    "@types/nodemailer": "^7.0.2",
     "@types/pg": "^8.15.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
