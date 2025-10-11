@@ -159,6 +159,35 @@ export async function POST(request: NextRequest) {
 
       await client.query('COMMIT');
 
+      // Send email notification for manual draw
+      try {
+        console.log('📧 Sending manual weather lotto results email...');
+        const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/weather-lotto/send-results`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            round: {
+              id: round.id,
+              round_number: round.round_number
+            },
+            winningSide,
+            winners: winners,
+            totalPayout: totalPayouts || 0,
+            treasuryAmount: parseInt(round.treasury_amount) || 0
+          })
+        });
+
+        if (emailResponse.ok) {
+          console.log('✅ Manual weather lotto results email sent successfully');
+        } else {
+          console.log('⚠️ Manual weather lotto results email failed');
+        }
+      } catch (emailError) {
+        console.log('⚠️ Manual weather lotto results email error (non-critical):', emailError);
+      }
+
       return NextResponse.json({
         success: true,
         round: {
