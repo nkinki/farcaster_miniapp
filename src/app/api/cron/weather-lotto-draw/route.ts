@@ -166,6 +166,35 @@ async function performWeatherLottoDraw() {
     // Draw completed successfully
     console.log('✅ Weather Lotto draw completed successfully');
 
+    // Send email notification
+    try {
+      console.log('📧 Sending weather lotto results email...');
+      const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/weather-lotto/send-results`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          round: {
+            id: round.id,
+            round_number: round.round_number
+          },
+          winningSide,
+          winners: winningTickets,
+          totalPayout,
+          treasuryAmount
+        })
+      });
+
+      if (emailResponse.ok) {
+        console.log('✅ Weather Lotto results email sent successfully');
+      } else {
+        console.log('⚠️ Weather Lotto results email failed');
+      }
+    } catch (emailError) {
+      console.log('⚠️ Weather Lotto results email error (non-critical):', emailError);
+    }
+
   } catch (error) {
     console.error('❌ Error during weather lotto draw:', error);
     await client.query('ROLLBACK');

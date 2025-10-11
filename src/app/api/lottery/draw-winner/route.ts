@@ -86,6 +86,43 @@ export async function POST(request: NextRequest) {
       // Draw completed successfully
       console.log('✅ Lambo Lottery draw completed successfully');
 
+      // Send email notification
+      try {
+        console.log('📧 Sending lottery results email...');
+        const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/lottery/send-results`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            round: { 
+              id: round.id, 
+              draw_number: round.draw_number,
+              jackpot: round.jackpot
+            },
+            hasWinner: !!winner,
+            winner: winner ? {
+              fid: winner.player_fid,
+              number: winningNumber,
+              player_name: winner.player_name,
+              player_address: winner.player_address,
+              jackpot_won: round.jackpot 
+            } : null,
+            winningNumber,
+            totalTickets,
+            newRound: newRoundResult.rows[0]
+          })
+        });
+
+        if (emailResponse.ok) {
+          console.log('✅ Lottery results email sent successfully');
+        } else {
+          console.log('⚠️ Lottery results email failed');
+        }
+      } catch (emailError) {
+        console.log('⚠️ Lottery results email error (non-critical):', emailError);
+      }
+
       // Válasz küldése a frontend felé
       if (winner) {
         return NextResponse.json({
