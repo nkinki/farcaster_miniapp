@@ -1,41 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HubRpcClient } from '@farcaster/hub-nodejs';
 
 export async function POST(request: NextRequest) {
   try {
     const { message, parentUrl, embeds } = await request.json();
 
-    // Farcaster Hub kapcsolat
-    const hubClient = new HubRpcClient(
-      process.env.FARCASTER_HUB_URL || 'https://hub-api.neynar.com/v1',
-      {
-        'api-key': process.env.NEYNAR_API_KEY
-      }
-    );
+    // Use Neynar API for posting casts
+    const neynarResponse = await fetch('https://api.neynar.com/v2/farcaster/cast', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': process.env.NEYNAR_API_KEY || ''
+      },
+      body: JSON.stringify({
+        signer_uuid: process.env.FARCASTER_SIGNER_UUID,
+        text: message,
+        parent: parentUrl ? { url: parentUrl } : undefined,
+        embeds: embeds || []
+      })
+    });
 
-    // Cast létrehozása
-    const castData = {
-      text: message,
-      parentUrl: parentUrl || undefined,
-      embeds: embeds || [],
-      mentions: [],
-      mentionsPositions: []
-    };
-
-    // Cast küldése
-    const result = await hubClient.submitMessage(castData);
-
-    if (result.isOk()) {
-      console.log('✅ Cast posted successfully:', result.value);
+    if (neynarResponse.ok) {
+      const result = await neynarResponse.json();
+      console.log('✅ Cast posted successfully via Neynar:', result);
       return NextResponse.json({
         success: true,
-        castHash: result.value.hash,
-        message: 'Cast posted successfully'
+        castHash: result.cast?.hash,
+        message: 'Cast posted successfully via Neynar'
       });
     } else {
-      console.error('❌ Failed to post cast:', result.error);
+      const error = await neynarResponse.text();
+      console.error('❌ Neynar API error:', error);
       return NextResponse.json(
-        { success: false, error: 'Failed to post cast' },
+        { success: false, error: 'Failed to post cast via Neynar' },
         { status: 500 }
       );
     }
