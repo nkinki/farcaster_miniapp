@@ -4,7 +4,7 @@ export async function POST(request: NextRequest) {
   try {
     const { round, hasWinner, winner, winningNumber, totalTickets, newRound } = await request.json();
     
-    // Wei to CHESS conversion constant
+    // Wei to CHESS conversion constant (1e18)
     const WEI_TO_CHESS = 1000000000000000000;
 
     // Figyelemfelkeltő post variációk Lambo Lottery-hoz
