@@ -84,6 +84,34 @@ Timestamp: ${new Date().toISOString()}
       console.log('⚠️ Email sending error (non-critical):', emailError);
     }
 
+    // Farcaster posztolás
+    try {
+      console.log('📱 Posting to Farcaster...');
+      const farcasterResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/farcaster/post-neynar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: selectedPost,
+          embeds: [{
+            url: 'https://farc-nu.vercel.app',
+            title: 'Weather Lotto Results',
+            description: `Round #${round.round_number} completed!`
+          }]
+        })
+      });
+
+      if (farcasterResponse.ok) {
+        const farcasterResult = await farcasterResponse.json();
+        console.log('✅ Posted to Farcaster successfully:', farcasterResult.castHash);
+      } else {
+        console.log('⚠️ Farcaster posting failed');
+      }
+    } catch (farcasterError) {
+      console.log('⚠️ Farcaster posting error (non-critical):', farcasterError);
+    }
+
     console.log('📧 Email content:', emailContent);
     console.log('📱 Selected Farcaster post:', selectedPost);
 

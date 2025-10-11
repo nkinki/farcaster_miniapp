@@ -87,6 +87,34 @@ Timestamp: ${new Date().toISOString()}
       console.log('⚠️ Lambo Lottery email sending error (non-critical):', emailError);
     }
 
+    // Farcaster posztolás
+    try {
+      console.log('📱 Posting Lambo Lottery to Farcaster...');
+      const farcasterResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/farcaster/post-neynar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: selectedPost,
+          embeds: [{
+            url: 'https://farc-nu.vercel.app',
+            title: 'Lambo Lottery Results',
+            description: `Round #${round.draw_number} completed! ${hasWinner ? 'Winner found!' : 'No winner - jackpot rolls over!'}`
+          }]
+        })
+      });
+
+      if (farcasterResponse.ok) {
+        const farcasterResult = await farcasterResponse.json();
+        console.log('✅ Lambo Lottery posted to Farcaster successfully:', farcasterResult.castHash);
+      } else {
+        console.log('⚠️ Lambo Lottery Farcaster posting failed');
+      }
+    } catch (farcasterError) {
+      console.log('⚠️ Lambo Lottery Farcaster posting error (non-critical):', farcasterError);
+    }
+
     console.log('📧 Lambo Lottery email content:', emailContent);
     console.log('📱 Selected Farcaster post:', selectedPost);
 
