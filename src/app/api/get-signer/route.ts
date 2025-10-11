@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     });
     
     // Signer létrehozása
-    const signer = await client.v2.Signer.createSigner();
+    const signer = await client.createSigner();
     
     console.log('🔑 Created Signer UUID:', signer.signer_uuid);
     
