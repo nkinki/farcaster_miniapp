@@ -5,8 +5,8 @@ export async function POST(request: NextRequest) {
   try {
     const { emailContent, selectedPost, allVariations, roundData } = await request.json();
 
-    // Email transporter konfiguráció
-    const transporter = nodemailer.createTransporter({
+    // Email transporter configuration
+    const transporter = nodemailer.createTransport({
       service: 'gmail', // vagy más email service
       auth: {
         user: process.env.EMAIL_USER,
