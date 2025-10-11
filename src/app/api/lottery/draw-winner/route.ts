@@ -83,6 +83,45 @@ export async function POST(request: NextRequest) {
 
       await client.query('COMMIT');
 
+      // Generate and send post variations
+      try {
+        console.log('📱 Generating Lambo Lottery post variations...');
+        const postResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/lottery/post-results`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            round: { 
+              id: round.id, 
+              draw_number: round.draw_number,
+              jackpot: round.jackpot
+            },
+            hasWinner: !!winner,
+            winner: winner ? {
+              fid: winner.player_fid,
+              number: winningNumber,
+              player_name: winner.player_name,
+              player_address: winner.player_address,
+              jackpot_won: round.jackpot 
+            } : null,
+            winningNumber,
+            totalTickets,
+            newRound: newRoundResult.rows[0]
+          })
+        });
+
+        if (postResponse.ok) {
+          const postData = await postResponse.json();
+          console.log('✅ Lambo Lottery post variations generated successfully');
+          console.log('📧 Email content prepared');
+        } else {
+          console.log('⚠️ Lambo Lottery post generation failed, but draw completed');
+        }
+      } catch (postError) {
+        console.log('⚠️ Lambo Lottery post generation error (non-critical):', postError);
+      }
+
       // Válasz küldése a frontend felé
       if (winner) {
         return NextResponse.json({
