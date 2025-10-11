@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const client = new NeynarAPIClient(process.env.NEYNAR_API_KEY);
+    const client = new NeynarAPIClient({
+      apiKey: process.env.NEYNAR_API_KEY
+    });
     
     // Signer létrehozása
     const signer = await client.v2.Signer.createSigner();
