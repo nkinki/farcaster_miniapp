@@ -163,36 +163,8 @@ async function performWeatherLottoDraw() {
 
     console.log('\n✅ Weather Lotto draw completed successfully!');
 
-    // Generate and send post variations
-    try {
-      console.log('📱 Generating Farcaster post variations...');
-      const postResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/weather-lotto/post-results`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          round: {
-            id: round.id,
-            round_number: round.round_number
-          },
-          winningSide,
-          winners: winningTickets,
-          totalPayout,
-          treasuryAmount
-        })
-      });
-
-      if (postResponse.ok) {
-        const postData = await postResponse.json();
-        console.log('✅ Post variations generated successfully');
-        console.log('📧 Email content prepared');
-      } else {
-        console.log('⚠️ Post generation failed, but draw completed');
-      }
-    } catch (postError) {
-      console.log('⚠️ Post generation error (non-critical):', postError);
-    }
+    // Draw completed successfully
+    console.log('✅ Weather Lotto draw completed successfully');
 
   } catch (error) {
     console.error('❌ Error during weather lotto draw:', error);
