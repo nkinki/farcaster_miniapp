@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
-    const { user_fid } = await request.json();
+    const { user_fid, wallet_address, chess_balance, chess_points } = await request.json();
 
     if (!user_fid) {
       return NextResponse.json({ 
@@ -48,11 +48,13 @@ export async function POST(request: NextRequest) {
 
     await client.query('BEGIN');
 
-    // For now, skip CHESS balance calculation since wallet_address column doesn't exist
-    // TODO: Add wallet_address column to users table or implement alternative method
-    let chessPoints = 0;
+    // Calculate CHESS points based on provided balance
+    let calculatedChessPoints = 0;
+    if (chess_points && chess_points > 0) {
+      calculatedChessPoints = chess_points;
+    }
 
-    const totalPoints = 1 + chessPoints; // Daily check + CHESS points
+    const totalPoints = 1 + calculatedChessPoints; // Daily check + CHESS points
 
     if (existingCheck.rows.length > 0) {
       // Update existing record
@@ -64,7 +66,7 @@ export async function POST(request: NextRequest) {
           total_points = total_points + $2,
           updated_at = NOW()
         WHERE user_fid = $3 AND date = $4
-      `, [chessPoints, totalPoints, user_fid, today]);
+      `, [calculatedChessPoints, totalPoints, user_fid, today]);
     } else {
       // Create new record
       await client.query(`
@@ -72,7 +74,7 @@ export async function POST(request: NextRequest) {
           user_fid, season_id, date, daily_check, 
           chess_holdings_points, total_points
         ) VALUES ($1, $2, $3, true, $4, $5)
-      `, [user_fid, seasonId, today, chessPoints, totalPoints]);
+      `, [user_fid, seasonId, today, calculatedChessPoints, totalPoints]);
     }
 
     // Add transaction record
@@ -97,15 +99,15 @@ export async function POST(request: NextRequest) {
         total_chess_points = user_season_summary.total_chess_points + $4,
         last_activity = NOW(),
         updated_at = NOW()
-    `, [user_fid, seasonId, totalPoints, chessPoints]);
+    `, [user_fid, seasonId, totalPoints, calculatedChessPoints]);
 
     await client.query('COMMIT');
 
     return NextResponse.json({
       success: true,
       points_earned: totalPoints,
-      chess_points: chessPoints,
-      message: `Daily check completed! Earned ${totalPoints} points (${chessPoints} from CHESS holdings).`
+      chess_points: calculatedChessPoints,
+      message: `Daily check completed! Earned ${totalPoints} points (${calculatedChessPoints} from CHESS holdings).`
     });
 
   } catch (error) {

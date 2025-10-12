@@ -1,8 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle } from "react-icons/fi";
-// Removed wallet dependencies - using user info data instead
+import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle, FiWallet } from "react-icons/fi";
+import { useAccount } from "wagmi";
+import { useReadContract } from "wagmi";
+import { formatUnits } from "viem";
+import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken";
 
 interface SeasonModalProps {
   isOpen: boolean;
@@ -43,7 +46,20 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   const [checkResult, setCheckResult] = useState<{points: number} | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // No wallet connection needed - using user info data
+  // Wallet connection for CHESS balance
+  const { address, isConnected } = useAccount();
+  
+  // CHESS token balance
+  const { data: chessBalance, isLoading: balanceLoading } = useReadContract({
+    address: CHESS_TOKEN_ADDRESS,
+    abi: CHESS_TOKEN_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address && isConnected,
+      refetchInterval: 10000, // Refresh every 10 seconds
+    }
+  });
 
   // Fetch season data
   useEffect(() => {
@@ -147,11 +163,22 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
     setCheckResult(null);
 
     try {
+      // Calculate CHESS points based on balance
+      let chessPoints = 0;
+      if (isConnected && address && chessBalance) {
+        const balanceInCHESS = parseFloat(formatUnits(chessBalance, 18));
+        // 1 point per 1000 CHESS tokens (minimum 1 point)
+        chessPoints = Math.max(1, Math.floor(balanceInCHESS / 1000));
+      }
+
       const response = await fetch('/api/season/daily-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_fid: userFid
+          user_fid: userFid,
+          wallet_address: address,
+          chess_balance: chessBalance?.toString() || '0',
+          chess_points: chessPoints
         })
       });
 
@@ -203,6 +230,55 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Wallet Status */}
+          <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+            <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+              <FiWallet className="w-5 h-5" />
+              Wallet Status
+            </h3>
+            
+            {!isConnected ? (
+              <div className="text-center py-4">
+                <p className="text-gray-400 mb-2">Wallet not connected</p>
+                <p className="text-xs text-gray-500">Connect your wallet to earn CHESS points</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Status:</span>
+                  <span className="text-green-400 font-semibold">✅ Connected</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Address:</span>
+                  <span className="text-white font-mono text-xs">
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">CHESS Balance:</span>
+                  <span className="text-yellow-400 font-semibold">
+                    {balanceLoading ? (
+                      <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                    ) : chessBalance ? (
+                      `${parseFloat(formatUnits(chessBalance, 18)).toFixed(2)} CHESS`
+                    ) : (
+                      '0 CHESS'
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">CHESS Points:</span>
+                  <span className="text-purple-400 font-semibold">
+                    {chessBalance ? 
+                      `${Math.max(1, Math.floor(parseFloat(formatUnits(chessBalance, 18)) / 1000))} pts` : 
+                      '0 pts'
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Daily Check Section */}
           <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-4 border border-purple-400/50 pulse-glow">
             <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
