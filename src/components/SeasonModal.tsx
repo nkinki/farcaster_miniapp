@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle, FiWallet } from "react-icons/fi";
+import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle, FiCreditCard } from "react-icons/fi";
 import { useAccount } from "wagmi";
 import { useReadContract } from "wagmi";
 import { formatUnits } from "viem";
@@ -233,7 +233,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
           {/* Wallet Status */}
           <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
             <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
-              <FiWallet className="w-5 h-5" />
+              <FiCreditCard className="w-5 h-5" />
               Wallet Status
             </h3>
             
