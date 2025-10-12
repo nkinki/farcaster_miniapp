@@ -167,8 +167,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
       let chessPoints = 0;
       if (isConnected && address && chessBalance) {
         const balanceInCHESS = parseFloat(formatUnits(chessBalance, 18));
-        // 1 point per 1000 CHESS tokens (minimum 1 point)
-        chessPoints = Math.max(1, Math.floor(balanceInCHESS / 1000));
+        // 1 point per 1,000,000 CHESS tokens (1M = 1 point)
+        chessPoints = Math.floor(balanceInCHESS / 1000000);
       }
 
       const response = await fetch('/api/season/daily-check', {
@@ -270,7 +270,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                   <span className="text-gray-400">CHESS Points:</span>
                   <span className="text-purple-400 font-semibold">
                     {chessBalance ? 
-                      `${Math.max(1, Math.floor(parseFloat(formatUnits(chessBalance, 18)) / 1000))} pts` : 
+                      `${Math.floor(parseFloat(formatUnits(chessBalance, 18)) / 1000000)} pts` : 
                       '0 pts'
                     }
                   </span>
@@ -381,7 +381,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                 Your Points
               </h3>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-400">{userPoints.total_points}</div>
                   <div className="text-xs text-gray-400">Total Points</div>
@@ -389,6 +389,10 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-400">{userPoints.daily_checks}</div>
                   <div className="text-xs text-gray-400">Daily Checks</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">{userPoints.total_chess_points}</div>
+                  <div className="text-xs text-gray-400">CHESS Points</div>
                 </div>
               </div>
 
@@ -414,8 +418,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                   <span className="text-white">{userPoints.total_weather_tickets}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">CHESS Game:</span>
-                  <span className="text-white">{userPoints.total_chess_points}</span>
+                  <span className="text-gray-400">CHESS Holdings:</span>
+                  <span className="text-purple-400 font-semibold">{userPoints.total_chess_points} pts (1M = 1pt)</span>
                 </div>
               </div>
             </div>
