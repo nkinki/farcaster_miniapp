@@ -26,13 +26,40 @@ export async function GET(request: NextRequest) {
             WHERE sharer_fid = ${fid};
         `;
         
+        // Get follow actions stats
+        const [followStatsResult] = await sql`
+            SELECT
+                COUNT(id) AS total_follows,
+                COALESCE(SUM(reward_amount), 0) AS follow_earnings,
+                COALESCE(SUM(CASE WHEN status = 'verified' AND reward_claimed = FALSE THEN reward_amount ELSE 0 END), 0) AS follow_pending_rewards
+            FROM follow_actions
+            WHERE user_fid = ${fid};
+        `;
+        
         const userStats = userStatsResult || { total_shares: 0, total_earnings: 0, pending_rewards: 0 };
+        const followStats = followStatsResult || { total_follows: 0, follow_earnings: 0, follow_pending_rewards: 0 };
+        
+        // Combine stats from both tables
+        const totalShares = Number(userStats.total_shares) + Number(followStats.total_follows);
+        const totalEarnings = Number(userStats.total_earnings) + Number(followStats.follow_earnings);
+        const totalPendingRewards = Number(userStats.pending_rewards) + Number(followStats.follow_pending_rewards);
         
         return NextResponse.json({
             user: {
-                total_shares: Number(userStats.total_shares),
-                total_earnings: Number(userStats.total_earnings),
-                pending_rewards: Number(userStats.pending_rewards),
+                total_shares: totalShares,
+                total_earnings: totalEarnings,
+                pending_rewards: totalPendingRewards,
+                // Breakdown for debugging
+                shares_stats: {
+                    total_shares: Number(userStats.total_shares),
+                    total_earnings: Number(userStats.total_earnings),
+                    pending_rewards: Number(userStats.pending_rewards)
+                },
+                follow_stats: {
+                    total_follows: Number(followStats.total_follows),
+                    follow_earnings: Number(followStats.follow_earnings),
+                    follow_pending_rewards: Number(followStats.follow_pending_rewards)
+                }
             }
         });
 

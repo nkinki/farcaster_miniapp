@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
       const result = await sql`
         INSERT INTO follow_actions (
           promotion_id, user_fid, username, action_type, cast_hash, 
-          reward_amount, status, verified_at, created_at, updated_at
+          reward_amount, status, verified_at, reward_claimed, created_at, updated_at
         ) VALUES (
           ${follow.promotion_id}, ${follow.user_fid}, ${follow.username}, 'follow', 
-          ${follow.target_username}, ${follow.reward_amount}, 'verified', NOW(), NOW(), NOW()
+          ${follow.target_username}, ${follow.reward_amount}, 'verified', NOW(), FALSE, NOW(), NOW()
         )
         RETURNING id
       `;
