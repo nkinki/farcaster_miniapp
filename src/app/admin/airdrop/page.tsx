@@ -36,12 +36,9 @@ export default function AirdropAdminPage() {
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [distribution, setDistribution] = useState<DistributionResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDistributing, setIsDistributing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [distributionResults, setDistributionResults] = useState<any>(null);
   
   // Test mode states
-  const [testMode, setTestMode] = useState(true); // Always test mode
   const [testAmount, setTestAmount] = useState(1000);
   const [testFids, setTestFids] = useState<string>('');
 
@@ -116,39 +113,6 @@ export default function AirdropAdminPage() {
     }
   };
 
-  const distributeAirdrop = async (dryRun = false) => {
-    if (!selectedSeason) return;
-
-    setIsDistributing(true);
-    setMessage(null);
-    
-    try {
-      // Always use test mode (dry run)
-      const response = await fetch('/api/season/distribute-airdrop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          seasonId: selectedSeason, 
-          dryRun: true,
-          testMode: true,
-          testAmount: testAmount
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDistributionResults(data);
-        setMessage(`🧪 Test simulation completed: ${data.successful_distributions} would be successful, ${data.failed_distributions} would fail`);
-      } else {
-        const error = await response.json();
-        setMessage(`❌ Error: ${error.error}`);
-      }
-    } catch (error) {
-      setMessage(`❌ Error distributing airdrop: ${error}`);
-    } finally {
-      setIsDistributing(false);
-    }
-  };
 
   const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
 
@@ -252,14 +216,6 @@ export default function AirdropAdminPage() {
                 {isLoading ? 'Calculating...' : `Calculate Distribution (${testAmount.toLocaleString()} CHESS)`}
               </button>
               
-              <button
-                onClick={() => distributeAirdrop(true)}
-                disabled={isDistributing || !distribution}
-                className="flex items-center gap-2 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
-              >
-                <FiUsers />
-                Preview Distribution
-              </button>
             </div>
           </div>
         )}
