@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         points: userPoints,
         percentage: parseFloat(percentage.toFixed(4)),
         reward_amount: rewardAmount,
-        reward_amount_formatted: (rewardAmount / 1000000000000000000).toFixed(6) + ' CHESS'
+        reward_amount_formatted: (Number(rewardAmount) / 1000000000000000000).toFixed(6) + ' CHESS'
       };
     });
 
