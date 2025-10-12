@@ -123,13 +123,15 @@ export async function POST(request: NextRequest) {
     console.log(`📊 Test: Found ${users.length} users with ${totalPoints} total points`);
 
     // Convert test amount to wei
-    const testAmountWei = testAmount * 1000000000000000000; // Convert to wei
+    const testAmountWei = BigInt(testAmount) * BigInt(1000000000000000000); // Convert to wei
 
     // Calculate proportional rewards
     const distribution = users.map((user, index) => {
       const userPoints = parseInt(user.total_points);
       const percentage = totalPoints > 0 ? (userPoints / totalPoints) * 100 : 0;
-      const rewardAmount = totalPoints > 0 ? Math.floor((userPoints / totalPoints) * testAmountWei) : 0;
+      const rewardAmount = totalPoints > 0 ? 
+        (BigInt(userPoints) * testAmountWei) / BigInt(totalPoints) : 
+        BigInt(0);
       
       return {
         rank: index + 1,
@@ -142,10 +144,10 @@ export async function POST(request: NextRequest) {
     });
 
     // Calculate remaining amount (due to rounding)
-    const distributedAmount = distribution.reduce((sum, user) => sum + user.reward_amount, 0);
+    const distributedAmount = distribution.reduce((sum, user) => sum + user.reward_amount, BigInt(0));
     const remainingAmount = testAmountWei - distributedAmount;
     
-    console.log(`💰 Test distribution: ${distributedAmount / 1000000000000000000} CHESS distributed, ${remainingAmount / 1000000000000000000} CHESS remaining`);
+    console.log(`💰 Test distribution: ${Number(distributedAmount) / 1000000000000000000} CHESS distributed, ${Number(remainingAmount) / 1000000000000000000} CHESS remaining`);
 
     return NextResponse.json({
       success: true,
