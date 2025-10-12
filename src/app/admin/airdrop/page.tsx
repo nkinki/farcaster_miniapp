@@ -54,8 +54,10 @@ export default function AirdropAdminPage() {
     if (selectedSeason && seasons.length > 0) {
       const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
       if (selectedSeasonData) {
-        const seasonRewards = parseInt(selectedSeasonData.total_rewards) / 1000000000000000000; // Convert from wei
-        setTestAmount(seasonRewards);
+        // Convert from wei to CHESS tokens
+        const weiAmount = BigInt(selectedSeasonData.total_rewards);
+        const chessAmount = Number(weiAmount) / 1000000000000000000;
+        setTestAmount(Math.floor(chessAmount));
       }
     }
   }, [selectedSeason, seasons]);
@@ -176,7 +178,7 @@ export default function AirdropAdminPage() {
                   </span>
                 </div>
                 <p className="text-sm text-gray-400">
-                  Rewards: {(parseInt(season.total_rewards) / 1000000000000000000).toFixed(0)} CHESS
+                  Rewards: {Math.floor(Number(BigInt(season.total_rewards)) / 1000000000000000000).toLocaleString()} CHESS
                 </p>
                 <p className="text-xs text-gray-500">
                   Created: {new Date(season.created_at).toLocaleDateString()}
