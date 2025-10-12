@@ -54,10 +54,9 @@ export default function AirdropAdminPage() {
     if (selectedSeason && seasons.length > 0) {
       const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
       if (selectedSeasonData) {
-        // Convert from wei to CHESS tokens
-        const weiAmount = BigInt(selectedSeasonData.total_rewards);
-        const chessAmount = Number(weiAmount) / 1000000000000000000;
-        setTestAmount(Math.floor(chessAmount));
+        // total_rewards is already in CHESS tokens (not wei)
+        const chessAmount = parseInt(selectedSeasonData.total_rewards);
+        setTestAmount(chessAmount);
       }
     }
   }, [selectedSeason, seasons]);
@@ -68,6 +67,10 @@ export default function AirdropAdminPage() {
       if (response.ok) {
         const data = await response.json();
         setSeasons(data.seasons || []);
+        // Auto-select first season if none selected
+        if (data.seasons && data.seasons.length > 0 && !selectedSeason) {
+          setSelectedSeason(data.seasons[0].id);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch seasons:', error);
@@ -183,7 +186,7 @@ export default function AirdropAdminPage() {
                   </span>
                 </div>
                 <p className="text-sm text-gray-400">
-                  Rewards: {Math.floor(Number(BigInt(season.total_rewards)) / 1000000000000000000).toLocaleString()} CHESS
+                  Rewards: {parseInt(season.total_rewards).toLocaleString()} CHESS
                 </p>
                 <p className="text-xs text-gray-500">
                   Created: {new Date(season.created_at).toLocaleDateString()}
