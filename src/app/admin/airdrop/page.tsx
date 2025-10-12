@@ -41,13 +41,24 @@ export default function AirdropAdminPage() {
   const [distributionResults, setDistributionResults] = useState<any>(null);
   
   // Test mode states
-  const [testMode, setTestMode] = useState(false);
+  const [testMode, setTestMode] = useState(true); // Always test mode
   const [testAmount, setTestAmount] = useState(1000);
   const [testFids, setTestFids] = useState<string>('');
 
   useEffect(() => {
     fetchSeasons();
   }, []);
+
+  // Update testAmount when season changes
+  useEffect(() => {
+    if (selectedSeason && seasons.length > 0) {
+      const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
+      if (selectedSeasonData) {
+        const seasonRewards = parseInt(selectedSeasonData.total_rewards) / 1000000000000000000; // Convert from wei
+        setTestAmount(seasonRewards);
+      }
+    }
+  }, [selectedSeason, seasons]);
 
   const fetchSeasons = async () => {
     try {
@@ -68,38 +79,21 @@ export default function AirdropAdminPage() {
     setMessage(null);
     
     try {
-      let response;
-      
-      if (testMode) {
-        // Test mode - use test API
-        const fidsArray = testFids ? testFids.split(',').map(fid => parseInt(fid.trim())).filter(fid => !isNaN(fid)) : [];
-        response = await fetch('/api/season/test-airdrop', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            testAmount: testAmount,
-            testFids: fidsArray
-          })
-        });
-      } else {
-        // Production mode - use season's total rewards
-        const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
-        const totalRewardAmount = selectedSeasonData ? parseInt(selectedSeasonData.total_rewards) * 1000000000000000000 : 1000000000000000000000000;
-        
-        response = await fetch('/api/season/calculate-airdrop', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            seasonId: selectedSeason,
-            totalRewardAmount: totalRewardAmount
-          })
-        });
-      }
+      // Always use test mode
+      const fidsArray = testFids ? testFids.split(',').map(fid => parseInt(fid.trim())).filter(fid => !isNaN(fid)) : [];
+      const response = await fetch('/api/season/test-airdrop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          testAmount: testAmount,
+          testFids: fidsArray
+        })
+      });
 
       if (response.ok) {
         const data = await response.json();
         setDistribution(data);
-        setMessage(`✅ Distribution calculated for ${data.total_users} users${testMode ? ` (Test: ${testAmount} CHESS)` : ''}`);
+        setMessage(`✅ Distribution calculated for ${data.total_users} users (Test: ${testAmount.toLocaleString()} CHESS)`);
       } else {
         const error = await response.json();
         setMessage(`❌ Error: ${error.error}`);
@@ -118,31 +112,22 @@ export default function AirdropAdminPage() {
     setMessage(null);
     
     try {
-      // Always use dry run for test mode
-      const actualDryRun = testMode || dryRun;
-      
+      // Always use test mode (dry run)
       const response = await fetch('/api/season/distribute-airdrop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           seasonId: selectedSeason, 
-          dryRun: actualDryRun,
-          testMode: testMode,
-          testAmount: testMode ? testAmount : undefined
+          dryRun: true,
+          testMode: true,
+          testAmount: testAmount
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         setDistributionResults(data);
-        
-        if (testMode) {
-          setMessage(`🧪 Test simulation completed: ${data.successful_distributions} would be successful, ${data.failed_distributions} would fail`);
-        } else if (dryRun) {
-          setMessage(`🧪 Dry run completed: ${data.successful_distributions} successful, ${data.failed_distributions} failed`);
-        } else {
-          setMessage(`🎉 Airdrop distributed: ${data.successful_distributions} successful, ${data.failed_distributions} failed`);
-        }
+        setMessage(`🧪 Test simulation completed: ${data.successful_distributions} would be successful, ${data.failed_distributions} would fail`);
       } else {
         const error = await response.json();
         setMessage(`❌ Error: ${error.error}`);
@@ -203,7 +188,7 @@ export default function AirdropAdminPage() {
 
         {/* CHESS Amount Selection */}
         <div className="bg-slate-800 rounded-xl p-6 mb-6">
-          <h2 className="text-xl font-semibold text-white mb-4">CHESS Distribution Settings</h2>
+          <h2 className="text-xl font-semibold text-white mb-4">CHESS Distribution Settings (Test Mode)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -217,7 +202,7 @@ export default function AirdropAdminPage() {
                 placeholder="1000000"
                 min="1"
               />
-              <p className="text-xs text-gray-500 mt-1">Amount in CHESS tokens (e.g., 1000000 for 1M CHESS)</p>
+              <p className="text-xs text-gray-500 mt-1">Amount in CHESS tokens (follows season total_rewards)</p>
             </div>
             
             <div>
@@ -235,16 +220,10 @@ export default function AirdropAdminPage() {
             </div>
           </div>
           
-          <div className="mt-4 flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={testMode}
-                onChange={(e) => setTestMode(e.target.checked)}
-                className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
-              />
-              <span className="text-white">Test Mode (No Real Transactions)</span>
-            </label>
+          <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-600 rounded-lg">
+            <p className="text-sm text-yellow-300">
+              🧪 <strong>Test Mode:</strong> No real transactions will be sent. This is for preview and testing only.
+            </p>
           </div>
         </div>
 
@@ -268,19 +247,8 @@ export default function AirdropAdminPage() {
                 className="flex items-center gap-2 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
               >
                 <FiUsers />
-                {testMode ? 'Preview Distribution' : 'Dry Run Test'}
+                Preview Distribution
               </button>
-              
-              {!testMode && (
-                <button
-                  onClick={() => distributeAirdrop(false)}
-                  disabled={isDistributing || !distribution}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
-                >
-                  <FiAward />
-                  {isDistributing ? 'Distributing...' : `Distribute ${testAmount.toLocaleString()} CHESS`}
-                </button>
-              )}
             </div>
           </div>
         )}
