@@ -331,7 +331,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
       {/* Follow Development Notice */}
       {selectedAction === 'follow' && (
         <div className="text-xs text-yellow-400 text-center bg-yellow-900/20 py-2 px-3 rounded-md border border-yellow-600/30">
-          🚧 Follow functionality is under development
+          👥 Follow & Earn CHESS
         </div>
       )}
       

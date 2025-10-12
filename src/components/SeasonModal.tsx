@@ -217,7 +217,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
             <FiCalendar className="w-8 h-8 text-purple-400" />
             <div>
               <h2 className="text-2xl font-bold text-white">Season 0</h2>
-              <p className="text-sm text-gray-400">Under Development</p>
+              <p className="text-sm text-gray-400">Active Season</p>
             </div>
           </div>
           <button
@@ -349,7 +349,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                         <span>Resetting...</span>
                       </div>
                     ) : (
-                      '🗑️ Reset All Points (Testing)'
+                      '🗑️ Reset All Points'
                     )}
                   </button>
                   <p className="text-xs text-gray-400 text-center mt-1">

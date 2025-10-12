@@ -103,7 +103,7 @@ export async function POST() {
     await client.query(`
       INSERT INTO seasons (name, start_date, end_date, total_rewards, status) 
       VALUES (
-        'Season 0 - Under Development', 
+        'Season 0', 
         NOW(), 
         NOW() + INTERVAL '30 days', 
         1000000, -- 1M CHESS (human readable format)

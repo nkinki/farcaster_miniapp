@@ -1444,7 +1444,7 @@ export default function PromotePage() {
                                         console.log('🔘 Button clicked!');
                                         console.log('📱 Event:', e);
                                         console.log('🎯 Promo:', promo);
-                                        console.log('🧪 Simple test - button works!');
+                                        console.log('✅ Button clicked successfully!');
                                         // Add click animation
                                         e.currentTarget.style.transform = 'scale(0.95)';
                                         setTimeout(() => {
@@ -1586,7 +1586,7 @@ export default function PromotePage() {
                                       }
                                     </button>
                                     <div className="text-xs text-yellow-400 text-center mt-1">
-                                      🚧 Under Development
+                                      🎯 Available Now
                                     </div>
                                   </div>
                                 );

@@ -13,7 +13,7 @@ export async function GET() {
     
     // Check if Season 0 already exists
     const existingSeason = await client.query(`
-      SELECT id FROM seasons WHERE name = 'Season 0 - Under Development'
+      SELECT id FROM seasons WHERE name = 'Season 0'
     `);
     
     if (existingSeason.rows.length > 0) {
@@ -28,7 +28,7 @@ export async function GET() {
     const result = await client.query(`
       INSERT INTO seasons (name, start_date, end_date, total_rewards, status) 
       VALUES (
-        'Season 0 - Under Development', 
+        'Season 0', 
         NOW(), 
         NOW() + INTERVAL '30 days', 
         1000000, -- 1M CHESS (human readable format)
@@ -45,7 +45,7 @@ export async function GET() {
       success: true,
       message: 'Season 0 created successfully!',
       season_id: seasonId,
-      season_name: 'Season 0 - Under Development',
+        season_name: 'Season 0',
       start_date: new Date().toISOString(),
       end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       total_rewards: '1000000',

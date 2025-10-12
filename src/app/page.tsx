@@ -429,7 +429,7 @@ export default function Home() {
                   <span className="text-gray-400">/</span>
                   <span className="text-blue-400">RAINY</span>
                 </div>
-                <div className="text-xs text-gray-400">Testing</div>
+                <div className="text-xs text-gray-400">Live</div>
               </div>
             </button>
           </div>
