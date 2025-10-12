@@ -1178,7 +1178,7 @@ export default function PromotePage() {
             </div>
             <div className="text-center">
               <div className="text-blue-300">Daily Check</div>
-              <div className="text-xs text-gray-400">Season 1</div>
+              <div className="text-xs text-gray-400">Season 0</div>
             </div>
           </button>
 
