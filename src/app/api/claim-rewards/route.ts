@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     const userFollows = await sql`
         SELECT id, reward_amount, 'follow_actions' as source_table
         FROM follow_actions 
-        WHERE user_fid = ${fid} AND status IN ('verified', 'rewarded') AND reward_claimed = FALSE
+        WHERE user_fid = ${fid} AND status = 'verified' AND reward_claimed = FALSE
     `;
 
     // Combine all unclaimed rewards

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
                 COALESCE(SUM(reward_amount), 0) AS follow_earnings,
                 COALESCE(SUM(CASE WHEN status = 'verified' AND reward_claimed = FALSE THEN reward_amount ELSE 0 END), 0) AS follow_pending_rewards
             FROM follow_actions
-            WHERE user_fid = ${fid};
+            WHERE user_fid = ${fid} AND status = 'verified';
         `;
         
         const userStats = userStatsResult || { total_shares: 0, total_earnings: 0, pending_rewards: 0 };

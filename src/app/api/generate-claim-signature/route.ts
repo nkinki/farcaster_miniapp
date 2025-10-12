@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       
       const [followStats] = await sql`
         SELECT COALESCE(SUM(reward_amount), 0) as follow_earnings
-        FROM follow_actions WHERE user_fid = ${fid} AND status IN ('verified', 'rewarded')
+        FROM follow_actions WHERE user_fid = ${fid} AND status = 'verified'
       `;
       
       const totalEarnings = Number(sharesStats.shares_earnings) + Number(followStats.follow_earnings);
