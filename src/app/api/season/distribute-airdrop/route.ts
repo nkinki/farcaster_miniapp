@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
-    const { seasonId, dryRun = false } = await request.json();
+    const { seasonId, dryRun = false, testMode = false, testAmount } = await request.json();
 
     if (!seasonId) {
       return NextResponse.json({ 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log(`🎯 ${dryRun ? 'DRY RUN: ' : ''}Distributing airdrop for Season ${seasonId}`);
+    console.log(`🎯 ${dryRun ? 'DRY RUN: ' : ''}${testMode ? 'TEST MODE: ' : ''}Distributing airdrop for Season ${seasonId}`);
 
     // Get season info
     const seasonResult = await client.query(`
@@ -47,7 +47,13 @@ export async function POST(request: NextRequest) {
     }
 
     const season = seasonResult.rows[0];
-    const totalRewardAmount = parseInt(season.total_rewards) * 1000000000000000000; // Convert to wei
+    
+    let totalRewardAmount;
+    if (testMode && testAmount) {
+      totalRewardAmount = testAmount * 1000000000000000000; // Convert to wei
+    } else {
+      totalRewardAmount = parseInt(season.total_rewards) * 1000000000000000000; // Convert to wei
+    }
 
     // Calculate distribution
     const calculateResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/season/calculate-airdrop`, {
@@ -97,14 +103,15 @@ export async function POST(request: NextRequest) {
           throw new Error(`No valid wallet address found for FID ${user.user_fid}`);
         }
 
-        if (dryRun) {
-          console.log(`🧪 DRY RUN: Would send ${user.reward_amount_formatted} to ${recipientAddress} (FID: ${user.user_fid})`);
+        if (dryRun || testMode) {
+          const mode = testMode ? 'TEST' : 'DRY RUN';
+          console.log(`🧪 ${mode}: Would send ${user.reward_amount_formatted} to ${recipientAddress} (FID: ${user.user_fid})`);
           results.push({
             user_fid: user.user_fid,
             recipient_address: recipientAddress,
             reward_amount: user.reward_amount,
             reward_amount_formatted: user.reward_amount_formatted,
-            status: 'dry_run',
+            status: testMode ? 'test_simulation' : 'dry_run',
             transaction_hash: null
           });
           continue;
@@ -175,13 +182,15 @@ export async function POST(request: NextRequest) {
       `, [seasonId]);
     }
 
-    console.log(`🎉 Airdrop distribution ${dryRun ? 'simulation' : 'completed'}: ${successCount} successful, ${errorCount} failed`);
+    const mode = testMode ? 'test simulation' : (dryRun ? 'simulation' : 'completed');
+    console.log(`🎉 Airdrop distribution ${mode}: ${successCount} successful, ${errorCount} failed`);
 
     return NextResponse.json({
       success: true,
       season_id: seasonId,
       season_name: season.name,
       dry_run: dryRun,
+      test_mode: testMode,
       total_users: distribution.length,
       successful_distributions: successCount,
       failed_distributions: errorCount,
