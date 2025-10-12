@@ -89,6 +89,14 @@ export async function POST(request: NextRequest) {
       // Send email notification
       try {
         console.log('📧 Sending lottery results email...');
+        
+        // Prepare winners data for email
+        const winners = winner ? [{
+          player_fid: winner.player_fid,
+          number: winningNumber,
+          amount_won: parseInt(round.jackpot || '0', 10)
+        }] : [];
+        
         const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/lottery/send-results`, {
           method: 'POST',
           headers: {
@@ -100,17 +108,10 @@ export async function POST(request: NextRequest) {
               draw_number: round.draw_number,
               jackpot: round.jackpot
             },
-            hasWinner: !!winner,
-            winner: winner ? {
-              fid: winner.player_fid,
-              number: winningNumber,
-              player_name: winner.player_name,
-              player_address: winner.player_address,
-              jackpot_won: round.jackpot 
-            } : null,
             winningNumber,
-            totalTickets,
-            newRound: newRoundResult.rows[0]
+            winners,
+            totalPayout: winner ? parseInt(round.jackpot || '0', 10) : 0,
+            nextJackpot: newRoundResult.rows[0].jackpot
           })
         });
 
