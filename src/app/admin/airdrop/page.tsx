@@ -122,7 +122,7 @@ export default function AirdropAdminPage() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">
-            🎯 Airdrop Distribution
+            AppRank Airdrop Distribution
           </h1>
           <p className="text-sm text-gray-400">
             Manage and distribute season rewards proportionally
