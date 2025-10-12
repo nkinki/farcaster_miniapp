@@ -133,20 +133,31 @@ export async function POST(request: NextRequest) {
       }, { status: 200 });
     }
 
-    // Original shares claim logic
+    // Get unclaimed shares
     const userShares = await sql`
-        SELECT id, reward_amount 
+        SELECT id, reward_amount, 'shares' as source_table
         FROM shares 
         WHERE sharer_fid = ${fid} AND reward_claimed = FALSE
     `;
 
-    if (userShares.length === 0) {
+    // Get unclaimed follow actions
+    const userFollows = await sql`
+        SELECT id, reward_amount, 'follow_actions' as source_table
+        FROM follow_actions 
+        WHERE user_fid = ${fid} AND status IN ('verified', 'rewarded') AND reward_claimed = FALSE
+    `;
+
+    // Combine all unclaimed rewards
+    const allUnclaimedRewards = [...userShares, ...userFollows];
+
+    if (allUnclaimedRewards.length === 0) {
       throw new Error('No rewards to claim.');
     }
 
-    const amountToClaim = userShares.reduce((sum, share) => sum + Number(share.reward_amount), 0);
-    const sharesCount = userShares.length;
+    const amountToClaim = allUnclaimedRewards.reduce((sum, reward) => sum + Number(reward.reward_amount), 0);
+    const rewardsCount = allUnclaimedRewards.length;
     const shareIds = userShares.map(s => s.id);
+    const followIds = userFollows.map(f => f.id);
     
     if (!amountToClaim || amountToClaim <= 0) {
       throw new Error('No rewards to claim.');
@@ -189,25 +200,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark shares as claimed
-    await sql`
-      UPDATE shares 
-      SET reward_claimed = TRUE
-      WHERE id = ANY(${shareIds})
-    `;
+    if (shareIds.length > 0) {
+      await sql`
+        UPDATE shares 
+        SET reward_claimed = TRUE
+        WHERE id = ANY(${shareIds})
+      `;
+    }
+    
+    // Mark follow actions as claimed
+    if (followIds.length > 0) {
+      await sql`
+        UPDATE follow_actions 
+        SET reward_claimed = TRUE
+        WHERE id = ANY(${followIds})
+      `;
+    }
     
     // Record the claim
     await sql`
       INSERT INTO claims (user_fid, amount, shares_count, recipient_address, tx_hash, claimed_shares_ids)
-      VALUES (${fid}, ${amountToClaim}, ${sharesCount}, ${recipientAddress}, ${txHash}, ${shareIds})
+      VALUES (${fid}, ${amountToClaim}, ${rewardsCount}, ${recipientAddress}, ${txHash}, ${shareIds})
     `;
     
-    console.log(`Marked ${sharesCount} shares as claimed for FID ${fid} and recorded claim history`);
+    console.log(`Marked ${rewardsCount} rewards as claimed for FID ${fid} (${shareIds.length} shares, ${followIds.length} follows) and recorded claim history`);
 
     return NextResponse.json({ 
       success: true, 
       transactionHash: txHash,
       claimedAmount: amountToClaim,
-      sharesCount: sharesCount
+      sharesCount: shareIds.length,
+      followCount: followIds.length,
+      totalRewardsCount: rewardsCount
     }, { status: 200 });
 
   } catch (error: any) {
