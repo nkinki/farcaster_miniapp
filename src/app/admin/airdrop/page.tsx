@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiUsers, FiAward, FiDollarSign, FiCheckCircle, FiXCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiUsers, FiAward, FiDollarSign, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
 
 interface Season {
   id: number;
@@ -314,35 +314,6 @@ export default function AirdropAdminPage() {
           </div>
         )}
 
-        {/* Distribution Results */}
-        {distributionResults && (
-          <div className="bg-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Distribution Results</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-slate-700 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <FiCheckCircle className="text-green-400" />
-                  <span className="text-sm text-gray-400">Successful</span>
-                </div>
-                <div className="text-2xl font-bold text-green-400">{distributionResults.successful_distributions}</div>
-              </div>
-              <div className="bg-slate-700 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <FiXCircle className="text-red-400" />
-                  <span className="text-sm text-gray-400">Failed</span>
-                </div>
-                <div className="text-2xl font-bold text-red-400">{distributionResults.failed_distributions}</div>
-              </div>
-              <div className="bg-slate-700 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <FiUsers className="text-blue-400" />
-                  <span className="text-sm text-gray-400">Total Users</span>
-                </div>
-                <div className="text-2xl font-bold text-white">{distributionResults.total_users}</div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
