@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     
     // 1. Email értesítés
     try {
-      const notifyResponse = await fetch(`${baseUrl}/api/promotions/notify`, {
+      const emailResponse = await fetch(`${baseUrl}/api/promotions/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -69,13 +69,13 @@ export async function POST(request: NextRequest) {
         })
       });
       
-      if (notifyResponse.ok) {
-        console.log(`✅ Email notification sent for promotion ${newPromotion.id}`);
+      if (emailResponse.ok) {
+        console.log(`✅ Promotion email sent for promotion ${newPromotion.id}`);
       } else {
-        console.warn(`⚠️ Failed to send email notification for promotion ${newPromotion.id}`);
+        console.warn(`⚠️ Failed to send promotion email for promotion ${newPromotion.id}`);
       }
-    } catch (notifyError) {
-      console.warn('⚠️ Email notification failed (non-blocking):', notifyError);
+    } catch (emailError) {
+      console.warn('⚠️ Promotion email failed (non-blocking):', emailError);
     }
     
     // 2. Farcaster cast értesítés
