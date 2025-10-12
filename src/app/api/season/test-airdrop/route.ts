@@ -122,26 +122,49 @@ export async function POST(request: NextRequest) {
     
     console.log(`📊 Test: Found ${users.length} users with ${totalPoints} total points`);
 
+    if (users.length === 0) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'No users found with points for this season' 
+      }, { status: 404 });
+    }
+
+    if (totalPoints === 0) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'No points found for any users in this season' 
+      }, { status: 404 });
+    }
+
     // Convert test amount to wei
     const testAmountWei = BigInt(testAmount) * BigInt(1000000000000000000); // Convert to wei
 
     // Calculate proportional rewards
-    const distribution = users.map((user, index) => {
-      const userPoints = parseInt(user.total_points);
-      const percentage = totalPoints > 0 ? (userPoints / totalPoints) * 100 : 0;
-      const rewardAmount = totalPoints > 0 ? 
-        (BigInt(userPoints) * testAmountWei) / BigInt(totalPoints) : 
-        BigInt(0);
-      
-      return {
-        rank: index + 1,
-        user_fid: user.user_fid,
-        points: userPoints,
-        percentage: parseFloat(percentage.toFixed(4)),
-        reward_amount: rewardAmount,
-        reward_amount_formatted: (Number(rewardAmount) / 1000000000000000000).toFixed(6) + ' CHESS'
-      };
-    });
+    let distribution;
+    try {
+      distribution = users.map((user, index) => {
+        const userPoints = parseInt(user.total_points);
+        const percentage = totalPoints > 0 ? (userPoints / totalPoints) * 100 : 0;
+        const rewardAmount = totalPoints > 0 ? 
+          (BigInt(userPoints) * testAmountWei) / BigInt(totalPoints) : 
+          BigInt(0);
+        
+        return {
+          rank: index + 1,
+          user_fid: user.user_fid,
+          points: userPoints,
+          percentage: parseFloat(percentage.toFixed(4)),
+          reward_amount: rewardAmount,
+          reward_amount_formatted: (Number(rewardAmount) / 1000000000000000000).toFixed(6) + ' CHESS'
+        };
+      });
+    } catch (distributionError) {
+      console.error('❌ Error calculating distribution:', distributionError);
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Failed to calculate distribution: ' + (distributionError instanceof Error ? distributionError.message : String(distributionError))
+      }, { status: 500 });
+    }
 
     // Calculate remaining amount (due to rounding)
     const distributedAmount = distribution.reduce((sum, user) => sum + user.reward_amount, BigInt(0));
@@ -155,13 +178,16 @@ export async function POST(request: NextRequest) {
       season_id: seasonId,
       season_name: season.name,
       test_amount: testAmount,
-      test_amount_wei: testAmountWei,
+      test_amount_wei: testAmountWei.toString(),
       total_reward_amount: testAmountWei.toString(),
       total_users: users.length,
       total_points: totalPoints,
-      distributed_amount: distributedAmount,
-      remaining_amount: remainingAmount,
-      distribution: distribution,
+      distributed_amount: distributedAmount.toString(),
+      remaining_amount: remainingAmount.toString(),
+      distribution: distribution.map(user => ({
+        ...user,
+        reward_amount: user.reward_amount.toString()
+      })),
       message: `Test distribution calculated for ${users.length} users with ${testAmount} CHESS total`
     });
 
