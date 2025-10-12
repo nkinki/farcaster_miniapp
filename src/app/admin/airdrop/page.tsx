@@ -201,10 +201,41 @@ export default function AirdropAdminPage() {
           </div>
         </div>
 
-        {/* Test Mode Toggle */}
+        {/* CHESS Amount Selection */}
         <div className="bg-slate-800 rounded-xl p-6 mb-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Test Mode</h2>
-          <div className="flex items-center gap-4 mb-4">
+          <h2 className="text-xl font-semibold text-white mb-4">CHESS Distribution Settings</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">
+                Total CHESS Amount to Distribute
+              </label>
+              <input
+                type="number"
+                value={testAmount}
+                onChange={(e) => setTestAmount(parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="1000000"
+                min="1"
+              />
+              <p className="text-xs text-gray-500 mt-1">Amount in CHESS tokens (e.g., 1000000 for 1M CHESS)</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">
+                Filter by FIDs (Optional)
+              </label>
+              <input
+                type="text"
+                value={testFids}
+                onChange={(e) => setTestFids(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="12345,67890,11111"
+              />
+              <p className="text-xs text-gray-500 mt-1">Comma-separated FIDs (leave empty for all users)</p>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex items-center gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -212,42 +243,9 @@ export default function AirdropAdminPage() {
                 onChange={(e) => setTestMode(e.target.checked)}
                 className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
               />
-              <span className="text-white">Enable Test Mode</span>
+              <span className="text-white">Test Mode (No Real Transactions)</span>
             </label>
           </div>
-          
-          {testMode && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Test CHESS Amount
-                </label>
-                <input
-                  type="number"
-                  value={testAmount}
-                  onChange={(e) => setTestAmount(parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="1000"
-                  min="1"
-                />
-                <p className="text-xs text-gray-500 mt-1">Amount in CHESS tokens (not wei)</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Test FIDs (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={testFids}
-                  onChange={(e) => setTestFids(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="12345,67890,11111"
-                />
-                <p className="text-xs text-gray-500 mt-1">Comma-separated FIDs (leave empty for all users)</p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Actions */}
@@ -257,11 +255,11 @@ export default function AirdropAdminPage() {
             <div className="flex flex-wrap gap-4">
               <button
                 onClick={calculateDistribution}
-                disabled={isLoading}
+                disabled={isLoading || !testAmount}
                 className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
               >
                 <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
-                {isLoading ? 'Calculating...' : `Calculate Distribution${testMode ? ' (Test)' : ''}`}
+                {isLoading ? 'Calculating...' : `Calculate Distribution (${testAmount.toLocaleString()} CHESS)`}
               </button>
               
               <button
@@ -270,7 +268,7 @@ export default function AirdropAdminPage() {
                 className="flex items-center gap-2 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
               >
                 <FiUsers />
-                {testMode ? 'Test Simulation' : 'Dry Run Test'}
+                {testMode ? 'Preview Distribution' : 'Dry Run Test'}
               </button>
               
               {!testMode && (
@@ -280,7 +278,7 @@ export default function AirdropAdminPage() {
                   className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
                 >
                   <FiAward />
-                  {isDistributing ? 'Distributing...' : 'Distribute Airdrop'}
+                  {isDistributing ? 'Distributing...' : `Distribute ${testAmount.toLocaleString()} CHESS`}
                 </button>
               )}
             </div>
@@ -339,22 +337,22 @@ export default function AirdropAdminPage() {
               </div>
             </div>
 
-            {/* Top Users Table */}
-            <div className="overflow-x-auto">
+            {/* All Users Table */}
+            <div className="overflow-x-auto max-h-96">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="sticky top-0 bg-slate-800">
                   <tr className="border-b border-gray-600">
                     <th className="text-left py-2 text-gray-400">Rank</th>
                     <th className="text-left py-2 text-gray-400">FID</th>
                     <th className="text-right py-2 text-gray-400">Points</th>
                     <th className="text-right py-2 text-gray-400">Percentage</th>
-                    <th className="text-right py-2 text-gray-400">Reward</th>
+                    <th className="text-right py-2 text-gray-400">CHESS Reward</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {distribution.distribution.slice(0, 20).map((user) => (
-                    <tr key={user.user_fid} className="border-b border-gray-700">
-                      <td className="py-2 text-white">#{user.rank}</td>
+                  {distribution.distribution.map((user) => (
+                    <tr key={user.user_fid} className="border-b border-gray-700 hover:bg-slate-700/50">
+                      <td className="py-2 text-white font-semibold">#{user.rank}</td>
                       <td className="py-2 text-white">{user.user_fid}</td>
                       <td className="py-2 text-right text-white">{user.points.toLocaleString()}</td>
                       <td className="py-2 text-right text-purple-400">{user.percentage.toFixed(4)}%</td>
@@ -364,6 +362,14 @@ export default function AirdropAdminPage() {
                 </tbody>
               </table>
             </div>
+            
+            {distribution.distribution.length > 50 && (
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-400">
+                  Showing all {distribution.distribution.length} users. Scroll to see more.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
