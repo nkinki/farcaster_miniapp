@@ -154,6 +154,7 @@ export async function POST(request: NextRequest) {
       season_name: season.name,
       test_amount: testAmount,
       test_amount_wei: testAmountWei,
+      total_reward_amount: testAmountWei.toString(),
       total_users: users.length,
       total_points: totalPoints,
       distributed_amount: distributedAmount,
