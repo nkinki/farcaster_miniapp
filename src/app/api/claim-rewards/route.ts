@@ -152,6 +152,12 @@ export async function POST(request: NextRequest) {
       throw new Error('No rewards to claim.');
     }
 
+    // Check minimum claim amount (10,000 CHESS)
+    const MIN_CLAIM_AMOUNT = 10000;
+    if (amountToClaim < MIN_CLAIM_AMOUNT) {
+      throw new Error(`Minimum claim amount is ${MIN_CLAIM_AMOUNT} CHESS. You have ${amountToClaim.toFixed(2)} CHESS pending.`);
+    }
+
     const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
         headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
     });

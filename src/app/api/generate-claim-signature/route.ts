@@ -51,6 +51,13 @@ export async function POST(request: NextRequest) {
       if (amountToClaim <= 0) {
         throw new Error('No rewards to claim.');
       }
+      
+      // Check minimum claim amount (10,000 CHESS)
+      const MIN_CLAIM_AMOUNT = 10000;
+      if (amountToClaim < MIN_CLAIM_AMOUNT) {
+        throw new Error(`Minimum claim amount is ${MIN_CLAIM_AMOUNT} CHESS. You have ${amountToClaim.toFixed(2)} CHESS pending.`);
+      }
+      
       amountInWei = parseUnits(amountToClaim.toString(), 18);
       console.log('RewardsClaim amount:', amountToClaim, 'CHESS (shares:', sharesStats.shares_earnings, 'follows:', followStats.follow_earnings, ')');
     }
