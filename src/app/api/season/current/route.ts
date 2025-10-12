@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -9,31 +9,23 @@ export async function GET() {
   const client = await pool.connect();
   
   try {
-    // Get current active season
-    const result = await client.query(`
-      SELECT * FROM seasons 
-      WHERE status = 'active' 
-      ORDER BY created_at DESC 
-      LIMIT 1
+    // Get all seasons
+    const seasonsResult = await client.query(`
+      SELECT id, name, start_date, end_date, total_rewards, status, created_at
+      FROM seasons 
+      ORDER BY created_at DESC
     `);
-
-    if (result.rows.length === 0) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'No active season found' 
-      }, { status: 404 });
-    }
 
     return NextResponse.json({
       success: true,
-      season: result.rows[0]
+      seasons: seasonsResult.rows
     });
 
   } catch (error) {
-    console.error('Error fetching current season:', error);
+    console.error('Error fetching seasons:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to fetch season data' 
+      error: 'Failed to fetch seasons' 
     }, { status: 500 });
   } finally {
     client.release();
