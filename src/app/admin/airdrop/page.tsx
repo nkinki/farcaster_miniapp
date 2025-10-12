@@ -102,8 +102,9 @@ export default function AirdropAdminPage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Distribution data received:', data);
         setDistribution(data);
-        setMessage(`✅ Distribution calculated for ${data.total_users} users (Test: ${testAmount.toLocaleString()} CHESS)`);
+        setMessage(`✅ Distribution calculated for ${data.total_users || 0} users (Test: ${testAmount.toLocaleString()} CHESS)`);
       } else {
         const error = await response.json();
         setMessage(`❌ Error: ${error.error}`);
@@ -277,7 +278,7 @@ export default function AirdropAdminPage() {
         )}
 
         {/* Distribution Preview */}
-        {distribution && (
+        {distribution && distribution.total_users !== undefined && (
           <div className="bg-slate-800 rounded-xl p-6 mb-6">
             <h2 className="text-xl font-semibold text-white mb-4">Distribution Preview</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -301,7 +302,10 @@ export default function AirdropAdminPage() {
                   <span className="text-sm text-gray-400">Total Rewards</span>
                 </div>
                 <div className="text-2xl font-bold text-white">
-                  {Math.floor(Number(BigInt(distribution.total_reward_amount)) / 1000000000000000000).toLocaleString()} CHESS
+                  {distribution.total_reward_amount ? 
+                    Math.floor(Number(BigInt(distribution.total_reward_amount)) / 1000000000000000000).toLocaleString() : 
+                    '0'
+                  } CHESS
                 </div>
               </div>
               <div className="bg-slate-700 p-4 rounded-lg">
@@ -310,7 +314,10 @@ export default function AirdropAdminPage() {
                   <span className="text-sm text-gray-400">Distributed</span>
                 </div>
                 <div className="text-2xl font-bold text-white">
-                  {Math.floor(Number(BigInt(distribution.distributed_amount)) / 1000000000000000000).toLocaleString()} CHESS
+                  {distribution.distributed_amount ? 
+                    Math.floor(Number(BigInt(distribution.distributed_amount)) / 1000000000000000000).toLocaleString() : 
+                    '0'
+                  } CHESS
                 </div>
               </div>
             </div>
