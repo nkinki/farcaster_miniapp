@@ -76,6 +76,11 @@ export default function AirdropAdminPage() {
 
   const calculateDistribution = async () => {
     if (!selectedSeason) return;
+    
+    if (testAmount <= 0) {
+      setMessage('❌ Please enter a valid test amount greater than 0');
+      return;
+    }
 
     setIsLoading(true);
     setMessage(null);
@@ -293,7 +298,7 @@ export default function AirdropAdminPage() {
                   <span className="text-sm text-gray-400">Total Rewards</span>
                 </div>
                 <div className="text-2xl font-bold text-white">
-                  {(distribution.total_reward_amount / 1000000000000000000).toFixed(0)} CHESS
+                  {Math.floor(Number(BigInt(distribution.total_reward_amount)) / 1000000000000000000).toLocaleString()} CHESS
                 </div>
               </div>
               <div className="bg-slate-700 p-4 rounded-lg">
@@ -302,7 +307,7 @@ export default function AirdropAdminPage() {
                   <span className="text-sm text-gray-400">Distributed</span>
                 </div>
                 <div className="text-2xl font-bold text-white">
-                  {(distribution.distributed_amount / 1000000000000000000).toFixed(0)} CHESS
+                  {Math.floor(Number(BigInt(distribution.distributed_amount)) / 1000000000000000000).toLocaleString()} CHESS
                 </div>
               </div>
             </div>
