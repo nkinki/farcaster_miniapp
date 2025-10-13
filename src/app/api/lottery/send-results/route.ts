@@ -27,16 +27,42 @@ export async function POST(request: NextRequest) {
         ).join('\n')
       : 'No winners this round';
 
+    // Calculate next jackpot properly
+    const currentJackpot = parseInt(round.jackpot || '0', 10);
+    const nextJackpotAmount = winners && winners.length > 0 
+      ? 1000000000000000000000000 // 1M CHESS base if there were winners
+      : currentJackpot; // Roll over if no winners
+
     const emailContent = `
 🏁 LAMBO LOTTERY DRAW RESULTS 🏁
 
 Round: #${round.draw_number}
 Winning Number: ${winningNumber}
 Total Payout: ${(totalPayout / 1e18).toFixed(2)} CHESS
-Next Jackpot: ${(nextJackpot / 1e18).toFixed(2)} CHESS
+Next Jackpot: ${(nextJackpotAmount / 1e18).toFixed(2)} CHESS
 
 🏆 WINNERS:
 ${winnersList}
+
+${winners && winners.length === 0 ? `
+🎯 NO WINNERS THIS ROUND! 🎯
+
+The jackpot rolls over to the next round!
+Don't miss out - buy your tickets for tomorrow's draw!
+
+💡 TIP: The more tickets you buy, the higher your chances of winning!
+🎰 Next draw: Tomorrow at 21:05 (Budapest time)
+
+Get your tickets now: https://farc-nu.vercel.app/promote
+` : `
+🎉 CONGRATULATIONS TO THE WINNERS! 🎉
+
+The jackpot has been won and resets to 1,000,000 CHESS!
+New round starts now - buy your tickets for the next draw!
+
+🎰 Next draw: Tomorrow at 21:05 (Budapest time)
+Get your tickets: https://farc-nu.vercel.app/promote
+`}
 
 ---
 This is an automated message from AppRank Lambo Lottery.
