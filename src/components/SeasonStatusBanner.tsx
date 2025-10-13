@@ -64,6 +64,13 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
     return () => clearInterval(interval);
   }, [seasonData]);
 
+  // Auto-open airdrop modal when banner is expanded
+  useEffect(() => {
+    if (!isCollapsed && seasonData) {
+      setShowAirdropModal(true);
+    }
+  }, [isCollapsed, seasonData]);
+
   if (!seasonData) return null;
 
   const getStatusColor = () => {
@@ -143,17 +150,6 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
               </div>
             </div>
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowAirdropModal(true);
-            }}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
-            title="View Airdrop Distribution"
-          >
-            <FiGift className="w-3 h-3 text-[#5D6AFF]" />
-            <span className="text-xs text-[#5D6AFF] font-medium">Airdrop</span>
-          </button>
           <div className="text-gray-400">
             {isCollapsed ? <FiChevronDown className="w-4 h-4" /> : <FiChevronUp className="w-4 h-4" />}
           </div>
@@ -183,6 +179,18 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
               <span className="text-gray-400">End:</span>
               <span className="text-white">{formatDate(seasonData.end_date)}</span>
             </div>
+          </div>
+
+          {/* Airdrop Button */}
+          <div className="mt-3 flex justify-center">
+            <button
+              onClick={() => setShowAirdropModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
+              title="View Airdrop Distribution"
+            >
+              <FiGift className="w-4 h-4 text-[#5D6AFF]" />
+              <span className="text-sm text-[#5D6AFF] font-medium">View Airdrop Distribution</span>
+            </button>
           </div>
 
           {seasonData.status === 'active' && (
