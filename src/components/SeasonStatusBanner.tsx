@@ -159,37 +159,24 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
       {/* Expandable Content */}
       {!isCollapsed && (
         <div className="px-3 pb-3 border-t border-white/10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mt-3">
-            <div className="flex items-center gap-2">
-              <FiAward className="text-[#5D6AFF] w-4 h-4" />
-              <span className="text-gray-400">Rewards:</span>
-              <span className="text-[#5D6AFF] font-semibold">
-                {formatNumber(parseInt(seasonData.total_rewards))} CHESS
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <FiClock className="text-[#5D6AFF] w-4 h-4" />
-              <span className="text-gray-400">Start:</span>
-              <span className="text-white">{formatDate(seasonData.start_date)}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <FiClock className="text-[#5D6AFF] w-4 h-4" />
-              <span className="text-gray-400">End:</span>
-              <span className="text-white">{formatDate(seasonData.end_date)}</span>
-            </div>
+          {/* Rewards Info */}
+          <div className="flex items-center justify-center gap-2 text-sm mt-3">
+            <FiAward className="text-[#5D6AFF] w-4 h-4" />
+            <span className="text-gray-400">Rewards:</span>
+            <span className="text-[#5D6AFF] font-semibold">
+              {formatNumber(parseInt(seasonData.total_rewards))} CHESS
+            </span>
           </div>
 
           {/* Airdrop Button */}
           <div className="mt-3 flex justify-center">
             <button
               onClick={() => setShowAirdropModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
               title="View Airdrop Distribution"
             >
-              <FiGift className="w-4 h-4 text-[#5D6AFF]" />
-              <span className="text-sm text-[#5D6AFF] font-medium">View Airdrop Distribution</span>
+              <span className="text-lg text-[#5D6AFF] font-bold">+</span>
+              <span className="text-sm text-[#5D6AFF] font-medium">Airdrop</span>
             </button>
           </div>
 
