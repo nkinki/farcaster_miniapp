@@ -159,30 +159,32 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
       {/* Expandable Content */}
       {!isCollapsed && (
         <div className="px-3 pb-3 border-t border-white/10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mt-3">
-            <div className="flex items-center gap-2">
+          {/* Season Info - Compact */}
+          <div className="text-center mt-3 mb-4">
+            <div className="text-lg font-bold text-white mb-2">{seasonData.name}</div>
+            <div className="flex justify-center gap-4 text-sm">
+              <div className="flex items-center gap-1">
+                <FiClock className="text-[#5D6AFF] w-3 h-3" />
+                <span className="text-gray-400">Start:</span>
+                <span className="text-white">{formatDate(seasonData.start_date)}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <FiClock className="text-[#5D6AFF] w-3 h-3" />
+                <span className="text-gray-400">End:</span>
+                <span className="text-white">{formatDate(seasonData.end_date)}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-2 mt-2">
               <FiAward className="text-[#5D6AFF] w-4 h-4" />
               <span className="text-gray-400">Rewards:</span>
               <span className="text-[#5D6AFF] font-semibold">
                 {formatNumber(parseInt(seasonData.total_rewards))} CHESS
               </span>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <FiClock className="text-[#5D6AFF] w-4 h-4" />
-              <span className="text-gray-400">Start:</span>
-              <span className="text-white">{formatDate(seasonData.start_date)}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <FiClock className="text-[#5D6AFF] w-4 h-4" />
-              <span className="text-gray-400">End:</span>
-              <span className="text-white">{formatDate(seasonData.end_date)}</span>
-            </div>
           </div>
 
           {/* Airdrop Button */}
-          <div className="mt-3 flex justify-center">
+          <div className="flex justify-center">
             <button
               onClick={() => setShowAirdropModal(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
