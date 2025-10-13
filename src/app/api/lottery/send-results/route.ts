@@ -27,11 +27,8 @@ export async function POST(request: NextRequest) {
         ).join('\n')
       : 'No winners this round';
 
-    // Calculate next jackpot properly
-    const currentJackpot = parseInt(round.jackpot || '0', 10);
-    const nextJackpotAmount = winners && winners.length > 0 
-      ? 1000000000000000000000000 // 1M CHESS base if there were winners
-      : currentJackpot; // Roll over if no winners
+    // Use the nextJackpot parameter from the request
+    const nextJackpotAmount = parseInt(nextJackpot || '0', 10);
 
     const emailContent = `
 🏁 LAMBO LOTTERY DRAW RESULTS 🏁
