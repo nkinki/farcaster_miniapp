@@ -225,8 +225,9 @@ export default function SeasonManagementPage() {
               <p>• <span className="text-green-400">Green</span> - Season is active and running normally</p>
               <p>• <span className="text-yellow-400">Yellow</span> - Season is ending within 24 hours</p>
               <p>• <span className="text-red-400">Red</span> - Season has reached its end date and is ready to be manually ended</p>
-              <p>• <span className="text-purple-400">Manual Control:</span> Season ending creates new season, but airdrop distribution is handled separately by administrators</p>
-              <p>• Use the Airdrop button to manually calculate and distribute rewards to users</p>
+              <p>• <span className="text-purple-400">Points-Based Distribution:</span> Rewards are calculated automatically based on user points</p>
+              <p>• <span className="text-purple-400">Manual Timing:</span> Administrators decide when to distribute the calculated rewards</p>
+              <p>• Use the Airdrop button to calculate and distribute rewards based on points</p>
             </div>
           </div>
         </div>

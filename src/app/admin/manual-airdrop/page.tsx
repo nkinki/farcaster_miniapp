@@ -14,9 +14,10 @@ interface Season {
 
 interface Recipient {
   user_fid: number;
+  points: number;
+  percentage: number;
   reward_amount: string;
-  reason: string;
-  points_used?: number;
+  reward_amount_formatted: string;
 }
 
 export default function ManualAirdropPage() {
@@ -25,14 +26,7 @@ export default function ManualAirdropPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  
-  // New recipient form
-  const [newRecipient, setNewRecipient] = useState<Recipient>({
-    user_fid: 0,
-    reward_amount: '',
-    reason: '',
-    points_used: 0
-  });
+  const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
     fetchSeasons();
@@ -50,31 +44,43 @@ export default function ManualAirdropPage() {
     }
   };
 
-  const addRecipient = () => {
-    if (newRecipient.user_fid && newRecipient.reward_amount) {
-      setRecipients([...recipients, { ...newRecipient }]);
-      setNewRecipient({
-        user_fid: 0,
-        reward_amount: '',
-        reason: '',
-        points_used: 0
+  const calculateDistribution = async () => {
+    if (!selectedSeason) {
+      setMessage('❌ Please select a season first');
+      return;
+    }
+
+    setIsCalculating(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/season/manual-airdrop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seasonId: selectedSeason,
+          distributeNow: false
+        })
       });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setRecipients(data.distribution || []);
+        setMessage(`✅ Distribution calculated for ${data.total_users} users based on points`);
+      } else {
+        setMessage(`❌ Error: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsCalculating(false);
     }
   };
 
-  const removeRecipient = (index: number) => {
-    setRecipients(recipients.filter((_, i) => i !== index));
-  };
-
-  const updateRecipient = (index: number, field: keyof Recipient, value: string | number) => {
-    const updated = [...recipients];
-    updated[index] = { ...updated[index], [field]: value };
-    setRecipients(updated);
-  };
-
   const distributeAirdrop = async () => {
-    if (!selectedSeason || recipients.length === 0) {
-      setMessage('❌ Please select a season and add recipients');
+    if (!selectedSeason) {
+      setMessage('❌ Please select a season first');
       return;
     }
 
@@ -87,14 +93,14 @@ export default function ManualAirdropPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           seasonId: selectedSeason,
-          recipients: recipients
+          distributeNow: true
         })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setMessage(`✅ Manual airdrop recorded successfully! ${data.successful_distributions} distributions recorded.`);
+        setMessage(`✅ Airdrop distributed successfully! ${data.successful_distributions} distributions completed.`);
         setRecipients([]);
       } else {
         setMessage(`❌ Error: ${data.error}`);
@@ -169,56 +175,29 @@ export default function ManualAirdropPage() {
           </div>
         </div>
 
-        {/* Recipients Management */}
-        <div className="bg-gradient-to-r from-slate-800/50 to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 mb-6 border border-indigo-500/20">
-          <h3 className="text-lg font-bold text-white mb-4">Recipients</h3>
-          
-          {/* Add New Recipient */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">User FID</label>
-              <input
-                type="number"
-                value={newRecipient.user_fid}
-                onChange={(e) => setNewRecipient({...newRecipient, user_fid: parseInt(e.target.value) || 0})}
-                placeholder="12345"
-                className="w-full px-3 py-2 bg-slate-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Reward Amount (CHESS)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={newRecipient.reward_amount}
-                onChange={(e) => setNewRecipient({...newRecipient, reward_amount: e.target.value})}
-                placeholder="1000.00"
-                className="w-full px-3 py-2 bg-slate-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Reason</label>
-              <input
-                type="text"
-                value={newRecipient.reason}
-                onChange={(e) => setNewRecipient({...newRecipient, reason: e.target.value})}
-                placeholder="Top contributor, etc."
-                className="w-full px-3 py-2 bg-slate-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                onClick={addRecipient}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
-              >
-                <FiPlus className="w-4 h-4" />
-                Add
-              </button>
-            </div>
+        {/* Calculate Distribution */}
+        {selectedSeason && (
+          <div className="bg-gradient-to-r from-slate-800/50 to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 mb-6 border border-indigo-500/20">
+            <h3 className="text-lg font-bold text-white mb-4">Calculate Distribution</h3>
+            <p className="text-gray-300 mb-4">
+              Calculate airdrop distribution based on user points for the selected season.
+            </p>
+            <button
+              onClick={calculateDistribution}
+              disabled={isCalculating}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {isCalculating ? <FiRefreshCw className="w-4 h-4 animate-spin" /> : <FiAward className="w-4 h-4" />}
+              {isCalculating ? 'Calculating...' : 'Calculate Distribution Based on Points'}
+            </button>
           </div>
+        )}
 
-          {/* Recipients List */}
-          {recipients.length > 0 ? (
+        {/* Recipients Management */}
+        {recipients.length > 0 && (
+          <div className="bg-gradient-to-r from-slate-800/50 to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 mb-6 border border-indigo-500/20">
+            <h3 className="text-lg font-bold text-white mb-4">Distribution Preview</h3>
+
             <div className="space-y-3">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-white font-semibold">
@@ -230,54 +209,45 @@ export default function ManualAirdropPage() {
               </div>
               
               {recipients.map((recipient, index) => (
-                <div key={index} className="flex items-center gap-4 p-3 bg-slate-700/30 rounded-lg">
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div key={index} className="p-4 bg-slate-700/30 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <span className="text-sm text-gray-400">FID:</span>
                       <span className="ml-2 text-white font-semibold">{recipient.user_fid}</span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-400">Amount:</span>
-                      <span className="ml-2 text-green-400 font-semibold">{recipient.reward_amount} CHESS</span>
+                      <span className="text-sm text-gray-400">Points:</span>
+                      <span className="ml-2 text-blue-400 font-semibold">{recipient.points}</span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-400">Reason:</span>
-                      <span className="ml-2 text-white">{recipient.reason}</span>
+                      <span className="text-sm text-gray-400">Percentage:</span>
+                      <span className="ml-2 text-yellow-400 font-semibold">{recipient.percentage}%</span>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-400">Reward:</span>
+                      <span className="ml-2 text-green-400 font-semibold">{recipient.reward_amount_formatted}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => removeRecipient(index)}
-                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
-                  >
-                    <FiTrash2 className="w-4 h-4" />
-                  </button>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400">
-              <FiUsers className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p>No recipients added yet</p>
-              <p className="text-sm">Add recipients using the form above</p>
-            </div>
-          )}
         </div>
 
-        {/* Distribute Button */}
-        {recipients.length > 0 && selectedSeason && (
-          <div className="flex justify-center">
-            <button
-              onClick={distributeAirdrop}
-              disabled={isLoading}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 flex items-center gap-3 text-lg font-semibold"
-            >
-              {isLoading ? (
-                <FiRefreshCw className="w-5 h-5 animate-spin" />
-              ) : (
-                <FiCheckCircle className="w-5 h-5" />
-              )}
-              {isLoading ? 'Distributing...' : `Distribute ${formatNumber(calculateTotal())} CHESS to ${recipients.length} Recipients`}
-            </button>
+            {/* Distribute Button */}
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={distributeAirdrop}
+                disabled={isLoading}
+                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 flex items-center gap-3 text-lg font-semibold"
+              >
+                {isLoading ? (
+                  <FiRefreshCw className="w-5 h-5 animate-spin" />
+                ) : (
+                  <FiCheckCircle className="w-5 h-5" />
+                )}
+                {isLoading ? 'Distributing...' : `Distribute ${formatNumber(calculateTotal())} CHESS to ${recipients.length} Recipients`}
+              </button>
+            </div>
           </div>
         )}
       </div>

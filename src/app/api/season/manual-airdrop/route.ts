@@ -9,17 +9,16 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
-    const { seasonId, recipients } = await request.json();
+    const { seasonId, distributeNow = false } = await request.json();
     
-    if (!seasonId || !recipients || !Array.isArray(recipients)) {
+    if (!seasonId) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Season ID and recipients array are required' 
+        error: 'Season ID is required' 
       }, { status: 400 });
     }
 
-    console.log(`🎯 Manual airdrop distribution for Season ${seasonId}`);
-    console.log(`📊 Distributing to ${recipients.length} recipients`);
+    console.log(`🎯 ${distributeNow ? 'Distributing' : 'Calculating'} airdrop for Season ${seasonId} based on points`);
 
     // Get season info
     const seasonResult = await client.query(`
@@ -42,58 +41,91 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Calculate distribution based on points
+    const totalRewardAmount = parseInt(season.total_rewards) * 1000000000000000000;
+    
+    const calculateResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/season/calculate-airdrop`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seasonId, totalRewardAmount })
+    });
+
+    if (!calculateResponse.ok) {
+      throw new Error('Failed to calculate airdrop distribution');
+    }
+
+    const { distribution } = await calculateResponse.json();
+
+    if (distribution.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No users to distribute rewards to',
+        season_id: seasonId,
+        distribution: []
+      });
+    }
+
+    if (!distributeNow) {
+      // Just return the calculated distribution
+      return NextResponse.json({
+        success: true,
+        message: 'Airdrop distribution calculated based on points',
+        season_id: seasonId,
+        total_reward_amount: totalRewardAmount,
+        total_users: distribution.length,
+        distribution: distribution.map((user: any) => ({
+          user_fid: user.user_fid,
+          points: user.points,
+          percentage: user.percentage,
+          reward_amount: user.reward_amount,
+          reward_amount_formatted: user.reward_amount_formatted
+        }))
+      });
+    }
+
+    // Actually distribute the airdrop
     const results = [];
     let successCount = 0;
     let errorCount = 0;
 
-    for (const recipient of recipients) {
+    for (const user of distribution) {
       try {
-        const { user_fid, reward_amount, reason } = recipient;
-        
-        if (!user_fid || !reward_amount) {
-          throw new Error('Missing user_fid or reward_amount');
-        }
-
-        // Convert to wei
-        const amountInWei = (parseFloat(reward_amount) * 1000000000000000000).toString();
-        
-        // Get user's wallet address (you'll need to implement this based on your user system)
-        // For now, we'll just log the distribution
-        console.log(`💰 Manual airdrop: ${reward_amount} CHESS to FID ${user_fid} (${reason || 'Manual distribution'})`);
-        
         // Record airdrop claim
         await client.query(`
           INSERT INTO airdrop_claims (
             user_fid, season_id, points_used, reward_amount, 
             status, transaction_hash, claimed_at, distribution_reason
-          ) VALUES ($1, $2, $3, $4, 'manual_pending', $5, NOW(), $6)
+          ) VALUES ($1, $2, $3, $4, 'distributed', $5, NOW(), $6)
         `, [
-          user_fid, 
+          user.user_fid, 
           seasonId, 
-          recipient.points_used || 0, 
-          amountInWei, 
-          'MANUAL_DISTRIBUTION_' + Date.now(),
-          reason || 'Manual distribution by administrator'
+          user.points, 
+          user.reward_amount, 
+          'AUTO_DISTRIBUTION_' + Date.now(),
+          `Points-based distribution: ${user.points} points (${user.percentage}%)`
         ]);
 
         results.push({
-          user_fid: user_fid,
-          reward_amount: reward_amount,
-          reward_amount_formatted: reward_amount + ' CHESS',
-          status: 'recorded',
-          reason: reason || 'Manual distribution',
-          transaction_hash: 'MANUAL_DISTRIBUTION_' + Date.now()
+          user_fid: user.user_fid,
+          points: user.points,
+          percentage: user.percentage,
+          reward_amount: user.reward_amount,
+          reward_amount_formatted: user.reward_amount_formatted,
+          status: 'distributed',
+          transaction_hash: 'AUTO_DISTRIBUTION_' + Date.now()
         });
 
         successCount++;
 
       } catch (error: any) {
-        console.error(`❌ Failed to record airdrop for FID ${recipient.user_fid}:`, error.message);
+        console.error(`❌ Failed to distribute to FID ${user.user_fid}:`, error.message);
         
         results.push({
-          user_fid: recipient.user_fid,
-          reward_amount: recipient.reward_amount,
-          reward_amount_formatted: recipient.reward_amount + ' CHESS',
+          user_fid: user.user_fid,
+          points: user.points,
+          percentage: user.percentage,
+          reward_amount: user.reward_amount,
+          reward_amount_formatted: user.reward_amount_formatted,
           status: 'error',
           error: error.message,
           transaction_hash: null
@@ -103,13 +135,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`✅ Manual airdrop recorded: ${successCount} successful, ${errorCount} errors`);
+    console.log(`✅ Airdrop distributed: ${successCount} successful, ${errorCount} errors`);
 
     return NextResponse.json({
       success: true,
-      message: 'Manual airdrop distribution recorded successfully',
+      message: 'Airdrop distributed successfully based on points',
       season_id: seasonId,
-      total_recipients: recipients.length,
+      total_users: distribution.length,
       successful_distributions: successCount,
       failed_distributions: errorCount,
       results: results

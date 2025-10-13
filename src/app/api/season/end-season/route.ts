@@ -41,8 +41,27 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Note: Airdrop distribution is now handled manually by administrators
-    console.log(`ℹ️ Season ${seasonId} ended. Airdrop distribution will be handled manually by administrators.`);
+    // Calculate airdrop distribution based on points (but don't distribute yet)
+    console.log(`ℹ️ Season ${seasonId} ended. Airdrop distribution calculated based on points - ready for manual distribution.`);
+    
+    // Calculate the distribution for reference
+    try {
+      const calculateResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/season/calculate-airdrop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          seasonId, 
+          totalRewardAmount: parseInt(season.total_rewards) * 1000000000000000000 
+        })
+      });
+      
+      if (calculateResponse.ok) {
+        const calculateData = await calculateResponse.json();
+        console.log(`📊 Airdrop distribution calculated: ${calculateData.total_users} users, ${calculateData.total_points} total points`);
+      }
+    } catch (error) {
+      console.error('Failed to calculate airdrop distribution:', error);
+    }
 
     // Mark season as completed
     await client.query(`
@@ -87,14 +106,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Season ended successfully. Airdrop distribution will be handled manually by administrators.',
+      message: 'Season ended successfully. Airdrop distribution calculated based on points - ready for manual distribution.',
       ended_season: {
         id: season.id,
         name: season.name,
         status: 'completed'
       },
       new_season: newSeasonResult,
-      note: 'Airdrop distribution is now manual - administrators will determine and distribute rewards individually'
+      note: 'Airdrop distribution calculated based on user points - administrators can now distribute rewards when ready'
     });
 
   } catch (error) {
