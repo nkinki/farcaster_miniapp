@@ -51,7 +51,7 @@ The jackpot rolls over to the next round!
 Don't miss out - buy your tickets for tomorrow's draw!
 
 💡 TIP: The more tickets you buy, the higher your chances of winning!
-🎰 Next draw: Tomorrow at 21:05 (Budapest time)
+🎰 Next draw: Tomorrow at 19:05 UTC
 
 Get your tickets now: https://farc-nu.vercel.app/promote
 ` : `
@@ -60,7 +60,7 @@ Get your tickets now: https://farc-nu.vercel.app/promote
 The jackpot has been won and resets to 1,000,000 CHESS!
 New round starts now - buy your tickets for the next draw!
 
-🎰 Next draw: Tomorrow at 21:05 (Budapest time)
+🎰 Next draw: Tomorrow at 19:05 UTC
 Get your tickets: https://farc-nu.vercel.app/promote
 `}
 
