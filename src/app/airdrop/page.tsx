@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiUsers, FiAward, FiDollarSign, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiUsers, FiAward, FiDollarSign, FiCheckCircle, FiRefreshCw, FiArrowLeft } from 'react-icons/fi';
 
 interface Season {
   id: number;
@@ -120,13 +120,24 @@ export default function AirdropPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">
-            AppRank Airdrop Distribution
-          </h1>
-          <p className="text-sm text-gray-400">
-            Manage and distribute season rewards proportionally
-          </p>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => window.location.href = '/'}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
+            >
+              <FiArrowLeft className="w-4 h-4" />
+              <span className="text-sm font-medium">Back to Homepage</span>
+            </button>
+          </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">
+              AppRank Airdrop Distribution
+            </h1>
+            <p className="text-sm text-gray-400">
+              Manage and distribute season rewards proportionally
+            </p>
+          </div>
         </div>
 
         {/* Season Selection */}
