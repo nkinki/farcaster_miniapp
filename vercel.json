@@ -5,6 +5,10 @@
     {
       "path": "/api/cron/weather-lotto-draw",
       "schedule": "5 20 * * *"
+    },
+    {
+      "path": "/api/cron/lambo-lottery-draw",
+      "schedule": "5 19 * * *"
     }
   ]
 } 
