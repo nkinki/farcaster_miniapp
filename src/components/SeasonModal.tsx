@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle, FiCreditCard, FiBarChart3 } from "react-icons/fi";
+import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle, FiCreditCard, FiBarChart } from "react-icons/fi";
 import { useAccount } from "wagmi";
 import { useReadContract } from "wagmi";
 import { formatUnits } from "viem";
@@ -480,7 +480,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                     onClick={() => window.open('/airdrop', '_blank')}
                     className="w-full px-3 py-2 bg-[#5D6AFF] hover:bg-[#5D6AFF]/80 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2"
                   >
-                    <FiBarChart3 className="w-4 h-4" />
+                    <FiBarChart className="w-4 h-4" />
                     View Stats
                   </button>
                 </div>
