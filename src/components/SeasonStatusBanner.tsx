@@ -227,7 +227,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
                 </div>
               </div>
 
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <button
                   onClick={() => {
                     setShowAirdropModal(false);
@@ -237,6 +237,14 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
                 >
                   View Full Page
                 </button>
+                <div>
+                  <button
+                    onClick={() => setShowAirdropModal(false)}
+                    className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded transition-colors text-sm"
+                  >
+                    ← Back to Homepage
+                  </button>
+                </div>
               </div>
             </div>
           </div>
