@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Use the nextJackpot parameter from the request
     const nextJackpotAmount = parseInt(nextJackpot || '0', 10);
+    console.log('Next jackpot received:', nextJackpot, 'Parsed:', nextJackpotAmount);
 
     const emailContent = `
 🏁 LAMBO LOTTERY DRAW RESULTS 🏁
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
 Round: #${round.draw_number}
 Winning Number: ${winningNumber}
 Total Payout: ${(totalPayout / 1e18).toFixed(2)} CHESS
-Next Jackpot: ${(nextJackpotAmount / 1e18).toFixed(2)} CHESS
+Next Jackpot: ${nextJackpotAmount.toLocaleString()} CHESS
 
 🏆 WINNERS:
 ${winnersList}
