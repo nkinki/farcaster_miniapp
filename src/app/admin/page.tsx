@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers, FiAward, FiCalendar } from 'react-icons/fi';
+import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers } from 'react-icons/fi';
 import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 import AdminPendingFollowsManager from '@/components/AdminPendingFollowsManager';
 
@@ -58,17 +58,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [shareablePromos, setShareablePromos] = useState<ShareablePromo[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments' | 'follows' | 'airdrop'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments' | 'follows'>('stats');
   const [selectedPromos, setSelectedPromos] = useState<Set<number>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
-  
-  // Airdrop states
-  const [seasons, setSeasons] = useState<any[]>([]);
-  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
-  const [recipients, setRecipients] = useState<any[]>([]);
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [isDistributing, setIsDistributing] = useState(false);
-  const [airdropMessage, setAirdropMessage] = useState<string | null>(null);
 
   const fetchStats = async () => {
     try {
@@ -94,106 +86,17 @@ export default function AdminPage() {
     }
   };
 
-  const fetchSeasons = async () => {
-    try {
-      const response = await fetch('/api/season/current');
-      if (response.ok) {
-        const data = await response.json();
-        setSeasons(data.seasons || []);
-      }
-    } catch (error) {
-      console.error('Error fetching seasons:', error);
-    }
-  };
 
 
   useEffect(() => {
     fetchStats();
     fetchShareablePromos();
-    fetchSeasons();
   }, []);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
-  // Airdrop functions
-  const calculateDistribution = async () => {
-    if (!selectedSeason) {
-      setAirdropMessage('❌ Please select a season first');
-      return;
-    }
-
-    setIsCalculating(true);
-    setAirdropMessage(null);
-
-    try {
-      const response = await fetch('/api/season/manual-airdrop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          seasonId: selectedSeason,
-          distributeNow: false
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setRecipients(data.distribution || []);
-        setAirdropMessage(`✅ Distribution calculated for ${data.total_users} users based on points`);
-      } else {
-        setAirdropMessage(`❌ Error: ${data.error}`);
-      }
-    } catch (error) {
-      setAirdropMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsCalculating(false);
-    }
-  };
-
-  const distributeAirdrop = async () => {
-    if (!selectedSeason) {
-      setAirdropMessage('❌ Please select a season first');
-      return;
-    }
-
-    setIsDistributing(true);
-    setAirdropMessage(null);
-
-    try {
-      const response = await fetch('/api/season/manual-airdrop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          seasonId: selectedSeason,
-          distributeNow: true
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setAirdropMessage(`✅ Airdrop distributed successfully! ${data.successful_distributions} distributions completed.`);
-        setRecipients([]);
-        fetchSeasons(); // Refresh seasons
-      } else {
-        setAirdropMessage(`❌ Error: ${data.error}`);
-      }
-    } catch (error) {
-      setAirdropMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsDistributing(false);
-    }
-  };
-
-  const calculateTotal = () => {
-    return recipients.reduce((sum, recipient) => sum + parseFloat(recipient.reward_amount || '0'), 0);
-  };
-
-  const formatNumber = (num: number) => {
-    return num.toLocaleString();
-  };
 
   const togglePromoSelection = (promoId: number) => {
     const newSelected = new Set(selectedPromos);
@@ -301,17 +204,6 @@ export default function AdminPage() {
             >
               <FiUsers className="inline mr-2" size={16} />
               Pending Follows
-            </button>
-            <button
-              onClick={() => setActiveTab('airdrop')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'airdrop'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              <FiAward className="inline mr-2" size={16} />
-              Airdrop Distribution
             </button>
           </div>
         </div>
@@ -674,141 +566,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Airdrop Distribution Tab */}
-        {activeTab === 'airdrop' && (
-          <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                <FiAward className="text-purple-400" />
-                Airdrop Distribution
-              </h2>
-              <p className="text-gray-300">Calculate and distribute season rewards based on user points</p>
-            </div>
-
-            {/* Message */}
-            {airdropMessage && (
-              <div className={`p-4 rounded-lg mb-6 border ${
-                airdropMessage.includes('✅') 
-                  ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/30 text-green-200'
-                  : 'bg-gradient-to-r from-red-500/10 to-pink-500/10 border-red-500/30 text-red-200'
-              }`}>
-                <p className="text-sm font-medium">{airdropMessage}</p>
-              </div>
-            )}
-
-            {/* Season Selection */}
-            <div className="bg-gradient-to-r from-slate-800/50 to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 mb-6 border border-indigo-500/20">
-              <h3 className="text-lg font-bold text-white mb-4">Select Season</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {seasons.map((season) => (
-                  <div
-                    key={season.id}
-                    onClick={() => setSelectedSeason(season.id)}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                      selectedSeason === season.id
-                        ? 'border-purple-500 bg-purple-500/20'
-                        : 'border-gray-600 bg-slate-700/30 hover:border-purple-400'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-white">{season.name}</h4>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        season.status === 'completed' 
-                          ? 'bg-green-500/20 text-green-400' 
-                          : 'bg-blue-500/20 text-blue-400'
-                      }`}>
-                        {season.status}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-300">
-                      Rewards: {formatNumber(parseInt(season.total_rewards))} CHESS
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Calculate Distribution */}
-            {selectedSeason && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 mb-6 border border-indigo-500/20">
-                <h3 className="text-lg font-bold text-white mb-4">Calculate Distribution</h3>
-                <p className="text-gray-300 mb-4">
-                  Calculate airdrop distribution based on user points for the selected season.
-                </p>
-                <button
-                  onClick={calculateDistribution}
-                  disabled={isCalculating}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isCalculating ? <FiRefreshCw className="w-4 h-4 animate-spin" /> : <FiAward className="w-4 h-4" />}
-                  {isCalculating ? 'Calculating...' : 'Calculate Distribution Based on Points'}
-                </button>
-              </div>
-            )}
-
-            {/* Distribution Preview */}
-            {recipients.length > 0 && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 mb-6 border border-indigo-500/20">
-                <h3 className="text-lg font-bold text-white mb-4">Distribution Preview</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-white font-semibold">
-                      Recipients ({recipients.length})
-                    </h4>
-                    <div className="text-lg font-bold text-purple-400">
-                      Total: {formatNumber(calculateTotal())} CHESS
-                    </div>
-                  </div>
-                  
-                  {recipients.slice(0, 10).map((recipient, index) => (
-                    <div key={index} className="p-4 bg-slate-700/30 rounded-lg">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                          <span className="text-sm text-gray-400">FID:</span>
-                          <span className="ml-2 text-white font-semibold">{recipient.user_fid}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-400">Points:</span>
-                          <span className="ml-2 text-blue-400 font-semibold">{recipient.points}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-400">Percentage:</span>
-                          <span className="ml-2 text-yellow-400 font-semibold">{recipient.percentage}%</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-400">Reward:</span>
-                          <span className="ml-2 text-green-400 font-semibold">{recipient.reward_amount_formatted}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {recipients.length > 10 && (
-                    <div className="text-center text-gray-400 text-sm">
-                      ... and {recipients.length - 10} more recipients
-                    </div>
-                  )}
-                </div>
-
-                {/* Distribute Button */}
-                <div className="flex justify-center mt-6">
-                  <button
-                    onClick={distributeAirdrop}
-                    disabled={isDistributing}
-                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 flex items-center gap-3 text-lg font-semibold"
-                  >
-                    {isDistributing ? (
-                      <FiRefreshCw className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <FiAward className="w-5 h-5" />
-                    )}
-                    {isDistributing ? 'Distributing...' : `Distribute ${formatNumber(calculateTotal())} CHESS to ${recipients.length} Recipients`}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         <div className="mt-8 text-center">
           <a
