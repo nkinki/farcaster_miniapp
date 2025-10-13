@@ -231,7 +231,6 @@ export default function ManualAirdropPage() {
                 </div>
               ))}
             </div>
-        </div>
 
             {/* Distribute Button */}
             <div className="flex justify-center mt-6">
