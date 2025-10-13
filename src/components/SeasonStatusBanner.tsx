@@ -20,7 +20,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isExpired, setIsExpired] = useState(false);
   const [isExpiringSoon, setIsExpiringSoon] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [showAirdropModal, setShowAirdropModal] = useState(false);
 
   useEffect(() => {

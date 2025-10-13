@@ -171,10 +171,16 @@ export default function Home() {
     fetch(`${window.location.origin}/api/season/current`, { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
+        console.log("Season data received:", data);
         if (data.seasons && data.seasons.length > 0) {
           const activeSeason = data.seasons.find((season: any) => season.status === 'active');
+          console.log("Active season found:", activeSeason);
           if (activeSeason) {
             setSeasonData(activeSeason);
+          } else {
+            // Fallback: use first season if no active season
+            console.log("No active season, using first season:", data.seasons[0]);
+            setSeasonData(data.seasons[0]);
           }
         }
       })
