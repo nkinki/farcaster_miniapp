@@ -79,13 +79,13 @@ CREATE TABLE IF NOT EXISTS user_season_summary (
   UNIQUE(user_fid, season_id)
 );
 
--- Insert Season 1
+-- Insert Season 0
 INSERT INTO seasons (name, start_date, end_date, total_rewards, status) 
 VALUES (
-  'Season 1 - Under Development', 
+  'Season 0', 
   NOW(), 
   NOW() + INTERVAL '30 days', 
-  1000000, -- 1M CHESS (human readable format)
+  10000000, -- 10M CHESS (human readable format)
   'active'
 ) ON CONFLICT DO NOTHING;
 

@@ -106,7 +106,7 @@ export async function POST() {
         'Season 0', 
         NOW(), 
         NOW() + INTERVAL '30 days', 
-        1000000, -- 1M CHESS (human readable format)
+        10000000, -- 10M CHESS (human readable format)
         'active'
       ) ON CONFLICT DO NOTHING
     `);

@@ -31,7 +31,7 @@ export async function GET() {
         'Season 0', 
         NOW(), 
         NOW() + INTERVAL '30 days', 
-        1000000, -- 1M CHESS (human readable format)
+        10000000, -- 10M CHESS (human readable format)
         'active'
       ) RETURNING id
     `);
@@ -48,7 +48,7 @@ export async function GET() {
         season_name: 'Season 0',
       start_date: new Date().toISOString(),
       end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      total_rewards: '1000000',
+      total_rewards: '10000000',
       status: 'active'
     });
 
