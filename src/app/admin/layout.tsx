@@ -32,7 +32,7 @@ export default function AdminLayout({
       sessionStorage.setItem('admin_authenticated', 'true');
       setError('');
     } else {
-      setError('Hibás jelszó!');
+      setError('Incorrect password!');
     }
   };
 
@@ -59,13 +59,13 @@ export default function AdminLayout({
               <FiLock className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Admin Panel</h1>
-            <p className="text-gray-300">Kérjük, adja meg a jelszót a folytatáshoz</p>
+            <p className="text-gray-300">Please enter the password to continue</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Admin Jelszó
+                Admin Password
               </label>
               <div className="relative">
                 <input
@@ -73,7 +73,7 @@ export default function AdminLayout({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none pr-12"
-                  placeholder="Adja meg a jelszót"
+                  placeholder="Enter password"
                   required
                 />
                 <button
@@ -96,7 +96,7 @@ export default function AdminLayout({
               type="submit"
               className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-semibold"
             >
-              Bejelentkezés
+              Login
             </button>
           </form>
 
@@ -105,7 +105,7 @@ export default function AdminLayout({
               href="/"
               className="text-gray-400 hover:text-white transition-colors text-sm"
             >
-              ← Vissza a főoldalra
+              ← Back to Homepage
             </a>
           </div>
         </div>
@@ -125,14 +125,14 @@ export default function AdminLayout({
               </div>
               <div>
                 <h1 className="text-lg font-bold text-white">Admin Panel</h1>
-                <p className="text-xs text-gray-400">Védett terület</p>
+                <p className="text-xs text-gray-400">Protected Area</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
             >
-              Kijelentkezés
+              Logout
             </button>
           </div>
         </div>
