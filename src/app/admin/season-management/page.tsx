@@ -29,12 +29,12 @@ export default function SeasonManagementPage() {
     fetchSeasons();
   }, []);
 
-  // Check for expired seasons on load
+  // Check for expired seasons on load (info only)
   useEffect(() => {
     const checkExpiredSeasons = () => {
       const expiredSeasons = seasons.filter(season => isSeasonExpired(season));
       if (expiredSeasons.length > 0) {
-        setMessage(`⚠️ ${expiredSeasons.length} season(s) have expired and need to be ended!`);
+        setMessage(`ℹ️ ${expiredSeasons.length} season(s) have reached their end date and are ready to be manually ended.`);
       }
     };
 
@@ -215,6 +215,20 @@ export default function SeasonManagementPage() {
             Season Management
           </h1>
           <p className="text-gray-400">Manage seasons, distribute airdrops, and create new seasons</p>
+          
+          {/* Info Section */}
+          <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-blue-300 mb-2 flex items-center gap-2">
+              <FiClock className="w-5 h-5" />
+              Season Information
+            </h3>
+            <div className="text-sm text-gray-300 space-y-1">
+              <p>• <span className="text-green-400">Green</span> - Season is active and running normally</p>
+              <p>• <span className="text-yellow-400">Yellow</span> - Season is ending within 24 hours</p>
+              <p>• <span className="text-red-400">Red</span> - Season has reached its end date and is ready to be manually ended</p>
+              <p>• Seasons must be manually ended to distribute airdrops and create new seasons</p>
+            </div>
+          </div>
         </div>
 
         {/* Message */}
@@ -360,7 +374,7 @@ export default function SeasonManagementPage() {
                     }`}>
                       <FiClock className="w-4 h-4" />
                       <span className="font-semibold">
-                        {expired ? 'Season has ended!' : expiringSoon ? 'Ending soon!' : 'Time remaining:'}
+                        {expired ? 'Ready to end season' : expiringSoon ? 'Ending soon!' : 'Time remaining:'}
                       </span>
                     </div>
                   )}
@@ -384,7 +398,7 @@ export default function SeasonManagementPage() {
                       ) : expired ? (
                         <>
                           <FiAlertTriangle className="w-4 h-4" />
-                          End Season Now!
+                          Ready to End
                         </>
                       ) : (
                         <>

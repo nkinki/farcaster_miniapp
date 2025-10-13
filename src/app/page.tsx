@@ -8,6 +8,7 @@ import React from "react"
 import Image from "next/image"
 import LamboLottery from "@/components/LamboLottery"
 import WeatherLottoModal from "@/components/WeatherLottoModal"
+import SeasonStatusBanner from "@/components/SeasonStatusBanner"
 
 // Tipusok
 interface Miniapp {
@@ -131,6 +132,7 @@ export default function Home() {
   const [showLamboLottery, setShowLamboLottery] = useState(false)
   const [showWeatherLotto, setShowWeatherLotto] = useState(false)
   const [userFid, setUserFid] = useState<number>(0)
+  const [seasonData, setSeasonData] = useState<any>(null)
 
   useEffect(() => {
     const checkHaptics = async () => {
@@ -163,6 +165,21 @@ export default function Home() {
       .catch((error) => {
         console.error("Error fetching data:", error)
         setLoading(false)
+      })
+
+    // Fetch current season data
+    fetch(`${window.location.origin}/api/season/current`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.seasons && data.seasons.length > 0) {
+          const activeSeason = data.seasons.find((season: any) => season.status === 'active');
+          if (activeSeason) {
+            setSeasonData(activeSeason);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching season data:", error)
       })
 
     sdk.actions.addMiniApp();
@@ -257,6 +274,9 @@ export default function Home() {
 
   return (
     <>
+      {/* Season Status Banner */}
+      {seasonData && <SeasonStatusBanner seasonData={seasonData} />}
+
       {/* Lambo Lottery Modal */}
       <LamboLottery 
         isOpen={showLamboLottery}
