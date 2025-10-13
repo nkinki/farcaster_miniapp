@@ -66,10 +66,10 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   if (!seasonData) return null;
 
   const getStatusColor = () => {
-    if (seasonData.status === 'completed') return 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 border-green-500/50 text-green-200';
-    if (isExpired) return 'bg-gradient-to-r from-red-500/30 to-pink-500/30 border-red-500/50 text-red-200';
-    if (isExpiringSoon) return 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border-yellow-500/50 text-yellow-200';
-    return 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 border-purple-500/50 text-purple-200';
+    if (seasonData.status === 'completed') return 'bg-[#23283a] border-green-500 text-green-300';
+    if (isExpired) return 'bg-[#23283a] border-red-500 text-red-300';
+    if (isExpiringSoon) return 'bg-[#23283a] border-yellow-400 text-yellow-300';
+    return 'bg-[#23283a] border-[#5D6AFF] text-[#5D6AFF]';
   };
 
   const getStatusIcon = () => {
@@ -109,7 +109,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
           {getStatusIcon()}
           <div>
             <h3 className="text-sm font-bold text-white">{seasonData.name}</h3>
-            <p className="text-xs text-gray-200">{getStatusText()}</p>
+            <p className="text-xs text-gray-400">{getStatusText()}</p>
           </div>
         </div>
         
@@ -121,7 +121,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
               </div>
             </div>
           )}
-          <div className="text-gray-200">
+          <div className="text-gray-400">
             {isCollapsed ? <FiChevronDown className="w-4 h-4" /> : <FiChevronUp className="w-4 h-4" />}
           </div>
         </div>
@@ -132,29 +132,29 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
         <div className="px-3 pb-3 border-t border-white/10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mt-3">
             <div className="flex items-center gap-2">
-              <FiAward className="text-purple-300 w-4 h-4" />
-              <span className="text-gray-200">Rewards:</span>
-              <span className="text-purple-200 font-semibold">
+              <FiAward className="text-[#5D6AFF] w-4 h-4" />
+              <span className="text-gray-400">Rewards:</span>
+              <span className="text-[#5D6AFF] font-semibold">
                 {formatNumber(parseInt(seasonData.total_rewards))} CHESS
               </span>
             </div>
             
             <div className="flex items-center gap-2">
-              <FiClock className="text-purple-300 w-4 h-4" />
-              <span className="text-gray-200">Start:</span>
+              <FiClock className="text-[#5D6AFF] w-4 h-4" />
+              <span className="text-gray-400">Start:</span>
               <span className="text-white">{formatDate(seasonData.start_date)}</span>
             </div>
             
             <div className="flex items-center gap-2">
-              <FiClock className="text-purple-300 w-4 h-4" />
-              <span className="text-gray-200">End:</span>
+              <FiClock className="text-[#5D6AFF] w-4 h-4" />
+              <span className="text-gray-400">End:</span>
               <span className="text-white">{formatDate(seasonData.end_date)}</span>
             </div>
           </div>
 
           {seasonData.status === 'active' && (
             <div className="mt-3 p-2 rounded bg-black/30">
-              <p className="text-xs text-gray-200 text-center">
+              <p className="text-xs text-gray-400 text-center">
                 {isExpired 
                   ? 'This season has reached its end date. Administrators will manually review and distribute rewards based on your participation.'
                   : isExpiringSoon
