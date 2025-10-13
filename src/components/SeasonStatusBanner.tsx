@@ -20,8 +20,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isExpired, setIsExpired] = useState(false);
   const [isExpiringSoon, setIsExpiringSoon] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showAirdropModal, setShowAirdropModal] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   useEffect(() => {
     if (!seasonData || seasonData.status !== 'active') return;
@@ -172,7 +171,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
           {/* Airdrop Button */}
           <div className="flex justify-center">
             <button
-              onClick={() => setShowAirdropModal(true)}
+              onClick={() => window.open('/airdrop', '_blank')}
               className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
               title="View Airdrop Distribution"
             >
@@ -183,73 +182,6 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
         </div>
       )}
 
-      {/* Airdrop Modal */}
-      {showAirdropModal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#23283a] rounded-xl shadow-2xl border border-[#5D6AFF]/30 max-w-lg w-full mx-4">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-3 border-b border-gray-700">
-              <div className="flex items-center gap-2">
-                <FiGift className="w-5 h-5 text-[#5D6AFF]" />
-                <h2 className="text-lg font-bold text-white">Airdrop Info</h2>
-              </div>
-              <button
-                onClick={() => setShowAirdropModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-4">
-              <div className="text-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#5D6AFF] to-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FiAward className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-1">Season Airdrop</h3>
-                <p className="text-sm text-gray-400">Points-based distribution</p>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between items-center p-2 bg-black/20 rounded">
-                  <span className="text-gray-400 text-sm">Rewards:</span>
-                  <span className="text-[#5D6AFF] font-bold text-sm">
-                    {formatNumber(parseInt(seasonData?.total_rewards || '0'))} CHESS
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center p-2 bg-black/20 rounded">
-                  <span className="text-gray-400 text-sm">Status:</span>
-                  <span className="text-green-400 text-sm">Manual Distribution</span>
-                </div>
-              </div>
-
-              <div className="text-center space-y-2">
-                <button
-                  onClick={() => {
-                    setShowAirdropModal(false);
-                    window.open('/airdrop', '_blank');
-                  }}
-                  className="px-4 py-2 bg-[#5D6AFF] hover:bg-[#5D6AFF]/80 text-white font-medium rounded transition-colors text-sm"
-                >
-                  View Full Page
-                </button>
-                <div>
-                  <button
-                    onClick={() => setShowAirdropModal(false)}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded transition-colors text-sm"
-                  >
-                    ← Back to Homepage
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
     </>
   );
