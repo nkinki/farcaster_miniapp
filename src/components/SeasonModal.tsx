@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle, FiCreditCard } from "react-icons/fi";
+import { FiX, FiCalendar, FiDollarSign, FiUsers, FiTrendingUp, FiGift, FiClock, FiCheckCircle, FiCreditCard, FiBarChart3 } from "react-icons/fi";
 import { useAccount } from "wagmi";
 import { useReadContract } from "wagmi";
 import { formatUnits } from "viem";
@@ -210,7 +210,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1a1f2e] rounded-2xl border border-[#a64d79] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#1a1f2e] rounded-2xl border border-[#a64d79] max-w-2xl w-full max-h-[90vh] overflow-y-auto pulse-glow">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">
@@ -231,7 +231,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Wallet Status */}
-          <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79]">
+          <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
             <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
               <FiCreditCard className="w-5 h-5" />
               Wallet Status
@@ -469,12 +469,19 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                     {new Date(seasonData.end_date).toLocaleDateString()}
                   </span>
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 space-y-2">
                   <button 
                     disabled
                     className="w-full px-3 py-2 bg-gray-600 text-gray-400 rounded-lg cursor-not-allowed text-xs font-semibold"
                   >
                     Claim Rewards (Coming Soon)
+                  </button>
+                  <button 
+                    onClick={() => window.open('/airdrop', '_blank')}
+                    className="w-full px-3 py-2 bg-[#5D6AFF] hover:bg-[#5D6AFF]/80 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FiBarChart3 className="w-4 h-4" />
+                    View Stats
                   </button>
                 </div>
               </div>
@@ -494,8 +501,26 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
             transform: translateY(0); 
           }
         }
+        @keyframes pulseGlow {
+          0% {
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
+          }
+          50% {
+            box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff;
+            filter: brightness(1.1) saturate(1.2);
+          }
+          100% {
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
+          }
+        }
         .animate-slideIn {
           animation: slideIn 0.5s ease-out;
+        }
+        .pulse-glow {
+          animation: pulseGlow 3.5s ease-in-out infinite;
+          border: 2px solid #a259ff;
         }
       `}</style>
     </div>
