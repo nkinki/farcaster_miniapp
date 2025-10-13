@@ -66,10 +66,10 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   if (!seasonData) return null;
 
   const getStatusColor = () => {
-    if (seasonData.status === 'completed') return 'bg-green-500/20 border-green-500/50 text-green-300';
-    if (isExpired) return 'bg-red-500/20 border-red-500/50 text-red-300';
-    if (isExpiringSoon) return 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300';
-    return 'bg-blue-500/20 border-blue-500/50 text-blue-300';
+    if (seasonData.status === 'completed') return 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30 text-green-300';
+    if (isExpired) return 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-500/30 text-red-300';
+    if (isExpiringSoon) return 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30 text-yellow-300';
+    return 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300';
   };
 
   const getStatusIcon = () => {
@@ -90,9 +90,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     });
   };
 
@@ -101,7 +99,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   };
 
   return (
-    <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4`}>
+    <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4 shadow-lg hover:shadow-purple-500/25 transition-all duration-300`}>
       {/* Compact Header */}
       <div 
         className="flex items-center justify-between p-3 cursor-pointer hover:bg-black/10 transition-colors"
@@ -136,19 +134,19 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
             <div className="flex items-center gap-2">
               <FiAward className="text-purple-400 w-4 h-4" />
               <span className="text-gray-300">Rewards:</span>
-              <span className="text-white font-semibold">
+              <span className="text-purple-300 font-semibold">
                 {formatNumber(parseInt(seasonData.total_rewards))} CHESS
               </span>
             </div>
             
             <div className="flex items-center gap-2">
-              <FiClock className="text-blue-400 w-4 h-4" />
+              <FiClock className="text-purple-400 w-4 h-4" />
               <span className="text-gray-300">Start:</span>
               <span className="text-white">{formatDate(seasonData.start_date)}</span>
             </div>
             
             <div className="flex items-center gap-2">
-              <FiClock className="text-orange-400 w-4 h-4" />
+              <FiClock className="text-purple-400 w-4 h-4" />
               <span className="text-gray-300">End:</span>
               <span className="text-white">{formatDate(seasonData.end_date)}</span>
             </div>
