@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
-    const { seasonId, distributeAirdrop = true, createNewSeason = true } = await request.json();
+    const { seasonId, createNewSeason = true } = await request.json();
     
     if (!seasonId) {
       return NextResponse.json({ 
@@ -41,29 +41,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    let airdropResult = null;
-    
-    // Distribute airdrop if requested
-    if (distributeAirdrop) {
-      console.log(`💰 Distributing airdrop for Season ${seasonId}...`);
-      
-      try {
-        const airdropResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/season/distribute-airdrop`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ seasonId, dryRun: false })
-        });
-        
-        if (airdropResponse.ok) {
-          airdropResult = await airdropResponse.json();
-          console.log(`✅ Airdrop distributed successfully`);
-        } else {
-          console.error(`❌ Airdrop distribution failed:`, await airdropResponse.text());
-        }
-      } catch (error) {
-        console.error(`❌ Airdrop distribution error:`, error);
-      }
-    }
+    // Note: Airdrop distribution is now handled manually by administrators
+    console.log(`ℹ️ Season ${seasonId} ended. Airdrop distribution will be handled manually by administrators.`);
 
     // Mark season as completed
     await client.query(`
@@ -108,14 +87,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Season ended successfully',
+      message: 'Season ended successfully. Airdrop distribution will be handled manually by administrators.',
       ended_season: {
         id: season.id,
         name: season.name,
         status: 'completed'
       },
-      airdrop_result: airdropResult,
-      new_season: newSeasonResult
+      new_season: newSeasonResult,
+      note: 'Airdrop distribution is now manual - administrators will determine and distribute rewards individually'
     });
 
   } catch (error) {

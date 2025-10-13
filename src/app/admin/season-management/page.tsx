@@ -110,7 +110,6 @@ export default function SeasonManagementPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           seasonId, 
-          distributeAirdrop: true, 
           createNewSeason: true 
         })
       });
@@ -118,7 +117,7 @@ export default function SeasonManagementPage() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage(`✅ Season ended successfully! ${data.new_season ? `New season created: ${data.new_season.name}` : ''}`);
+        setMessage(`✅ Season ended successfully! ${data.new_season ? `New season created: ${data.new_season.name}` : ''} ${data.note ? `Note: ${data.note}` : ''}`);
         await fetchSeasons();
       } else {
         setMessage(`❌ Error: ${data.error}`);
@@ -226,7 +225,8 @@ export default function SeasonManagementPage() {
               <p>• <span className="text-green-400">Green</span> - Season is active and running normally</p>
               <p>• <span className="text-yellow-400">Yellow</span> - Season is ending within 24 hours</p>
               <p>• <span className="text-red-400">Red</span> - Season has reached its end date and is ready to be manually ended</p>
-              <p>• Seasons must be manually ended to distribute airdrops and create new seasons</p>
+              <p>• <span className="text-purple-400">Manual Control:</span> Season ending creates new season, but airdrop distribution is handled separately by administrators</p>
+              <p>• Use the Airdrop button to manually calculate and distribute rewards to users</p>
             </div>
           </div>
         </div>

@@ -150,10 +150,10 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
         <div className="mt-3 p-2 rounded-lg bg-black/20">
           <p className="text-xs text-gray-300 text-center">
             {isExpired 
-              ? 'This season has reached its end date and will be manually ended by administrators to distribute rewards.'
+              ? 'This season has reached its end date. Administrators will manually review and distribute rewards based on your participation.'
               : isExpiringSoon
                 ? 'This season is ending soon! Make sure to complete your activities to earn points.'
-                : 'Keep participating to earn points and qualify for the airdrop distribution!'
+                : 'Keep participating to earn points and qualify for the manual reward distribution!'
             }
           </p>
         </div>
