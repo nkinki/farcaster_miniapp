@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiClock, FiAward, FiAlertTriangle, FiCheckCircle, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiClock, FiAward, FiAlertTriangle, FiCheckCircle, FiChevronDown, FiChevronUp, FiGift } from 'react-icons/fi';
 
 interface SeasonData {
   id: number;
@@ -21,6 +21,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   const [isExpired, setIsExpired] = useState(false);
   const [isExpiringSoon, setIsExpiringSoon] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [showAirdropModal, setShowAirdropModal] = useState(false);
 
   useEffect(() => {
     if (!seasonData || seasonData.status !== 'active') return;
@@ -99,7 +100,28 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   };
 
   return (
-    <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4 shadow-lg hover:shadow-purple-500/25 transition-all duration-300`}>
+    <>
+      <style jsx>{`
+        @keyframes pulseGlow {
+          0% {
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
+          }
+          50% {
+            box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff;
+            filter: brightness(1.1) saturate(1.2);
+          }
+          100% {
+            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+            filter: brightness(1.05) saturate(1.1);
+          }
+        }
+        .pulse-glow {
+          animation: pulseGlow 3.5s ease-in-out infinite;
+          border: 2px solid #a259ff;
+        }
+      `}</style>
+      <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 pulse-glow`}>
       {/* Compact Header */}
       <div 
         className="flex items-center justify-between p-3 cursor-pointer hover:bg-black/10 transition-colors"
@@ -121,6 +143,17 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
               </div>
             </div>
           )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAirdropModal(true);
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
+            title="View Airdrop Distribution"
+          >
+            <FiGift className="w-3 h-3 text-[#5D6AFF]" />
+            <span className="text-xs text-[#5D6AFF] font-medium">Airdrop</span>
+          </button>
           <div className="text-gray-400">
             {isCollapsed ? <FiChevronDown className="w-4 h-4" /> : <FiChevronUp className="w-4 h-4" />}
           </div>
@@ -166,6 +199,39 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
           )}
         </div>
       )}
-    </div>
+
+      {/* Airdrop Modal */}
+      {showAirdropModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#23283a] rounded-xl shadow-2xl border border-[#5D6AFF]/30 max-w-4xl w-full h-[90vh] flex flex-col mx-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <div className="flex items-center gap-3">
+                <FiGift className="w-6 h-6 text-[#5D6AFF]" />
+                <h2 className="text-xl font-bold text-white">Airdrop Distribution</h2>
+              </div>
+              <button
+                onClick={() => setShowAirdropModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src="/airdrop"
+                className="w-full h-full border-0"
+                title="Airdrop Distribution"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 }
