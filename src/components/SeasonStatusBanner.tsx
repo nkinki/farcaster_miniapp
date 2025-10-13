@@ -159,25 +159,17 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
       {/* Expandable Content */}
       {!isCollapsed && (
         <div className="px-3 pb-3 border-t border-white/10">
-          {/* Season Info - Compact */}
-          <div className="text-center mt-3 mb-4">
-            <div className="text-lg font-bold text-white mb-2">{seasonData.name}</div>
-            <div className="flex justify-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <FiClock className="text-[#5D6AFF] w-3 h-3" />
-                <span className="text-gray-400">Start:</span>
-                <span className="text-white">{formatDate(seasonData.start_date)}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <FiClock className="text-[#5D6AFF] w-3 h-3" />
-                <span className="text-gray-400">End:</span>
-                <span className="text-white">{formatDate(seasonData.end_date)}</span>
-              </div>
+          {/* Season Info - Ultra Compact */}
+          <div className="text-center mt-2 mb-3">
+            <div className="text-base font-bold text-white mb-1">{seasonData.name}</div>
+            <div className="flex justify-center gap-3 text-xs">
+              <span className="text-gray-400">{formatDate(seasonData.start_date)}</span>
+              <span className="text-gray-500">-</span>
+              <span className="text-gray-400">{formatDate(seasonData.end_date)}</span>
             </div>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <FiAward className="text-[#5D6AFF] w-4 h-4" />
-              <span className="text-gray-400">Rewards:</span>
-              <span className="text-[#5D6AFF] font-semibold">
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <FiAward className="text-[#5D6AFF] w-3 h-3" />
+              <span className="text-[#5D6AFF] font-semibold text-sm">
                 {formatNumber(parseInt(seasonData.total_rewards))} CHESS
               </span>
             </div>
@@ -187,26 +179,13 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
           <div className="flex justify-center">
             <button
               onClick={() => setShowAirdropModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
               title="View Airdrop Distribution"
             >
-              <FiGift className="w-4 h-4 text-[#5D6AFF]" />
-              <span className="text-sm text-[#5D6AFF] font-medium">View Airdrop Distribution</span>
+              <FiGift className="w-3 h-3 text-[#5D6AFF]" />
+              <span className="text-xs text-[#5D6AFF] font-medium">Airdrop</span>
             </button>
           </div>
-
-          {seasonData.status === 'active' && (
-            <div className="mt-3 p-2 rounded bg-black/30">
-              <p className="text-xs text-gray-400 text-center">
-                {isExpired 
-                  ? 'This season has reached its end date. Administrators will manually review and distribute rewards based on your participation.'
-                  : isExpiringSoon
-                    ? 'This season is ending soon! Make sure to complete your activities to earn points.'
-                    : 'Keep participating to earn points and qualify for the manual reward distribution!'
-                }
-              </p>
-            </div>
-          )}
         </div>
       )}
 
