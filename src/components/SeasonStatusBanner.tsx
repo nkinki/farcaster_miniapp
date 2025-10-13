@@ -64,12 +64,6 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
     return () => clearInterval(interval);
   }, [seasonData]);
 
-  // Auto-open airdrop modal when banner is expanded
-  useEffect(() => {
-    if (!isCollapsed && seasonData) {
-      setShowAirdropModal(true);
-    }
-  }, [isCollapsed, seasonData]);
 
   if (!seasonData) return null;
 
