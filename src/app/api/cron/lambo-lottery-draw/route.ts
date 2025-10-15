@@ -68,7 +68,7 @@ async function performLamboLotteryDraw() {
       SET 
         status = 'completed',
         winning_number = $1,
-        completed_at = NOW()
+        end_time = NOW()
       WHERE id = $2
     `, [winningNumber, round.id]);
     console.log('✅ Round marked as completed.');
