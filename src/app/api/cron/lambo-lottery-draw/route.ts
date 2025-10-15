@@ -17,12 +17,12 @@ async function performLamboLotteryDraw() {
     const forceNow = process.env.FORCE_DRAW_NOW === 'true';
     if (forceNow) {
       console.log('⏱️ FORCE NOW enabled – setting end_time to NOW() for active rounds...');
-      await client.query(`UPDATE lottery_rounds SET end_time = NOW() WHERE status = 'active';`);
+      await client.query(`UPDATE lottery_draws SET end_time = NOW() WHERE status = 'active';`);
     }
 
     console.log('[2/8] Searching for an active round that is due for drawing...');
     let roundResult = await client.query(`
-      SELECT * FROM lottery_rounds 
+      SELECT * FROM lottery_draws 
       WHERE status = 'active' AND end_time <= NOW()
       ORDER BY draw_number DESC 
       LIMIT 1
@@ -64,7 +64,7 @@ async function performLamboLotteryDraw() {
     // --- ROUND FRISSÍTÉSE ---
     console.log('[6/8] Updating round status...');
     await client.query(`
-      UPDATE lottery_rounds 
+      UPDATE lottery_draws 
       SET 
         status = 'completed',
         winning_number = $1,
@@ -98,7 +98,7 @@ async function performLamboLotteryDraw() {
     // --- ÚJ ROUND LÉTREHOZÁSA ---
     console.log('[8/8] Creating new round...');
     const newRoundResult = await client.query(`
-      INSERT INTO lottery_rounds (
+      INSERT INTO lottery_draws (
         draw_number, 
         jackpot, 
         status, 
