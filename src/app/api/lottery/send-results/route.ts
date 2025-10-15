@@ -66,9 +66,17 @@ Get your tickets: https://farc-nu.vercel.app/promote
 This is an automated message from AppRank Lambo Lottery.
     `.trim();
 
+    const adminEmail = process.env.ADMIN_EMAIL;
+    console.log('Admin email:', adminEmail);
+    console.log('Email user:', process.env.EMAIL_USER);
+    
+    if (!adminEmail) {
+      throw new Error('ADMIN_EMAIL environment variable not set');
+    }
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL,
+      to: adminEmail,
       subject: `🏁 Lambo Lottery Results - Round #${round.draw_number} - Number ${winningNumber}`,
       text: emailContent,
     };
