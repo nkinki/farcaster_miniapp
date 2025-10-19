@@ -67,6 +67,8 @@ export default function AdminPage() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [airdropSummary, setAirdropSummary] = useState<string>('');
   const [airdropLoading, setAirdropLoading] = useState(false);
+  const [weatherLottoSummary, setWeatherLottoSummary] = useState<string>('');
+  const [weatherLottoLoading, setWeatherLottoLoading] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -299,6 +301,37 @@ export default function AdminPage() {
     if (airdropSummary) {
       navigator.clipboard.writeText(airdropSummary);
       setEmailStatus('📋 Airdrop summary copied to clipboard!');
+    }
+  };
+
+  const generateWeatherLottoSummary = async () => {
+    setWeatherLottoLoading(true);
+    setWeatherLottoSummary('');
+    
+    try {
+      const response = await fetch('/api/admin/weather-lotto-summary', {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setWeatherLottoSummary(data.weatherLottoSummaryPost);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate weather lotto summary');
+      }
+    } catch (error) {
+      console.error('Error generating Weather Lotto summary:', error);
+      setWeatherLottoSummary(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setWeatherLottoLoading(false);
+    }
+  };
+
+  const copyWeatherLottoToClipboard = () => {
+    if (weatherLottoSummary) {
+      navigator.clipboard.writeText(weatherLottoSummary);
+      setEmailStatus('📋 Weather Lotto summary copied to clipboard!');
     }
   };
 
@@ -850,6 +883,31 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Weather Lotto Summary */}
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🌤️</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Weather Lotto Summary</h3>
+                  <p className="text-gray-300 mb-4">
+                    Generate post about Weather Lotto statistics and gameplay
+                  </p>
+                  <button
+                    onClick={generateWeatherLottoSummary}
+                    disabled={weatherLottoLoading}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {weatherLottoLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <FiRefreshCw className="animate-spin" size={16} />
+                        Generating...
+                      </div>
+                    ) : (
+                      'Generate Weather Lotto Post'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Summary Post Display */}
@@ -894,6 +952,27 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* Weather Lotto Summary Display */}
+            {weatherLottoSummary && (
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-white">🌤️ Generated Weather Lotto Post</h3>
+                  <button
+                    onClick={copyWeatherLottoToClipboard}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+                  >
+                    <FiCopy size={16} />
+                    Copy to Clipboard
+                  </button>
+                </div>
+                <div className="bg-[#1a1f2e] border border-gray-600 rounded p-4">
+                  <pre className="text-green-400 text-sm whitespace-pre-wrap font-mono select-all">
+                    {weatherLottoSummary}
+                  </pre>
+                </div>
+              </div>
+            )}
+
             {/* Instructions */}
             <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
               <h3 className="text-lg font-bold text-white mb-3">📋 Instructions</h3>
@@ -902,6 +981,7 @@ export default function AdminPage() {
                 <p>• <strong>Weather Lotto:</strong> Triggers a new draw and sends the results via email</p>
                 <p>• <strong>Share & Earn Summary:</strong> Generates a shareable post with community statistics</p>
                 <p>• <strong>Airdrop Summary:</strong> Generates a post about airdrops and CHESS holding benefits</p>
+                <p>• <strong>Weather Lotto Summary:</strong> Generates a post about Weather Lotto statistics and gameplay</p>
                 <p>• All content can be copied and posted directly to social media</p>
                 <p>• Emails are sent to the configured admin email address</p>
               </div>
