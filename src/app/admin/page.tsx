@@ -169,6 +169,16 @@ export default function AdminPage() {
         throw new Error('No current lottery round found');
       }
 
+      // Get the last completed round to get the winning number
+      const recentResponse = await fetch('/api/lottery/recent-results');
+      let lastWinningNumber = 0;
+      if (recentResponse.ok) {
+        const recentData = await recentResponse.json();
+        if (recentData.rounds && recentData.rounds.length > 0) {
+          lastWinningNumber = recentData.rounds[0].winning_number;
+        }
+      }
+
       // Use the current active round's jackpot
       const nextJackpot = currentRound.prize_pool;
 
@@ -181,7 +191,7 @@ export default function AdminPage() {
             draw_number: currentRound.round_number,
             jackpot: currentRound.prize_pool
           },
-          winningNumber: 0, // No winning number for current round
+          winningNumber: lastWinningNumber, // Last completed round's winning number
           winners: [], // Will be calculated by the API
           totalPayout: 0, // Will be calculated by the API
           nextJackpot: nextJackpot
