@@ -1,13 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,17 +10,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Format the email content
-    const winnersList = winners && winners.length > 0 
-      ? winners.map((winner: any, index: number) => 
-          `${index + 1}. FID ${winner.player_fid} - Number ${winner.number} - ${(winner.amount_won / 1e18).toFixed(2)} CHESS`
-        ).join('\n')
-      : 'No winners this round';
-
-    // Use the nextJackpot parameter from the request
-    const nextJackpotAmount = parseInt(nextJackpot || '0', 10);
-    console.log('Next jackpot received:', nextJackpot, 'Parsed:', nextJackpotAmount);
 
     // Generate random emoji combinations for variety
     const emojiSets = [
@@ -62,7 +42,17 @@ export async function POST(request: NextRequest) {
     const randomNoWinnerMsg = noWinnerMessages[Math.floor(Math.random() * noWinnerMessages.length)];
     const randomWinnerMsg = winnerMessages[Math.floor(Math.random() * winnerMessages.length)];
 
-    const emailContent = `
+    // Format the winners list
+    const winnersList = winners && winners.length > 0 
+      ? winners.map((winner: any, index: number) => 
+          `${index + 1}. FID ${winner.player_fid} - Number ${winner.number} - ${(winner.amount_won / 1e18).toFixed(2)} CHESS`
+        ).join('\n')
+      : 'No winners this round';
+
+    // Use the nextJackpot parameter from the request
+    const nextJackpotAmount = parseInt(nextJackpot || '0', 10);
+
+    const formattedContent = `
 ${randomEmoji.lottery} LAMBO LOTTERY DRAW RESULTS ${randomEmoji.lottery}
 
 ┌─────────────────────────────────┐
@@ -100,36 +90,20 @@ Get your tickets: https://farc-nu.vercel.app/promote
 This is an automated message from AppRank Lambo Lottery.
     `.trim();
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    console.log('Admin email:', adminEmail);
-    console.log('Email user:', process.env.EMAIL_USER);
-    
-    if (!adminEmail) {
-      throw new Error('ADMIN_EMAIL environment variable not set');
-    }
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: adminEmail,
-      subject: `🏁 Lambo Lottery Results - Round #${round.draw_number} - Number ${winningNumber}`,
-      text: emailContent,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    console.log('✅ Lambo Lottery results email sent successfully');
-
     return NextResponse.json({
       success: true,
-      message: 'Lambo Lottery results email sent successfully'
+      formattedContent,
+      round: round.draw_number,
+      winningNumber,
+      nextJackpot: nextJackpotAmount
     });
 
   } catch (error) {
-    console.error('❌ Error sending Lambo Lottery results email:', error);
+    console.error('❌ Error formatting results:', error);
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to send email',
+        error: 'Failed to format results',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
