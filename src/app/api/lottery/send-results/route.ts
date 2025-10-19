@@ -117,8 +117,8 @@ ${winners && winners.length === 0 ? `
 ${randomEmoji.tip} ${randomNoWinnerMsg}
 
 ${randomEmoji.fire} Jackpot rolls over!
-${randomEmoji.tip} Buy tickets for tomorrow's draw!
-${randomEmoji.next} Next: Tomorrow 19:05 UTC
+${randomEmoji.tip} Buy tickets for the next draw!
+${randomEmoji.next} Next draw: 19:05 UTC
 💰 Price: 100,000 CHESS each
 
 https://farc-nu.vercel.app/promote
@@ -127,14 +127,14 @@ ${randomEmoji.winner} ${randomWinnerMsg}
 
 ${randomEmoji.fire} Jackpot won! Resets to 1M CHESS!
 ${randomEmoji.tip} New round starts now!
-${randomEmoji.next} Next: Tomorrow 19:05 UTC
+${randomEmoji.next} Next draw: 19:05 UTC
 💰 Price: 100,000 CHESS each
 
 https://farc-nu.vercel.app/promote
 `}
 
 ${randomLayout.separator}
-AppRank Lambo Lottery
+AppRank BUY A LAMBO Lottery
     `.trim();
 
     const adminEmail = process.env.ADMIN_EMAIL;
@@ -148,7 +148,7 @@ AppRank Lambo Lottery
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: adminEmail,
-      subject: `🏁 Lambo Lottery Results - Round #${round.draw_number} - Number ${winningNumber}`,
+      subject: `🏁 BUY A LAMBO Lottery Results - Round #${round.draw_number} - Number ${winningNumber}`,
       text: emailContent,
     };
 
