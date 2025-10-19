@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransporter({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -103,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Format top earners
     const topEarnersList = topEarnersResult.length > 0 
       ? topEarnersResult.map((earner, index) => 
-          `${index + 1}. FID ${earner.user_fid} - ${earner.total_points} points`
+          `${index + 1}. FID ${earner.user_fid} - ${earner.total_points || 0} points`
         ).join('\n')
       : 'No points earned yet';
 
@@ -118,7 +127,7 @@ ${randomEmoji.star} Active Users: ${totalUsers.toLocaleString()}
 ${randomEmoji.chess} Total Rewards: ${(totalRewards / 1e18).toLocaleString()} CHESS
 
 ${currentSeason ? `
-${randomEmoji.fire} Current Season: ${currentSeason.name}
+${randomEmoji.fire} Current Season: AppRank Airdrop Season 0
 ${randomEmoji.chess} Season Rewards: ${(currentSeason.total_rewards / 1e18).toLocaleString()} CHESS
 ` : ''}
 
@@ -154,6 +163,25 @@ ${randomEmoji.chess} Hold CHESS for maximum points!
 ${randomLayout.separator}
 AppRank - Airdrop Platform
     `.trim();
+
+    // Send email with airdrop summary
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (adminEmail) {
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: adminEmail,
+          subject: `🎁 AppRank Airdrop Season 0 Summary - ${totalPoints.toLocaleString()} Points Earned`,
+          text: airdropSummaryPost,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Airdrop summary email sent successfully');
+      }
+    } catch (emailError) {
+      console.error('❌ Error sending airdrop summary email:', emailError);
+      // Don't fail the whole request if email fails
+    }
 
     return NextResponse.json({
       success: true,
