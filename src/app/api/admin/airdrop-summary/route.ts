@@ -53,27 +53,27 @@ export async function POST(request: NextRequest) {
       LIMIT 5
     `;
 
-    // Generate random emoji combinations for variety
-    const emojiSets = [
-      { airdrop: '🎁', points: '⭐', chess: '💎', daily: '📅', fire: '🔥', star: '✨' },
-      { airdrop: '💰', points: '🎯', chess: '💵', daily: '⏰', fire: '⚡', star: '🌟' },
-      { airdrop: '🎊', points: '🏆', chess: '💴', daily: '📆', fire: '🚀', star: '💫' },
-      { airdrop: '🎈', points: '🎖️', chess: '💸', daily: '🗓️', fire: '🔥', star: '⭐' },
-      { airdrop: '🎁', points: '🏅', chess: '💎', daily: '📅', fire: '⚡', star: '✨' }
+    // Generate random solid icon combinations for variety
+    const iconSets = [
+      { airdrop: '●', points: '★', chess: '■', daily: '◆', fire: '▲', star: '♦' },
+      { airdrop: '●', points: '●', chess: '●', daily: '●', fire: '●', star: '●' },
+      { airdrop: '■', points: '■', chess: '■', daily: '■', fire: '■', star: '■' },
+      { airdrop: '▲', points: '▲', chess: '▲', daily: '▲', fire: '▲', star: '▲' },
+      { airdrop: '♦', points: '♦', chess: '♦', daily: '♦', fire: '♦', star: '♦' }
     ];
     
-    const randomEmoji = emojiSets[Math.floor(Math.random() * emojiSets.length)];
+    const randomIcon = iconSets[Math.floor(Math.random() * iconSets.length)];
 
     // Generate random motivational messages
     const motivationalMessages = [
-      "The airdrop season is here! 🌱",
-      "Amazing rewards await! 📈", 
-      "Don't miss out on free CHESS! 🚀",
-      "Your daily check pays off! 🎯",
-      "Holding CHESS is the key! ✨",
-      "Points = Free money! 💎",
-      "Start earning today! 🌟",
-      "The more you hold, the more you earn! 🏆"
+      "The airdrop season is here!",
+      "Amazing rewards await!", 
+      "Don't miss out on free CHESS!",
+      "Your daily check pays off!",
+      "Holding CHESS is the key!",
+      "Points = Free money!",
+      "Start earning today!",
+      "The more you hold, the more you earn!"
     ];
     
     const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
@@ -81,27 +81,27 @@ export async function POST(request: NextRequest) {
     // Generate random compact layouts
     const layouts = [
       {
-        header: `${randomEmoji.airdrop} AIRDROP SEASON ${randomEmoji.airdrop}`,
+        header: `${randomIcon.airdrop} AIRDROP SEASON ${randomIcon.airdrop}`,
         box: `┌─────────────────────────────────┐\n│  Free CHESS Distribution  │\n└─────────────────────────────────┘`,
         separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
       },
       {
-        header: `${randomEmoji.fire} FREE CHESS ${randomEmoji.fire}`,
+        header: `${randomIcon.fire} FREE CHESS ${randomIcon.fire}`,
         box: `╔═════════════════════════════════╗\n║  Airdrop Campaign  ║\n╚═════════════════════════════════╝`,
         separator: '═══════════════════════════════════════════'
       },
       {
-        header: `${randomEmoji.star} REWARDS ${randomEmoji.star}`,
+        header: `${randomIcon.star} REWARDS ${randomIcon.star}`,
         box: `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃  Point System  ┃\n┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛`,
         separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
       },
       {
-        header: `${randomEmoji.airdrop} DISTRIBUTION ${randomEmoji.airdrop}`,
+        header: `${randomIcon.airdrop} DISTRIBUTION ${randomIcon.airdrop}`,
         box: `┌─────────────────────────────────┐\n│  Earn Points  │\n└─────────────────────────────────┘`,
         separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
       },
       {
-        header: `${randomEmoji.fire} CHESS DROPS ${randomEmoji.fire}`,
+        header: `${randomIcon.fire} CHESS DROPS ${randomIcon.fire}`,
         box: `╭─────────────────────────────────╮\n│  Free Tokens  │\n╰─────────────────────────────────╯`,
         separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
       }
@@ -121,41 +121,41 @@ ${randomLayout.header}
 
 ${randomLayout.box}
 
-${randomEmoji.airdrop} Total Seasons: ${totalSeasons}
-${randomEmoji.points} Total Points: ${totalPoints.toLocaleString()}
-${randomEmoji.star} Active Users: ${totalUsers.toLocaleString()}
-${randomEmoji.chess} Total Rewards: ${(totalRewards / 1e18).toLocaleString()} CHESS
+${randomIcon.airdrop} Total Seasons: ${totalSeasons}
+${randomIcon.points} Total Points: ${totalPoints.toLocaleString()}
+${randomIcon.star} Active Users: ${totalUsers.toLocaleString()}
+${randomIcon.chess} Total Rewards: ${(totalRewards / 1e18).toLocaleString()} CHESS
 
 ${currentSeason ? `
-${randomEmoji.fire} Current Season: AppRank Airdrop Season 0
-${randomEmoji.chess} Season Rewards: ${(currentSeason.total_rewards / 1e18).toLocaleString()} CHESS
+${randomIcon.fire} Current Season: AppRank Airdrop Season 0
+${randomIcon.chess} Season Rewards: ${(currentSeason.total_rewards / 1e18).toLocaleString()} CHESS
 ` : ''}
 
-🏆 TOP POINT EARNERS:
+${randomIcon.trophy} TOP POINT EARNERS:
 ${topEarnersList}
 
-${randomEmoji.fire} ${randomMessage}
+${randomIcon.fire} ${randomMessage}
 
-${randomEmoji.points} 7 WAYS TO EARN POINTS:
-${randomEmoji.daily} Daily Check - 1 point/day ✅
-❤️ Like/Recast - 1 point/action ❤️
-📤 Share/Quote - 1 point/action 📤
-💬 Comments - 1 point/action 💬
-🚗 Lambo Lottery - 1 point/ticket 🚗
-☀️ Weather Lotto - 1 point/ticket ☀️
+${randomIcon.points} 7 WAYS TO EARN POINTS:
+${randomIcon.daily} Daily Check - 1 point/day
+${randomIcon.points} Like/Recast - 1 point/action
+${randomIcon.points} Share/Quote - 1 point/action
+${randomIcon.points} Comments - 1 point/action
+${randomIcon.points} Lambo Lottery - 1 point/ticket
+${randomIcon.points} Weather Lotto - 1 point/ticket
 
-${randomEmoji.chess} CHESS HOLDINGS:
-${randomEmoji.chess} 1M CHESS = 1 point 💰
-${randomEmoji.fire} UNLIMITED points daily! 🔥
+${randomIcon.chess} CHESS HOLDINGS:
+${randomIcon.chess} 1M CHESS = 1 point
+${randomIcon.fire} UNLIMITED points daily!
 
-${randomEmoji.star} WHY HOLD CHESS?
-${randomEmoji.chess} 1M CHESS = 1 point every day
-${randomEmoji.fire} More CHESS = More points = More airdrop
-${randomEmoji.star} Daily check = Free points
-${randomEmoji.airdrop} Airdrops based on total points
+${randomIcon.star} WHY HOLD CHESS?
+${randomIcon.chess} 1M CHESS = 1 point every day
+${randomIcon.fire} More CHESS = More points = More airdrop
+${randomIcon.star} Daily check = Free points
+${randomIcon.airdrop} Airdrops based on total points
 
-${randomEmoji.daily} Start your daily check now!
-${randomEmoji.chess} Hold CHESS for maximum points!
+${randomIcon.daily} Start your daily check now!
+${randomIcon.chess} Hold CHESS for maximum points!
 
 🎯 Play FarChess: https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess
 📊 AppRank Platform: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank

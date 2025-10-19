@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       calculatedChessPoints = chess_points;
     }
 
-    const totalPoints = 1 + calculatedChessPoints; // Daily check + CHESS points
+    const totalPoints = 1; // Only daily check points (CHESS points are tracked separately)
 
     if (existingCheck.rows.length > 0) {
       // Update existing record
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       ) VALUES ($1, $2, $3, 1, $4, NOW())
       ON CONFLICT (user_fid, season_id) 
       DO UPDATE SET 
-        total_points = user_season_summary.total_points + $3,
+        total_points = user_season_summary.total_points + $3 + $4,
         daily_checks = user_season_summary.daily_checks + 1,
         total_chess_points = user_season_summary.total_chess_points + $4,
         last_activity = NOW(),
