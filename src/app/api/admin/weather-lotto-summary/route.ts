@@ -28,17 +28,17 @@ export async function POST(request: NextRequest) {
     const totalRounds = Number(totalRoundsResult[0]?.count || 0);
 
     const totalWinnersResult = await sql`
-      SELECT COUNT(*) as count FROM weather_lotto_rounds WHERE winner_fid IS NOT NULL
+      SELECT COUNT(*) as count FROM weather_lotto_rounds WHERE winning_side IS NOT NULL
     `;
     const totalWinners = Number(totalWinnersResult[0]?.count || 0);
 
     const totalPrizePoolResult = await sql`
-      SELECT COALESCE(SUM(prize_pool), 0) as total FROM weather_lotto_rounds
+      SELECT COALESCE(SUM(total_pool), 0) as total FROM weather_lotto_rounds
     `;
     const totalPrizePool = Number(totalPrizePoolResult[0]?.total || 0);
 
     const totalDistributedResult = await sql`
-      SELECT COALESCE(SUM(prize_pool), 0) as total FROM weather_lotto_rounds WHERE winner_fid IS NOT NULL
+      SELECT COALESCE(SUM(winners_pool), 0) as total FROM weather_lotto_rounds WHERE winning_side IS NOT NULL
     `;
     const totalDistributed = Number(totalDistributedResult[0]?.total || 0);
 
@@ -54,10 +54,9 @@ export async function POST(request: NextRequest) {
     const recentRoundsResult = await sql`
       SELECT 
         round_number,
-        weather_prediction,
-        actual_weather,
-        prize_pool,
-        winner_fid,
+        winning_side,
+        total_pool,
+        winners_pool,
         created_at
       FROM weather_lotto_rounds 
       ORDER BY created_at DESC 
@@ -69,9 +68,9 @@ export async function POST(request: NextRequest) {
       SELECT 
         player_fid,
         COUNT(*) as tickets_purchased,
-        COUNT(CASE WHEN wr.winner_fid IS NOT NULL THEN 1 END) as wins
+        COUNT(CASE WHEN wr.winning_side = wlt.side AND wr.winning_side IS NOT NULL THEN 1 END) as wins
       FROM weather_lotto_tickets wlt
-      LEFT JOIN weather_lotto_rounds wr ON wlt.round_id = wr.id AND wr.winner_fid = wlt.player_fid
+      LEFT JOIN weather_lotto_rounds wr ON wlt.round_id = wr.id
       GROUP BY player_fid
       ORDER BY tickets_purchased DESC
       LIMIT 5
@@ -143,7 +142,7 @@ export async function POST(request: NextRequest) {
     // Format recent rounds
     const recentRoundsList = recentRoundsResult.length > 0 
       ? recentRoundsResult.map((round, index) => 
-          `Round ${round.round_number}: ${round.weather_prediction} → ${round.actual_weather || 'TBD'} - ${(round.prize_pool / 1e18).toLocaleString()} CHESS`
+          `Round ${round.round_number}: ${round.winning_side || 'TBD'} - ${(round.total_pool / 1e18).toLocaleString()} CHESS`
         ).join('\n')
       : 'No rounds yet';
 
@@ -160,8 +159,8 @@ ${randomIcon.prize} Total Distributed: ${(totalDistributed / 1e18).toLocaleStrin
 
 ${currentRound ? `
 ${randomIcon.weather} Current Round: #${currentRound.round_number}
-${randomIcon.sun} Prediction: ${currentRound.weather_prediction}
-${randomIcon.prize} Prize Pool: ${(currentRound.prize_pool / 1e18).toLocaleString()} CHESS
+${randomIcon.sun} Status: ${currentRound.status}
+${randomIcon.prize} Total Pool: ${(currentRound.total_pool / 1e18).toLocaleString()} CHESS
 ` : ''}
 
 ${randomIcon.player} TOP PLAYERS:
@@ -234,8 +233,8 @@ AppRank - Weather Lotto Platform
         totalDistributed: totalDistributed / 1e18,
         currentRound: currentRound ? {
           round_number: currentRound.round_number,
-          weather_prediction: currentRound.weather_prediction,
-          prize_pool: currentRound.prize_pool / 1e18
+          status: currentRound.status,
+          total_pool: currentRound.total_pool / 1e18
         } : null
       }
     });
