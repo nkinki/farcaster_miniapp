@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers } from 'react-icons/fi';
+import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers, FiMail } from 'react-icons/fi';
 import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 import AdminPendingFollowsManager from '@/components/AdminPendingFollowsManager';
 
@@ -58,9 +58,11 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [shareablePromos, setShareablePromos] = useState<ShareablePromo[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments' | 'follows'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments' | 'follows' | 'emails'>('stats');
   const [selectedPromos, setSelectedPromos] = useState<Set<number>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<string>('');
 
   const fetchStats = async () => {
     try {
@@ -149,6 +151,75 @@ export default function AdminPage() {
     }
   };
 
+  const sendLamboLotteryEmail = async () => {
+    setEmailLoading(true);
+    setEmailStatus('');
+    
+    try {
+      // Get recent lottery results
+      const recentResponse = await fetch('/api/lottery/recent-results');
+      if (!recentResponse.ok) {
+        throw new Error('Failed to fetch recent results');
+      }
+      
+      const recentData = await recentResponse.json();
+      const latestRound = recentData.rounds[0];
+      
+      if (!latestRound) {
+        throw new Error('No recent lottery rounds found');
+      }
+
+      // Send email with latest results
+      const emailResponse = await fetch('/api/lottery/send-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          round: latestRound,
+          winningNumber: latestRound.winning_number,
+          winners: [], // Will be calculated by the API
+          totalPayout: 0, // Will be calculated by the API
+          nextJackpot: latestRound.jackpot
+        })
+      });
+
+      if (emailResponse.ok) {
+        setEmailStatus('✅ Lambo Lottery email sent successfully!');
+      } else {
+        const errorData = await emailResponse.json();
+        throw new Error(errorData.error || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Error sending Lambo Lottery email:', error);
+      setEmailStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  const sendWeatherLottoEmail = async () => {
+    setEmailLoading(true);
+    setEmailStatus('');
+    
+    try {
+      // Trigger weather lotto draw and email
+      const response = await fetch('/api/cron/weather-lotto-draw', {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        setEmailStatus('✅ Weather Lotto email sent successfully!');
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send weather lotto email');
+      }
+    } catch (error) {
+      console.error('Error sending Weather Lotto email:', error);
+      setEmailStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-4 py-6">
@@ -204,6 +275,17 @@ export default function AdminPage() {
             >
               <FiUsers className="inline mr-2" size={16} />
               Pending Follows
+            </button>
+            <button
+              onClick={() => setActiveTab('emails')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'emails'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              <FiMail className="inline mr-2" size={16} />
+              Send Emails
             </button>
           </div>
         </div>
@@ -563,6 +645,91 @@ export default function AdminPage() {
               <p className="text-gray-300">Review and approve pending follow submissions</p>
             </div>
             <AdminPendingFollowsManager />
+          </div>
+        )}
+
+        {/* Send Emails Tab */}
+        {activeTab === 'emails' && (
+          <div className="space-y-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">📧 Send Email Notifications</h2>
+              <p className="text-gray-300">Manually send lottery and weather lotto result emails</p>
+            </div>
+
+            {/* Email Status */}
+            {emailStatus && (
+              <div className={`p-4 rounded-lg border ${
+                emailStatus.includes('✅') 
+                  ? 'bg-green-900/20 border-green-500/30 text-green-200' 
+                  : 'bg-red-900/20 border-red-500/30 text-red-200'
+              }`}>
+                {emailStatus}
+              </div>
+            )}
+
+            {/* Email Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Lambo Lottery Email */}
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🏁</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Lambo Lottery Results</h3>
+                  <p className="text-gray-300 mb-4">
+                    Send the latest Lambo Lottery draw results with random emojis and formatting
+                  </p>
+                  <button
+                    onClick={sendLamboLotteryEmail}
+                    disabled={emailLoading}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {emailLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <FiRefreshCw className="animate-spin" size={16} />
+                        Sending...
+                      </div>
+                    ) : (
+                      'Send Lambo Lottery Email'
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Weather Lotto Email */}
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🌤️</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Weather Lotto Results</h3>
+                  <p className="text-gray-300 mb-4">
+                    Send the latest Weather Lotto draw results and trigger new draw
+                  </p>
+                  <button
+                    onClick={sendWeatherLottoEmail}
+                    disabled={emailLoading}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {emailLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <FiRefreshCw className="animate-spin" size={16} />
+                        Sending...
+                      </div>
+                    ) : (
+                      'Send Weather Lotto Email'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+              <h3 className="text-lg font-bold text-white mb-3">📋 Instructions</h3>
+              <div className="space-y-2 text-gray-300">
+                <p>• <strong>Lambo Lottery:</strong> Sends the latest draw results with dynamic formatting and random emojis</p>
+                <p>• <strong>Weather Lotto:</strong> Triggers a new draw and sends the results via email</p>
+                <p>• Both emails are sent to the configured admin email address</p>
+                <p>• The emails include properly formatted content that can be copied and posted directly</p>
+              </div>
+            </div>
           </div>
         )}
 
