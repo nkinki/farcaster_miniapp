@@ -25,12 +25,12 @@ export async function POST(request: NextRequest) {
 
     // Get user points statistics
     const totalUsersResult = await sql`
-      SELECT COUNT(DISTINCT user_fid) as count FROM user_points
+      SELECT COUNT(DISTINCT user_fid) as count FROM user_season_summary
     `;
     const totalUsers = Number(totalUsersResult[0]?.count || 0);
 
     const totalPointsResult = await sql`
-      SELECT COALESCE(SUM(points), 0) as total FROM user_points
+      SELECT COALESCE(SUM(total_points), 0) as total FROM user_season_summary
     `;
     const totalPoints = Number(totalPointsResult[0]?.total || 0);
 
@@ -38,9 +38,8 @@ export async function POST(request: NextRequest) {
     const topEarnersResult = await sql`
       SELECT 
         user_fid,
-        SUM(points) as total_points
-      FROM user_points 
-      GROUP BY user_fid 
+        total_points
+      FROM user_season_summary 
       ORDER BY total_points DESC 
       LIMIT 5
     `;
