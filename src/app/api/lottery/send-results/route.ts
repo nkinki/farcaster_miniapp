@@ -13,9 +13,9 @@ export async function POST(request: NextRequest) {
   try {
     const { round, winningNumber, winners, totalPayout, nextJackpot } = await request.json();
 
-    if (!round || !winningNumber) {
+    if (!round) {
       return NextResponse.json(
-        { success: false, error: 'Missing required data' },
+        { success: false, error: 'Missing required data: round' },
         { status: 400 }
       );
     }
@@ -69,7 +69,7 @@ ${randomEmoji.lottery} LAMBO LOTTERY DRAW RESULTS ${randomEmoji.lottery}
 │  Round #${round.draw_number} Results  │
 └─────────────────────────────────┘
 
-${randomEmoji.winner} Winning Number: ${winningNumber}
+${randomEmoji.winner} Winning Number: ${winningNumber || 'TBD'}
 ${randomEmoji.jackpot} Total Payout: ${(totalPayout / 1e18).toFixed(2)} CHESS
 ${randomEmoji.jackpot} Next Jackpot: ${nextJackpotAmount.toLocaleString()} CHESS
 
