@@ -156,30 +156,32 @@ export default function AdminPage() {
     setEmailStatus('');
     
     try {
-      // Get recent lottery results
-      const recentResponse = await fetch('/api/lottery/recent-results');
-      if (!recentResponse.ok) {
-        throw new Error('Failed to fetch recent results');
+      // Get current active round (not completed rounds)
+      const currentResponse = await fetch('/api/lottery/current-round');
+      if (!currentResponse.ok) {
+        throw new Error('Failed to fetch current round');
       }
       
-      const recentData = await recentResponse.json();
-      const latestRound = recentData.rounds[0];
+      const currentData = await currentResponse.json();
+      const currentRound = currentData.round;
       
-      if (!latestRound) {
-        throw new Error('No recent lottery rounds found');
+      if (!currentRound) {
+        throw new Error('No current lottery round found');
       }
 
-      // Use the current jackpot as next jackpot (no calculation needed)
-      // The next jackpot will be calculated when the actual draw happens
-      const nextJackpot = latestRound.jackpot;
+      // Use the current active round's jackpot
+      const nextJackpot = currentRound.prize_pool;
 
-      // Send email with latest results
+      // Send email with current round data
       const emailResponse = await fetch('/api/lottery/send-results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          round: latestRound,
-          winningNumber: latestRound.winning_number,
+          round: {
+            draw_number: currentRound.round_number,
+            jackpot: currentRound.prize_pool
+          },
+          winningNumber: 0, // No winning number for current round
           winners: [], // Will be calculated by the API
           totalPayout: 0, // Will be calculated by the API
           nextJackpot: nextJackpot
