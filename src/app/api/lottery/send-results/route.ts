@@ -33,11 +33,13 @@ export async function POST(request: NextRequest) {
 
     // Generate random emoji combinations for variety
     const emojiSets = [
-      { lottery: '🏁', winner: '🏆', jackpot: '💰', next: '🎰', tip: '💡' },
-      { lottery: '🎲', winner: '⭐', jackpot: '💎', next: '🎯', tip: '🔥' },
-      { lottery: '🎪', winner: '👑', jackpot: '💸', next: '🎲', tip: '⚡' },
-      { lottery: '🎊', winner: '🏅', jackpot: '💵', next: '🎮', tip: '🚀' },
-      { lottery: '🎈', winner: '🥇', jackpot: '💴', next: '🎲', tip: '💫' }
+      { lottery: '🏁', winner: '🏆', jackpot: '💰', next: '🎰', tip: '💡', fire: '🔥' },
+      { lottery: '🎲', winner: '⭐', jackpot: '💎', next: '🎯', tip: '🔥', fire: '⚡' },
+      { lottery: '🎪', winner: '👑', jackpot: '💸', next: '🎲', tip: '⚡', fire: '🚀' },
+      { lottery: '🎊', winner: '🏅', jackpot: '💵', next: '🎮', tip: '🚀', fire: '💫' },
+      { lottery: '🎈', winner: '🥇', jackpot: '💴', next: '🎲', tip: '💫', fire: '🌟' },
+      { lottery: '🎯', winner: '🎖️', jackpot: '💶', next: '🎲', tip: '⭐', fire: '✨' },
+      { lottery: '🎮', winner: '🏅', jackpot: '💷', next: '🎰', tip: '🎯', fire: '🔥' }
     ];
     
     const randomEmoji = emojiSets[Math.floor(Math.random() * emojiSets.length)];
@@ -48,7 +50,10 @@ export async function POST(request: NextRequest) {
       "Bigger and better next time! 📈", 
       "The pot is getting massive! 🚀",
       "Someone's going to be very lucky! 🍀",
-      "The jackpot is heating up! 🔥"
+      "The jackpot is heating up! 🔥",
+      "The prize pool is expanding! 💎",
+      "Next round could be yours! ⭐",
+      "The jackpot is building up! 🏗️"
     ];
     
     const winnerMessages = [
@@ -56,21 +61,53 @@ export async function POST(request: NextRequest) {
       "The jackpot has been claimed! 💰",
       "Winners are celebrating! 🥳",
       "The pot has been won! 🏆",
-      "Congratulations to the lucky ones! 🎊"
+      "Congratulations to the lucky ones! 🎊",
+      "Amazing! Winners struck gold! ✨",
+      "Incredible! The jackpot is claimed! 🌟",
+      "Fantastic! Lucky numbers hit! 🎯"
     ];
     
     const randomNoWinnerMsg = noWinnerMessages[Math.floor(Math.random() * noWinnerMessages.length)];
     const randomWinnerMsg = winnerMessages[Math.floor(Math.random() * winnerMessages.length)];
 
+    // Generate random compact layouts
+    const layouts = [
+      {
+        header: `${randomEmoji.lottery} LAMBO LOTTERY RESULTS ${randomEmoji.lottery}`,
+        box: `┌─────────────────────────────────┐\n│  Round #${round.draw_number} Results  │\n└─────────────────────────────────┘`,
+        separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      },
+      {
+        header: `${randomEmoji.fire} LOTTERY DRAW ${randomEmoji.fire}`,
+        box: `╔═════════════════════════════════╗\n║  Round #${round.draw_number} Results  ║\n╚═════════════════════════════════╝`,
+        separator: '═══════════════════════════════════════════'
+      },
+      {
+        header: `${randomEmoji.lottery} DRAW RESULTS ${randomEmoji.lottery}`,
+        box: `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃  Round #${round.draw_number} Results  ┃\n┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛`,
+        separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      },
+      {
+        header: `${randomEmoji.fire} LOTTERY ${randomEmoji.fire}`,
+        box: `┌─────────────────────────────────┐\n│  Round #${round.draw_number}  │\n└─────────────────────────────────┘`,
+        separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      },
+      {
+        header: `${randomEmoji.lottery} RESULTS ${randomEmoji.lottery}`,
+        box: `╭─────────────────────────────────╮\n│  Round #${round.draw_number} Results  │\n╰─────────────────────────────────╯`,
+        separator: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      }
+    ];
+    
+    const randomLayout = layouts[Math.floor(Math.random() * layouts.length)];
+
     const emailContent = `
-${randomEmoji.lottery} LAMBO LOTTERY DRAW RESULTS ${randomEmoji.lottery}
+${randomLayout.header}
 
-┌─────────────────────────────────┐
-│  Round #${round.draw_number} Results  │
-└─────────────────────────────────┘
+${randomLayout.box}
 
-${randomEmoji.winner} Winning Number: ${winningNumber || 'TBD'}
-${randomEmoji.jackpot} Total Payout: ${(totalPayout / 1e18).toFixed(2)} CHESS
+${randomEmoji.winner} Winning: ${winningNumber || 'TBD'}
+${randomEmoji.jackpot} Payout: ${(totalPayout / 1e18).toFixed(2)} CHESS
 ${randomEmoji.jackpot} Next Jackpot: ${nextJackpotAmount.toLocaleString()} CHESS
 
 ${winners && winners.length > 0 ? `🏆 WINNERS:` : `🎯 RESULTS:`}
@@ -79,27 +116,25 @@ ${winnersList}
 ${winners && winners.length === 0 ? `
 ${randomEmoji.tip} ${randomNoWinnerMsg}
 
-The jackpot rolls over to the next round!
-Don't miss out - buy your tickets for tomorrow's draw!
+${randomEmoji.fire} Jackpot rolls over!
+${randomEmoji.tip} Buy tickets for tomorrow's draw!
+${randomEmoji.next} Next: Tomorrow 19:05 UTC
+💰 Price: 100,000 CHESS each
 
-${randomEmoji.tip} TIP: The more tickets you buy, the higher your chances of winning!
-${randomEmoji.next} Next draw: Tomorrow at 19:05 UTC
-💰 Ticket price: 100,000 CHESS each
-
-Get your tickets now: https://farc-nu.vercel.app/promote
+https://farc-nu.vercel.app/promote
 ` : `
 ${randomEmoji.winner} ${randomWinnerMsg}
 
-The jackpot has been won and resets to 1,000,000 CHESS!
-New round starts now - buy your tickets for the next draw!
+${randomEmoji.fire} Jackpot won! Resets to 1M CHESS!
+${randomEmoji.tip} New round starts now!
+${randomEmoji.next} Next: Tomorrow 19:05 UTC
+💰 Price: 100,000 CHESS each
 
-${randomEmoji.next} Next draw: Tomorrow at 19:05 UTC
-💰 Ticket price: 100,000 CHESS each
-Get your tickets: https://farc-nu.vercel.app/promote
+https://farc-nu.vercel.app/promote
 `}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-This is an automated message from AppRank Lambo Lottery.
+${randomLayout.separator}
+AppRank Lambo Lottery
     `.trim();
 
     const adminEmail = process.env.ADMIN_EMAIL;
