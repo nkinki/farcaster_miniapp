@@ -169,6 +169,16 @@ export default function AdminPage() {
         throw new Error('No recent lottery rounds found');
       }
 
+      // Calculate next jackpot based on whether there were winners
+      let nextJackpot;
+      if (latestRound.winners && latestRound.winners.length > 0) {
+        // If there were winners, next jackpot is 1M (base amount)
+        nextJackpot = '1000000';
+      } else {
+        // If no winners, next jackpot is current jackpot + 1M
+        nextJackpot = (parseInt(latestRound.jackpot) + 1000000).toString();
+      }
+
       // Send email with latest results
       const emailResponse = await fetch('/api/lottery/send-results', {
         method: 'POST',
@@ -178,7 +188,7 @@ export default function AdminPage() {
           winningNumber: latestRound.winning_number,
           winners: [], // Will be calculated by the API
           totalPayout: 0, // Will be calculated by the API
-          nextJackpot: latestRound.jackpot
+          nextJackpot: nextJackpot
         })
       });
 
