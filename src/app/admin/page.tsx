@@ -169,15 +169,9 @@ export default function AdminPage() {
         throw new Error('No recent lottery rounds found');
       }
 
-      // Calculate next jackpot based on whether there were winners
-      let nextJackpot;
-      if (latestRound.winners && latestRound.winners.length > 0) {
-        // If there were winners, next jackpot is 1M (base amount)
-        nextJackpot = '1000000';
-      } else {
-        // If no winners, next jackpot is current jackpot + 1M
-        nextJackpot = (parseInt(latestRound.jackpot) + 1000000).toString();
-      }
+      // Use the current jackpot as next jackpot (no calculation needed)
+      // The next jackpot will be calculated when the actual draw happens
+      const nextJackpot = latestRound.jackpot;
 
       // Send email with latest results
       const emailResponse = await fetch('/api/lottery/send-results', {
