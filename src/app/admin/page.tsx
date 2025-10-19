@@ -63,6 +63,8 @@ export default function AdminPage() {
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailStatus, setEmailStatus] = useState<string>('');
+  const [summaryPost, setSummaryPost] = useState<string>('');
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -233,6 +235,37 @@ export default function AdminPage() {
       setEmailStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setEmailLoading(false);
+    }
+  };
+
+  const generateShareEarnSummary = async () => {
+    setSummaryLoading(true);
+    setSummaryPost('');
+    
+    try {
+      const response = await fetch('/api/admin/share-earn-summary', {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSummaryPost(data.summaryPost);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate summary');
+      }
+    } catch (error) {
+      console.error('Error generating Share & Earn summary:', error);
+      setSummaryPost(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  const copySummaryToClipboard = () => {
+    if (summaryPost) {
+      navigator.clipboard.writeText(summaryPost);
+      setEmailStatus('📋 Summary copied to clipboard!');
     }
   };
 
@@ -684,7 +717,7 @@ export default function AdminPage() {
             )}
 
             {/* Email Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Lambo Lottery Email */}
               <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
                 <div className="text-center">
@@ -734,7 +767,53 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Share & Earn Summary */}
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">📊</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Share & Earn Summary</h3>
+                  <p className="text-gray-300 mb-4">
+                    Generate shareable post with community statistics
+                  </p>
+                  <button
+                    onClick={generateShareEarnSummary}
+                    disabled={summaryLoading}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {summaryLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <FiRefreshCw className="animate-spin" size={16} />
+                        Generating...
+                      </div>
+                    ) : (
+                      'Generate Summary Post'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* Summary Post Display */}
+            {summaryPost && (
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-white">📊 Generated Summary Post</h3>
+                  <button
+                    onClick={copySummaryToClipboard}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+                  >
+                    <FiCopy size={16} />
+                    Copy to Clipboard
+                  </button>
+                </div>
+                <div className="bg-[#1a1f2e] border border-gray-600 rounded p-4">
+                  <pre className="text-green-400 text-sm whitespace-pre-wrap font-mono select-all">
+                    {summaryPost}
+                  </pre>
+                </div>
+              </div>
+            )}
 
             {/* Instructions */}
             <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
@@ -742,8 +821,9 @@ export default function AdminPage() {
               <div className="space-y-2 text-gray-300">
                 <p>• <strong>Lambo Lottery:</strong> Sends the latest draw results with dynamic formatting and random emojis</p>
                 <p>• <strong>Weather Lotto:</strong> Triggers a new draw and sends the results via email</p>
-                <p>• Both emails are sent to the configured admin email address</p>
-                <p>• The emails include properly formatted content that can be copied and posted directly</p>
+                <p>• <strong>Share & Earn Summary:</strong> Generates a shareable post with community statistics</p>
+                <p>• All content can be copied and posted directly to social media</p>
+                <p>• Emails are sent to the configured admin email address</p>
               </div>
             </div>
           </div>
