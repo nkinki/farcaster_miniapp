@@ -53,13 +53,13 @@ export async function POST(request: NextRequest) {
       LIMIT 5
     `;
 
-    // Generate random solid icon combinations for variety
+    // Use simple emoji icons that display properly everywhere
     const iconSets = [
-      { airdrop: '●', points: '★', chess: '■', daily: '◆', fire: '▲', star: '♦', trophy: '🏆' },
-      { airdrop: '●', points: '●', chess: '●', daily: '●', fire: '●', star: '●', trophy: '●' },
-      { airdrop: '■', points: '■', chess: '■', daily: '■', fire: '■', star: '■', trophy: '■' },
-      { airdrop: '▲', points: '▲', chess: '▲', daily: '▲', fire: '▲', star: '▲', trophy: '▲' },
-      { airdrop: '♦', points: '♦', chess: '♦', daily: '♦', fire: '♦', star: '♦', trophy: '♦' }
+      { airdrop: '🎁', points: '⭐', chess: '💎', daily: '📅', fire: '🔥', star: '✨', trophy: '🏆' },
+      { airdrop: '💰', points: '🎯', chess: '💵', daily: '⏰', fire: '⚡', star: '🌟', trophy: '🥇' },
+      { airdrop: '🎊', points: '🏆', chess: '💴', daily: '📆', fire: '🚀', star: '💫', trophy: '🏅' },
+      { airdrop: '🎈', points: '🎖️', chess: '💸', daily: '🗓️', fire: '💥', star: '⭐', trophy: '👑' },
+      { airdrop: '🎁', points: '🏅', chess: '💎', daily: '📅', fire: '🔥', star: '✨', trophy: '🏆' }
     ];
     
     const randomIcon = iconSets[Math.floor(Math.random() * iconSets.length)];
