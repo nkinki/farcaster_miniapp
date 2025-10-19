@@ -65,6 +65,8 @@ export default function AdminPage() {
   const [emailStatus, setEmailStatus] = useState<string>('');
   const [summaryPost, setSummaryPost] = useState<string>('');
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [airdropSummary, setAirdropSummary] = useState<string>('');
+  const [airdropLoading, setAirdropLoading] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -266,6 +268,37 @@ export default function AdminPage() {
     if (summaryPost) {
       navigator.clipboard.writeText(summaryPost);
       setEmailStatus('📋 Summary copied to clipboard!');
+    }
+  };
+
+  const generateAirdropSummary = async () => {
+    setAirdropLoading(true);
+    setAirdropSummary('');
+    
+    try {
+      const response = await fetch('/api/admin/airdrop-summary', {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAirdropSummary(data.airdropSummaryPost);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate airdrop summary');
+      }
+    } catch (error) {
+      console.error('Error generating Airdrop summary:', error);
+      setAirdropSummary(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setAirdropLoading(false);
+    }
+  };
+
+  const copyAirdropToClipboard = () => {
+    if (airdropSummary) {
+      navigator.clipboard.writeText(airdropSummary);
+      setEmailStatus('📋 Airdrop summary copied to clipboard!');
     }
   };
 
@@ -717,7 +750,7 @@ export default function AdminPage() {
             )}
 
             {/* Email Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Lambo Lottery Email */}
               <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
                 <div className="text-center">
@@ -792,6 +825,31 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Airdrop Summary */}
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🎁</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Airdrop Summary</h3>
+                  <p className="text-gray-300 mb-4">
+                    Generate post about airdrops and CHESS holding benefits
+                  </p>
+                  <button
+                    onClick={generateAirdropSummary}
+                    disabled={airdropLoading}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {airdropLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <FiRefreshCw className="animate-spin" size={16} />
+                        Generating...
+                      </div>
+                    ) : (
+                      'Generate Airdrop Post'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Summary Post Display */}
@@ -815,6 +873,27 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* Airdrop Summary Display */}
+            {airdropSummary && (
+              <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-white">🎁 Generated Airdrop Post</h3>
+                  <button
+                    onClick={copyAirdropToClipboard}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+                  >
+                    <FiCopy size={16} />
+                    Copy to Clipboard
+                  </button>
+                </div>
+                <div className="bg-[#1a1f2e] border border-gray-600 rounded p-4">
+                  <pre className="text-green-400 text-sm whitespace-pre-wrap font-mono select-all">
+                    {airdropSummary}
+                  </pre>
+                </div>
+              </div>
+            )}
+
             {/* Instructions */}
             <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
               <h3 className="text-lg font-bold text-white mb-3">📋 Instructions</h3>
@@ -822,6 +901,7 @@ export default function AdminPage() {
                 <p>• <strong>Lambo Lottery:</strong> Sends the latest draw results with dynamic formatting and random emojis</p>
                 <p>• <strong>Weather Lotto:</strong> Triggers a new draw and sends the results via email</p>
                 <p>• <strong>Share & Earn Summary:</strong> Generates a shareable post with community statistics</p>
+                <p>• <strong>Airdrop Summary:</strong> Generates a post about airdrops and CHESS holding benefits</p>
                 <p>• All content can be copied and posted directly to social media</p>
                 <p>• Emails are sent to the configured admin email address</p>
               </div>
