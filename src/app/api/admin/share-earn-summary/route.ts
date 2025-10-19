@@ -57,6 +57,12 @@ export async function POST(request: NextRequest) {
     `;
     const recentShares = Number(recentActivityResult[0]?.count || 0);
 
+    // Get total potential earnings (sum of all active promotion budgets)
+    const totalPotentialResult = await sql`
+      SELECT COALESCE(SUM(remaining_budget), 0) as total FROM promotions WHERE status = 'active'
+    `;
+    const totalPotentialEarnings = Number(totalPotentialResult[0]?.total || 0);
+
     // Generate random emoji combinations for variety
     const emojiSets = [
       { share: '📢', earn: '💰', users: '👥', stats: '📊', fire: '🔥', star: '⭐' },
@@ -143,6 +149,11 @@ ${randomEmoji.earn} Average per share: ${(avgReward / 1e18).toFixed(2)} CHESS
 ${randomEmoji.star} Top earner: ${topSharersResult.length > 0 ? (topSharersResult[0].total_earnings / 1e18).toFixed(2) : '0'} CHESS
 ${randomEmoji.fire} Total distributed: ${(totalRewards / 1e18).toLocaleString()} CHESS
 
+🎯 MAXIMUM EARNINGS:
+${randomEmoji.earn} Total available: ${(totalPotentialEarnings / 1e18).toLocaleString()} CHESS
+${randomEmoji.star} Active promotions: ${activePromotions} campaigns
+${randomEmoji.fire} Potential per user: ${activePromotions > 0 ? ((totalPotentialEarnings / 1e18) / totalUsers).toFixed(2) : '0'} CHESS
+
 ${randomEmoji.share} HOW TO EARN:
 ${randomEmoji.earn} 1. Share content = ${(avgReward / 1e18).toFixed(2)} CHESS per share
 ${randomEmoji.users} 2. Hold 1M CHESS = 1 point daily
@@ -166,7 +177,8 @@ AppRank - Share & Earn Platform
         avgReward: avgReward / 1e18,
         recentShares,
         activePromotions,
-        totalPromotions
+        totalPromotions,
+        totalPotentialEarnings: totalPotentialEarnings / 1e18
       }
     });
 
