@@ -84,6 +84,7 @@ Don't miss out - buy your tickets for tomorrow's draw!
 
 ${randomEmoji.tip} TIP: The more tickets you buy, the higher your chances of winning!
 ${randomEmoji.next} Next draw: Tomorrow at 19:05 UTC
+💰 Ticket price: 100,000 CHESS each
 
 Get your tickets now: https://farc-nu.vercel.app/promote
 ` : `
@@ -93,6 +94,7 @@ The jackpot has been won and resets to 1,000,000 CHESS!
 New round starts now - buy your tickets for the next draw!
 
 ${randomEmoji.next} Next draw: Tomorrow at 19:05 UTC
+💰 Ticket price: 100,000 CHESS each
 Get your tickets: https://farc-nu.vercel.app/promote
 `}
 
