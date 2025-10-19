@@ -161,7 +161,9 @@ ${randomEmoji.star} 3. Play games = bonus rewards
 ${randomEmoji.fire} 4. Participate in lotteries = win big!
 
 ${randomEmoji.share} Join now and start earning CHESS!
-https://farc-nu.vercel.app/promote
+
+🎯 Play FarChess: https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess
+📊 AppRank Platform: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank
 
 ${randomLayout.separator}
 AppRank - Share & Earn Platform
