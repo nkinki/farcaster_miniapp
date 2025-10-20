@@ -9,6 +9,8 @@ export async function GET() {
   const client = await pool.connect();
   
   try {
+    // Set a reasonable timeout for this query
+    await client.query('SET statement_timeout = 30000'); // 30 seconds
     // Get current active season ID
     const seasonResult = await client.query(`
       SELECT id FROM seasons WHERE status = 'active' ORDER BY created_at DESC LIMIT 1

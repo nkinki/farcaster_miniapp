@@ -9,6 +9,8 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
+    // Set a reasonable timeout for this query
+    await client.query('SET statement_timeout = 60000'); // 60 seconds for complex calculation
     const { seasonId, totalRewardAmount } = await request.json();
 
     if (!seasonId || !totalRewardAmount) {
