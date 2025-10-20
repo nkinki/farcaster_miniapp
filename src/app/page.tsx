@@ -81,7 +81,9 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
       onClick={onOpen}
     >
       <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
-      <Image src={app.iconUrl} alt={`${app.name} logo`} width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-purple-700/30 bg-white mr-2" />
+      <div className="w-14 h-14 rounded-lg border border-purple-700/30 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mr-2">
+        <FiZap className="text-white text-xl" />
+      </div>
       
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-lg text-white truncate">{app.name}</div>

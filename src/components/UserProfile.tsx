@@ -121,21 +121,8 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       {/* Összecsukható fejléc */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
-            {user.pfpUrl ? (
-              <img 
-                src={user.pfpUrl} 
-                alt={`${user.displayName || user.username}'s profile`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // Ha a kép betöltése sikertelen, fallback ikonra váltunk
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <FiUser className={`text-white text-xl ${user.pfpUrl ? 'hidden' : ''}`} />
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
+            <FiUser className="text-white text-xl" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-white">{user.displayName || user.username}</h2>
