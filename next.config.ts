@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Fix workspace root detection issue
+  outputFileTracingRoot: __dirname,
   images: {
     // Keep existing remote patterns, but narrow transformations by using sensible defaults
     remotePatterns: [
