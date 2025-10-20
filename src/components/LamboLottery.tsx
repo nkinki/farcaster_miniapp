@@ -182,6 +182,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const handleApprove = async () => {
     setErrorMessage(null);
     setStep(PurchaseStep.Approving);
+    
+    // Debug info
+    console.log('🔍 Approve debug:', {
+      address,
+      isConnected,
+      totalCost: totalCost.toString(),
+      CHESS_TOKEN_ADDRESS,
+      LOTTO_PAYMENT_ROUTER_ADDRESS
+    });
+    
     try {
       const hash = await writeContractAsync({
         address: CHESS_TOKEN_ADDRESS,
@@ -192,7 +202,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       setApproveTxHash(hash);
       setStep(PurchaseStep.ApproveConfirming);
     } catch (err: any) {
-      setErrorMessage(err.shortMessage || "Approval rejected.");
+      console.error('❌ Approve error:', err);
+      setErrorMessage(err.shortMessage || err.message || "Approval rejected.");
       setStep(PurchaseStep.Idle);
     }
   };
