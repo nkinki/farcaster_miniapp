@@ -35,12 +35,10 @@ export default function AirdropPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [distribution, setDistribution] = useState<DistributionResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   
   // Test mode states
   const [testAmount, setTestAmount] = useState(1000);
-  const [testFids, setTestFids] = useState<string>('');
 
   useEffect(() => {
     fetchSeasons();
@@ -74,55 +72,6 @@ export default function AirdropPage() {
     }
   };
 
-  const calculateDistribution = async () => {
-    if (!selectedSeason) return;
-    
-    if (testAmount <= 0) {
-      setMessage('❌ Please enter a valid test amount greater than 0');
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage(null);
-    
-    try {
-      // Always use test mode
-      const fidsArray = testFids ? testFids.split(',').map(fid => parseInt(fid.trim())).filter(fid => !isNaN(fid)) : [];
-      
-      // Get user FID from localStorage or use a default for testing
-      const userFid = localStorage.getItem('userFid') ? parseInt(localStorage.getItem('userFid')!) : null;
-      
-      const response = await fetch('/api/season/test-airdrop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          testAmount: testAmount,
-          testFids: fidsArray,
-          userFid: userFid
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Distribution data received:', data);
-        setDistribution(data);
-        setMessage(`✅ Distribution calculated for ${data.total_users || 0} users (Test: ${testAmount.toLocaleString()} CHESS)`);
-      } else {
-        const error = await response.json();
-        if (error.limit_reached) {
-          const nextReset = new Date(error.next_reset);
-          const timeLeft = Math.ceil((nextReset.getTime() - Date.now()) / (1000 * 60 * 60)); // hours
-          setMessage(`⏰ Daily limit reached. You can calculate distribution again in ${timeLeft} hours.`);
-        } else {
-          setMessage(`❌ Error: ${error.error}`);
-        }
-      }
-    } catch (error) {
-      setMessage(`❌ Error calculating distribution: ${error}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
 
   const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
@@ -218,17 +167,6 @@ export default function AirdropPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                👥 Filter by FIDs (Optional)
-              </label>
-              <input
-                type="text"
-                value={testFids}
-                onChange={(e) => setTestFids(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-blue-500/30 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all"
-                placeholder="12345,67890,11111"
-              />
-              <p className="text-xs text-gray-400 mt-1">Comma-separated FIDs (leave empty for all users)</p>
             </div>
           </div>
           
@@ -239,18 +177,29 @@ export default function AirdropPage() {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Daily Stats */}
         {selectedSeason && (
           <div className="bg-gradient-to-r from-slate-800/50 to-green-900/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-green-500/20">
-            <div className="flex justify-center">
-              <button
-                onClick={calculateDistribution}
-                disabled={isLoading || !testAmount}
-                className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 disabled:hover:scale-100 shadow-md hover:shadow-purple-500/25"
-              >
-                <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Calculating...' : `Calculate Distribution (${testAmount.toLocaleString()} CHESS)`}
-              </button>
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <FiBarChart className="text-green-400 w-4 h-4" />
+              Daily Airdrop Statistics
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 p-4 rounded-lg border border-blue-500/30">
+                <div className="text-blue-300 text-sm font-medium mb-1">Total Pool</div>
+                <div className="text-2xl font-bold text-white">{testAmount.toLocaleString()} CHESS</div>
+                <div className="text-xs text-gray-400">Available for distribution</div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/10 p-4 rounded-lg border border-purple-500/30">
+                <div className="text-purple-300 text-sm font-medium mb-1">Last Updated</div>
+                <div className="text-lg font-bold text-white">{new Date().toLocaleDateString()}</div>
+                <div className="text-xs text-gray-400">Daily refresh at 00:00 UTC</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 p-4 rounded-lg border border-green-500/30">
+                <div className="text-green-300 text-sm font-medium mb-1">Status</div>
+                <div className="text-lg font-bold text-white">Live</div>
+                <div className="text-xs text-gray-400">Real-time tracking</div>
+              </div>
             </div>
           </div>
         )}
