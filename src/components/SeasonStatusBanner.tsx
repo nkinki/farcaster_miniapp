@@ -14,10 +14,9 @@ interface SeasonData {
 
 interface SeasonStatusBannerProps {
   seasonData?: SeasonData;
-  onShowLeaderboard?: () => void;
 }
 
-export default function SeasonStatusBanner({ seasonData, onShowLeaderboard }: SeasonStatusBannerProps) {
+export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerProps) {
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isExpired, setIsExpired] = useState(false);
   const [isExpiringSoon, setIsExpiringSoon] = useState(false);
@@ -169,8 +168,8 @@ export default function SeasonStatusBanner({ seasonData, onShowLeaderboard }: Se
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-center gap-3">
+          {/* Airdrop Button */}
+          <div className="flex justify-center">
             <button
               onClick={() => window.open('/airdrop', '_blank')}
               className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
@@ -179,17 +178,6 @@ export default function SeasonStatusBanner({ seasonData, onShowLeaderboard }: Se
               <FiGift className="w-3 h-3 text-[#5D6AFF]" />
               <span className="text-xs text-[#5D6AFF] font-medium">Airdrop</span>
             </button>
-            
-            {onShowLeaderboard && (
-              <button
-                onClick={onShowLeaderboard}
-                className="flex items-center gap-1 px-3 py-1.5 rounded bg-purple-500/20 border border-purple-500/50 hover:bg-purple-500/30 transition-colors"
-                title="View User Leaderboard"
-              >
-                <FiUsers className="w-3 h-3 text-purple-400" />
-                <span className="text-xs text-purple-400 font-medium">Rankings</span>
-              </button>
-            )}
           </div>
         </div>
       )}
