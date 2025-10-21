@@ -32,7 +32,6 @@ interface DistributionResult {
   total_points: number;
   distributed_amount: number;
   remaining_amount: number;
-  distribution: DistributionUser[];
 }
 
 export default function AirdropPage() {
