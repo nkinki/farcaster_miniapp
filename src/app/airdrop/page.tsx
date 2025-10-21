@@ -269,71 +269,30 @@ export default function AirdropPage() {
               {/* Compact Leaderboard Table */}
               <div className="overflow-x-auto max-h-96 rounded-lg border border-gray-600/30">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-gradient-to-r from-slate-800 to-slate-700">
-                    <tr className="border-b border-gray-600/50">
-                      <th className="text-left py-2 px-2 text-gray-300 font-semibold">Rank</th>
-                      <th className="text-left py-2 px-2 text-gray-300 font-semibold">FID</th>
-                      <th className="text-right py-2 px-2 text-gray-300 font-semibold">Points</th>
-                      <th className="text-right py-2 px-2 text-gray-300 font-semibold">%</th>
-                      <th className="text-right py-2 px-2 text-gray-300 font-semibold">CHESS Reward</th>
-                      <th className="text-right py-2 px-2 text-gray-300 font-semibold">Activity</th>
-                    </tr>
-                  </thead>
+                        <thead className="sticky top-0 bg-gradient-to-r from-slate-800 to-slate-700">
+                          <tr className="border-b border-gray-600/50">
+                            <th className="text-left py-2 px-2 text-gray-300 font-semibold">Rank</th>
+                            <th className="text-left py-2 px-2 text-gray-300 font-semibold">FID</th>
+                            <th className="text-right py-2 px-2 text-gray-300 font-semibold">Points</th>
+                            <th className="text-right py-2 px-2 text-gray-300 font-semibold">Activity</th>
+                          </tr>
+                        </thead>
                   <tbody>
                     {(() => {
-                      console.log('=== LEADERBOARD DEBUG START ===');
-                      console.log('Leaderboard length:', leaderboard.length);
-                      console.log('Test amount:', testAmount);
-                      console.log('Leaderboard data:', leaderboard);
-                      
                       if (leaderboard.length === 0) {
-                        console.log('No leaderboard data!');
-                        return (
-                          <tr>
-                            <td colSpan={6} className="text-center py-4 text-yellow-400">
-                              No leaderboard data available
-                            </td>
-                          </tr>
-                        );
+                              return (
+                                <tr>
+                                  <td colSpan={4} className="text-center py-4 text-yellow-400">
+                                    No leaderboard data available
+                                  </td>
+                                </tr>
+                              );
                       }
                       
-                      // Calculate total points once - simplified debugging
-                      const totalPoints = leaderboard.reduce((sum, u) => {
-                        const points = u.total_points || 0;
-                        return sum + points;
-                      }, 0);
-                      
-                      console.log('🔍 DEBUG: Total points calculated:', totalPoints);
-                      console.log('🔍 DEBUG: Test amount:', testAmount);
-                      console.log('🔍 DEBUG: Leaderboard length:', leaderboard.length);
-                      
-                      // If totalPoints is 0, try alternative calculation
-                      let effectiveTotal = totalPoints;
-                      if (totalPoints === 0) {
-                        console.log('🚨 PROBLEM: totalPoints is 0! Trying alternative...');
-                        effectiveTotal = leaderboard.reduce((sum, u) => {
-                          return sum + (Number(u.total_points) || 0);
-                        }, 0);
-                        console.log('🔧 FIX: Alternative total:', effectiveTotal);
-                      }
-                      
-                      // Manual verification with first few users
-                      const manualTotal = 2764 + 1133 + 1087 + 966 + 767; // First 5 users
-                      console.log('🧮 MANUAL: First 5 users total:', manualTotal);
-                      console.log('🧮 MANUAL: First user should get:', (2764 / manualTotal * 100).toFixed(2) + '%');
-                      console.log('🧮 MANUAL: First user CHESS:', Math.round((2764 / manualTotal) * testAmount));
+                      // Simple leaderboard display - no calculations needed
                       
                       return leaderboard.map((user, index) => {
                         const userPoints = user.total_points || 0;
-                        
-                        // Use effectiveTotal for calculations
-                        const percentage = effectiveTotal > 0 ? (userPoints / effectiveTotal) * 100 : 0;
-                        const chessReward = effectiveTotal > 0 ? Math.round((userPoints / effectiveTotal) * testAmount) : 0;
-                        
-                        // Debug only first few users to avoid spam
-                        if (index < 3) {
-                          console.log(`👤 User ${user.user_fid}: points=${userPoints}, effectiveTotal=${effectiveTotal}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
-                        }
                         
                         const getRankIcon = (rank: number) => {
                           if (rank === 1) return '🥇';
@@ -342,24 +301,22 @@ export default function AirdropPage() {
                           return `#${rank}`;
                         };
                         
-                        return (
-                          <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
-                            index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
-                          }`}>
-                            <td className="py-2 px-2">
-                              <span className="font-bold text-lg">
-                                {getRankIcon(index + 1)}
-                              </span>
-                            </td>
-                            <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
-                            <td className="py-2 px-2 text-right text-white font-bold">{userPoints.toLocaleString()}</td>
-                            <td className="py-2 px-2 text-right text-purple-300 font-semibold">{percentage.toFixed(2)}%</td>
-                            <td className="py-2 px-2 text-right text-green-400 font-bold">{chessReward.toLocaleString()} CHESS</td>
-                            <td className="py-2 px-2 text-right text-gray-400 text-xs">
-                              {new Date(user.last_activity).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        );
+                              return (
+                                <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
+                                  index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
+                                }`}>
+                                  <td className="py-2 px-2">
+                                    <span className="font-bold text-lg">
+                                      {getRankIcon(index + 1)}
+                                    </span>
+                                  </td>
+                                  <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
+                                  <td className="py-2 px-2 text-right text-white font-bold">{userPoints.toLocaleString()}</td>
+                                  <td className="py-2 px-2 text-right text-gray-400 text-xs">
+                                    {new Date(user.last_activity).toLocaleDateString()}
+                                  </td>
+                                </tr>
+                              );
                       });
                     })()}
                   </tbody>
