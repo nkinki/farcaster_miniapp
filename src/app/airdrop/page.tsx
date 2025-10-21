@@ -83,7 +83,10 @@ export default function AirdropPage() {
       const response = await fetch('/api/season/leaderboard');
       if (response.ok) {
         const data = await response.json();
+        console.log('Leaderboard API response:', data);
         setLeaderboard(data.leaderboard || []);
+      } else {
+        console.error('Failed to fetch leaderboard:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error);
@@ -210,6 +213,19 @@ export default function AirdropPage() {
             <div className="flex items-center justify-center py-8">
               <div className="text-purple-400 text-lg font-bold animate-pulse">Loading user rankings...</div>
             </div>
+          ) : leaderboard.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="text-yellow-400 text-lg font-bold mb-2">No user data found</div>
+                <div className="text-gray-400 text-sm">Check console for API response details</div>
+                <button 
+                  onClick={fetchLeaderboard}
+                  className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="space-y-4">
               {/* Summary Stats */}
@@ -250,36 +266,43 @@ export default function AirdropPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {leaderboard.map((user, index) => {
+                    {(() => {
+                      // Calculate total points once
                       const totalPoints = leaderboard.reduce((sum, u) => sum + u.total_points, 0);
-                      const percentage = totalPoints > 0 ? (user.total_points / totalPoints) * 100 : 0;
-                      const chessReward = Math.round((user.total_points / totalPoints) * testAmount);
-                      const getRankIcon = (rank: number) => {
-                        if (rank === 1) return '🥇';
-                        if (rank === 2) return '🥈';
-                        if (rank === 3) return '🥉';
-                        return `#${rank}`;
-                      };
+                      console.log('Total points:', totalPoints, 'Test amount:', testAmount);
                       
-                      return (
-                        <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
-                          index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
-                        }`}>
-                          <td className="py-2 px-2">
-                            <span className="font-bold text-lg">
-                              {getRankIcon(index + 1)}
-                            </span>
-                          </td>
-                          <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
-                          <td className="py-2 px-2 text-right text-white font-bold">{user.total_points.toLocaleString()}</td>
-                          <td className="py-2 px-2 text-right text-purple-300 font-semibold">{percentage.toFixed(2)}%</td>
-                          <td className="py-2 px-2 text-right text-green-400 font-bold">{chessReward.toLocaleString()} CHESS</td>
-                          <td className="py-2 px-2 text-right text-gray-400 text-xs">
-                            {new Date(user.last_activity).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                      return leaderboard.map((user, index) => {
+                        const percentage = totalPoints > 0 ? (user.total_points / totalPoints) * 100 : 0;
+                        const chessReward = totalPoints > 0 ? Math.round((user.total_points / totalPoints) * testAmount) : 0;
+                        const getRankIcon = (rank: number) => {
+                          if (rank === 1) return '🥇';
+                          if (rank === 2) return '🥈';
+                          if (rank === 3) return '🥉';
+                          return `#${rank}`;
+                        };
+                        
+                        console.log(`User ${user.user_fid}: points=${user.total_points}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
+                        
+                        return (
+                          <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
+                            index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
+                          }`}>
+                            <td className="py-2 px-2">
+                              <span className="font-bold text-lg">
+                                {getRankIcon(index + 1)}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
+                            <td className="py-2 px-2 text-right text-white font-bold">{user.total_points.toLocaleString()}</td>
+                            <td className="py-2 px-2 text-right text-purple-300 font-semibold">{percentage.toFixed(2)}%</td>
+                            <td className="py-2 px-2 text-right text-green-400 font-bold">{chessReward.toLocaleString()} CHESS</td>
+                            <td className="py-2 px-2 text-right text-gray-400 text-xs">
+                              {new Date(user.last_activity).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
