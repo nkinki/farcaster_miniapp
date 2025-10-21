@@ -334,8 +334,8 @@ export default function AirdropPage() {
                           const points2 = Number(user.total_points) || 0;
                           altTotal2 += points2;
                           
-                          // Method 3: ParseInt
-                          const points3 = parseInt(user.total_points) || 0;
+                          // Method 3: ParseInt (convert to string first)
+                          const points3 = parseInt(String(user.total_points)) || 0;
                           altTotal3 += points3;
                           
                           if (idx < 3) {
