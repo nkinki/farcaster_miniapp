@@ -280,44 +280,67 @@ export default function AirdropPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {leaderboard.map((user, index) => {
-                      // Calculate total points for all users
-                      const totalPoints = leaderboard.reduce((sum, u) => sum + (u.total_points || 0), 0);
+                    {(() => {
+                      console.log('=== LEADERBOARD DEBUG START ===');
+                      console.log('Leaderboard length:', leaderboard.length);
+                      console.log('Test amount:', testAmount);
+                      console.log('Leaderboard data:', leaderboard);
                       
-                      // Calculate this user's data
-                      const userPoints = user.total_points || 0;
-                      const percentage = totalPoints > 0 ? (userPoints / totalPoints) * 100 : 0;
-                      const chessReward = totalPoints > 0 ? Math.round((userPoints / totalPoints) * testAmount) : 0;
+                      if (leaderboard.length === 0) {
+                        console.log('No leaderboard data!');
+                        return (
+                          <tr>
+                            <td colSpan={6} className="text-center py-4 text-yellow-400">
+                              No leaderboard data available
+                            </td>
+                          </tr>
+                        );
+                      }
                       
-                      const getRankIcon = (rank: number) => {
-                        if (rank === 1) return '🥇';
-                        if (rank === 2) return '🥈';
-                        if (rank === 3) return '🥉';
-                        return `#${rank}`;
-                      };
+                      // Calculate total points once
+                      const totalPoints = leaderboard.reduce((sum, u) => {
+                        const points = u.total_points || 0;
+                        console.log(`Adding points for user ${u.user_fid}: ${points}`);
+                        return sum + points;
+                      }, 0);
                       
-                      // Debug logging
-                      console.log(`User ${user.user_fid}: points=${userPoints}, totalPoints=${totalPoints}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
+                      console.log('Total points calculated:', totalPoints);
+                      console.log('Test amount:', testAmount);
                       
-                      return (
-                        <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
-                          index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
-                        }`}>
-                          <td className="py-2 px-2">
-                            <span className="font-bold text-lg">
-                              {getRankIcon(index + 1)}
-                            </span>
-                          </td>
-                          <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
-                          <td className="py-2 px-2 text-right text-white font-bold">{userPoints.toLocaleString()}</td>
-                          <td className="py-2 px-2 text-right text-purple-300 font-semibold">{percentage.toFixed(2)}%</td>
-                          <td className="py-2 px-2 text-right text-green-400 font-bold">{chessReward.toLocaleString()} CHESS</td>
-                          <td className="py-2 px-2 text-right text-gray-400 text-xs">
-                            {new Date(user.last_activity).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                      return leaderboard.map((user, index) => {
+                        const userPoints = user.total_points || 0;
+                        const percentage = totalPoints > 0 ? (userPoints / totalPoints) * 100 : 0;
+                        const chessReward = totalPoints > 0 ? Math.round((userPoints / totalPoints) * testAmount) : 0;
+                        
+                        console.log(`User ${user.user_fid}: points=${userPoints}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
+                        
+                        const getRankIcon = (rank: number) => {
+                          if (rank === 1) return '🥇';
+                          if (rank === 2) return '🥈';
+                          if (rank === 3) return '🥉';
+                          return `#${rank}`;
+                        };
+                        
+                        return (
+                          <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
+                            index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
+                          }`}>
+                            <td className="py-2 px-2">
+                              <span className="font-bold text-lg">
+                                {getRankIcon(index + 1)}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
+                            <td className="py-2 px-2 text-right text-white font-bold">{userPoints.toLocaleString()}</td>
+                            <td className="py-2 px-2 text-right text-purple-300 font-semibold">{percentage.toFixed(2)}%</td>
+                            <td className="py-2 px-2 text-right text-green-400 font-bold">{chessReward.toLocaleString()} CHESS</td>
+                            <td className="py-2 px-2 text-right text-gray-400 text-xs">
+                              {new Date(user.last_activity).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
