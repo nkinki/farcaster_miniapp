@@ -184,21 +184,90 @@ export default function AirdropPage() {
               <FiBarChart className="text-green-400 w-4 h-4" />
               Daily Airdrop Statistics
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 p-4 rounded-lg border border-blue-500/30">
                 <div className="text-blue-300 text-sm font-medium mb-1">Total Pool</div>
                 <div className="text-2xl font-bold text-white">{testAmount.toLocaleString()} CHESS</div>
                 <div className="text-xs text-gray-400">Available for distribution</div>
               </div>
               <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/10 p-4 rounded-lg border border-purple-500/30">
-                <div className="text-purple-300 text-sm font-medium mb-1">Last Updated</div>
+                <div className="text-purple-300 text-sm font-medium mb-1">Your Points Today</div>
+                <div className="text-2xl font-bold text-white">1,250</div>
+                <div className="text-xs text-gray-400">Daily check + activities</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 p-4 rounded-lg border border-green-500/30">
+                <div className="text-green-300 text-sm font-medium mb-1">Today's Reward</div>
+                <div className="text-2xl font-bold text-white">125 CHESS</div>
+                <div className="text-xs text-gray-400">Based on your points</div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-500/20 to-red-500/10 p-4 rounded-lg border border-orange-500/30">
+                <div className="text-orange-300 text-sm font-medium mb-1">Last Updated</div>
                 <div className="text-lg font-bold text-white">{new Date().toLocaleDateString()}</div>
                 <div className="text-xs text-gray-400">Daily refresh at 00:00 UTC</div>
               </div>
-              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 p-4 rounded-lg border border-green-500/30">
-                <div className="text-green-300 text-sm font-medium mb-1">Status</div>
-                <div className="text-lg font-bold text-white">Live</div>
-                <div className="text-xs text-gray-400">Real-time tracking</div>
+            </div>
+          </div>
+        )}
+
+        {/* Points Breakdown */}
+        {selectedSeason && (
+          <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-purple-500/20">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <FiAward className="text-purple-400 w-4 h-4" />
+              Your Points Breakdown
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FiCheckCircle className="text-green-400 w-4 h-4" />
+                    <span className="text-white">Daily Check</span>
+                  </div>
+                  <span className="text-green-400 font-bold">+1</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FiUsers className="text-blue-400 w-4 h-4" />
+                    <span className="text-white">Likes & Recasts</span>
+                  </div>
+                  <span className="text-blue-400 font-bold">+45</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FiAward className="text-purple-400 w-4 h-4" />
+                    <span className="text-white">Shares & Quotes</span>
+                  </div>
+                  <span className="text-purple-400 font-bold">+12</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FiDollarSign className="text-yellow-400 w-4 h-4" />
+                    <span className="text-white">Lottery Tickets</span>
+                  </div>
+                  <span className="text-yellow-400 font-bold">+8</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FiRefreshCw className="text-cyan-400 w-4 h-4" />
+                    <span className="text-white">Weather Lotto</span>
+                  </div>
+                  <span className="text-cyan-400 font-bold">+3</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FiBarChart className="text-green-400 w-4 h-4" />
+                    <span className="text-white">CHESS Holdings</span>
+                  </div>
+                  <span className="text-green-400 font-bold">+1,180</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-600">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold text-white">Total Points Today</span>
+                <span className="text-2xl font-bold text-purple-400">1,250</span>
               </div>
             </div>
           </div>
