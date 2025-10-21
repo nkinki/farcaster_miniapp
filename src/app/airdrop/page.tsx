@@ -297,90 +297,43 @@ export default function AirdropPage() {
                         );
                       }
                       
-                      // Calculate total points once - with detailed debugging
+                      // Calculate total points once - simplified debugging
                       const totalPoints = leaderboard.reduce((sum, u) => {
                         const points = u.total_points || 0;
-                        console.log(`Adding points for user ${u.user_fid}: ${points} (type: ${typeof points})`);
-                        console.log(`Raw user object:`, u);
-                        console.log(`u.total_points value:`, u.total_points, `type:`, typeof u.total_points);
                         return sum + points;
                       }, 0);
                       
-                      console.log('Total points calculated:', totalPoints, '(type:', typeof totalPoints, ')');
-                      console.log('Test amount:', testAmount, '(type:', typeof testAmount, ')');
+                      console.log('🔍 DEBUG: Total points calculated:', totalPoints);
+                      console.log('🔍 DEBUG: Test amount:', testAmount);
+                      console.log('🔍 DEBUG: Leaderboard length:', leaderboard.length);
                       
-                      // Force calculation test
-                      const testTotal = 2764 + 1133 + 1087 + 966 + 767; // First 5 users
-                      console.log('Manual test total (first 5 users):', testTotal);
-                      console.log('Test percentage for first user:', (2764 / testTotal * 100).toFixed(2) + '%');
-                      console.log('Test CHESS reward for first user:', Math.round((2764 / testTotal) * testAmount));
-                      
-                      // Additional debug: check if totalPoints is actually 0
+                      // If totalPoints is 0, try alternative calculation
+                      let effectiveTotal = totalPoints;
                       if (totalPoints === 0) {
-                        console.log('🚨 CRITICAL: totalPoints is 0! This is the problem!');
-                        console.log('Leaderboard data structure:', JSON.stringify(leaderboard.slice(0, 3), null, 2));
-                        
-                        // Try alternative calculation methods
-                        let altTotal1 = 0;
-                        let altTotal2 = 0;
-                        let altTotal3 = 0;
-                        
-                        leaderboard.forEach((user, idx) => {
-                          // Method 1: Direct property access
-                          const points1 = user.total_points || 0;
-                          altTotal1 += points1;
-                          
-                          // Method 2: Number conversion
-                          const points2 = Number(user.total_points) || 0;
-                          altTotal2 += points2;
-                          
-                          // Method 3: ParseInt (convert to string first)
-                          const points3 = parseInt(String(user.total_points)) || 0;
-                          altTotal3 += points3;
-                          
-                          if (idx < 3) {
-                            console.log(`User ${user.user_fid}:`);
-                            console.log(`  Method 1 (direct): ${points1}`);
-                            console.log(`  Method 2 (Number): ${points2}`);
-                            console.log(`  Method 3 (parseInt): ${points3}`);
-                            console.log(`  Raw value: "${user.total_points}"`);
-                          }
-                        });
-                        
-                        console.log('Alternative calculations:');
-                        console.log(`  Method 1 total: ${altTotal1}`);
-                        console.log(`  Method 2 total: ${altTotal2}`);
-                        console.log(`  Method 3 total: ${altTotal3}`);
-                        
-                        // Use the working method
-                        const workingTotal = altTotal1 > 0 ? altTotal1 : (altTotal2 > 0 ? altTotal2 : altTotal3);
-                        console.log(`Using working total: ${workingTotal}`);
-                        
-                        // Override totalPoints if we found a working calculation
-                        if (workingTotal > 0) {
-                          console.log('🔧 FIXING: Using alternative calculation');
-                          // We'll use this in the map function below
-                        }
+                        console.log('🚨 PROBLEM: totalPoints is 0! Trying alternative...');
+                        effectiveTotal = leaderboard.reduce((sum, u) => {
+                          return sum + (Number(u.total_points) || 0);
+                        }, 0);
+                        console.log('🔧 FIX: Alternative total:', effectiveTotal);
                       }
+                      
+                      // Manual verification with first few users
+                      const manualTotal = 2764 + 1133 + 1087 + 966 + 767; // First 5 users
+                      console.log('🧮 MANUAL: First 5 users total:', manualTotal);
+                      console.log('🧮 MANUAL: First user should get:', (2764 / manualTotal * 100).toFixed(2) + '%');
+                      console.log('🧮 MANUAL: First user CHESS:', Math.round((2764 / manualTotal) * testAmount));
                       
                       return leaderboard.map((user, index) => {
                         const userPoints = user.total_points || 0;
                         
-                        // Calculate alternative total if original is 0
-                        let effectiveTotal = totalPoints;
-                        if (totalPoints === 0) {
-                          // Recalculate using alternative method
-                          effectiveTotal = leaderboard.reduce((sum, u) => {
-                            return sum + (Number(u.total_points) || 0);
-                          }, 0);
-                          console.log(`Using alternative total: ${effectiveTotal}`);
-                        }
-                        
-                        // Calculate percentage and reward using the effective total
+                        // Use effectiveTotal for calculations
                         const percentage = effectiveTotal > 0 ? (userPoints / effectiveTotal) * 100 : 0;
                         const chessReward = effectiveTotal > 0 ? Math.round((userPoints / effectiveTotal) * testAmount) : 0;
                         
-                        console.log(`User ${user.user_fid}: points=${userPoints}, effectiveTotal=${effectiveTotal}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
+                        // Debug only first few users to avoid spam
+                        if (index < 3) {
+                          console.log(`👤 User ${user.user_fid}: points=${userPoints}, effectiveTotal=${effectiveTotal}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
+                        }
                         
                         const getRankIcon = (rank: number) => {
                           if (rank === 1) return '🥇';
