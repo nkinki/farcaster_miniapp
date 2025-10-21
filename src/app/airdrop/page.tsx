@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiUsers, FiAward, FiDollarSign, FiCheckCircle, FiRefreshCw, FiArrowLeft, FiBarChart, FiTrendingUp } from 'react-icons/fi';
+import { FiUsers, FiAward, FiDollarSign, FiCheckCircle, FiRefreshCw, FiArrowLeft } from 'react-icons/fi';
 
 interface Season {
   id: number;
@@ -12,17 +12,13 @@ interface Season {
   end_date: string;
 }
 
-interface LeaderboardUser {
+interface DistributionUser {
+  rank: number;
   user_fid: number;
-  total_points: number;
-  daily_checks: number;
-  like_recast_count: number;
-  shares_count: number;
-  comments_count: number;
-  lambo_tickets: number;
-  weather_tickets: number;
-  chess_points: number;
-  last_activity: string;
+  points: number;
+  percentage: number;
+  reward_amount: number;
+  reward_amount_formatted: string;
 }
 
 interface DistributionResult {
@@ -32,22 +28,21 @@ interface DistributionResult {
   total_points: number;
   distributed_amount: number;
   remaining_amount: number;
+  distribution: DistributionUser[];
 }
 
 export default function AirdropPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [distribution, setDistribution] = useState<DistributionResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
-  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   
   // Test mode states
-  const testAmount = 10000000; // 10M CHESS tokens
+  const [testAmount, setTestAmount] = useState(10000000); // 10M CHESS tokens
 
   useEffect(() => {
     fetchSeasons();
-    fetchLeaderboard();
   }, []);
 
   // Update testAmount when season changes
@@ -55,8 +50,9 @@ export default function AirdropPage() {
     if (selectedSeason && seasons.length > 0) {
       const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
       if (selectedSeasonData) {
-        // Use fixed 10M CHESS tokens for distribution
-        console.log(`Using 10M CHESS tokens for distribution calculation`);
+        // total_rewards is already in CHESS tokens (not wei)
+        const chessAmount = parseInt(selectedSeasonData.total_rewards);
+        setTestAmount(chessAmount);
       }
     }
   }, [selectedSeason, seasons]);
@@ -77,38 +73,43 @@ export default function AirdropPage() {
     }
   };
 
-  const fetchLeaderboard = async () => {
-    setLoadingLeaderboard(true);
+  const calculateDistribution = async () => {
+    if (!selectedSeason) return;
+    
+    if (testAmount <= 0) {
+      setMessage('❌ Please enter a valid test amount greater than 0');
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage(null);
+    
     try {
-      const response = await fetch('/api/season/leaderboard');
+      // Always use test mode with 10M CHESS
+      const response = await fetch('/api/season/test-airdrop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          testAmount: testAmount,
+          testFids: [] // Empty array means all users
+        })
+      });
+
       if (response.ok) {
         const data = await response.json();
-        console.log('Leaderboard API response:', data);
-        
-        // If no real data, create test data for demonstration
-        if (!data.leaderboard || data.leaderboard.length === 0) {
-          console.log('No real data found, creating test data...');
-          const testData = [
-            { user_fid: 12345, total_points: 1500, daily_checks: 10, like_recast_count: 50, shares_count: 20, comments_count: 5, lambo_tickets: 3, weather_tickets: 2, chess_points: 1410, last_activity: new Date().toISOString() },
-            { user_fid: 67890, total_points: 1200, daily_checks: 8, like_recast_count: 40, shares_count: 15, comments_count: 3, lambo_tickets: 2, weather_tickets: 1, chess_points: 1131, last_activity: new Date().toISOString() },
-            { user_fid: 11111, total_points: 800, daily_checks: 5, like_recast_count: 30, shares_count: 10, comments_count: 2, lambo_tickets: 1, weather_tickets: 1, chess_points: 751, last_activity: new Date().toISOString() },
-            { user_fid: 22222, total_points: 600, daily_checks: 4, like_recast_count: 25, shares_count: 8, comments_count: 1, lambo_tickets: 1, weather_tickets: 0, chess_points: 561, last_activity: new Date().toISOString() },
-            { user_fid: 33333, total_points: 400, daily_checks: 3, like_recast_count: 20, shares_count: 5, comments_count: 1, lambo_tickets: 0, weather_tickets: 0, chess_points: 371, last_activity: new Date().toISOString() }
-          ];
-          setLeaderboard(testData);
-        } else {
-          setLeaderboard(data.leaderboard || []);
-        }
+        console.log('Distribution data received:', data);
+        setDistribution(data);
+        setMessage(`✅ Distribution calculated for ${data.total_users || 0} users (${testAmount.toLocaleString()} CHESS)`);
       } else {
-        console.error('Failed to fetch leaderboard:', response.status, response.statusText);
+        const error = await response.json();
+        setMessage(`❌ Error: ${error.error}`);
       }
     } catch (error) {
-      console.error('Failed to fetch leaderboard:', error);
+      setMessage(`❌ Error calculating distribution: ${error}`);
     } finally {
-      setLoadingLeaderboard(false);
+      setIsLoading(false);
     }
   };
-
 
 
   const selectedSeasonData = seasons.find(s => s.id === selectedSeason);
@@ -181,7 +182,7 @@ export default function AirdropPage() {
           </div>
         </div>
 
-        {/* CHESS Distribution Settings */}
+        {/* 10M CHESS Distribution Pool */}
         <div className="bg-gradient-to-r from-slate-800/50 to-blue-900/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-blue-500/20">
           <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
             <FiDollarSign className="text-blue-400 w-4 h-4" />
@@ -216,123 +217,21 @@ export default function AirdropPage() {
           </div>
         </div>
 
-        {/* User Leaderboard with 10M CHESS Distribution */}
-        <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-purple-500/20">
-          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-            <FiTrendingUp className="text-purple-400 w-4 h-4" />
-            User Rankings & 10M CHESS Distribution
-          </h2>
-          
-          {loadingLeaderboard ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-purple-400 text-lg font-bold animate-pulse">Loading user rankings...</div>
+        {/* Actions */}
+        {selectedSeason && (
+          <div className="bg-gradient-to-r from-slate-800/50 to-green-900/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-green-500/20">
+            <div className="flex justify-center">
+              <button
+                onClick={calculateDistribution}
+                disabled={isLoading || !testAmount}
+                className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 disabled:hover:scale-100 shadow-md hover:shadow-purple-500/25"
+              >
+                <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Calculating...' : `Calculate Distribution (${testAmount.toLocaleString()} CHESS)`}
+              </button>
             </div>
-          ) : leaderboard.length === 0 ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <div className="text-yellow-400 text-lg font-bold mb-2">No user data found</div>
-                <div className="text-gray-400 text-sm">Check console for API response details</div>
-                <button 
-                  onClick={fetchLeaderboard}
-                  className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Summary Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 p-3 rounded-lg border border-blue-500/30">
-                  <div className="text-blue-300 text-sm font-medium mb-1">Total Users</div>
-                  <div className="text-xl font-bold text-white">{leaderboard.length}</div>
-                </div>
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/10 p-3 rounded-lg border border-purple-500/30">
-                  <div className="text-purple-300 text-sm font-medium mb-1">Total Pool</div>
-                  <div className="text-xl font-bold text-white">10M CHESS</div>
-                </div>
-                <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 p-3 rounded-lg border border-green-500/30">
-                  <div className="text-green-300 text-sm font-medium mb-1">Top Points</div>
-                  <div className="text-xl font-bold text-white">
-                    {leaderboard.length > 0 ? leaderboard[0].total_points.toLocaleString() : '0'}
-                  </div>
-                </div>
-                <div className="bg-gradient-to-br from-orange-500/20 to-red-500/10 p-3 rounded-lg border border-orange-500/30">
-                  <div className="text-orange-300 text-sm font-medium mb-1">Avg Reward</div>
-                  <div className="text-xl font-bold text-white">
-                    {leaderboard.length > 0 ? Math.round(testAmount / leaderboard.length).toLocaleString() : '0'} CHESS
-                  </div>
-                </div>
-              </div>
-
-              {/* Compact Leaderboard Table */}
-              <div className="overflow-x-auto max-h-96 rounded-lg border border-gray-600/30">
-                <table className="w-full text-xs">
-                        <thead className="sticky top-0 bg-gradient-to-r from-slate-800 to-slate-700">
-                          <tr className="border-b border-gray-600/50">
-                            <th className="text-left py-2 px-2 text-gray-300 font-semibold">Rank</th>
-                            <th className="text-left py-2 px-2 text-gray-300 font-semibold">FID</th>
-                            <th className="text-right py-2 px-2 text-gray-300 font-semibold">Points</th>
-                            <th className="text-right py-2 px-2 text-gray-300 font-semibold">Activity</th>
-                          </tr>
-                        </thead>
-                  <tbody>
-                    {(() => {
-                      if (leaderboard.length === 0) {
-                              return (
-                                <tr>
-                                  <td colSpan={4} className="text-center py-4 text-yellow-400">
-                                    No leaderboard data available
-                                  </td>
-                                </tr>
-                              );
-                      }
-                      
-                      // Simple leaderboard display - no calculations needed
-                      
-                      return leaderboard.map((user, index) => {
-                        const userPoints = user.total_points || 0;
-                        
-                        const getRankIcon = (rank: number) => {
-                          if (rank === 1) return '🥇';
-                          if (rank === 2) return '🥈';
-                          if (rank === 3) return '🥉';
-                          return `#${rank}`;
-                        };
-                        
-                              return (
-                                <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
-                                  index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
-                                }`}>
-                                  <td className="py-2 px-2">
-                                    <span className="font-bold text-lg">
-                                      {getRankIcon(index + 1)}
-                                    </span>
-                                  </td>
-                                  <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
-                                  <td className="py-2 px-2 text-right text-white font-bold">{userPoints.toLocaleString()}</td>
-                                  <td className="py-2 px-2 text-right text-gray-400 text-xs">
-                                    {new Date(user.last_activity).toLocaleDateString()}
-                                  </td>
-                                </tr>
-                              );
-                      });
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-              
-              {leaderboard.length > 50 && (
-                <div className="mt-2 text-center">
-                  <p className="text-xs text-gray-400">
-                    Showing all {leaderboard.length} users. Scroll to see more.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Message */}
         {message && (
@@ -344,6 +243,97 @@ export default function AirdropPage() {
               : 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/30 text-blue-200'
           }`}>
             <p className="text-sm font-medium text-center">{message}</p>
+          </div>
+        )}
+
+        {/* Distribution Preview */}
+        {distribution && distribution.total_users !== undefined && (
+          <div className="bg-gradient-to-r from-slate-800/50 to-indigo-900/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-indigo-500/20">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <FiUsers className="text-indigo-400 w-4 h-4" />
+              User Rankings & 10M CHESS Distribution
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 p-3 rounded-lg border border-blue-500/30">
+                <div className="flex items-center gap-2 mb-1">
+                  <FiUsers className="text-blue-400 w-4 h-4" />
+                  <span className="text-xs font-semibold text-gray-300">Total Users</span>
+                </div>
+                <div className="text-lg font-bold text-blue-300">{distribution.total_users}</div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/10 p-3 rounded-lg border border-purple-500/30">
+                <div className="flex items-center gap-2 mb-1">
+                  <FiAward className="text-purple-400 w-4 h-4" />
+                  <span className="text-xs font-semibold text-gray-300">Total Points</span>
+                </div>
+                <div className="text-lg font-bold text-purple-300">{distribution.total_points.toLocaleString()}</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 p-3 rounded-lg border border-green-500/30">
+                <div className="flex items-center gap-2 mb-1">
+                  <FiDollarSign className="text-green-400 w-4 h-4" />
+                  <span className="text-xs font-semibold text-gray-300">Total Pool</span>
+                </div>
+                <div className="text-lg font-bold text-green-300">10M CHESS</div>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/10 p-3 rounded-lg border border-yellow-500/30">
+                <div className="flex items-center gap-2 mb-1">
+                  <FiCheckCircle className="text-yellow-400 w-4 h-4" />
+                  <span className="text-xs font-semibold text-gray-300">Avg Reward</span>
+                </div>
+                <div className="text-lg font-bold text-yellow-300">
+                  {distribution.total_users > 0 ? Math.round(testAmount / distribution.total_users).toLocaleString() : '0'} CHESS
+                </div>
+              </div>
+            </div>
+
+            {/* All Users Table */}
+            <div className="overflow-x-auto max-h-96 rounded-lg border border-gray-600/30">
+              <table className="w-full text-xs">
+                <thead className="sticky top-0 bg-gradient-to-r from-slate-800 to-slate-700">
+                  <tr className="border-b border-gray-600/50">
+                    <th className="text-left py-2 px-2 text-gray-300 font-semibold">Rank</th>
+                    <th className="text-left py-2 px-2 text-gray-300 font-semibold">FID</th>
+                    <th className="text-right py-2 px-2 text-gray-300 font-semibold">Points</th>
+                    <th className="text-right py-2 px-2 text-gray-300 font-semibold">%</th>
+                    <th className="text-right py-2 px-2 text-gray-300 font-semibold">CHESS Reward</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {distribution.distribution.map((user, index) => {
+                    const getRankIcon = (rank: number) => {
+                      if (rank === 1) return '🥇';
+                      if (rank === 2) return '🥈';
+                      if (rank === 3) return '🥉';
+                      return `#${rank}`;
+                    };
+
+                    return (
+                      <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
+                        index % 2 === 0 ? 'bg-slate-800/20' : 'bg-slate-800/10'
+                      }`}>
+                        <td className="py-2 px-2">
+                          <span className="font-bold text-lg">
+                            {getRankIcon(user.rank)}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
+                        <td className="py-2 px-2 text-right text-white font-bold">{user.points.toLocaleString()}</td>
+                        <td className="py-2 px-2 text-right text-purple-300 font-semibold">{user.percentage.toFixed(2)}%</td>
+                        <td className="py-2 px-2 text-right text-green-400 font-bold">{user.reward_amount_formatted}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            {distribution.distribution.length > 50 && (
+              <div className="mt-2 text-center">
+                <p className="text-xs text-gray-400">
+                  Showing all {distribution.distribution.length} users. Scroll to see more.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
