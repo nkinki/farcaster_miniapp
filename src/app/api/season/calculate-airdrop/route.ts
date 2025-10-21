@@ -11,13 +11,32 @@ export async function POST(request: NextRequest) {
   try {
     // Set a reasonable timeout for this query
     await client.query('SET statement_timeout = 60000'); // 60 seconds for complex calculation
-    const { seasonId, totalRewardAmount } = await request.json();
+    const { seasonId, totalRewardAmount, userFid } = await request.json();
 
     if (!seasonId || !totalRewardAmount) {
       return NextResponse.json({ 
         success: false, 
         error: 'Season ID and total reward amount are required' 
       }, { status: 400 });
+    }
+
+    // Check daily limit for user (if userFid provided)
+    if (userFid) {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      const limitCheck = await client.query(`
+        SELECT calculation_count FROM daily_calculation_limits 
+        WHERE user_fid = $1 AND calculation_type = 'airdrop_distribution' AND last_calculation_date = $2
+      `, [userFid, today]);
+
+      if (limitCheck.rows.length > 0 && limitCheck.rows[0].calculation_count >= 1) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Daily calculation limit reached. You can only calculate distribution once per day.',
+          limit_reached: true,
+          next_reset: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Next day
+        }, { status: 429 });
+      }
     }
 
     console.log(`🎯 Calculating airdrop distribution for Season ${seasonId} with ${totalRewardAmount} CHESS`);
@@ -120,6 +139,20 @@ export async function POST(request: NextRequest) {
     const remainingAmount = totalRewardAmount - distributedAmount;
     
     console.log(`💰 Distribution calculated: ${distributedAmount} CHESS distributed, ${remainingAmount} CHESS remaining`);
+
+    // Record the calculation in daily limits (if userFid provided)
+    if (userFid) {
+      const today = new Date().toISOString().split('T')[0];
+      
+      await client.query(`
+        INSERT INTO daily_calculation_limits (user_fid, calculation_type, last_calculation_date, calculation_count)
+        VALUES ($1, 'airdrop_distribution', $2, 1)
+        ON CONFLICT (user_fid, calculation_type, last_calculation_date)
+        DO UPDATE SET 
+          calculation_count = daily_calculation_limits.calculation_count + 1,
+          updated_at = NOW()
+      `, [userFid, today]);
+    }
 
     return NextResponse.json({
       success: true,

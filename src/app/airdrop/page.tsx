@@ -88,12 +88,17 @@ export default function AirdropPage() {
     try {
       // Always use test mode
       const fidsArray = testFids ? testFids.split(',').map(fid => parseInt(fid.trim())).filter(fid => !isNaN(fid)) : [];
+      
+      // Get user FID from localStorage or use a default for testing
+      const userFid = localStorage.getItem('userFid') ? parseInt(localStorage.getItem('userFid')!) : null;
+      
       const response = await fetch('/api/season/test-airdrop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           testAmount: testAmount,
-          testFids: fidsArray
+          testFids: fidsArray,
+          userFid: userFid
         })
       });
 
@@ -104,7 +109,13 @@ export default function AirdropPage() {
         setMessage(`✅ Distribution calculated for ${data.total_users || 0} users (Test: ${testAmount.toLocaleString()} CHESS)`);
       } else {
         const error = await response.json();
-        setMessage(`❌ Error: ${error.error}`);
+        if (error.limit_reached) {
+          const nextReset = new Date(error.next_reset);
+          const timeLeft = Math.ceil((nextReset.getTime() - Date.now()) / (1000 * 60 * 60)); // hours
+          setMessage(`⏰ Daily limit reached. You can calculate distribution again in ${timeLeft} hours.`);
+        } else {
+          setMessage(`❌ Error: ${error.error}`);
+        }
       }
     } catch (error) {
       setMessage(`❌ Error calculating distribution: ${error}`);
