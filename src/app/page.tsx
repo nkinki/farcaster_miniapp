@@ -200,15 +200,18 @@ export default function Home() {
         if (farcasterUser?.fid) {
           console.log('User authenticated:', farcasterUser)
           setUserFid(farcasterUser.fid)
+          localStorage.setItem('userFid', farcasterUser.fid.toString())
         }
       } else {
         console.log('No user context available, using test FID')
         setUserFid(12345) // Test FID for development
+        localStorage.setItem('userFid', '12345')
       }
     }).catch((error) => {
       console.error('Error getting Farcaster context:', error)
       console.log('Using test FID for development')
       setUserFid(12345) // Test FID for development
+      localStorage.setItem('userFid', '12345')
     })
   }, [])
   
