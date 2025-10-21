@@ -300,12 +300,18 @@ export default function AirdropPage() {
                       // Calculate total points once
                       const totalPoints = leaderboard.reduce((sum, u) => {
                         const points = u.total_points || 0;
-                        console.log(`Adding points for user ${u.user_fid}: ${points}`);
+                        console.log(`Adding points for user ${u.user_fid}: ${points} (type: ${typeof points})`);
                         return sum + points;
                       }, 0);
                       
-                      console.log('Total points calculated:', totalPoints);
-                      console.log('Test amount:', testAmount);
+                      console.log('Total points calculated:', totalPoints, '(type:', typeof totalPoints, ')');
+                      console.log('Test amount:', testAmount, '(type:', typeof testAmount, ')');
+                      
+                      // Force calculation test
+                      const testTotal = 2764 + 1133 + 1087 + 966 + 767; // First 5 users
+                      console.log('Manual test total (first 5 users):', testTotal);
+                      console.log('Test percentage for first user:', (2764 / testTotal * 100).toFixed(2) + '%');
+                      console.log('Test CHESS reward for first user:', Math.round((2764 / testTotal) * testAmount));
                       
                       return leaderboard.map((user, index) => {
                         const userPoints = user.total_points || 0;
