@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiClock, FiAward, FiAlertTriangle, FiCheckCircle, FiChevronDown, FiChevronUp, FiGift } from 'react-icons/fi';
+import { FiClock, FiAward, FiAlertTriangle, FiCheckCircle, FiChevronDown, FiChevronUp, FiGift, FiUsers } from 'react-icons/fi';
 
 interface SeasonData {
   id: number;
@@ -14,9 +14,10 @@ interface SeasonData {
 
 interface SeasonStatusBannerProps {
   seasonData?: SeasonData;
+  onShowLeaderboard?: () => void;
 }
 
-export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerProps) {
+export default function SeasonStatusBanner({ seasonData, onShowLeaderboard }: SeasonStatusBannerProps) {
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isExpired, setIsExpired] = useState(false);
   const [isExpiringSoon, setIsExpiringSoon] = useState(false);
@@ -168,8 +169,8 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
             </div>
           </div>
 
-          {/* Airdrop Button */}
-          <div className="flex justify-center">
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-3">
             <button
               onClick={() => window.open('/airdrop', '_blank')}
               className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
@@ -178,6 +179,17 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
               <FiGift className="w-3 h-3 text-[#5D6AFF]" />
               <span className="text-xs text-[#5D6AFF] font-medium">Airdrop</span>
             </button>
+            
+            {onShowLeaderboard && (
+              <button
+                onClick={onShowLeaderboard}
+                className="flex items-center gap-1 px-3 py-1.5 rounded bg-purple-500/20 border border-purple-500/50 hover:bg-purple-500/30 transition-colors"
+                title="View User Leaderboard"
+              >
+                <FiUsers className="w-3 h-3 text-purple-400" />
+                <span className="text-xs text-purple-400 font-medium">Rankings</span>
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -9,6 +9,7 @@ import Image from "next/image"
 import LamboLottery from "@/components/LamboLottery"
 import WeatherLottoModal from "@/components/WeatherLottoModal"
 import SeasonStatusBanner from "@/components/SeasonStatusBanner"
+import Leaderboard from "@/components/Leaderboard"
 
 // Tipusok
 interface Miniapp {
@@ -135,6 +136,7 @@ export default function Home() {
   const [showWeatherLotto, setShowWeatherLotto] = useState(false)
   const [userFid, setUserFid] = useState<number>(0)
   const [seasonData, setSeasonData] = useState<any>(null)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   useEffect(() => {
     const checkHaptics = async () => {
@@ -286,7 +288,7 @@ export default function Home() {
   return (
     <>
       {/* Season Status Banner */}
-      {seasonData && <SeasonStatusBanner seasonData={seasonData} />}
+      {seasonData && <SeasonStatusBanner seasonData={seasonData} onShowLeaderboard={() => setShowLeaderboard(true)} />}
 
       {/* Lambo Lottery Modal */}
       <LamboLottery 
@@ -306,6 +308,12 @@ export default function Home() {
         onPurchaseSuccess={() => {
           console.log('Weather Lotto tickets purchased successfully!');
         }}
+      />
+
+      {/* Leaderboard Modal */}
+      <Leaderboard 
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
       />
 
 
