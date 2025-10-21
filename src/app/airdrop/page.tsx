@@ -281,13 +281,28 @@ export default function AirdropPage() {
                   </thead>
                   <tbody>
                     {(() => {
+                      console.log('Rendering leaderboard with', leaderboard.length, 'users');
+                      console.log('Leaderboard data:', leaderboard);
+                      
                       // Calculate total points once
-                      const totalPoints = leaderboard.reduce((sum, u) => sum + u.total_points, 0);
-                      console.log('Total points:', totalPoints, 'Test amount:', testAmount);
+                      const totalPoints = leaderboard.reduce((sum, u) => sum + (u.total_points || 0), 0);
+                      console.log('Total points calculated:', totalPoints, 'Test amount:', testAmount);
+                      
+                      if (totalPoints === 0) {
+                        console.log('WARNING: Total points is 0!');
+                        return (
+                          <tr>
+                            <td colSpan={6} className="text-center py-4 text-yellow-400">
+                              No points data available - check console for details
+                            </td>
+                          </tr>
+                        );
+                      }
                       
                       return leaderboard.map((user, index) => {
-                        const percentage = totalPoints > 0 ? (user.total_points / totalPoints) * 100 : 0;
-                        const chessReward = totalPoints > 0 ? Math.round((user.total_points / totalPoints) * testAmount) : 0;
+                        const userPoints = user.total_points || 0;
+                        const percentage = totalPoints > 0 ? (userPoints / totalPoints) * 100 : 0;
+                        const chessReward = totalPoints > 0 ? Math.round((userPoints / totalPoints) * testAmount) : 0;
                         const getRankIcon = (rank: number) => {
                           if (rank === 1) return '🥇';
                           if (rank === 2) return '🥈';
@@ -295,7 +310,7 @@ export default function AirdropPage() {
                           return `#${rank}`;
                         };
                         
-                        console.log(`User ${user.user_fid}: points=${user.total_points}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
+                        console.log(`User ${user.user_fid}: points=${userPoints}, percentage=${percentage.toFixed(2)}%, chessReward=${chessReward}`);
                         
                         return (
                           <tr key={user.user_fid} className={`border-b border-gray-700/50 hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30 transition-colors ${
@@ -307,7 +322,7 @@ export default function AirdropPage() {
                               </span>
                             </td>
                             <td className="py-2 px-2 text-gray-300 font-medium">{user.user_fid}</td>
-                            <td className="py-2 px-2 text-right text-white font-bold">{user.total_points.toLocaleString()}</td>
+                            <td className="py-2 px-2 text-right text-white font-bold">{userPoints.toLocaleString()}</td>
                             <td className="py-2 px-2 text-right text-purple-300 font-semibold">{percentage.toFixed(2)}%</td>
                             <td className="py-2 px-2 text-right text-green-400 font-bold">{chessReward.toLocaleString()} CHESS</td>
                             <td className="py-2 px-2 text-right text-gray-400 text-xs">
