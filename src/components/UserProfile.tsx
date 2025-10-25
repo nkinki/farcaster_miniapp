@@ -300,10 +300,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               />
             </div>
             
-            {/* Minimal promotional text */}
+            {/* Promotional text with gratitude */}
             <div className="text-center mb-4">
               <p className="text-sm text-gray-300">
-                Share your success and invite others to earn CHESS!
+                Thank you for sharing! Together we grow the $CHESS community. 🌱
               </p>
             </div>
             
@@ -317,7 +317,8 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             {/* Single Share Button */}
             <button
               onClick={() => {
-                const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                const ogImageUrl = `${window.location.origin}/og-image.png`;
+                const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
                 window.open(shareUrl, '_blank', 'width=600,height=400');
                 setShowShareModal(false);
               }}
