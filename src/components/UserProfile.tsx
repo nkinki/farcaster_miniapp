@@ -325,15 +325,25 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                   
                   if (response.ok && data.success) {
                     console.log('✅ Cast created successfully:', data.cast?.hash);
+                    console.log('📱 Response data:', data);
+                    
+                    // Always close modal and show success
                     setShowShareModal(false);
+                    
+                    // Show success message
+                    setSuccess('Cast shared successfully!');
+                    setTimeout(() => setSuccess(null), 3000);
                   } else {
                     throw new Error(data.error || 'Failed to create cast');
                   }
                 } catch (error) {
                   console.error('Share error:', error);
-                  // Fallback to external sharing
+                  // Fallback to external sharing with mobile detection
                   const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                   const miniAppSdk = (window as any).miniAppSdk;
+                  
+                  // Detect mobile device
+                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                   
                   // Try miniAppSdk openUrl first
                   try {
@@ -345,9 +355,15 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                       throw new Error('SDK not available');
                     }
                   } catch (sdkError) {
-                    console.log('SDK openUrl failed, trying window.open...');
-                    // Fallback to window.open
-                    window.open(composeUrl, '_blank');
+                    console.log('SDK openUrl failed, trying mobile-specific approach...');
+                    
+                    if (isMobile) {
+                      // For mobile, use location.href to redirect in same window
+                      window.location.href = composeUrl;
+                    } else {
+                      // For desktop, use window.open
+                      window.open(composeUrl, '_blank');
+                    }
                   }
                   
                   setShowShareModal(false);
