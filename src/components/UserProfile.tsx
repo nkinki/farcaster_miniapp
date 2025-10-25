@@ -307,13 +307,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               </p>
             </div>
             
-            {/* Share Text Preview */}
-            <div className="mb-4 p-3 bg-gray-800/50 border border-gray-600/30 rounded-lg">
-              <p className="text-sm text-gray-300 text-center">
-                {selectedShareText}
-              </p>
-            </div>
-            
             {/* Single Share Button */}
             <button
               onClick={() => {
