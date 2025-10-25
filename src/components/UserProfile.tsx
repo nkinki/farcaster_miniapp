@@ -111,16 +111,16 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
 
   const getRandomShareText = (amount: number) => {
     const shareTexts = [
-      `Just claimed ${amount.toFixed(2)} $CHESS! 🎉 Start earning $CHESS like me: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Earned ${amount.toFixed(2)} $CHESS! 💰 Get your $CHESS rewards too: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Claimed ${amount.toFixed(2)} $CHESS! 🚀 Turn engagement into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Got ${amount.toFixed(2)} $CHESS! 💎 Join the $CHESS economy: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Earned ${amount.toFixed(2)} $CHESS! ⚡ Convert activity to $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Claimed ${amount.toFixed(2)} $CHESS! 🎯 Make money with $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Got ${amount.toFixed(2)} $CHESS! 🔥 Transform likes into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Earned ${amount.toFixed(2)} $CHESS! 💫 Be part of $CHESS earning: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Claimed ${amount.toFixed(2)} $CHESS! 🌟 Join $CHESS earners: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-      `Got ${amount.toFixed(2)} $CHESS! 🎊 Start earning $CHESS now: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`
+      `Just claimed ${amount.toFixed(2)} $CHESS on @base.base.eth! 🎉 Start earning $CHESS like me: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Earned ${amount.toFixed(2)} $CHESS on @base.base.eth! 💰 Get your $CHESS rewards too: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Claimed ${amount.toFixed(2)} $CHESS on @base.base.eth! 🚀 Turn engagement into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Got ${amount.toFixed(2)} $CHESS on @base.base.eth! 💎 Join the $CHESS economy: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Earned ${amount.toFixed(2)} $CHESS on @base.base.eth! ⚡ Convert activity to $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Claimed ${amount.toFixed(2)} $CHESS on @base.base.eth! 🎯 Make money with $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Got ${amount.toFixed(2)} $CHESS on @base.base.eth! 🔥 Transform likes into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Earned ${amount.toFixed(2)} $CHESS on @base.base.eth! 💫 Be part of $CHESS earning: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Claimed ${amount.toFixed(2)} $CHESS on @base.base.eth! 🌟 Join $CHESS earners: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Got ${amount.toFixed(2)} $CHESS on @base.base.eth! 🎊 Start earning $CHESS now: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`
     ];
     
     const randomIndex = Math.floor(Math.random() * shareTexts.length);
