@@ -332,14 +332,14 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                     }
                   } else {
                     // Fallback to external sharing if SDK not available
-                    const shareUrl = `https://warpcast.xyz/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                    const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                     window.open(shareUrl, '_blank', 'width=600,height=400');
                     setShowShareModal(false);
                   }
                 } catch (error) {
                   console.error('Share error:', error);
                   // Fallback to external sharing
-                  const shareUrl = `https://warpcast.xyz/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                  const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                   window.open(shareUrl, '_blank', 'width=600,height=400');
                   setShowShareModal(false);
                 }
