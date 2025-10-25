@@ -241,39 +241,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           </div>
         )}
         
-        {/* Share Button - csak sikeres claim után */}
-        {justClaimed && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-lg">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-white mb-2">🎉 Congratulations!</h3>
-              <p className="text-sm text-gray-300 mb-3">
-                You've successfully claimed {claimedAmount.toFixed(2)} CHESS tokens!
-              </p>
-              <p className="text-xs text-purple-300 mb-4">
-                Share your achievement and invite others to join the CHESS revolution!
-              </p>
-              
-              <div className="flex gap-2 justify-center">
-                <button
-                  onClick={generateShareImage}
-                  disabled={isGeneratingShare}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50"
-                >
-                  <FiShare2 className="w-4 h-4" />
-                  {isGeneratingShare ? 'Generating...' : 'Share Achievement'}
-                </button>
-                
-                <button
-                  onClick={() => window.open('https://farc-nu.vercel.app', '_blank')}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105"
-                >
-                  <FiDownload className="w-4 h-4" />
-                  Join AppRank
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
       </>}
       
