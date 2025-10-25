@@ -333,14 +333,36 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                   } else {
                     // Fallback to external sharing if SDK not available
                     const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
-                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                    
+                    // Detect mobile and use different approach
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    
+                    if (isMobile) {
+                      // For mobile, try to redirect in same window
+                      window.location.href = shareUrl;
+                    } else {
+                      // For desktop, use new window
+                      window.open(shareUrl, '_blank', 'width=600,height=400');
+                    }
+                    
                     setShowShareModal(false);
                   }
                 } catch (error) {
                   console.error('Share error:', error);
                   // Fallback to external sharing
                   const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
-                  window.open(shareUrl, '_blank', 'width=600,height=400');
+                  
+                  // Detect mobile and use different approach
+                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                  
+                  if (isMobile) {
+                    // For mobile, try to redirect in same window
+                    window.location.href = shareUrl;
+                  } else {
+                    // For desktop, use new window
+                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                  }
+                  
                   setShowShareModal(false);
                 }
               }}
