@@ -327,10 +327,14 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                     console.log('✅ Cast created successfully:', data.cast?.hash);
                     console.log('📱 Response data:', data);
                     
-                    // Always close modal and show success
-                    setShowShareModal(false);
+                    // Check if it's a mock response
+                    if (data.mock) {
+                      console.log('🔄 Mock response received, using fallback sharing');
+                      throw new Error('Mock response - using fallback');
+                    }
                     
-                    // Show success message
+                    // Real cast created - close modal and show success
+                    setShowShareModal(false);
                     setSuccess('Cast shared successfully!');
                     setTimeout(() => setSuccess(null), 3000);
                   } else {
