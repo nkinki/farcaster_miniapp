@@ -309,42 +309,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             
             {/* Single Share Button */}
             <button
-              onClick={async () => {
-                try {
-                  // Use Farcaster SDK composeCast to stay within miniapp
-                  const miniAppSdk = (window as any).miniAppSdk;
-                  
-                  if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                    const ogImageUrl = `${window.location.origin}/og-image.png`;
-                    
-                    const castOptions = {
-                      text: selectedShareText,
-                      embeds: [ogImageUrl]
-                    };
-                    
-                    const castResult = await miniAppSdk.actions.composeCast(castOptions);
-                    
-                    if (castResult && castResult.cast && castResult.cast.hash) {
-                      console.log('✅ Cast shared successfully:', castResult.cast.hash);
-                      setShowShareModal(false);
-                    } else {
-                      throw new Error('Failed to share cast');
-                    }
-                  } else {
-                    // Fallback to external sharing if SDK not available
-                    const ogImageUrl = `${window.location.origin}/og-image.png`;
-                    const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
-                    window.open(shareUrl, '_blank', 'width=600,height=400');
-                    setShowShareModal(false);
-                  }
-                } catch (error) {
-                  console.error('Share error:', error);
-                  // Fallback to external sharing
-                  const ogImageUrl = `${window.location.origin}/og-image.png`;
-                  const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
-                  window.open(shareUrl, '_blank', 'width=600,height=400');
-                  setShowShareModal(false);
-                }
+              onClick={() => {
+                const ogImageUrl = `${window.location.origin}/og-image.png`;
+                const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+                setShowShareModal(false);
               }}
               className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
             >
