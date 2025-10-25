@@ -311,41 +311,23 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             <button
               onClick={async () => {
                 try {
-                  // Use Farcaster SDK composeCast with only text (no embeds)
-                  const miniAppSdk = (window as any).miniAppSdk;
+                  // Use backend API to create new cast via Neynar
+                  const response = await fetch('/api/farcaster/cast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      text: selectedShareText,
+                      embeds: []
+                    })
+                  });
                   
-                  if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                    // Use composeCast for new cast creation (miniapp SDK approach)
-                    const castOptions: any = { 
-                      text: selectedShareText
-                    };
-                    
-                    console.log(`📝 Cast options:`, castOptions);
-                    
-                    const castResult = await miniAppSdk.actions.composeCast(castOptions);
-                    
-                    if (castResult && castResult.cast && castResult.cast.hash) {
-                      console.log('✅ Cast shared successfully:', castResult.cast.hash);
-                      setShowShareModal(false);
-                    } else {
-                      throw new Error('Failed to share cast');
-                    }
-                  } else {
-                    // Fallback to external sharing if SDK not available
-                    const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
-                    
-                    // Try miniAppSdk openUrl first
-                    try {
-                      await miniAppSdk.actions.openUrl(composeUrl);
-                      setShowShareModal(false);
-                      return;
-                    } catch (sdkError) {
-                      console.log('SDK openUrl failed, trying window.open...');
-                      // Fallback to window.open
-                      window.open(composeUrl, '_blank');
-                    }
-                    
+                  const data = await response.json();
+                  
+                  if (response.ok && data.success) {
+                    console.log('✅ Cast created successfully:', data.cast?.hash);
                     setShowShareModal(false);
+                  } else {
+                    throw new Error(data.error || 'Failed to create cast');
                   }
                 } catch (error) {
                   console.error('Share error:', error);
