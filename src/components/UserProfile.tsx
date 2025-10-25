@@ -332,17 +332,19 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                     }
                   } else {
                     // Fallback to external sharing if SDK not available
-                    const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                    // Try farcaster:// protocol first for mobile
+                    const farcasterUrl = `farcaster://compose?text=${encodeURIComponent(selectedShareText)}`;
+                    const webUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                     
-                    // Detect mobile and use different approach
-                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                    
-                    if (isMobile) {
-                      // For mobile, try to redirect in same window
-                      window.location.href = shareUrl;
-                    } else {
-                      // For desktop, use new window
-                      window.open(shareUrl, '_blank', 'width=600,height=400');
+                    // Try farcaster:// protocol first
+                    try {
+                      window.location.href = farcasterUrl;
+                      // If we get here, the protocol worked
+                      setShowShareModal(false);
+                      return;
+                    } catch (e) {
+                      // Protocol failed, try web URL
+                      window.open(webUrl, '_blank');
                     }
                     
                     setShowShareModal(false);
@@ -350,17 +352,17 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 } catch (error) {
                   console.error('Share error:', error);
                   // Fallback to external sharing
-                  const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                  const farcasterUrl = `farcaster://compose?text=${encodeURIComponent(selectedShareText)}`;
+                  const webUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                   
-                  // Detect mobile and use different approach
-                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                  
-                  if (isMobile) {
-                    // For mobile, try to redirect in same window
-                    window.location.href = shareUrl;
-                  } else {
-                    // For desktop, use new window
-                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                  // Try farcaster:// protocol first
+                  try {
+                    window.location.href = farcasterUrl;
+                    setShowShareModal(false);
+                    return;
+                  } catch (e) {
+                    // Protocol failed, try web URL
+                    window.open(webUrl, '_blank');
                   }
                   
                   setShowShareModal(false);
