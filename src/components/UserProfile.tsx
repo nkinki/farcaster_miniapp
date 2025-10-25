@@ -289,7 +289,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             {/* Single Share Button */}
             <button
               onClick={() => {
-                const shareText = `Just claimed ${claimedAmount.toFixed(2)} CHESS! 🎉 Join me: https://farc-nu.vercel.app`;
+                const shareText = `Just claimed ${claimedAmount.toFixed(2)} CHESS! 🎉 Join me: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`;
                 const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
                 window.open(shareUrl, '_blank', 'width=600,height=400');
                 setShowShareModal(false);
