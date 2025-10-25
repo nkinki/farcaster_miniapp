@@ -39,7 +39,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   // Share functionality states
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedShareText, setSelectedShareText] = useState<string>('');
-  const [showThankYou, setShowThankYou] = useState(false);
 
   const pendingRewards = userStats.pendingRewards ?? 0;
   const hasPendingRewards = pendingRewards > 0;
@@ -77,7 +76,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       
       // Azonnal megjelenítjük a reklám ablakot sikeres claim után
       setTimeout(() => {
-        const randomText = getRandomShareText();
+        const randomText = getRandomShareText(claimedRewards);
         setSelectedShareText(randomText);
         setShowShareModal(true);
       }, 1000);
@@ -110,21 +109,20 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
     }
   }, [user.fid, onClaimSuccess]);
 
-  // Random share texts with $CHESS
-  const shareTexts = [
-    `Just claimed ${claimedAmount.toFixed(2)} $CHESS! 🎉 Start earning $CHESS like me: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Earned ${claimedAmount.toFixed(2)} $CHESS! 💰 Get your $CHESS rewards too: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Claimed ${claimedAmount.toFixed(2)} $CHESS! 🚀 Turn engagement into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Got ${claimedAmount.toFixed(2)} $CHESS! 💎 Join the $CHESS economy: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Earned ${claimedAmount.toFixed(2)} $CHESS! ⚡ Convert activity to $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Claimed ${claimedAmount.toFixed(2)} $CHESS! 🎯 Make money with $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Got ${claimedAmount.toFixed(2)} $CHESS! 🔥 Transform likes into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Earned ${claimedAmount.toFixed(2)} $CHESS! 💫 Be part of $CHESS earning: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Claimed ${claimedAmount.toFixed(2)} $CHESS! 🌟 Join $CHESS earners: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
-    `Got ${claimedAmount.toFixed(2)} $CHESS! 🎊 Start earning $CHESS now: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`
-  ];
-
-  const getRandomShareText = () => {
+  const getRandomShareText = (amount: number) => {
+    const shareTexts = [
+      `Just claimed ${amount.toFixed(2)} $CHESS! 🎉 Start earning $CHESS like me: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Earned ${amount.toFixed(2)} $CHESS! 💰 Get your $CHESS rewards too: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Claimed ${amount.toFixed(2)} $CHESS! 🚀 Turn engagement into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Got ${amount.toFixed(2)} $CHESS! 💎 Join the $CHESS economy: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Earned ${amount.toFixed(2)} $CHESS! ⚡ Convert activity to $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Claimed ${amount.toFixed(2)} $CHESS! 🎯 Make money with $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Got ${amount.toFixed(2)} $CHESS! 🔥 Transform likes into $CHESS: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Earned ${amount.toFixed(2)} $CHESS! 💫 Be part of $CHESS earning: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Claimed ${amount.toFixed(2)} $CHESS! 🌟 Join $CHESS earners: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
+      `Got ${amount.toFixed(2)} $CHESS! 🎊 Start earning $CHESS now: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`
+    ];
+    
     const randomIndex = Math.floor(Math.random() * shareTexts.length);
     return shareTexts[randomIndex];
   };
@@ -322,27 +320,12 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                 window.open(shareUrl, '_blank', 'width=600,height=400');
                 setShowShareModal(false);
-                setShowThankYou(true);
-                setTimeout(() => setShowThankYou(false), 3000);
               }}
               className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
             >
               <FiShare2 className="w-4 h-4" />
               Share on Farcaster
             </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Thank You Message */}
-      {showThankYou && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-green-900/90 to-blue-900/90 rounded-2xl p-6 max-w-sm w-full border border-green-500/30 shadow-2xl text-center">
-            <div className="text-4xl mb-4">🙏</div>
-            <h3 className="text-xl font-bold text-white mb-2">Thank you!</h3>
-            <p className="text-sm text-gray-300">
-              Thanks for sharing! Your post helps others discover $CHESS earning opportunities.
-            </p>
           </div>
         </div>
       )}
