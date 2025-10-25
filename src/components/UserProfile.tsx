@@ -311,16 +311,21 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             <button
               onClick={async () => {
                 try {
-                  // Use Farcaster SDK composeCast for quote functionality
+                  // Use Farcaster SDK composeCast exactly like the promotional system
                   const miniAppSdk = (window as any).miniAppSdk;
                   
                   if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
                     const ogImageUrl = `${window.location.origin}/og-image.png`;
                     
-                    const castOptions = {
-                      text: selectedShareText,
-                      embeds: [ogImageUrl]
+                    // Create cast options exactly like the promotional system
+                    const castOptions: any = { 
+                      text: selectedShareText
                     };
+                    
+                    // Add embeds - only the image, not the miniapp link (that's in the text)
+                    castOptions.embeds = [ogImageUrl];
+                    
+                    console.log(`📝 Cast options:`, castOptions);
                     
                     const castResult = await miniAppSdk.actions.composeCast(castOptions);
                     
