@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useChessToken } from "@/hooks/useChessToken";
-import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle, FiChevronDown, FiChevronUp, FiShare2, FiDownload } from "react-icons/fi";
+import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle, FiChevronDown, FiChevronUp, FiShare2 } from "react-icons/fi";
 // Már nem használjuk a szerződést, csak az API-t
 
 interface FarcasterUser {
@@ -37,8 +37,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
   const [claimedAmount, setClaimedAmount] = useState(0);
   
   // Share functionality states
-  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
-  const [shareImageData, setShareImageData] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
   const pendingRewards = userStats.pendingRewards ?? 0;
@@ -77,12 +75,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       
       // Azonnal megjelenítjük a reklám ablakot sikeres claim után
       setTimeout(() => {
-        generateShareImage();
+        showShareModal();
       }, 1000);
       
-      // Animáció után adatok újratöltése
+      // Animáció után adatok újratöltése (de ne frissítsük az oldalt)
       setTimeout(() => {
-        onClaimSuccess(); // Adatok újratöltése
         setJustClaimed(false);
       }, 3000);
 
@@ -109,40 +106,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
     }
   }, [user.fid, onClaimSuccess]);
 
-  // Generate share image function
-  const generateShareImage = useCallback(async () => {
-    if (!user.fid) return;
-    
-    setIsGeneratingShare(true);
-    try {
-      const response = await fetch('/api/generate-share-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fid: user.fid,
-          username: user.username,
-          displayName: user.displayName,
-          claimedAmount: claimedAmount || userStats.totalEarnings,
-          totalEarnings: userStats.totalEarnings,
-          rank: null, // Could be added later
-          points: userStats.totalShares
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setShareImageData(data.imageData);
-        setShowShareModal(true);
-      } else {
-        throw new Error('Failed to generate share image');
-      }
-    } catch (error) {
-      console.error('Error generating share image:', error);
-      setError('Failed to generate share image');
-    } finally {
-      setIsGeneratingShare(false);
-    }
-  }, [user.fid, user.username, user.displayName, claimedAmount, userStats.totalEarnings, userStats.totalShares]);
+  // Simple share modal function
+  const showShareModal = useCallback(() => {
+    setShowShareModal(true);
+  }, []);
 
   // Auto-clear error and success messages
   useEffect(() => {
@@ -315,13 +282,13 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       </div>
       </>}
       
-      {/* Share Modal - Reklám ablak sikeres claim után */}
-      {showShareModal && shareImageData && (
+      {/* Share Modal - Egyszerű reklám ablak sikeres claim után */}
+      {showShareModal && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 rounded-2xl p-6 max-w-lg w-full border border-purple-500/30 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                🎉 Congratulations!
+          <div className="bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 rounded-2xl p-6 max-w-md w-full border border-purple-500/30 shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                🎉 Success!
               </h3>
               <button
                 onClick={() => setShowShareModal(false)}
@@ -331,69 +298,45 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               </button>
             </div>
             
-            {/* Claimed Amount Highlight */}
-            <div className="text-center mb-6 p-4 bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-xl">
-              <div className="text-3xl font-bold text-green-400 mb-2">
+            {/* Claimed Amount */}
+            <div className="text-center mb-4 p-3 bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-lg">
+              <div className="text-2xl font-bold text-green-400">
                 {claimedAmount.toFixed(2)} CHESS
               </div>
-              <div className="text-sm text-gray-300">
-                Successfully claimed to your wallet!
+              <div className="text-xs text-gray-300">
+                Claimed successfully!
               </div>
             </div>
             
-            {/* Share Image */}
-            <div className="mb-6">
+            {/* Share Image from public folder */}
+            <div className="mb-4">
               <img 
-                src={shareImageData} 
-                alt="Share your CHESS achievement" 
-                className="w-full rounded-xl border border-purple-500/30 shadow-lg"
+                src="/og-image.png" 
+                alt="AppRank" 
+                className="w-full rounded-lg border border-purple-500/30"
               />
             </div>
             
-            {/* Promotional Text */}
-            <div className="text-center mb-6">
-              <h4 className="text-lg font-bold text-white mb-2">
-                🚀 Join the CHESS Revolution!
-              </h4>
-              <p className="text-sm text-gray-300 mb-4">
-                Share your achievement and invite others to start earning CHESS tokens by engaging with content, sharing, and participating in campaigns.
+            {/* Minimal promotional text */}
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-300">
+                Share your success and invite others to earn CHESS!
               </p>
             </div>
             
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(`I just claimed ${claimedAmount.toFixed(2)} CHESS tokens! 🎉 Join me on AppRank and start earning rewards: https://farc-nu.vercel.app`);
-                  alert('Share text copied to clipboard!');
-                }}
-                className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
-              >
-                <FiShare2 className="w-4 h-4" />
-                Copy Share Text
-              </button>
-              
-              <button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = shareImageData;
-                  link.download = `chess-achievement-${user.fid}.png`;
-                  link.click();
-                }}
-                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
-              >
-                <FiDownload className="w-4 h-4" />
-                Download Image
-              </button>
-              
-              <button
-                onClick={() => window.open('https://farc-nu.vercel.app', '_blank')}
-                className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
-              >
-                <FiAward className="w-4 h-4" />
-                Start Earning CHESS
-              </button>
-            </div>
+            {/* Single Share Button */}
+            <button
+              onClick={() => {
+                const shareText = `Just claimed ${claimedAmount.toFixed(2)} CHESS! 🎉 Join me: https://farc-nu.vercel.app`;
+                const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+                setShowShareModal(false);
+              }}
+              className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+            >
+              <FiShare2 className="w-4 h-4" />
+              Share on Farcaster
+            </button>
           </div>
         </div>
       )}
