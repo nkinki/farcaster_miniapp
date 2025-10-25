@@ -311,19 +311,14 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             <button
               onClick={async () => {
                 try {
-                  // Use Farcaster SDK composeCast exactly like the promotional system
+                  // Use Farcaster SDK composeCast with only text (no embeds)
                   const miniAppSdk = (window as any).miniAppSdk;
                   
                   if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                    const ogImageUrl = `${window.location.origin}/og-image.png`;
-                    
-                    // Create cast options exactly like the promotional system
+                    // Create cast options with only text - no embeds for mobile compatibility
                     const castOptions: any = { 
                       text: selectedShareText
                     };
-                    
-                    // Add embeds - only the image, not the miniapp link (that's in the text)
-                    castOptions.embeds = [ogImageUrl];
                     
                     console.log(`📝 Cast options:`, castOptions);
                     
@@ -337,16 +332,14 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                     }
                   } else {
                     // Fallback to external sharing if SDK not available
-                    const ogImageUrl = `${window.location.origin}/og-image.png`;
-                    const shareUrl = `https://warpcast.xyz/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
+                    const shareUrl = `https://warpcast.xyz/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                     window.open(shareUrl, '_blank', 'width=600,height=400');
                     setShowShareModal(false);
                   }
                 } catch (error) {
                   console.error('Share error:', error);
                   // Fallback to external sharing
-                  const ogImageUrl = `${window.location.origin}/og-image.png`;
-                  const shareUrl = `https://warpcast.xyz/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
+                  const shareUrl = `https://warpcast.xyz/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                   window.open(shareUrl, '_blank', 'width=600,height=400');
                   setShowShareModal(false);
                 }
