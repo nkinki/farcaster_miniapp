@@ -73,18 +73,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setClaimedAmount(claimedRewards);
       setJustClaimed(true);
       
-      // Azonnal megjelenítjük a reklám ablakot sikeres claim után
-      setTimeout(() => {
-        const randomText = getRandomShareText(claimedRewards);
-        setSelectedShareText(randomText);
-        setShowShareModal(true);
-      }, 1000);
-      
       // Animáció után adatok újratöltése és oldal frissítése
       setTimeout(() => {
         setJustClaimed(false);
         onClaimSuccess(); // Oldal frissítése mint korábban
-      }, 3000);
+      }, 4000); // 1 másodperccel hosszabb (3s → 4s)
 
     } catch (err: any) {
       console.error('Claim error:', err);
