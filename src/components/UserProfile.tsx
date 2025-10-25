@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useChessToken } from "@/hooks/useChessToken";
 import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle, FiChevronDown, FiChevronUp, FiShare2 } from "react-icons/fi";
-import { makeCastAdd } from "@farcaster/hub-nodejs";
 // Már nem használjuk a szerződést, csak az API-t
 
 interface FarcasterUser {
@@ -315,53 +314,21 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                   // Use Farcaster SDK composeCast with only text (no embeds)
                   const miniAppSdk = (window as any).miniAppSdk;
                   
-                  if (miniAppSdk && miniAppSdk.actions) {
-                    // Try to create new cast using makeCastAdd (documentation approach)
-                    try {
-                      // Get user context for signing
-                      const context = await miniAppSdk.context;
-                      if (!context.user?.fid) {
-                        throw new Error('User not authenticated');
-                      }
-                      
-                      // Create cast using makeCastAdd (documentation approach)
-                      const castAdd = await makeCastAdd(
-                        {
-                          text: selectedShareText,
-                          embeds: [],
-                          embedsDeprecated: [],
-                          mentions: [],
-                          mentionsPositions: [],
-                        },
-                        {
-                          fid: context.user.fid,
-                          network: context.network,
-                        },
-                        context.signer
-                      );
-                      
-                      console.log('✅ Cast created successfully:', castAdd.hash);
+                  if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
+                    // Use composeCast for new cast creation (miniapp SDK approach)
+                    const castOptions: any = { 
+                      text: selectedShareText
+                    };
+                    
+                    console.log(`📝 Cast options:`, castOptions);
+                    
+                    const castResult = await miniAppSdk.actions.composeCast(castOptions);
+                    
+                    if (castResult && castResult.cast && castResult.cast.hash) {
+                      console.log('✅ Cast shared successfully:', castResult.cast.hash);
                       setShowShareModal(false);
-                    } catch (makeCastError) {
-                      console.log('makeCastAdd failed, trying composeCast...', makeCastError);
-                      
-                      // Fallback to composeCast if makeCastAdd fails
-                      if (miniAppSdk.actions.composeCast) {
-                        const castOptions: any = { 
-                          text: selectedShareText
-                        };
-                        
-                        const castResult = await miniAppSdk.actions.composeCast(castOptions);
-                        
-                        if (castResult && castResult.cast && castResult.cast.hash) {
-                          console.log('✅ Cast shared successfully:', castResult.cast.hash);
-                          setShowShareModal(false);
-                        } else {
-                          throw new Error('Failed to share cast');
-                        }
-                      } else {
-                        throw new Error('No cast creation method available');
-                      }
+                    } else {
+                      throw new Error('Failed to share cast');
                     }
                   } else {
                     // Fallback to external sharing if SDK not available
