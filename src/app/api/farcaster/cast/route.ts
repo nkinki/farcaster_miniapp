@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
     
     if (!neynarApiKey || !signerUuid) {
       console.log('🧪 Mock mode: Farcaster credentials not configured');
+      console.log('Neynar API Key:', neynarApiKey ? 'Present' : 'Missing');
+      console.log('Signer UUID:', signerUuid ? 'Present' : 'Missing');
       
       // Mock response for testing
       return NextResponse.json({
