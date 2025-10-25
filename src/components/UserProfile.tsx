@@ -75,7 +75,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       
       // Azonnal megjelenítjük a reklám ablakot sikeres claim után
       setTimeout(() => {
-        showShareModal();
+        setShowShareModal(true);
       }, 1000);
       
       // Animáció után adatok újratöltése (de ne frissítsük az oldalt)
@@ -105,11 +105,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setIsClaiming(false);
     }
   }, [user.fid, onClaimSuccess]);
-
-  // Simple share modal function
-  const showShareModal = useCallback(() => {
-    setShowShareModal(true);
-  }, []);
 
   // Auto-clear error and success messages
   useEffect(() => {
