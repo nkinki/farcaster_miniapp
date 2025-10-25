@@ -80,9 +80,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         setShowShareModal(true);
       }, 1000);
       
-      // Animáció után adatok újratöltése (de ne frissítsük az oldalt)
+      // Animáció után adatok újratöltése és oldal frissítése
       setTimeout(() => {
         setJustClaimed(false);
+        onClaimSuccess(); // Oldal frissítése mint korábban
       }, 3000);
 
     } catch (err: any) {
