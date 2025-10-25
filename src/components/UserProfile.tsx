@@ -72,7 +72,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       const claimedRewards = pendingRewards;
       setClaimedAmount(claimedRewards);
       setJustClaimed(true);
-      setSuccess(`Successfully claimed ${claimedRewards.toFixed(2)} $CHESS!`);
       
       // Azonnal megjelenítjük a reklám ablakot sikeres claim után
       setTimeout(() => {
@@ -326,10 +325,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                   if (response.ok && data.success) {
                     console.log('✅ Cast created successfully:', data.cast?.hash);
                     console.log('📱 Response data:', data);
+                    console.log('🔍 Mock flag:', data.mock);
                     
                     // Check if it's a mock response
                     if (data.mock) {
-                      console.log('🔄 Mock response received, using fallback sharing');
+                      console.log('🔄 Mock response detected, triggering fallback sharing');
                       throw new Error('Mock response - using fallback');
                     }
                     
@@ -338,6 +338,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                     setSuccess('Cast shared successfully!');
                     setTimeout(() => setSuccess(null), 3000);
                   } else {
+                    console.log('❌ API response not successful:', data);
                     throw new Error(data.error || 'Failed to create cast');
                   }
                 } catch (error) {
