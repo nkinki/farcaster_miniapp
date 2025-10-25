@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useChessToken } from "@/hooks/useChessToken";
 import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle, FiChevronDown, FiChevronUp, FiShare2 } from "react-icons/fi";
+import { makeCastAdd } from "@farcaster/hub-nodejs";
 // Már nem használjuk a szerződést, csak az API-t
 
 interface FarcasterUser {
@@ -314,37 +315,67 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                   // Use Farcaster SDK composeCast with only text (no embeds)
                   const miniAppSdk = (window as any).miniAppSdk;
                   
-                  if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                    // Create cast options with only text - no embeds for mobile compatibility
-                    const castOptions: any = { 
-                      text: selectedShareText
-                    };
-                    
-                    console.log(`📝 Cast options:`, castOptions);
-                    
-                    const castResult = await miniAppSdk.actions.composeCast(castOptions);
-                    
-                    if (castResult && castResult.cast && castResult.cast.hash) {
-                      console.log('✅ Cast shared successfully:', castResult.cast.hash);
+                  if (miniAppSdk && miniAppSdk.actions) {
+                    // Try to create new cast using makeCastAdd (documentation approach)
+                    try {
+                      // Get user context for signing
+                      const context = await miniAppSdk.context;
+                      if (!context.user?.fid) {
+                        throw new Error('User not authenticated');
+                      }
+                      
+                      // Create cast using makeCastAdd (documentation approach)
+                      const castAdd = await makeCastAdd(
+                        {
+                          text: selectedShareText,
+                          embeds: [],
+                          embedsDeprecated: [],
+                          mentions: [],
+                          mentionsPositions: [],
+                        },
+                        {
+                          fid: context.user.fid,
+                          network: context.network,
+                        },
+                        context.signer
+                      );
+                      
+                      console.log('✅ Cast created successfully:', castAdd.hash);
                       setShowShareModal(false);
-                    } else {
-                      throw new Error('Failed to share cast');
+                    } catch (makeCastError) {
+                      console.log('makeCastAdd failed, trying composeCast...', makeCastError);
+                      
+                      // Fallback to composeCast if makeCastAdd fails
+                      if (miniAppSdk.actions.composeCast) {
+                        const castOptions: any = { 
+                          text: selectedShareText
+                        };
+                        
+                        const castResult = await miniAppSdk.actions.composeCast(castOptions);
+                        
+                        if (castResult && castResult.cast && castResult.cast.hash) {
+                          console.log('✅ Cast shared successfully:', castResult.cast.hash);
+                          setShowShareModal(false);
+                        } else {
+                          throw new Error('Failed to share cast');
+                        }
+                      } else {
+                        throw new Error('No cast creation method available');
+                      }
                     }
                   } else {
                     // Fallback to external sharing if SDK not available
-                    // Try farcaster:// protocol first for mobile
-                    const farcasterUrl = `farcaster://compose?text=${encodeURIComponent(selectedShareText)}`;
-                    const webUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                    const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                     
-                    // Try farcaster:// protocol first
+                    // Try miniAppSdk openUrl first
                     try {
-                      window.location.href = farcasterUrl;
-                      // If we get here, the protocol worked
+                      await miniAppSdk.actions.openUrl(composeUrl);
                       setShowShareModal(false);
                       return;
-                    } catch (e) {
-                      // Protocol failed, try web URL
-                      window.open(webUrl, '_blank');
+                    } catch (sdkError) {
+                      console.log('SDK openUrl failed, trying window.open...');
+                      // Fallback to window.open
+                      window.open(composeUrl, '_blank');
                     }
                     
                     setShowShareModal(false);
@@ -352,17 +383,17 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 } catch (error) {
                   console.error('Share error:', error);
                   // Fallback to external sharing
-                  const farcasterUrl = `farcaster://compose?text=${encodeURIComponent(selectedShareText)}`;
-                  const webUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                  const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                   
-                  // Try farcaster:// protocol first
+                  // Try miniAppSdk openUrl first
                   try {
-                    window.location.href = farcasterUrl;
+                    await miniAppSdk.actions.openUrl(composeUrl);
                     setShowShareModal(false);
                     return;
-                  } catch (e) {
-                    // Protocol failed, try web URL
-                    window.open(webUrl, '_blank');
+                  } catch (sdkError) {
+                    console.log('SDK openUrl failed, trying window.open...');
+                    // Fallback to window.open
+                    window.open(composeUrl, '_blank');
                   }
                   
                   setShowShareModal(false);
