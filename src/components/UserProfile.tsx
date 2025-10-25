@@ -311,8 +311,26 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             <button
               onClick={() => {
                 const ogImageUrl = `${window.location.origin}/og-image.png`;
-                const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
-                window.open(shareUrl, '_blank', 'width=600,height=400');
+                // Try multiple approaches for mobile compatibility
+                const shareUrl = `https://warpcast.xyz/~/compose?text=${encodeURIComponent(selectedShareText)}&embeds[]=${encodeURIComponent(ogImageUrl)}`;
+                
+                // Try to detect mobile and use different approach
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                  // For mobile, try to use the app directly
+                  const appUrl = `farcaster://compose?text=${encodeURIComponent(selectedShareText)}`;
+                  window.location.href = appUrl;
+                  
+                  // Fallback after 2 seconds if app doesn't open
+                  setTimeout(() => {
+                    window.open(shareUrl, '_blank');
+                  }, 2000);
+                } else {
+                  // For desktop, use regular window.open
+                  window.open(shareUrl, '_blank', 'width=600,height=400');
+                }
+                
                 setShowShareModal(false);
               }}
               className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
