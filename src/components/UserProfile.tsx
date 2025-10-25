@@ -351,12 +351,17 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                   console.error('Share error:', error);
                   // Fallback to external sharing
                   const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
+                  const miniAppSdk = (window as any).miniAppSdk;
                   
                   // Try miniAppSdk openUrl first
                   try {
-                    await miniAppSdk.actions.openUrl(composeUrl);
-                    setShowShareModal(false);
-                    return;
+                    if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.openUrl) {
+                      await miniAppSdk.actions.openUrl(composeUrl);
+                      setShowShareModal(false);
+                      return;
+                    } else {
+                      throw new Error('SDK not available');
+                    }
                   } catch (sdkError) {
                     console.log('SDK openUrl failed, trying window.open...');
                     // Fallback to window.open
