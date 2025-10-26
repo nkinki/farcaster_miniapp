@@ -80,27 +80,43 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           const miniAppSdk = (window as any).miniAppSdk;
           
           if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-            // Use the real AppRank post hash to quote
-            // Need to pad hash to 66 characters (0x + 64 hex chars)
-            const castHash = '0x9dfbcf59' + '0'.repeat(56); // Pad to 66 chars
+            // Get the actual cast hash from the AppRank post
+            const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
+            const shortHash = appRankPostUrl.split('/').pop();
             
-            const castOptions: any = {
-              text: randomText,
-              parent: {
-                type: 'cast',
-                hash: castHash
-              }
-            };
+            // Pad hash to 66 characters like promotional system
+            const castHash = shortHash!.startsWith('0x') 
+              ? shortHash! + '0'.repeat(66 - shortHash!.length)
+              : '0x' + shortHash + '0'.repeat(64 - shortHash!.length);
             
             console.log('📝 Creating quote with hash:', castHash);
             console.log('📝 Quote text:', randomText);
+            console.log('📝 Original hash:', shortHash, 'length:', shortHash?.length);
+            
+            const castOptions: any = {
+              text: randomText
+            };
+            
+            // Only add parent if hash is valid length (66 or 42)
+            const hasValidCastHash = castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42);
+            
+            if (hasValidCastHash) {
+              castOptions.parent = { 
+                type: 'cast', 
+                hash: castHash 
+              };
+              console.log('🔗 Creating quote cast with valid hash');
+            } else {
+              console.log('❌ Hash not valid for quote, will create regular cast');
+              castOptions.embeds = [appRankPostUrl];
+            }
             
             // Try to create quote cast
             const castResult = await miniAppSdk.actions.composeCast(castOptions);
-            console.log('✅ Quote cast created:', castResult);
+            console.log('✅ Cast created:', castResult);
           }
         } catch (shareError) {
-          console.log('Quote sharing failed, continuing:', shareError);
+          console.error('Quote sharing failed:', shareError);
         }
       }, 2000);
       
