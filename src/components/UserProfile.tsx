@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useChessToken } from "@/hooks/useChessToken";
+import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle, FiChevronDown, FiChevronUp, FiShare2 } from "react-icons/fi";
 // Már nem használjuk a szerződést, csak az API-t
 
@@ -273,8 +274,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               randomText = getRandomShareText(claimAmount);
               console.log('📝 Share text:', randomText);
               
-              // Get MiniAppSdk
-              const miniAppSdk = (window as any).miniAppSdk;
               console.log('🔍 MiniAppSdk available:', !!miniAppSdk);
               
               // Copy promotional logic exactly
@@ -285,8 +284,9 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 text: randomText
               };
               
-              // Cast hash validation (exactly like promotional system)
-              const hasValidCastHash = shortHash && shortHash.startsWith('0x') && (shortHash.length === 66 || shortHash.length === 42);
+              // Cast hash validation - support both 66-char (full) and shorter hashes
+              // The hash 0x9dfbcf59 is 10 chars total (0x + 8 hex chars) - shorter format
+              const hasValidCastHash = shortHash && shortHash.startsWith('0x');
               
               console.log('🔍 URL Analysis:', {
                 shortHash,
