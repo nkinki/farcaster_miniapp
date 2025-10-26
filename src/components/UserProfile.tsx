@@ -241,17 +241,17 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         </button>
         <p className="text-xs text-gray-400 text-center mt-1">Min. 10,000 $CHESS required</p>
         
-        {/* Share button - always visible */}
+        {/* Share button - always visible, copy promotional logic exactly */}
         <button
           onClick={async () => {
             console.log('🔘 Share button clicked!');
             
-            // Define variables outside try block so they're available in catch
+            // Define variables outside try block
             let claimAmount = 0;
             let randomText = '';
             
             try {
-              // Get the latest claim from claim_history table
+              // Get the latest claim
               const response = await fetch(`/api/users/${user.fid}/latest-claim`);
               let latestClaimAmount = 0;
               
@@ -273,64 +273,53 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               randomText = getRandomShareText(claimAmount);
               console.log('📝 Share text:', randomText);
               
+              // Get MiniAppSdk
               const miniAppSdk = (window as any).miniAppSdk;
               console.log('🔍 MiniAppSdk available:', !!miniAppSdk);
               
-              if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                console.log('✅ Using MiniAppSdk composeCast');
-                
-                const castOptions: any = {
-                  text: randomText
+              // Copy promotional logic exactly
+              const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
+              const shortHash = appRankPostUrl.split('/').pop();
+              
+              const castOptions: any = {
+                text: randomText
+              };
+              
+              // Cast hash validation (exactly like promotional system)
+              const hasValidCastHash = shortHash && shortHash.startsWith('0x') && (shortHash.length === 66 || shortHash.length === 42);
+              
+              console.log('🔍 URL Analysis:', {
+                shortHash,
+                hashLength: shortHash?.length || 0,
+                hasValidCastHash
+              });
+              
+              if (hasValidCastHash) {
+                // Valid hash - quote cast + AppRank miniapp link (like promotional)
+                castOptions.parent = { 
+                  type: 'cast', 
+                  hash: shortHash 
                 };
-                
-                // Get the actual cast hash from the AppRank post
-                const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
-                const shortHash = appRankPostUrl.split('/').pop();
-                
-                // Cast hash validation (exactly like promotional system)
-                const hasValidCastHash = shortHash && shortHash.startsWith('0x') && (shortHash.length === 66 || shortHash.length === 42);
-                
-                console.log('🔍 URL Analysis:', {
-                  shortHash,
-                  hashLength: shortHash?.length || 0,
-                  hasValidCastHash
-                });
-                
-                if (hasValidCastHash) {
-                  // Valid 256-bit cast hash - quote cast + AppRank miniapp link
-                  castOptions.parent = { 
-                    type: 'cast', 
-                    hash: shortHash 
-                  };
-                  // Add AppRank miniapp link as embed
-                  castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
-                  console.log('🔗 Creating quote cast with hash:', shortHash, '+ AppRank embed');
-                } else {
-                  // Short hash or no hash - just embed (safer and more stable)
-                  castOptions.embeds = [appRankPostUrl];
-                  console.log('📎 Creating embed with URL:', appRankPostUrl, '(hash:', shortHash, ', length:', shortHash?.length || 0, 'chars)');
-                }
-                
-                console.log('📝 Cast options:', castOptions);
-                
-                // Try to create quote cast
+                castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
+                console.log(`🔗 Creating quote cast with hash: ${shortHash} + AppRank embed`);
+              } else {
+                // Short hash - just embed (safer)
+                castOptions.embeds = [appRankPostUrl];
+                console.log(`📎 Creating embed with URL: ${appRankPostUrl} (hash: ${shortHash}, length: ${shortHash?.length || 0} chars)`);
+              }
+              
+              console.log('📝 Cast options:', castOptions);
+              
+              // Try composeCast like promotional
+              if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
                 const castResult = await miniAppSdk.actions.composeCast(castOptions);
                 console.log('✅ Cast created:', castResult);
               } else {
-                console.log('❌ MiniAppSdk not available, using fallback');
-                // Fallback to external sharing with mobile detection
-                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                
-                if (isMobile) {
-                  window.location.href = composeUrl;
-                } else {
-                  window.open(composeUrl, '_blank');
-                }
+                throw new Error('MiniAppSdk not available');
               }
             } catch (shareError) {
-              console.error('❌ Quote sharing failed, using fallback:', shareError);
-              // Fallback to external sharing with mobile detection
+              console.error('❌ Quote sharing failed:', shareError);
+              // Fallback to external compose
               const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
               const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
               
