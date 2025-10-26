@@ -73,11 +73,38 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setClaimedAmount(claimedRewards);
       setJustClaimed(true);
       
-      // Animáció után adatok újratöltése és oldal frissítése
+      // Share as quote after successful claim
+      setTimeout(async () => {
+        try {
+          const randomText = getRandomShareText(claimedRewards);
+          const miniAppSdk = (window as any).miniAppSdk;
+          
+          if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
+            // Use the real AppRank post hash to quote
+            const castHash = '0x9dfbcf59';
+            
+            const castOptions: any = {
+              text: randomText,
+              parent: {
+                type: 'cast',
+                hash: castHash
+              }
+            };
+            
+            // Try to create quote cast
+            const castResult = await miniAppSdk.actions.composeCast(castOptions);
+            console.log('✅ Quote cast created:', castResult);
+          }
+        } catch (shareError) {
+          console.log('Quote sharing failed, continuing:', shareError);
+        }
+      }, 2000);
+      
+      // Page refresh after claim animation
       setTimeout(() => {
         setJustClaimed(false);
-        onClaimSuccess(); // Oldal frissítése mint korábban
-      }, 4000); // 1 másodperccel hosszabb (3s → 4s)
+        onClaimSuccess();
+      }, 4000);
 
     } catch (err: any) {
       console.error('Claim error:', err);
