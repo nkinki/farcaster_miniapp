@@ -245,6 +245,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         <button
           onClick={async () => {
             console.log('🔘 Share button clicked!');
+            
+            // Define variables outside try block so they're available in catch
+            let claimAmount = 0;
+            let randomText = '';
+            
             try {
               // Get the latest claim from database
               const response = await fetch(`/api/users/${user.fid}`);
@@ -253,10 +258,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               console.log('📊 User data from API:', userData);
               
               // Use claimed amount if just claimed, otherwise use total earnings
-              const claimAmount = justClaimed ? claimedAmount : (userData.totalEarnings || userStats.totalEarnings);
+              claimAmount = justClaimed ? claimedAmount : (userData.totalEarnings || userStats.totalEarnings);
               console.log('💰 Claim amount to use:', claimAmount);
               
-              const randomText = getRandomShareText(claimAmount);
+              randomText = getRandomShareText(claimAmount);
               console.log('📝 Share text:', randomText);
               
               const miniAppSdk = (window as any).miniAppSdk;
