@@ -284,29 +284,19 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 text: randomText
               };
               
-              // Cast hash validation - support both 66-char (full) and shorter hashes
-              // The hash 0x9dfbcf59 is 10 chars total (0x + 8 hex chars) - shorter format
-              const hasValidCastHash = shortHash && shortHash.startsWith('0x');
-              
+              // Cast hash validation - use embed for this specific short hash
+              // The hash 0x9dfbcf59 is too short for quote, so we'll just embed the URL
               console.log('🔍 URL Analysis:', {
                 shortHash,
-                hashLength: shortHash?.length || 0,
-                hasValidCastHash
+                hashLength: shortHash?.length || 0
               });
               
-              if (hasValidCastHash) {
-                // Valid hash - quote cast + AppRank miniapp link (like promotional)
-                castOptions.parent = { 
-                  type: 'cast', 
-                  hash: shortHash 
-                };
-                castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
-                console.log(`🔗 Creating quote cast with hash: ${shortHash} + AppRank embed`);
-              } else {
-                // Short hash - just embed (safer)
-                castOptions.embeds = [appRankPostUrl];
-                console.log(`📎 Creating embed with URL: ${appRankPostUrl} (hash: ${shortHash}, length: ${shortHash?.length || 0} chars)`);
-              }
+              // Always use embed for this specific case (too short hash)
+              castOptions.embeds = [
+                appRankPostUrl,
+                'https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'
+              ];
+              console.log(`📎 Creating embed with URL: ${appRankPostUrl} + AppRank link`);
               
               console.log('📝 Cast options:', castOptions);
               
