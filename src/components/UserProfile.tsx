@@ -81,7 +81,8 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           
           if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
             // Use the real AppRank post hash to quote
-            const castHash = '0x9dfbcf59';
+            // Need to pad hash to 66 characters (0x + 64 hex chars)
+            const castHash = '0x9dfbcf59' + '0'.repeat(56); // Pad to 66 chars
             
             const castOptions: any = {
               text: randomText,
@@ -90,6 +91,9 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 hash: castHash
               }
             };
+            
+            console.log('📝 Creating quote with hash:', castHash);
+            console.log('📝 Quote text:', randomText);
             
             // Try to create quote cast
             const castResult = await miniAppSdk.actions.composeCast(castOptions);
