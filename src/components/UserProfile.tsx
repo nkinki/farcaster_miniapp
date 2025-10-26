@@ -263,41 +263,56 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               console.log('🔍 MiniAppSdk available:', !!miniAppSdk);
               
               if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                // Get the actual cast hash from the AppRank post
-                const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
-                const shortHash = appRankPostUrl.split('/').pop();
-                
-                // Pad hash to 66 characters like promotional system
-                const castHash = shortHash!.startsWith('0x') 
-                  ? shortHash! + '0'.repeat(66 - shortHash!.length)
-                  : '0x' + shortHash + '0'.repeat(64 - shortHash!.length);
+                console.log('✅ Using MiniAppSdk composeCast');
                 
                 const castOptions: any = {
                   text: randomText
                 };
                 
-                // Only add parent if hash is valid length (66 or 42)
-                const hasValidCastHash = castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42);
+                // Get the actual cast hash from the AppRank post
+                const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
+                const shortHash = appRankPostUrl.split('/').pop();
+                
+                // Cast hash validation (exactly like promotional system)
+                const hasValidCastHash = shortHash && shortHash.startsWith('0x') && (shortHash.length === 66 || shortHash.length === 42);
+                
+                console.log('🔍 URL Analysis:', {
+                  shortHash,
+                  hashLength: shortHash?.length || 0,
+                  hasValidCastHash
+                });
                 
                 if (hasValidCastHash) {
+                  // Valid 256-bit cast hash - quote cast + AppRank miniapp link
                   castOptions.parent = { 
                     type: 'cast', 
-                    hash: castHash 
+                    hash: shortHash 
                   };
-                  console.log('🔗 Creating quote cast with valid hash');
+                  // Add AppRank miniapp link as embed
+                  castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
+                  console.log('🔗 Creating quote cast with hash:', shortHash, '+ AppRank embed');
                 } else {
-                  console.log('❌ Hash not valid for quote, will create regular cast');
+                  // Short hash or no hash - just embed (safer and more stable)
                   castOptions.embeds = [appRankPostUrl];
+                  console.log('📎 Creating embed with URL:', appRankPostUrl, '(hash:', shortHash, ', length:', shortHash?.length || 0, 'chars)');
                 }
+                
+                console.log('📝 Cast options:', castOptions);
                 
                 // Try to create quote cast
                 const castResult = await miniAppSdk.actions.composeCast(castOptions);
                 console.log('✅ Cast created:', castResult);
               } else {
-                console.log('❌ MiniAppSdk not available');
+                console.log('❌ MiniAppSdk not available, using fallback');
+                // Fallback to external sharing
+                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
+                window.open(composeUrl, '_blank');
               }
             } catch (shareError) {
-              console.error('❌ Quote sharing failed:', shareError);
+              console.error('❌ Quote sharing failed, using fallback:', shareError);
+              // Fallback to external sharing
+              const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
+              window.open(composeUrl, '_blank');
             }
           }}
           className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
