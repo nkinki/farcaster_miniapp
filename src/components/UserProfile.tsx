@@ -74,11 +74,54 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setClaimedAmount(claimedRewards);
       setJustClaimed(true);
       
-      // Page refresh after claim animation
-      setTimeout(() => {
-        setJustClaimed(false);
-        onClaimSuccess();
-      }, 4000);
+      // Automatically trigger share after a short delay
+      setTimeout(async () => {
+        console.log('🚀 Auto-triggering share after claim');
+        
+        let randomText = '';
+        
+        try {
+          randomText = getRandomShareText(claimedRewards);
+          console.log('📝 Auto-share text:', randomText);
+          
+          const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
+          
+          const castOptions: any = {
+            text: randomText,
+            embeds: [
+              appRankPostUrl,
+              'https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'
+            ]
+          };
+          
+          console.log('📝 Auto-cast options:', castOptions);
+          
+          // Try composeCast
+          if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
+            const castResult = await miniAppSdk.actions.composeCast(castOptions);
+            console.log('✅ Auto-cast created:', castResult);
+          } else {
+            throw new Error('MiniAppSdk not available');
+          }
+        } catch (shareError) {
+          console.error('❌ Auto-quote sharing failed:', shareError);
+          // Fallback to external compose
+          const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          
+          if (isMobile) {
+            window.location.href = composeUrl;
+          } else {
+            window.open(composeUrl, '_blank');
+          }
+        }
+        
+        // Page refresh after share
+        setTimeout(() => {
+          setJustClaimed(false);
+          onClaimSuccess();
+        }, 1000);
+      }, 2000);
 
     } catch (err: any) {
       console.error('Claim error:', err);
@@ -101,7 +144,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
     } finally {
       setIsClaiming(false);
     }
-  }, [user.fid, onClaimSuccess]);
+  }, [user.fid, onClaimSuccess, pendingRewards]);
 
   const getRandomShareText = (amount: number) => {
     const shareTexts = [
