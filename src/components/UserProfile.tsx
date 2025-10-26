@@ -251,14 +251,23 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             let randomText = '';
             
             try {
-              // Get the latest claim from database
-              const response = await fetch(`/api/users/${user.fid}`);
-              const userData = await response.json();
+              // Get the latest claim from claim_history table
+              const response = await fetch(`/api/users/${user.fid}/latest-claim`);
+              let latestClaimAmount = 0;
               
-              console.log('📊 User data from API:', userData);
+              if (response.ok) {
+                const claimData = await response.json();
+                latestClaimAmount = claimData.amount || 0;
+                console.log('📊 Latest claim from API:', latestClaimAmount);
+              } else {
+                console.log('⚠️ No latest claim API, using fallback');
+                const userResponse = await fetch(`/api/users/${user.fid}`);
+                const userData = await userResponse.json();
+                latestClaimAmount = userData.totalEarnings || userStats.totalEarnings;
+              }
               
-              // Use claimed amount if just claimed, otherwise use total earnings
-              claimAmount = justClaimed ? claimedAmount : (userData.totalEarnings || userStats.totalEarnings);
+              // Use claimed amount if just claimed, otherwise use latest claim from DB
+              claimAmount = justClaimed ? claimedAmount : latestClaimAmount;
               console.log('💰 Claim amount to use:', claimAmount);
               
               randomText = getRandomShareText(claimAmount);
@@ -309,15 +318,27 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 console.log('✅ Cast created:', castResult);
               } else {
                 console.log('❌ MiniAppSdk not available, using fallback');
-                // Fallback to external sharing
+                // Fallback to external sharing with mobile detection
                 const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
-                window.open(composeUrl, '_blank');
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                  window.location.href = composeUrl;
+                } else {
+                  window.open(composeUrl, '_blank');
+                }
               }
             } catch (shareError) {
               console.error('❌ Quote sharing failed, using fallback:', shareError);
-              // Fallback to external sharing
+              // Fallback to external sharing with mobile detection
               const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
-              window.open(composeUrl, '_blank');
+              const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+              
+              if (isMobile) {
+                window.location.href = composeUrl;
+              } else {
+                window.open(composeUrl, '_blank');
+              }
             }
           }}
           className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
