@@ -251,7 +251,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               
               // Use claimed amount if just claimed, otherwise use total earnings
               const claimAmount = justClaimed ? claimedAmount : (userData.totalEarnings || userStats.totalEarnings);
-              const randomText = getRandomShareText(claimAmount) + '\n\nThank you if you share! 🙏';
+              const randomText = getRandomShareText(claimAmount);
               const miniAppSdk = (window as any).miniAppSdk;
               
               if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
@@ -295,6 +295,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           <FiShare2 />
           <span>Share Your Claim</span>
         </button>
+        <p className="text-xs text-gray-400 text-center mt-1">Thank you if you share! 🙏</p>
         
         {error && (
           <div className="p-3 text-sm bg-red-900/50 border border-red-600 text-red-300 rounded-md flex items-center gap-2 animate-fadeIn">
