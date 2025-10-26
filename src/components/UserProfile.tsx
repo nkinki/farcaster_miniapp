@@ -241,56 +241,60 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         </button>
         <p className="text-xs text-gray-400 text-center mt-1">Min. 10,000 $CHESS required</p>
         
-        {/* Share button after successful claim */}
-        {justClaimed && (
-          <button
-            onClick={async () => {
-              try {
-                const randomText = getRandomShareText(claimedAmount);
-                const miniAppSdk = (window as any).miniAppSdk;
+        {/* Share button - always visible */}
+        <button
+          onClick={async () => {
+            try {
+              // Get the latest claim from database
+              const response = await fetch(`/api/users/${user.fid}`);
+              const userData = await response.json();
+              
+              // Use claimed amount if just claimed, otherwise use total earnings
+              const claimAmount = justClaimed ? claimedAmount : (userData.totalEarnings || userStats.totalEarnings);
+              const randomText = getRandomShareText(claimAmount) + '\n\nThank you if you share! 🙏';
+              const miniAppSdk = (window as any).miniAppSdk;
+              
+              if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
+                // Get the actual cast hash from the AppRank post
+                const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
+                const shortHash = appRankPostUrl.split('/').pop();
                 
-                if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                  // Get the actual cast hash from the AppRank post
-                  const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
-                  const shortHash = appRankPostUrl.split('/').pop();
-                  
-                  // Pad hash to 66 characters like promotional system
-                  const castHash = shortHash!.startsWith('0x') 
-                    ? shortHash! + '0'.repeat(66 - shortHash!.length)
-                    : '0x' + shortHash + '0'.repeat(64 - shortHash!.length);
-                  
-                  const castOptions: any = {
-                    text: randomText
+                // Pad hash to 66 characters like promotional system
+                const castHash = shortHash!.startsWith('0x') 
+                  ? shortHash! + '0'.repeat(66 - shortHash!.length)
+                  : '0x' + shortHash + '0'.repeat(64 - shortHash!.length);
+                
+                const castOptions: any = {
+                  text: randomText
+                };
+                
+                // Only add parent if hash is valid length (66 or 42)
+                const hasValidCastHash = castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42);
+                
+                if (hasValidCastHash) {
+                  castOptions.parent = { 
+                    type: 'cast', 
+                    hash: castHash 
                   };
-                  
-                  // Only add parent if hash is valid length (66 or 42)
-                  const hasValidCastHash = castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42);
-                  
-                  if (hasValidCastHash) {
-                    castOptions.parent = { 
-                      type: 'cast', 
-                      hash: castHash 
-                    };
-                    console.log('🔗 Creating quote cast with valid hash');
-                  } else {
-                    console.log('❌ Hash not valid for quote, will create regular cast');
-                    castOptions.embeds = [appRankPostUrl];
-                  }
-                  
-                  // Try to create quote cast
-                  const castResult = await miniAppSdk.actions.composeCast(castOptions);
-                  console.log('✅ Cast created:', castResult);
+                  console.log('🔗 Creating quote cast with valid hash');
+                } else {
+                  console.log('❌ Hash not valid for quote, will create regular cast');
+                  castOptions.embeds = [appRankPostUrl];
                 }
-              } catch (shareError) {
-                console.error('Quote sharing failed:', shareError);
+                
+                // Try to create quote cast
+                const castResult = await miniAppSdk.actions.composeCast(castOptions);
+                console.log('✅ Cast created:', castResult);
               }
-            }}
-            className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
-          >
-            <FiShare2 />
-            <span>Share Your Claim</span>
-          </button>
-        )}
+            } catch (shareError) {
+              console.error('Quote sharing failed:', shareError);
+            }
+          }}
+          className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+        >
+          <FiShare2 />
+          <span>Share Your Claim</span>
+        </button>
         
         {error && (
           <div className="p-3 text-sm bg-red-900/50 border border-red-600 text-red-300 rounded-md flex items-center gap-2 animate-fadeIn">
