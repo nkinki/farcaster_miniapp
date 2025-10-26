@@ -15,12 +15,12 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid FID' }, { status: 400 });
     }
 
-    // Get the latest claim from claim_history
+    // Get the latest claim from payouts (where user_fid = fid)
     const result = await sql`
-      SELECT amount, claimed_at 
-      FROM claim_history 
-      WHERE fid = ${fid} 
-      ORDER BY claimed_at DESC 
+      SELECT amount, created_at as claimed_at
+      FROM payouts 
+      WHERE user_fid = ${fid} 
+      ORDER BY created_at DESC 
       LIMIT 1
     `;
 
