@@ -244,15 +244,23 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         {/* Share button - always visible */}
         <button
           onClick={async () => {
+            console.log('🔘 Share button clicked!');
             try {
               // Get the latest claim from database
               const response = await fetch(`/api/users/${user.fid}`);
               const userData = await response.json();
               
+              console.log('📊 User data from API:', userData);
+              
               // Use claimed amount if just claimed, otherwise use total earnings
               const claimAmount = justClaimed ? claimedAmount : (userData.totalEarnings || userStats.totalEarnings);
+              console.log('💰 Claim amount to use:', claimAmount);
+              
               const randomText = getRandomShareText(claimAmount);
+              console.log('📝 Share text:', randomText);
+              
               const miniAppSdk = (window as any).miniAppSdk;
+              console.log('🔍 MiniAppSdk available:', !!miniAppSdk);
               
               if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
                 // Get the actual cast hash from the AppRank post
@@ -285,9 +293,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 // Try to create quote cast
                 const castResult = await miniAppSdk.actions.composeCast(castOptions);
                 console.log('✅ Cast created:', castResult);
+              } else {
+                console.log('❌ MiniAppSdk not available');
               }
             } catch (shareError) {
-              console.error('Quote sharing failed:', shareError);
+              console.error('❌ Quote sharing failed:', shareError);
             }
           }}
           className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
