@@ -73,53 +73,6 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       setClaimedAmount(claimedRewards);
       setJustClaimed(true);
       
-      // Share as quote after successful claim
-      setTimeout(async () => {
-        try {
-          const randomText = getRandomShareText(claimedRewards);
-          const miniAppSdk = (window as any).miniAppSdk;
-          
-          if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-            // Get the actual cast hash from the AppRank post
-            const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
-            const shortHash = appRankPostUrl.split('/').pop();
-            
-            // Pad hash to 66 characters like promotional system
-            const castHash = shortHash!.startsWith('0x') 
-              ? shortHash! + '0'.repeat(66 - shortHash!.length)
-              : '0x' + shortHash + '0'.repeat(64 - shortHash!.length);
-            
-            console.log('📝 Creating quote with hash:', castHash);
-            console.log('📝 Quote text:', randomText);
-            console.log('📝 Original hash:', shortHash, 'length:', shortHash?.length);
-            
-            const castOptions: any = {
-              text: randomText
-            };
-            
-            // Only add parent if hash is valid length (66 or 42)
-            const hasValidCastHash = castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42);
-            
-            if (hasValidCastHash) {
-              castOptions.parent = { 
-                type: 'cast', 
-                hash: castHash 
-              };
-              console.log('🔗 Creating quote cast with valid hash');
-            } else {
-              console.log('❌ Hash not valid for quote, will create regular cast');
-              castOptions.embeds = [appRankPostUrl];
-            }
-            
-            // Try to create quote cast
-            const castResult = await miniAppSdk.actions.composeCast(castOptions);
-            console.log('✅ Cast created:', castResult);
-          }
-        } catch (shareError) {
-          console.error('Quote sharing failed:', shareError);
-        }
-      }, 2000);
-      
       // Page refresh after claim animation
       setTimeout(() => {
         setJustClaimed(false);
