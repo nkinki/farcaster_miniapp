@@ -29,6 +29,9 @@ export default function SeasonManagementPage() {
   const [testAmount, setTestAmount] = useState(10000);
   const [showSnapshotTest, setShowSnapshotTest] = useState(false);
   const [isSnapshotting, setIsSnapshotting] = useState(false);
+  const [distribution, setDistribution] = useState<any>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
     fetchSeasons();
@@ -331,58 +334,177 @@ export default function SeasonManagementPage() {
               Test Snapshot Distribution
             </h3>
             <p className="text-sm text-gray-300 mb-4">
-              This will calculate and distribute rewards to all active users based on their points using the specified test amount.
+              Calculate and distribute rewards to all active users based on their points using the specified test amount.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Test Amount (CHESS)</label>
-                <input
-                  type="number"
-                  value={testAmount}
-                  onChange={(e) => setTestAmount(parseInt(e.target.value))}
-                  min="1000"
-                  step="1000"
-                  placeholder="e.g., 10000"
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                />
+            
+            {!distribution && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Test Amount (CHESS)</label>
+                  <input
+                    type="number"
+                    value={testAmount}
+                    onChange={(e) => setTestAmount(parseInt(e.target.value))}
+                    min="1000"
+                    step="1000"
+                    placeholder="e.g., 10000"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-end gap-2">
+                  <button
+                    onClick={async () => {
+                      setIsSnapshotting(true);
+                      setMessage(null);
+                      try {
+                        const response = await fetch('/api/season/test-airdrop', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ testAmount })
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                          setDistribution(data);
+                          setMessage(`✅ Snapshot calculated! ${data.total_users} users will receive rewards.`);
+                        } else {
+                          setMessage(`❌ Error: ${data.error}`);
+                        }
+                      } catch (error) {
+                        setMessage(`❌ Failed to create snapshot: ${error}`);
+                      } finally {
+                        setIsSnapshotting(false);
+                      }
+                    }}
+                    disabled={isSnapshotting}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSnapshotting ? <FiRefreshCw className="w-4 h-4 animate-spin" /> : <FiUsers className="w-4 h-4" />}
+                    {isSnapshotting ? 'Calculating...' : 'Create Snapshot'}
+                  </button>
+                </div>
               </div>
-              <div className="flex items-end">
+            )}
+
+            {distribution && (
+              <div className="mb-4">
+                <h4 className="text-md font-bold text-white mb-2">Distribution List ({distribution.total_users} users)</h4>
+                <div className="bg-slate-800/50 rounded-lg border border-gray-600 max-h-60 overflow-y-auto">
+                  <div className="grid grid-cols-4 gap-2 p-3 text-xs font-bold text-gray-400 border-b border-gray-600 sticky top-0 bg-slate-800">
+                    <div>Rank</div>
+                    <div>FID</div>
+                    <div>Points</div>
+                    <div>Reward</div>
+                  </div>
+                  {distribution.distribution?.slice(0, 100).map((user: any) => (
+                    <div key={user.user_fid} className="grid grid-cols-4 gap-2 p-2 text-xs text-white border-b border-gray-700/50">
+                      <div>{user.rank}</div>
+                      <div>{user.user_fid}</div>
+                      <div>{user.points}</div>
+                      <div className="text-green-400">{user.reward_amount_formatted}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={async () => {
+                      setShowPasswordModal(true);
+                    }}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2"
+                  >
+                    <FiAlertTriangle className="w-4 h-4" />
+                    Distribute Rewards (Requires Password)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDistribution(null);
+                      setMessage(null);
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    Clear & Recalculate
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            <button
+              onClick={() => {
+                setShowSnapshotTest(false);
+                setDistribution(null);
+                setMessage(null);
+              }}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              Close
+            </button>
+          </div>
+        )}
+
+        {/* Password Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-800 rounded-xl p-6 border border-red-500 max-w-md w-full">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <FiAlertTriangle className="text-red-400" />
+                Confirm Distribution
+              </h3>
+              <p className="text-sm text-gray-300 mb-4">
+                This will distribute rewards to all users. Type "DISTRIBUTE" to confirm.
+              </p>
+              <input
+                type="text"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="Type DISTRIBUTE to confirm"
+                className="w-full px-3 py-2 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-red-500 focus:outline-none mb-4"
+              />
+              <div className="flex gap-2">
                 <button
                   onClick={async () => {
-                    setIsSnapshotting(true);
-                    setMessage(null);
-                    try {
-                      const response = await fetch('/api/season/test-airdrop', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ testAmount })
-                      });
-                      const data = await response.json();
-                      if (response.ok) {
-                        setMessage(`✅ Snapshot completed! ${data.total_users} users will receive rewards. Total distributed: ${data.distributed_amount || 0} CHESS`);
-                      } else {
-                        setMessage(`❌ Error: ${data.error}`);
+                    if (passwordInput === 'DISTRIBUTE') {
+                      setShowPasswordModal(false);
+                      setIsSnapshotting(true);
+                      setMessage(null);
+                      try {
+                        // Call the distribute endpoint
+                        const response = await fetch('/api/season/test-airdrop', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ testAmount, distribute: true })
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                          setMessage(`✅ Rewards distributed successfully! ${data.total_users} users received rewards.`);
+                          setDistribution(null);
+                        } else {
+                          setMessage(`❌ Error: ${data.error}`);
+                        }
+                      } catch (error) {
+                        setMessage(`❌ Failed to distribute: ${error}`);
+                      } finally {
+                        setIsSnapshotting(false);
                       }
-                    } catch (error) {
-                      setMessage(`❌ Failed to create snapshot: ${error}`);
-                    } finally {
-                      setIsSnapshotting(false);
+                      setPasswordInput('');
+                    } else {
+                      setMessage('❌ Invalid password');
                     }
                   }}
-                  disabled={isSnapshotting}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  disabled={passwordInput !== 'DISTRIBUTE'}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSnapshotting ? <FiRefreshCw className="w-4 h-4 animate-spin" /> : <FiUsers className="w-4 h-4" />}
-                  {isSnapshotting ? 'Creating Snapshot...' : 'Create Snapshot & Distribute'}
+                  Confirm
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setPasswordInput('');
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
-            <button
-              onClick={() => setShowSnapshotTest(false)}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-            >
-              Cancel
-            </button>
           </div>
         )}
 

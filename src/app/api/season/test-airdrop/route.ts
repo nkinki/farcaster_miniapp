@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
-    const { testAmount = 1000, testFids = [], userFid } = await request.json();
+    const { testAmount = 1000, testFids = [], userFid, distribute = false } = await request.json();
 
     if (!testAmount || testAmount <= 0) {
       return NextResponse.json({ 
@@ -190,6 +190,22 @@ export async function POST(request: NextRequest) {
     const remainingAmount = testAmountWei - distributedAmount;
     
     console.log(`💰 Test distribution: ${Number(distributedAmount) / 1000000000000000000} CHESS distributed, ${Number(remainingAmount) / 1000000000000000000} CHESS remaining`);
+
+    // Insert rewards into shares table as pending rewards (only if distribute = true)
+    if (distribute) {
+      console.log('📝 Inserting rewards into shares table...');
+      for (const user of distribution) {
+        try {
+          await client.query(`
+            INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, action_type, reward_claimed)
+            VALUES (-1, $1, '', '', $2, 'airdrop_test', false)
+          `, [user.user_fid, user.reward_amount.toString()]);
+          console.log(`✅ Rewards inserted for FID ${user.user_fid}: ${user.reward_amount_formatted}`);
+        } catch (insertError) {
+          console.error(`❌ Failed to insert rewards for FID ${user.user_fid}:`, insertError);
+        }
+      }
+    }
 
     // Record the calculation in daily limits (if userFid provided)
     if (userFid) {

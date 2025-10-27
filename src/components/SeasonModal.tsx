@@ -44,6 +44,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   const [isLoadingPoints, setIsLoadingPoints] = useState(false);
   const [checkResult, setCheckResult] = useState<{points: number} | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string>('');
   
   // Wallet connection for CHESS balance
   const { address, isConnected } = useAccount();
@@ -59,6 +60,40 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
       refetchInterval: 10000, // Refresh every 10 seconds
     }
   });
+
+  // Countdown timer for season expiration
+  useEffect(() => {
+    if (!seasonData) return;
+    
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const endTime = new Date(seasonData.end_date).getTime();
+      const timeDiff = endTime - now;
+      
+      if (timeDiff > 0) {
+        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (days > 0) {
+          setTimeLeft(`${days} day${days !== 1 ? 's' : ''} left`);
+        } else if (hours > 0) {
+          setTimeLeft(`${hours}h ${minutes}m left`);
+        } else if (minutes > 0) {
+          setTimeLeft(`${minutes}m left`);
+        } else {
+          setTimeLeft('EXPIRED');
+        }
+      } else {
+        setTimeLeft('EXPIRED');
+      }
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, [seasonData]);
 
   // Fetch season data
   useEffect(() => {
