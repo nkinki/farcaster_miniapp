@@ -155,8 +155,8 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // Convert test amount to wei
-    const testAmountWei = BigInt(testAmount) * BigInt(1000000000000000000); // Convert to wei
+    // Convert test amount to wei (1 CHESS = 10^18 wei)
+    const testAmountWei = BigInt(testAmount) * BigInt(1000000000000000000); // 10^18
 
     // Calculate proportional rewards
     let distribution;
@@ -168,13 +168,14 @@ export async function POST(request: NextRequest) {
           (BigInt(userPoints) * testAmountWei) / BigInt(totalPoints) : 
           BigInt(0);
         
+        const chessAmount = Number(rewardAmount) / 1000000000000000000;
         return {
           rank: index + 1,
           user_fid: user.user_fid,
           points: userPoints,
           percentage: parseFloat(percentage.toFixed(4)),
           reward_amount: rewardAmount,
-          reward_amount_formatted: (Number(rewardAmount) / 1000000000000000000).toFixed(6) + ' CHESS'
+          reward_amount_formatted: Math.round(chessAmount) + ' CHESS'
         };
       });
     } catch (distributionError) {
@@ -196,15 +197,15 @@ export async function POST(request: NextRequest) {
       console.log('📝 Inserting rewards into airdrop_claims table...');
       for (const user of distribution) {
         try {
-          // Convert wei to milliCHESS (divide by 10^15) so it fits in bigint
-          // milliCHESS = 10^15, so 1 CHESS = 1,000,000,000,000,000 milliCHESS
-          const rewardAmountInMilliCHESS = Number(user.reward_amount) / 1000000000000000; // 10^15
+          // reward_amount is in wei (from distribution calculation)
+          // Store it directly as is (it fits in bigint)
+          const rewardAmountBigInt = BigInt(user.reward_amount);
           
           await client.query(`
             INSERT INTO airdrop_claims (user_fid, season_id, points_used, reward_amount, status)
             VALUES ($1, $2, $3, $4, 'pending')
             ON CONFLICT DO NOTHING
-          `, [user.user_fid, seasonId, user.points, Math.floor(rewardAmountInMilliCHESS)]);
+          `, [user.user_fid, seasonId, user.points, rewardAmountBigInt.toString()]);
           console.log(`✅ Rewards inserted into airdrop_claims for FID ${user.user_fid}: ${user.reward_amount_formatted}`);
         } catch (insertError) {
           console.error(`❌ Failed to insert rewards for FID ${user.user_fid}:`, insertError);
