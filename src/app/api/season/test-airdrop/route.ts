@@ -191,23 +191,17 @@ export async function POST(request: NextRequest) {
     
     console.log(`💰 Test distribution: ${Number(distributedAmount) / 1000000000000000000} CHESS distributed, ${Number(remainingAmount) / 1000000000000000000} CHESS remaining`);
 
-    // Insert rewards into shares table as pending rewards (only if distribute = true)
+    // Insert rewards into airdrop_claims table (separate from shares to avoid FK constraint issues)
     if (distribute) {
-      console.log('📝 Inserting rewards into shares table...');
+      console.log('📝 Inserting rewards into airdrop_claims table...');
       for (const user of distribution) {
         try {
-          // Get username from users table or use FID as fallback
-          const userResult = await client.query(`
-            SELECT username FROM users WHERE fid = $1
-          `, [user.user_fid]);
-          
-          const username = userResult.rows[0]?.username || `FID${user.user_fid}`;
-          
           await client.query(`
-            INSERT INTO shares (promotion_id, sharer_fid, sharer_username, cast_hash, reward_amount, action_type, reward_claimed)
-            VALUES (-1, $1, $2, '', $3, 'airdrop_test', false)
-          `, [user.user_fid, username, user.reward_amount.toString()]);
-          console.log(`✅ Rewards inserted for FID ${user.user_fid} (${username}): ${user.reward_amount_formatted}`);
+            INSERT INTO airdrop_claims (user_fid, season_id, points_used, reward_amount, status)
+            VALUES ($1, $2, $3, $4, 'pending')
+            ON CONFLICT DO NOTHING
+          `, [user.user_fid, seasonId, user.points, user.reward_amount.toString()]);
+          console.log(`✅ Rewards inserted into airdrop_claims for FID ${user.user_fid}: ${user.reward_amount_formatted}`);
         } catch (insertError) {
           console.error(`❌ Failed to insert rewards for FID ${user.user_fid}:`, insertError);
         }

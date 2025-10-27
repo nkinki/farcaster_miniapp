@@ -36,13 +36,22 @@ export async function GET(request: NextRequest) {
             WHERE user_fid = ${fid} AND status = 'verified';
         `;
         
+        // Get airdrop claims pending rewards
+        const [airdropResult] = await sql`
+            SELECT
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN reward_amount ELSE 0 END), 0) AS airdrop_pending
+            FROM airdrop_claims
+            WHERE user_fid = ${fid};
+        `;
+        
         const userStats = userStatsResult || { total_shares: 0, total_earnings: 0, pending_rewards: 0 };
         const followStats = followStatsResult || { total_follows: 0, follow_earnings: 0, follow_pending_rewards: 0 };
+        const airdropStats = airdropResult || { airdrop_pending: 0 };
         
-        // Combine stats from both tables
+        // Combine stats from all tables
         const totalShares = Number(userStats.total_shares) + Number(followStats.total_follows);
         const totalEarnings = Number(userStats.total_earnings) + Number(followStats.follow_earnings);
-        const totalPendingRewards = Number(userStats.pending_rewards) + Number(followStats.follow_pending_rewards);
+        const totalPendingRewards = Number(userStats.pending_rewards) + Number(followStats.follow_pending_rewards) + Number(airdropStats.airdrop_pending);
         
         return NextResponse.json({
             user: {
