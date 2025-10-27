@@ -192,6 +192,21 @@ export async function POST(request: NextRequest) {
     
     console.log(`💰 Test distribution: ${Number(distributedAmount) / 1000000000000000000} CHESS distributed, ${Number(remainingAmount) / 1000000000000000000} CHESS remaining`);
 
+    // Migrate airdrop_claims if needed - change reward_amount from BIGINT to NUMERIC
+    try {
+      await client.query(`
+        ALTER TABLE airdrop_claims 
+        ALTER COLUMN reward_amount TYPE NUMERIC(18,2);
+      `);
+      console.log('✅ airdrop_claims.reward_amount migrated to NUMERIC');
+    } catch (migrateError: any) {
+      if (migrateError.message.includes('does not exist') || migrateError.message.includes('column already exists')) {
+        console.log('⚠️ Migration already applied or not needed');
+      } else {
+        console.error('⚠️ Migration error:', migrateError);
+      }
+    }
+
     // Insert rewards into airdrop_claims table (separate from shares to avoid FK constraint issues)
     if (distribute) {
       console.log('📝 Inserting rewards into airdrop_claims table...');
