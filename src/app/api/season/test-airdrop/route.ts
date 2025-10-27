@@ -196,10 +196,10 @@ export async function POST(request: NextRequest) {
       console.log('📝 Inserting rewards into airdrop_claims table...');
       for (const user of distribution) {
         try {
-          // Keep as wei (bigint) for database storage
+          // Keep as wei (string to avoid bigint overflow) for database storage
           await client.query(`
             INSERT INTO airdrop_claims (user_fid, season_id, points_used, reward_amount, status)
-            VALUES ($1, $2, $3, $4, 'pending')
+            VALUES ($1, $2, $3, $4::numeric, 'pending')
             ON CONFLICT DO NOTHING
           `, [user.user_fid, seasonId, user.points, user.reward_amount.toString()]);
           console.log(`✅ Rewards inserted into airdrop_claims for FID ${user.user_fid}: ${user.reward_amount_formatted}`);
