@@ -232,9 +232,9 @@ export default function SeasonManagementPage() {
             type="password"
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
-            onKeyPress={(e) => {
+              onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                if (adminPassword === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || adminPassword === 'ADMIN_SECRET_2024') {
+                if (adminPassword === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || adminPassword === 'FarcasterAdmin2024!') {
                   setIsAuthenticated(true);
                 } else {
                   setMessage('❌ Invalid password');
@@ -247,7 +247,7 @@ export default function SeasonManagementPage() {
           <div className="flex gap-2">
             <button
               onClick={() => {
-                if (adminPassword === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || adminPassword === 'ADMIN_SECRET_2024') {
+                if (adminPassword === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || adminPassword === 'FarcasterAdmin2024!') {
                   setIsAuthenticated(true);
                 } else {
                   setMessage('❌ Invalid password');
