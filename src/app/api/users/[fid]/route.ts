@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
             WHERE user_fid = ${fid} AND status = 'verified';
         `;
         
-        // Get airdrop claims pending rewards (reward_amount is in wei, convert to human readable)
+        // Get airdrop claims pending rewards (reward_amount is in milliCHESS, convert to CHESS by dividing by 10^15)
         const [airdropResult] = await sql`
             SELECT
-                COALESCE(SUM(CASE WHEN status = 'pending' THEN reward_amount::bigint ELSE 0 END), 0) AS airdrop_pending
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN reward_amount ELSE 0 END), 0) AS airdrop_pending
             FROM airdrop_claims
             WHERE user_fid = ${fid};
         `;
@@ -49,9 +49,12 @@ export async function GET(request: NextRequest) {
         const airdropStats = airdropResult || { airdrop_pending: 0 };
         
         // Combine stats from all tables
+        // Note: airdrop_pending is in milliCHESS (10^15), convert to CHESS
+        const airdropPendingInCHESS = Number(airdropStats.airdrop_pending) / 1000000000000000;
+        
         const totalShares = Number(userStats.total_shares) + Number(followStats.total_follows);
         const totalEarnings = Number(userStats.total_earnings) + Number(followStats.follow_earnings);
-        const totalPendingRewards = Number(userStats.pending_rewards) + Number(followStats.follow_pending_rewards) + Number(airdropStats.airdrop_pending);
+        const totalPendingRewards = Number(userStats.pending_rewards) + Number(followStats.follow_pending_rewards) + airdropPendingInCHESS;
         
         return NextResponse.json({
             user: {
