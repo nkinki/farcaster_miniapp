@@ -24,6 +24,11 @@ export default function SeasonManagementPage() {
   const [newSeasonRewards, setNewSeasonRewards] = useState(10000000);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [timeLeft, setTimeLeft] = useState<{ [key: number]: string }>({});
+  
+  // Snapshot test
+  const [testAmount, setTestAmount] = useState(10000);
+  const [showSnapshotTest, setShowSnapshotTest] = useState(false);
+  const [isSnapshotting, setIsSnapshotting] = useState(false);
 
   useEffect(() => {
     fetchSeasons();
@@ -244,13 +249,20 @@ export default function SeasonManagementPage() {
         )}
 
         {/* Create New Season Button */}
-        <div className="mb-6">
+        <div className="mb-6 flex gap-3">
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
             className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2"
           >
             <FiPlus className="w-4 h-4" />
             Create New Season
+          </button>
+          <button
+            onClick={() => setShowSnapshotTest(!showSnapshotTest)}
+            className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center gap-2"
+          >
+            <FiUsers className="w-4 h-4" />
+            Test Snapshot Distribution
           </button>
         </div>
 
@@ -308,6 +320,69 @@ export default function SeasonManagementPage() {
                 Cancel
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Snapshot Test Form */}
+        {showSnapshotTest && (
+          <div className="bg-gradient-to-r from-slate-800/50 to-green-900/20 backdrop-blur-sm rounded-xl p-6 mb-6 border border-green-500/20">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <FiUsers className="text-green-400" />
+              Test Snapshot Distribution
+            </h3>
+            <p className="text-sm text-gray-300 mb-4">
+              This will calculate and distribute rewards to all active users based on their points using the specified test amount.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Test Amount (CHESS)</label>
+                <input
+                  type="number"
+                  value={testAmount}
+                  onChange={(e) => setTestAmount(parseInt(e.target.value))}
+                  min="1000"
+                  step="1000"
+                  placeholder="e.g., 10000"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={async () => {
+                    setIsSnapshotting(true);
+                    setMessage(null);
+                    try {
+                      const response = await fetch('/api/season/test-airdrop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ testAmount })
+                      });
+                      const data = await response.json();
+                      if (response.ok) {
+                        setMessage(`✅ Snapshot completed! ${data.total_users} users will receive rewards. Total distributed: ${data.distributed_amount || 0} CHESS`);
+                      } else {
+                        setMessage(`❌ Error: ${data.error}`);
+                      }
+                    } catch (error) {
+                      setMessage(`❌ Failed to create snapshot: ${error}`);
+                    } finally {
+                      setIsSnapshotting(false);
+                    }
+                  }}
+                  disabled={isSnapshotting}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSnapshotting ? <FiRefreshCw className="w-4 h-4 animate-spin" /> : <FiUsers className="w-4 h-4" />}
+                  {isSnapshotting ? 'Creating Snapshot...' : 'Create Snapshot & Distribute'}
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSnapshotTest(false)}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              Cancel
+            </button>
           </div>
         )}
 
