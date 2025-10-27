@@ -49,8 +49,8 @@ export async function GET(request: NextRequest) {
         const airdropStats = airdropResult || { airdrop_pending: 0 };
         
         // Combine stats from all tables
-        // Note: airdrop_pending is in milliCHESS (10^15), convert to CHESS
-        const airdropPendingInCHESS = Number(airdropStats.airdrop_pending) / 1000000000000000;
+        // Note: airdrop_pending is in milliCHESS (10^15), convert to CHESS by dividing by 10^3
+        const airdropPendingInCHESS = Number(airdropStats.airdrop_pending) / 1000;
         
         const totalShares = Number(userStats.total_shares) + Number(followStats.total_follows);
         const totalEarnings = Number(userStats.total_earnings) + Number(followStats.follow_earnings);
