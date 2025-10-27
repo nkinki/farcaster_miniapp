@@ -198,14 +198,14 @@ export async function POST(request: NextRequest) {
       for (const user of distribution) {
         try {
           // reward_amount is in wei (from distribution calculation)
-          // Store it directly as is (it fits in bigint)
-          const rewardAmountBigInt = BigInt(user.reward_amount);
+          // Convert to CHESS for storage (same as shares table uses DECIMAL)
+          const chessAmount = Number(user.reward_amount) / 1000000000000000000; // wei to CHESS
           
           await client.query(`
             INSERT INTO airdrop_claims (user_fid, season_id, points_used, reward_amount, status)
             VALUES ($1, $2, $3, $4, 'pending')
             ON CONFLICT DO NOTHING
-          `, [user.user_fid, seasonId, user.points, rewardAmountBigInt.toString()]);
+          `, [user.user_fid, seasonId, user.points, chessAmount.toFixed(2)]);
           console.log(`✅ Rewards inserted into airdrop_claims for FID ${user.user_fid}: ${user.reward_amount_formatted}`);
         } catch (insertError) {
           console.error(`❌ Failed to insert rewards for FID ${user.user_fid}:`, insertError);

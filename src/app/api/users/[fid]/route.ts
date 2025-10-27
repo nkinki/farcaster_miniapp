@@ -49,8 +49,8 @@ export async function GET(request: NextRequest) {
         const airdropStats = airdropResult || { airdrop_pending: 0 };
         
         // Combine stats from all tables
-        // Note: airdrop_pending is in wei (from airdrop_claims), convert to CHESS by dividing by 10^18
-        const airdropPendingInCHESS = Number(airdropStats.airdrop_pending) / 1000000000000000000;
+        // Note: airdrop_pending is in CHESS (DECIMAL format, same as shares table)
+        const airdropPendingInCHESS = Number(airdropStats.airdrop_pending);
         
         const totalShares = Number(userStats.total_shares) + Number(followStats.total_follows);
         const totalEarnings = Number(userStats.total_earnings) + Number(followStats.follow_earnings);
