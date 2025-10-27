@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
             WHERE user_fid = ${fid} AND status = 'verified';
         `;
         
-        // Get airdrop claims pending rewards
+        // Get airdrop claims pending rewards (reward_amount is in wei, convert to human readable)
         const [airdropResult] = await sql`
             SELECT
-                COALESCE(SUM(CASE WHEN status = 'pending' THEN reward_amount ELSE 0 END), 0) AS airdrop_pending
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN reward_amount::bigint ELSE 0 END), 0) AS airdrop_pending
             FROM airdrop_claims
             WHERE user_fid = ${fid};
         `;

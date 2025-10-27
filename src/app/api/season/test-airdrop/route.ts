@@ -196,14 +196,12 @@ export async function POST(request: NextRequest) {
       console.log('📝 Inserting rewards into airdrop_claims table...');
       for (const user of distribution) {
         try {
-          // Convert from wei to CHESS (divide by 10^18 for human readable amount)
-          const rewardAmountInCHESS = Number(user.reward_amount) / 1000000000000000000;
-          
+          // Keep as wei (bigint) for database storage
           await client.query(`
             INSERT INTO airdrop_claims (user_fid, season_id, points_used, reward_amount, status)
             VALUES ($1, $2, $3, $4, 'pending')
             ON CONFLICT DO NOTHING
-          `, [user.user_fid, seasonId, user.points, rewardAmountInCHESS]);
+          `, [user.user_fid, seasonId, user.points, user.reward_amount.toString()]);
           console.log(`✅ Rewards inserted into airdrop_claims for FID ${user.user_fid}: ${user.reward_amount_formatted}`);
         } catch (insertError) {
           console.error(`❌ Failed to insert rewards for FID ${user.user_fid}:`, insertError);
