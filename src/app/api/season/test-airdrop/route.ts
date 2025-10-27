@@ -9,7 +9,15 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
   
   try {
-    const { testAmount = 1000, testFids = [], userFid, distribute = false } = await request.json();
+    const { testAmount = 1000, testFids = [], userFid, distribute = false, adminPassword } = await request.json();
+
+    // Admin password check for security
+    if (!adminPassword || adminPassword !== process.env.ADMIN_PASSWORD) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Unauthorized: Invalid admin password' 
+      }, { status: 401 });
+    }
 
     if (!testAmount || testAmount <= 0) {
       return NextResponse.json({ 

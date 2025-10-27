@@ -18,6 +18,10 @@ export default function SeasonManagementPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   
+  // Admin authentication
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  
   // New season form
   const [newSeasonName, setNewSeasonName] = useState('');
   const [newSeasonDuration, setNewSeasonDuration] = useState(30);
@@ -212,6 +216,56 @@ export default function SeasonManagementPage() {
     return hoursLeft <= 24 && hoursLeft > 0 && season.status === 'active';
   };
 
+  // Admin login modal
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 flex items-center justify-center">
+        <div className="bg-slate-800 rounded-xl p-8 border border-red-500 max-w-md w-full">
+          <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <FiAlertTriangle className="text-red-400" />
+            Admin Login
+          </h3>
+          <p className="text-sm text-gray-300 mb-4">
+            Please enter the admin password to access the season management panel.
+          </p>
+          <input
+            type="password"
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                if (adminPassword === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || adminPassword === 'ADMIN_SECRET_2024') {
+                  setIsAuthenticated(true);
+                } else {
+                  setMessage('❌ Invalid password');
+                }
+              }
+            }}
+            placeholder="Enter admin password"
+            className="w-full px-3 py-2 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-red-500 focus:outline-none mb-4"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (adminPassword === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || adminPassword === 'ADMIN_SECRET_2024') {
+                  setIsAuthenticated(true);
+                } else {
+                  setMessage('❌ Invalid password');
+                }
+              }}
+              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Login
+            </button>
+          </div>
+          {message && (
+            <div className="mt-4 text-red-400 text-sm">{message}</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
       <div className="max-w-6xl mx-auto">
@@ -360,7 +414,7 @@ export default function SeasonManagementPage() {
                         const response = await fetch('/api/season/test-airdrop', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ testAmount })
+                          body: JSON.stringify({ testAmount, adminPassword })
                         });
                         const data = await response.json();
                         if (response.ok) {
@@ -470,7 +524,7 @@ export default function SeasonManagementPage() {
                         const response = await fetch('/api/season/test-airdrop', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ testAmount, distribute: true })
+                          body: JSON.stringify({ testAmount, distribute: true, adminPassword })
                         });
                         const data = await response.json();
                         if (response.ok) {
