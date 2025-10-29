@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
     // Combine all unclaimed rewards (shares + follows), keep count for history
     const allUnclaimedRewards = [...userShares, ...userFollows];
 
-    if (allUnclaimedRewards.length === 0) {
+    if (allUnclaimedRewards.length === 0 && userAirdrops.length === 0) {
       throw new Error('No rewards to claim.');
     }
 
