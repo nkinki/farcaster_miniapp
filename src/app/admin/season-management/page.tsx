@@ -500,12 +500,32 @@ export default function SeasonManagementPage() {
                 <div className="mt-2 flex gap-2">
                   <button
                     onClick={async () => {
-                      setShowPasswordModal(true);
+                      setIsSnapshotting(true);
+                      setMessage(null);
+                      try {
+                        const response = await fetch('/api/season/test-airdrop', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ testAmount, distribute: true })
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                          setMessage(`✅ Rewards distributed successfully! ${data.total_users ?? ''}`.trim());
+                          setDistribution(null);
+                        } else {
+                          setMessage(`❌ Error: ${data.error}`);
+                        }
+                      } catch (error) {
+                        setMessage(`❌ Failed to distribute: ${error instanceof Error ? error.message : String(error)}`);
+                      } finally {
+                        setIsSnapshotting(false);
+                      }
                     }}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2"
+                    disabled={isSnapshotting}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    <FiAlertTriangle className="w-4 h-4" />
-                    Distribute Rewards (Requires Password)
+                    {isSnapshotting ? <FiRefreshCw className="w-4 h-4 animate-spin" /> : <FiAlertTriangle className="w-4 h-4" />}
+                    {isSnapshotting ? 'Distributing...' : 'Distribute Now'}
                   </button>
                   <button
                     onClick={() => {
@@ -533,73 +553,7 @@ export default function SeasonManagementPage() {
           </div>
         )}
 
-        {/* Password Modal */}
-        {showPasswordModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-xl p-6 border border-red-500 max-w-md w-full">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <FiAlertTriangle className="text-red-400" />
-                Confirm Distribution
-              </h3>
-              <p className="text-sm text-gray-300 mb-4">
-                This will distribute rewards to all users. Type "DISTRIBUTE" to confirm.
-              </p>
-              <input
-                type="text"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Type DISTRIBUTE to confirm"
-                className="w-full px-3 py-2 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-red-500 focus:outline-none mb-4"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={async () => {
-                    if (passwordInput === 'DISTRIBUTE') {
-                      setShowPasswordModal(false);
-                      setIsSnapshotting(true);
-                      setMessage(null);
-                      try {
-                        // Call the distribute endpoint
-                        const response = await fetch('/api/season/test-airdrop', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ testAmount, distribute: true, adminPassword })
-                        });
-                        const data = await response.json();
-                        if (response.ok) {
-                          setMessage(`✅ Rewards distributed successfully! ${data.total_users} users received rewards.`);
-                          setDistribution(null);
-                        } else {
-                          setMessage(`❌ Error: ${data.error}`);
-                        }
-                      } catch (error) {
-                        setMessage(`❌ Failed to distribute: ${error}`);
-                      } finally {
-                        setIsSnapshotting(false);
-                      }
-                      setPasswordInput('');
-                    } else {
-                      setMessage('❌ Invalid password');
-                    }
-                  }}
-                  disabled={passwordInput !== 'DISTRIBUTE'}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Confirm
-                </button>
-                <button
-                  onClick={() => {
-                    setShowPasswordModal(false);
-                    setPasswordInput('');
-                  }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Password Modal removed (no longer required) */}
 
         {/* Seasons List */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
