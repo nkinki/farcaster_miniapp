@@ -147,17 +147,27 @@ export async function POST(request: NextRequest) {
         WHERE user_fid = ${fid} AND status = 'verified' AND reward_claimed = FALSE
     `;
 
-    // Combine all unclaimed rewards
+    // Get unclaimed airdrop claims (stored in CHESS DECIMAL)
+    const userAirdrops = await sql`
+        SELECT id, reward_amount
+        FROM airdrop_claims
+        WHERE user_fid = ${fid} AND status = 'pending'
+    `;
+
+    // Combine all unclaimed rewards (shares + follows), keep count for history
     const allUnclaimedRewards = [...userShares, ...userFollows];
 
     if (allUnclaimedRewards.length === 0) {
       throw new Error('No rewards to claim.');
     }
 
-    const amountToClaim = allUnclaimedRewards.reduce((sum, reward) => sum + Number(reward.reward_amount), 0);
-    const rewardsCount = allUnclaimedRewards.length;
+    const baseAmount = allUnclaimedRewards.reduce((sum, reward) => sum + Number(reward.reward_amount), 0);
+    const airdropAmount = userAirdrops.reduce((sum: number, a: any) => sum + Number(a.reward_amount), 0);
+    const amountToClaim = baseAmount + airdropAmount;
+    const rewardsCount = allUnclaimedRewards.length + userAirdrops.length;
     const shareIds = userShares.map(s => s.id);
     const followIds = userFollows.map(f => f.id);
+    const airdropIds = userAirdrops.map((a: any) => a.id);
     
     if (!amountToClaim || amountToClaim <= 0) {
       throw new Error('No rewards to claim.');
@@ -217,13 +227,22 @@ export async function POST(request: NextRequest) {
       `;
     }
     
+    // Mark airdrops as claimed
+    if (airdropIds.length > 0) {
+      await sql`
+        UPDATE airdrop_claims
+        SET status = 'claimed', claimed_at = NOW(), transaction_hash = ${txHash}
+        WHERE id = ANY(${airdropIds})
+      `;
+    }
+    
     // Record the claim
     await sql`
       INSERT INTO claims (user_fid, amount, shares_count, recipient_address, tx_hash, claimed_shares_ids)
       VALUES (${fid}, ${amountToClaim}, ${rewardsCount}, ${recipientAddress}, ${txHash}, ${shareIds})
     `;
     
-    console.log(`Marked ${rewardsCount} rewards as claimed for FID ${fid} (${shareIds.length} shares, ${followIds.length} follows) and recorded claim history`);
+    console.log(`Marked ${rewardsCount} rewards as claimed for FID ${fid} (${shareIds.length} shares, ${followIds.length} follows, ${airdropIds.length} airdrops) and recorded claim history`);
 
     return NextResponse.json({ 
       success: true, 
@@ -231,6 +250,7 @@ export async function POST(request: NextRequest) {
       claimedAmount: amountToClaim,
       sharesCount: shareIds.length,
       followCount: followIds.length,
+      airdropCount: airdropIds.length,
       totalRewardsCount: rewardsCount
     }, { status: 200 });
 
