@@ -499,35 +499,6 @@ export default function SeasonManagementPage() {
                 </div>
                 <div className="mt-2 flex gap-2">
                   <button
-                    onClick={async () => {
-                      setIsSnapshotting(true);
-                      setMessage(null);
-                      try {
-                        const response = await fetch('/api/season/test-airdrop', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ testAmount, distribute: true })
-                        });
-                        const data = await response.json();
-                        if (response.ok) {
-                          setMessage(`✅ Rewards distributed successfully! ${data.total_users ?? ''}`.trim());
-                          setDistribution(null);
-                        } else {
-                          setMessage(`❌ Error: ${data.error}`);
-                        }
-                      } catch (error) {
-                        setMessage(`❌ Failed to distribute: ${error instanceof Error ? error.message : String(error)}`);
-                      } finally {
-                        setIsSnapshotting(false);
-                      }
-                    }}
-                    disabled={isSnapshotting}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isSnapshotting ? <FiRefreshCw className="w-4 h-4 animate-spin" /> : <FiAlertTriangle className="w-4 h-4" />}
-                    {isSnapshotting ? 'Distributing...' : 'Distribute Now'}
-                  </button>
-                  <button
                     onClick={() => {
                       setDistribution(null);
                       setMessage(null);
