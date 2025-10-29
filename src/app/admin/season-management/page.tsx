@@ -17,6 +17,7 @@ export default function SeasonManagementPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [currentSeason, setCurrentSeason] = useState<Season | null>(null);
   
   // Admin authentication
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,6 +40,17 @@ export default function SeasonManagementPage() {
 
   useEffect(() => {
     fetchSeasons();
+    // Fetch current active season for quick status header
+    (async () => {
+      try {
+        const res = await fetch('/api/season/current');
+        if (res.ok) {
+          const data = await res.json();
+          const active = Array.isArray(data.seasons) ? data.seasons.find((s: Season) => s.status === 'active') : null;
+          if (active) setCurrentSeason(active);
+        }
+      } catch {}
+    })();
   }, []);
 
   // Check for expired seasons on load (info only)
@@ -276,6 +288,23 @@ export default function SeasonManagementPage() {
             Season Management
           </h1>
           <p className="text-gray-400">Manage seasons, distribute airdrops, and create new seasons</p>
+
+          {currentSeason && (
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="bg-slate-800/60 border border-purple-500/30 rounded-lg p-4">
+                <div className="text-sm text-gray-400">Active Season</div>
+                <div className="text-lg font-semibold text-white">{currentSeason.name} (ID #{currentSeason.id})</div>
+              </div>
+              <div className="bg-slate-800/60 border border-blue-500/30 rounded-lg p-4">
+                <div className="text-sm text-gray-400">Start</div>
+                <div className="text-white">{formatDate(currentSeason.start_date)}</div>
+              </div>
+              <div className="bg-slate-800/60 border border-emerald-500/30 rounded-lg p-4">
+                <div className="text-sm text-gray-400">Ends</div>
+                <div className="text-white">{formatDate(currentSeason.end_date)}</div>
+              </div>
+            </div>
+          )}
           
           {/* Info Section */}
           <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4">
@@ -574,7 +603,7 @@ export default function SeasonManagementPage() {
 
         {/* Seasons List */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {seasons.map((season) => {
+          {seasons.filter(s => s.status === 'active').map((season) => {
             const expired = isSeasonExpired(season);
             const expiringSoon = isSeasonExpiringSoon(season);
             const countdown = timeLeft[season.id];
