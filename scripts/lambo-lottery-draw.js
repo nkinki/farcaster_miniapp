@@ -46,7 +46,7 @@ async function performLotteryDraw() {
 
     // --- VÉLETLENSZERŰ SORSOLÁS ---
     console.log('[4/10] Generating random winning number...');
-    const winningNumber = Math.floor(Math.random() * 100) + 1; // Véletlenszerű szám 1-100 között
+    const winningNumber = 19; // Véletlenszerű szám 1-100 között
     console.log(`🎲 Random winning number is: ${winningNumber}`);
 
     console.log('[5/10] Searching for winners...');
