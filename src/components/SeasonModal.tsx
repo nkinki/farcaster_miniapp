@@ -213,7 +213,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
           <div className="flex items-center gap-3">
             <FiCalendar className="w-8 h-8 text-purple-400" />
             <div>
-              <h2 className="text-2xl font-bold text-white">Season 0</h2>
+              <h2 className="text-2xl font-bold text-white">Season 1</h2>
               <p className="text-sm text-gray-400">Active Season</p>
             </div>
           </div>
