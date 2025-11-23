@@ -167,6 +167,14 @@ export default function PromotePage() {
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
 
+  // Daily Code state
+  const [showDailyCodeModal, setShowDailyCodeModal] = useState(false);
+  const [dailyCode, setDailyCode] = useState('');
+  const [dailyCodeRewardPerShare, setDailyCodeRewardPerShare] = useState(1000);
+  const [dailyCodeCastUrl, setDailyCodeCastUrl] = useState('');
+  const [dailyCodeError, setDailyCodeError] = useState<string | null>(null);
+  const [dailyCodeSuccess, setDailyCodeSuccess] = useState<string | null>(null);
+
   const handleRedeemCode = async () => {
     if (!dailyCode || !dailyCodeCastUrl) {
       setDailyCodeError("Please fill in all fields");
@@ -2467,6 +2475,111 @@ export default function PromotePage() {
           border: 2px solid #a259ff;
         }
       `}</style>
+
+      {/* Daily Code Modal */}
+      {showDailyCodeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] max-w-md w-full p-6 pulse-glow relative">
+            <button
+              onClick={() => setShowDailyCodeModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <FiX size={24} />
+            </button>
+
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <FiGift className="text-yellow-400" />
+              Redeem Daily Code
+            </h2>
+
+            {dailyCodeSuccess ? (
+              <div className="text-center py-8">
+                <div className="text-5xl mb-4">🎉</div>
+                <h3 className="text-xl font-bold text-green-400 mb-2">Success!</h3>
+                <p className="text-white mb-6">{dailyCodeSuccess}</p>
+                <button
+                  onClick={() => {
+                    setShowDailyCodeModal(false);
+                    refreshAllData();
+                  }}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors"
+                >
+                  Awesome!
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Secret Code
+                  </label>
+                  <input
+                    type="text"
+                    value={dailyCode}
+                    onChange={(e) => setDailyCode(e.target.value)}
+                    placeholder="Enter today's code..."
+                    className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Cast URL to Promote
+                  </label>
+                  <input
+                    type="text"
+                    value={dailyCodeCastUrl}
+                    onChange={(e) => setDailyCodeCastUrl(e.target.value)}
+                    placeholder="https://warpcast.com/..."
+                    className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Reward Per Share ($CHESS)
+                  </label>
+                  <select
+                    value={dailyCodeRewardPerShare}
+                    onChange={(e) => setDailyCodeRewardPerShare(Number(e.target.value))}
+                    className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                  >
+                    <option value={500}>500 $CHESS</option>
+                    <option value={1000}>1,000 $CHESS</option>
+                    <option value={2000}>2,000 $CHESS</option>
+                    <option value={5000}>5,000 $CHESS</option>
+                  </select>
+                </div>
+
+                {dailyCodeError && (
+                  <div className="p-3 bg-red-900/50 border border-red-500/50 rounded-lg text-red-200 text-sm flex items-center gap-2">
+                    <FiAlertTriangle />
+                    {dailyCodeError}
+                  </div>
+                )}
+
+                <button
+                  onClick={handleRedeemCode}
+                  disabled={loading}
+                  className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl font-bold shadow-lg transform transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <FiGift />
+                      Redeem & Launch
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Season Modal */}
       <SeasonModal
