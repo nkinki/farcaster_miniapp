@@ -1340,7 +1340,7 @@ export default function PromotePage() {
           </button>
         </div>
 
-        {/* Join AppRank */}
+        {/* Join AppRank - Wide Button */}
         <button
           onClick={() => {
             try {
@@ -1350,15 +1350,18 @@ export default function PromotePage() {
               window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
             }
           }}
-          className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          className="flex items-center justify-between p-4 my-4 bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow max-w-md mx-auto"
         >
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-2 border-white/60">
-            <FiUsers size={32} className="text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiUsers size={24} className="text-white" />
+            </div>
+            <div className="text-left">
+              <div className="text-orange-300 font-bold">Join AppRank Community</div>
+              <div className="text-xs text-gray-400">Connect with builders</div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-orange-300">Join AppRank</div>
-            <div className="text-xs text-gray-400">Community</div>
-          </div>
+          <FiChevronDown className="text-gray-400" size={20} />
         </button>
 
         {/* Create Promotion Modal */}
@@ -2495,7 +2498,7 @@ export default function PromotePage() {
 
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
               <FiGift className="text-yellow-400" />
-              Redeem Daily Code
+              Redeem Daily Code (Under Dev)
             </h2>
 
             {dailyCodeSuccess ? (
