@@ -1248,44 +1248,23 @@ export default function PromotePage() {
               >
                 <FiX size={16} />
               </button>
-            </div>
-          </div>
-        )}
-
-        <div className="mb-4">
-          <UserProfile
-            user={currentUser}
-          >
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-2 border-white/60">
-              <FiCalendar size={32} className="text-white" />
-            </div>
-            <div className="text-center">
-              <div className="text-blue-300">Daily Check</div>
-              <div className="text-xs text-gray-400">Season 1</div>
-            </div>
-          </button>
-
-          {/* Join AppRank */}
-          <button
-            onClick={() => {
-              try {
-                (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
+              (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
               } catch (error) {
                 console.log('SDK openUrl error:', error);
-                window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
+              window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
               }
             }}
-            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
           >
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-2 border-white/60">
-              <FiUsers size={32} className="text-white" />
-            </div>
-            <div className="text-center">
-              <div className="text-orange-300">Join AppRank</div>
-              <div className="text-xs text-gray-400">Community</div>
-            </div>
-          </button>
-        </div>
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-2 border-white/60">
+                <FiUsers size={32} className="text-white" />
+              </div>
+              <div className="text-center">
+                <div className="text-orange-300">Join AppRank</div>
+                <div className="text-xs text-gray-400">Community</div>
+              </div>
+            </button>
+          </div>
 
         {/* Create Promotion Modal */}
         {showForm && (
