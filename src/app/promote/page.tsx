@@ -167,6 +167,11 @@ export default function PromotePage() {
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
   const [templateSortOrder, setTemplateSortOrder] = useState<'default' | 'random' | 'compact'>('default');
+  const [showCommentTemplates, setShowCommentTemplates] = useState(false);
+
+  // Follow modal state
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [selectedFollowPromo, setSelectedFollowPromo] = useState<PromoCast | null>(null);
 
   // Daily Code state
   const [showDailyCodeModal, setShowDailyCodeModal] = useState(false);
