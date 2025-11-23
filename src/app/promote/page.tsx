@@ -176,7 +176,7 @@ export default function PromotePage() {
   // Daily Code state
   const [showDailyCodeModal, setShowDailyCodeModal] = useState(false);
   const [dailyCode, setDailyCode] = useState('');
-  const [dailyCodeRewardPerShare, setDailyCodeRewardPerShare] = useState(1000);
+  const [dailyCodeRewardPerShare, setDailyCodeRewardPerShare] = useState(5000);
   const [dailyCodeCastUrl, setDailyCodeCastUrl] = useState('');
   const [dailyCodeError, setDailyCodeError] = useState<string | null>(null);
   const [dailyCodeSuccess, setDailyCodeSuccess] = useState<string | null>(null);
