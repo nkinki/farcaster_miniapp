@@ -1248,23 +1248,104 @@ export default function PromotePage() {
               >
                 <FiX size={16} />
               </button>
-              (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
-              } catch (error) {
-                console.log('SDK openUrl error:', error);
-              window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
-              }
-            }}
-              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
-          >
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-2 border-white/60">
-                <FiUsers size={32} className="text-white" />
-              </div>
-              <div className="text-center">
-                <div className="text-orange-300">Join AppRank</div>
-                <div className="text-xs text-gray-400">Community</div>
-              </div>
-            </button>
+            </div>
           </div>
+        )}
+
+        <div className="mb-4">
+          <UserProfile
+            user={currentUser}
+            userStats={userStats}
+            onClaimSuccess={refreshAllData}
+          />
+        </div>
+
+        <MyCampaignsDropdown
+          myPromos={myPromos}
+          onManageClick={(promo) => { setManagingPromo(promo); setShowCampaignManager(true); }}
+          onDeleteClick={handleDeleteCampaign}
+          currentUserFid={currentUser.fid}
+        />
+
+        {/* 2x2 Grid Menu */}
+        <div className="grid grid-cols-2 gap-4 my-8 max-w-md mx-auto">
+          {/* Create Promotion */}
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiPlus size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-purple-300">Create Promotion</div>
+              <div className="text-xs text-gray-400">Start Campaign</div>
+            </div>
+          </button>
+
+          {/* Redeem Daily Code */}
+          <button
+            onClick={() => setShowDailyCodeModal(true)}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiGift size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-yellow-300">Redeem Code</div>
+              <div className="text-xs text-gray-400">Daily Free Promo</div>
+            </div>
+          </button>
+
+          {/* Share & Earn */}
+          <button
+            onClick={() => setIsShareListOpen(!isShareListOpen)}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiShare2 size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-green-300">Share & Earn</div>
+              <div className="text-xs text-gray-400">({availablePromos.length}) Campaigns</div>
+            </div>
+          </button>
+
+          {/* Daily Check */}
+          <button
+            onClick={() => setShowSeasonModal(true)}
+            className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <FiCalendar size={32} className="text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-blue-300">Daily Check</div>
+              <div className="text-xs text-gray-400">Season 1</div>
+            </div>
+          </button>
+        </div>
+
+        {/* Join AppRank */}
+        <button
+          onClick={() => {
+            try {
+              (miniAppSdk as any).actions.openUrl('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw');
+            } catch (error) {
+              console.log('SDK openUrl error:', error);
+              window.open('https://farcaster.xyz/~/group/Vxk-YQtXXh7CiTo2xY4Tvw', '_blank');
+            }
+          }}
+          className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+        >
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-2 border-white/60">
+            <FiUsers size={32} className="text-white" />
+          </div>
+          <div className="text-center">
+            <div className="text-orange-300">Join AppRank</div>
+            <div className="text-xs text-gray-400">Community</div>
+          </div>
+        </button>
 
         {/* Create Promotion Modal */}
         {showForm && (
