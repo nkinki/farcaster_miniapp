@@ -166,6 +166,7 @@ export default function PromotePage() {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [selectedCommentPromo, setSelectedCommentPromo] = useState<PromoCast | null>(null);
   const [selectedCommentTemplate, setSelectedCommentTemplate] = useState<string>('');
+  const [templateSortOrder, setTemplateSortOrder] = useState<'default' | 'random' | 'compact'>('default');
 
   // Daily Code state
   const [showDailyCodeModal, setShowDailyCodeModal] = useState(false);
