@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers, FiMail } from 'react-icons/fi';
+import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers, FiMail, FiGift } from 'react-icons/fi';
 import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 import AdminPendingFollowsManager from '@/components/AdminPendingFollowsManager';
 
@@ -58,7 +58,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [shareablePromos, setShareablePromos] = useState<ShareablePromo[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments' | 'follows' | 'emails'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'promos' | 'comments' | 'follows' | 'emails' | 'daily_code'>('stats');
   const [selectedPromos, setSelectedPromos] = useState<Set<number>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
@@ -68,7 +68,9 @@ export default function AdminPage() {
   const [airdropSummary, setAirdropSummary] = useState<string>('');
   const [airdropLoading, setAirdropLoading] = useState(false);
   const [weatherLottoSummary, setWeatherLottoSummary] = useState<string>('');
-  const [weatherLottoLoading, setWeatherLottoLoading] = useState(false);
+    const [weatherLottoLoading, setWeatherLottoLoading] = useState(false);
+  const [dailyCode, setDailyCode] = useState<string | null>(null);
+  const [dailyCodeLoading, setDailyCodeLoading] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -99,7 +101,35 @@ export default function AdminPage() {
   useEffect(() => {
     fetchStats();
     fetchShareablePromos();
+    fetchDailyCode();
   }, []);
+
+  const fetchDailyCode = async () => {
+    try {
+      const response = await fetch('/api/admin/generate-daily-code');
+      if (response.ok) {
+        const data = await response.json();
+        setDailyCode(data.code);
+      }
+    } catch (error) {
+      console.error('Error fetching daily code:', error);
+    }
+  };
+
+  const generateNewDailyCode = async () => {
+    setDailyCodeLoading(true);
+    try {
+      const response = await fetch('/api/admin/generate-daily-code', { method: 'POST' });
+      if (response.ok) {
+        const data = await response.json();
+        setDailyCode(data.code);
+      }
+    } catch (error) {
+      console.error('Error generating daily code:', error);
+    } finally {
+        setDailyCodeLoading(false);
+    }
+  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -402,8 +432,56 @@ export default function AdminPage() {
               <FiMail className="inline mr-2" size={16} />
               Send Emails
             </button>
+            <button
+              onClick={() => setActiveTab('daily_code')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'daily_code'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              <FiGift className="inline mr-2" size={16} />
+              Daily Code
+            </button>
           </div>
         </div>
+
+        {/* Daily Code Tab */}
+        {activeTab === 'daily_code' && (
+          <div className="max-w-2xl mx-auto">
+             <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-8 text-center">
+                <h2 className="text-2xl font-bold text-white mb-6">🎁 Daily Promotion Code</h2>
+                
+                <div className="mb-8">
+                    <div className="text-gray-400 mb-2">Current Active Code</div>
+                    <div className="text-4xl font-mono font-bold text-yellow-400 tracking-wider bg-black/30 p-4 rounded-xl border border-yellow-500/30 inline-block min-w-[300px]">
+                        {dailyCode || 'NO ACTIVE CODE'}
+                    </div>
+                </div>
+
+                <button
+                    onClick={generateNewDailyCode}
+                    disabled={dailyCodeLoading}
+                    className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mx-auto"
+                >
+                    {dailyCodeLoading ? (
+                        <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                            Generating...
+                        </>
+                    ) : (
+                        <>
+                            <FiRefreshCw size={24} />
+                            Generate New Code
+                        </>
+                    )}
+                </button>
+                <p className="mt-4 text-sm text-gray-400">
+                    Generating a new code will automatically deactivate the previous one.
+                </p>
+             </div>
+          </div>
+        )}
 
         {/* Stats Tab */}
         {activeTab === 'stats' && stats && (
