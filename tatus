@@ -1,5 +1,0 @@
-[33m1d977d4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix lottery draw script to work with existing lottery_draws and lottery_tickets tables
-[33m56012b7[m Update lottery draw workflow: run every hour to catch 20:00 Budapest time + better logging
-[33m462726d[m feat: Implement Farcaster Frame structure with two buttons
-[33md3b61ce[m feat: Implement Farcaster Frame structure with two buttons
-[33mbe02cee[m feat: Implement Farcaster Frame structure with two buttons

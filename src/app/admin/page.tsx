@@ -1,8 +1,3 @@
-"use client"
-
-import { useState, useEffect } from 'react';
-import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers, FiMail, FiGift } from 'react-icons/fi';
-import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 import AdminPendingFollowsManager from '@/components/AdminPendingFollowsManager';
 
 
@@ -37,8 +32,8 @@ interface AdminStats {
     totalWinners: number;
     currentJackpot: number;
     avgTicketsPerRound: number;
-    mostPopularNumbers: Array<{number: number, count: number}>;
-    topWinners: Array<{player_fid: number, total_winnings: number}>;
+    mostPopularNumbers: Array<{ number: number, count: number }>;
+    topWinners: Array<{ player_fid: number, total_winnings: number }>;
   };
 }
 
@@ -68,7 +63,7 @@ export default function AdminPage() {
   const [airdropSummary, setAirdropSummary] = useState<string>('');
   const [airdropLoading, setAirdropLoading] = useState(false);
   const [weatherLottoSummary, setWeatherLottoSummary] = useState<string>('');
-    const [weatherLottoLoading, setWeatherLottoLoading] = useState(false);
+  const [weatherLottoLoading, setWeatherLottoLoading] = useState(false);
   const [dailyCode, setDailyCode] = useState<string | null>(null);
   const [dailyCodeLoading, setDailyCodeLoading] = useState(false);
 
@@ -127,7 +122,7 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error generating daily code:', error);
     } finally {
-        setDailyCodeLoading(false);
+      setDailyCodeLoading(false);
     }
   };
 
@@ -156,10 +151,10 @@ export default function AdminPage() {
 
   const handleBulkStatusChange = async (newStatus: 'active' | 'paused') => {
     if (selectedPromos.size === 0) return;
-    
+
     setBulkActionLoading(true);
     try {
-      const promises = Array.from(selectedPromos).map(promoId => 
+      const promises = Array.from(selectedPromos).map(promoId =>
         fetch('/api/promotions/status', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -171,14 +166,14 @@ export default function AdminPage() {
       );
 
       await Promise.all(promises);
-      
+
       // Ne töltse újra az adatokat, csak frissítse a lokális state-et
-      setShareablePromos(prev => prev.map(promo => 
-        selectedPromos.has(promo.id) 
+      setShareablePromos(prev => prev.map(promo =>
+        selectedPromos.has(promo.id)
           ? { ...promo, status: newStatus }
           : promo
       ));
-      
+
       setSelectedPromos(new Set());
     } catch (error) {
       console.error('Bulk status change error:', error);
@@ -190,17 +185,17 @@ export default function AdminPage() {
   const sendLamboLotteryEmail = async () => {
     setEmailLoading(true);
     setEmailStatus('');
-    
+
     try {
       // Get current active round (not completed rounds)
       const currentResponse = await fetch('/api/lottery/current-round');
       if (!currentResponse.ok) {
         throw new Error('Failed to fetch current round');
       }
-      
+
       const currentData = await currentResponse.json();
       const currentRound = currentData.round;
-      
+
       if (!currentRound) {
         throw new Error('No current lottery round found');
       }
@@ -251,7 +246,7 @@ export default function AdminPage() {
   const sendWeatherLottoEmail = async () => {
     setEmailLoading(true);
     setEmailStatus('');
-    
+
     try {
       // Trigger weather lotto draw and email
       const response = await fetch('/api/cron/weather-lotto-draw', {
@@ -275,7 +270,7 @@ export default function AdminPage() {
   const generateShareEarnSummary = async () => {
     setSummaryLoading(true);
     setSummaryPost('');
-    
+
     try {
       const response = await fetch('/api/admin/share-earn-summary', {
         method: 'POST'
@@ -306,7 +301,7 @@ export default function AdminPage() {
   const generateAirdropSummary = async () => {
     setAirdropLoading(true);
     setAirdropSummary('');
-    
+
     try {
       const response = await fetch('/api/admin/airdrop-summary', {
         method: 'POST'
@@ -337,7 +332,7 @@ export default function AdminPage() {
   const generateWeatherLottoSummary = async () => {
     setWeatherLottoLoading(true);
     setWeatherLottoSummary('');
-    
+
     try {
       const response = await fetch('/api/admin/weather-lotto-summary', {
         method: 'POST'
@@ -379,66 +374,60 @@ export default function AdminPage() {
           <div className="bg-[#23283a] rounded-lg p-1 flex gap-1">
             <button
               onClick={() => setActiveTab('stats')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'stats'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'stats'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
             >
               <FiBarChart className="inline mr-2" size={16} />
               Statistics
             </button>
             <button
               onClick={() => setActiveTab('promos')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'promos'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'promos'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
             >
               <FiShare2 className="inline mr-2" size={16} />
               Shareable Promos
             </button>
             <button
               onClick={() => setActiveTab('comments')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'comments'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'comments'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
             >
               <FiMessageSquare className="inline mr-2" size={16} />
               Pending Comments
             </button>
             <button
               onClick={() => setActiveTab('follows')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'follows'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'follows'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
             >
               <FiUsers className="inline mr-2" size={16} />
               Pending Follows
             </button>
             <button
               onClick={() => setActiveTab('emails')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'emails'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'emails'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
             >
               <FiMail className="inline mr-2" size={16} />
               Send Emails
             </button>
             <button
               onClick={() => setActiveTab('daily_code')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'daily_code'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'daily_code'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
             >
               <FiGift className="inline mr-2" size={16} />
               Daily Code
@@ -449,37 +438,50 @@ export default function AdminPage() {
         {/* Daily Code Tab */}
         {activeTab === 'daily_code' && (
           <div className="max-w-2xl mx-auto">
-             <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-8 text-center">
-                <h2 className="text-2xl font-bold text-white mb-6">🎁 Daily Promotion Code</h2>
-                
-                <div className="mb-8">
-                    <div className="text-gray-400 mb-2">Current Active Code</div>
-                    <div className="text-4xl font-mono font-bold text-yellow-400 tracking-wider bg-black/30 p-4 rounded-xl border border-yellow-500/30 inline-block min-w-[300px]">
-                        {dailyCode || 'NO ACTIVE CODE'}
-                    </div>
-                </div>
+            <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-8 text-center">
+              <h2 className="text-2xl font-bold text-white mb-6">🎁 Daily Promotion Code</h2>
 
-                <button
-                    onClick={generateNewDailyCode}
-                    disabled={dailyCodeLoading}
-                    className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mx-auto"
-                >
-                    {dailyCodeLoading ? (
-                        <>
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                            Generating...
-                        </>
-                    ) : (
-                        <>
-                            <FiRefreshCw size={24} />
-                            Generate New Code
-                        </>
-                    )}
-                </button>
-                <p className="mt-4 text-sm text-gray-400">
-                    Generating a new code will automatically deactivate the previous one.
-                </p>
-             </div>
+              <div className="mb-8">
+                <div className="text-gray-400 mb-2">Current Active Code</div>
+                <div className="text-4xl font-mono font-bold text-yellow-400 tracking-wider bg-black/30 p-4 rounded-xl border border-yellow-500/30 inline-block min-w-[300px]">
+                  {dailyCode || 'NO ACTIVE CODE'}
+                </div>
+              </div>
+
+              <button
+                onClick={generateNewDailyCode}
+                disabled={dailyCodeLoading}
+                className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mx-auto"
+              >
+                {dailyCodeLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <FiRefreshCw size={24} />
+                    Generate New Code
+                  </>
+                )}
+              </button>
+              <p className="mt-4 text-sm text-gray-400 mb-6">
+                Generating a new code will automatically deactivate the previous one.
+              </p>
+
+              {dailyCode && (
+                <div className="border-t border-gray-700 pt-6 mt-6">
+                  <h3 className="text-xl font-bold text-white mb-4">Promotion Post</h3>
+                  <button
+                    onClick={() => copyToClipboard('Daily Code: ' + dailyCode)}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors mx-auto font-semibold"
+                  >
+                    <FiCopy size={20} />
+                    Copy Post Text
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -720,7 +722,7 @@ export default function AdminPage() {
                       </button>
                     )}
                   </div>
-                  
+
                   {selectedPromos.size > 0 && (
                     <div className="flex gap-2">
                       <button
@@ -754,11 +756,10 @@ export default function AdminPage() {
                     className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
                   />
                   <span className="text-white text-sm font-medium">#{promo.id}</span>
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                    promo.status === 'active' ? 'bg-green-600 text-white' :
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${promo.status === 'active' ? 'bg-green-600 text-white' :
                     promo.status === 'paused' ? 'bg-yellow-600 text-white' :
-                    'bg-red-600 text-white'
-                  }`}>
+                      'bg-red-600 text-white'
+                    }`}>
                     {promo.status}
                   </span>
                 </div>
@@ -796,15 +797,15 @@ export default function AdminPage() {
                 {/* Másolható szövegek */}
                 <div className="mt-4 space-y-2">
                   <div className="text-purple-300 text-xs font-semibold">Cast URL (kattintható)</div>
-                  <div 
+                  <div
                     className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
                     onClick={() => copyToClipboard(promo.cast_url)}
                   >
                     <div className="text-blue-400 text-sm break-all select-all">{promo.cast_url}</div>
                   </div>
-                  
+
                   <div className="text-purple-300 text-xs font-semibold">Share Text (másolható)</div>
-                  <div 
+                  <div
                     className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
                     onClick={() => copyToClipboard(`🎯 @${promo.author_username} offers ${promo.reward_per_share} $CHESS for ${promo.action_type} (${promo.remaining_budget}/${promo.total_budget} budget left)! Join: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`)}
                   >
@@ -851,11 +852,10 @@ export default function AdminPage() {
 
             {/* Email Status */}
             {emailStatus && (
-              <div className={`p-4 rounded-lg border ${
-                emailStatus.includes('✅') 
-                  ? 'bg-green-900/20 border-green-500/30 text-green-200' 
-                  : 'bg-red-900/20 border-red-500/30 text-red-200'
-              }`}>
+              <div className={`p-4 rounded-lg border ${emailStatus.includes('✅')
+                ? 'bg-green-900/20 border-green-500/30 text-green-200'
+                : 'bg-red-900/20 border-red-500/30 text-red-200'
+                }`}>
                 {emailStatus}
               </div>
             )}
