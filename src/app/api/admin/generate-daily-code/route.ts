@@ -3,14 +3,17 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
-// Helper to generate random code
-function generateCode(length: number = 8): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+// Helper to generate meaningful code
+function generateCode(): string {
+    const words = [
+        'CHESS', 'KING', 'QUEEN', 'ROOK', 'BISHOP', 'KNIGHT', 'PAWN',
+        'WINNER', 'CHAMPION', 'GRANDMASTER', 'CHECKMATE', 'GAMBIT',
+        'CASTLE', 'RANK', 'LEVEL', 'BONUS', 'PRIZE', 'REWARD',
+        'CRYPTO', 'TOKEN', 'COIN', 'DROP', 'LOOT', 'EPIC'
+    ];
+    const randomWord = words[Math.floor(Math.random() * words.length)];
+    const randomNumber = Math.floor(Math.random() * 900) + 100; // 100-999
+    return `${randomWord}${randomNumber}`;
 }
 
 export async function POST(request: NextRequest) {
