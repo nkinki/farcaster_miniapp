@@ -1,6 +1,7 @@
 "use client";
 import AdminPendingFollowsManager from '@/components/AdminPendingFollowsManager';
 import { useState, useEffect } from 'react';
+import AdminPendingCommentsManager from '@/components/AdminPendingCommentsManager';
 import { FiBarChart, FiShare2, FiCopy, FiMessageSquare, FiRefreshCw, FiPlay, FiPause, FiUsers, FiMail, FiGift } from 'react-icons/fi';
 
 
