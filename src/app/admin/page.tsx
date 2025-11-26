@@ -481,7 +481,14 @@ export default function AdminPage() {
                     Help them get started on AppRank! 🚀
                   </p>
                   <button
-                    onClick={() => copyToClipboard('Daily Code: ' + dailyCode)}
+                    onClick={() => copyToClipboard(`🎁 DAILY FREE CODE! 🎁
+
+Use code: ${dailyCode}
+
+Redeem it now on AppRank for 10,000 $CHESS! ♟️
+Limited to one use per person per day.
+
+👉 https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`)}
                     className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors mx-auto font-semibold"
                   >
                     <FiCopy size={20} />
