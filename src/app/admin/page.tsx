@@ -477,8 +477,8 @@ export default function AdminPage() {
                 <div className="border-t border-gray-700 pt-6 mt-6">
                   <h3 className="text-xl font-bold text-white mb-4">📢 Promotion Post</h3>
                   <p className="text-gray-300 mb-4 text-center">
-                    Oszd meg ezt a kódot a közösséggel! A felhasználók <span className="text-green-400 font-semibold">ingyen létrehozhatnak egy 10,000 $CHESS promóciót</span> ezzel a kóddal. 
-                    Segíts nekik elkezdeni az AppRank-en! 🚀
+                    Share this <span className="text-green-400 font-semibold">daily free code</span> with the community! Users can redeem it to <span className="text-green-400 font-semibold">create a free 10,000 $CHESS promotion</span> every day. 
+                    Help them get started on AppRank! 🚀
                   </p>
                   <button
                     onClick={() => copyToClipboard('Daily Code: ' + dailyCode)}
