@@ -100,28 +100,12 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Get user's wallet address
-        const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${user.user_fid}`, {
-          headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
-        });
-
-        if (!neynarResponse.ok) {
-          throw new Error(`Failed to fetch user data for FID ${user.user_fid}`);
-        }
-
-        const neynarData = await neynarResponse.json();
-        const recipientAddress = neynarData.users[0]?.verified_addresses?.eth_addresses[0];
-
-        if (!recipientAddress || !isAddress(recipientAddress)) {
-          throw new Error(`No valid wallet address found for FID ${user.user_fid}`);
-        }
-
         if (dryRun || testMode) {
           const mode = testMode ? 'TEST' : 'DRY RUN';
-          console.log(`🧪 ${mode}: Would send ${user.reward_amount_formatted} to ${recipientAddress} (FID: ${user.user_fid})`);
+          console.log(`🧪 ${mode}: Would credit ${user.reward_amount_formatted} to FID: ${user.user_fid}`);
           results.push({
             user_fid: user.user_fid,
-            recipient_address: recipientAddress,
+            recipient_address: null, // No wallet needed
             reward_amount: user.reward_amount,
             reward_amount_formatted: user.reward_amount_formatted,
             status: testMode ? 'test_simulation' : 'dry_run',
@@ -130,47 +114,39 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Send CHESS tokens
-        const amountInWei = parseUnits(user.reward_amount.toString(), 18);
+        // Record airdrop claim as PENDING (user must claim manually)
+        // Note: reward_amount is stored in CHESS units (not wei) in the database for consistency with other tables
+        // user.reward_amount is coming from calculation as CHESS units (number)
 
-        const { request: transferRequest } = await publicClient.simulateContract({
-          account: treasuryAccount,
-          address: CHESS_TOKEN_ADDRESS,
-          abi: CHESS_TOKEN_ABI,
-          functionName: 'transfer',
-          args: [recipientAddress as `0x${string}`, amountInWei],
-        });
-
-        const txHash = await walletClient.writeContract(transferRequest);
-        const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-
-        if (receipt.status === 'reverted') {
-          throw new Error('Transaction reverted');
-        }
-
-        // Record airdrop claim
         await client.query(`
           INSERT INTO airdrop_claims (
             user_fid, season_id, points_used, reward_amount, 
-            status, transaction_hash, claimed_at
-          ) VALUES ($1, $2, $3, $4, 'claimed', $5, NOW())
-        `, [user.user_fid, seasonId, user.points, user.reward_amount, txHash]);
+            status, created_at
+          ) VALUES ($1, $2, $3, $4, 'pending', NOW())
+          ON CONFLICT (user_fid, season_id) 
+          DO UPDATE SET 
+            reward_amount = $4,
+            points_used = $3,
+            status = 'pending',
+            updated_at = NOW()
+          WHERE airdrop_claims.status != 'claimed'
+        `, [user.user_fid, seasonId, user.points, user.reward_amount]);
 
-        console.log(`✅ Sent ${user.reward_amount_formatted} to FID ${user.user_fid} (${txHash})`);
+        console.log(`✅ Credited ${user.reward_amount_formatted} to FID ${user.user_fid} (Pending Claim)`);
 
         results.push({
           user_fid: user.user_fid,
-          recipient_address: recipientAddress,
+          recipient_address: null,
           reward_amount: user.reward_amount,
           reward_amount_formatted: user.reward_amount_formatted,
           status: 'success',
-          transaction_hash: txHash
+          transaction_hash: null
         });
 
         successCount++;
 
       } catch (error: any) {
-        console.error(`❌ Failed to distribute to FID ${user.user_fid}:`, error.message);
+        console.error(`❌ Failed to credit FID ${user.user_fid}:`, error.message);
 
         results.push({
           user_fid: user.user_fid,
