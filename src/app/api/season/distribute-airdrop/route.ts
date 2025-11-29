@@ -21,14 +21,27 @@ const walletClient = createWalletClient({ account: treasuryAccount, chain: base,
 
 export async function POST(request: NextRequest) {
   const client = await pool.connect();
-  
+
   try {
-    const { seasonId, dryRun = false, testMode = false, testAmount } = await request.json();
+    const { seasonId, dryRun = false, testMode = false, testAmount, adminPassword } = await request.json();
+
+    // Admin password verification (only for real distributions)
+    if (!dryRun && !testMode) {
+      const validPassword = process.env.ADMIN_PASSWORD || 'FarcasterAdmin2024!';
+      if (adminPassword !== validPassword) {
+        console.log('❌ Invalid admin password attempt');
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid admin password'
+        }, { status: 401 });
+      }
+      console.log('✅ Admin password verified');
+    }
 
     if (!seasonId) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Season ID is required' 
+      return NextResponse.json({
+        success: false,
+        error: 'Season ID is required'
       }, { status: 400 });
     }
 
@@ -40,14 +53,14 @@ export async function POST(request: NextRequest) {
     `, [seasonId]);
 
     if (seasonResult.rows.length === 0) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Season not found' 
+      return NextResponse.json({
+        success: false,
+        error: 'Season not found'
       }, { status: 404 });
     }
 
     const season = seasonResult.rows[0];
-    
+
     let totalRewardAmount;
     if (testMode && testAmount) {
       totalRewardAmount = testAmount * 1000000000000000000; // Convert to wei
@@ -91,11 +104,11 @@ export async function POST(request: NextRequest) {
         const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${user.user_fid}`, {
           headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
         });
-        
+
         if (!neynarResponse.ok) {
           throw new Error(`Failed to fetch user data for FID ${user.user_fid}`);
         }
-        
+
         const neynarData = await neynarResponse.json();
         const recipientAddress = neynarData.users[0]?.verified_addresses?.eth_addresses[0];
 
@@ -144,7 +157,7 @@ export async function POST(request: NextRequest) {
         `, [user.user_fid, seasonId, user.points, user.reward_amount, txHash]);
 
         console.log(`✅ Sent ${user.reward_amount_formatted} to FID ${user.user_fid} (${txHash})`);
-        
+
         results.push({
           user_fid: user.user_fid,
           recipient_address: recipientAddress,
@@ -158,7 +171,7 @@ export async function POST(request: NextRequest) {
 
       } catch (error: any) {
         console.error(`❌ Failed to distribute to FID ${user.user_fid}:`, error.message);
-        
+
         results.push({
           user_fid: user.user_fid,
           recipient_address: null,
@@ -199,9 +212,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error distributing airdrop:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to distribute airdrop' 
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to distribute airdrop'
     }, { status: 500 });
   } finally {
     client.release();
