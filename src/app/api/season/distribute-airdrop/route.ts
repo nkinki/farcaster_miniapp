@@ -127,8 +127,7 @@ export async function POST(request: NextRequest) {
           DO UPDATE SET 
             reward_amount = $4,
             points_used = $3,
-            status = 'pending',
-            updated_at = NOW()
+            status = 'pending'
           WHERE airdrop_claims.status != 'claimed'
         `, [user.user_fid, seasonId, user.points, user.reward_amount]);
 
