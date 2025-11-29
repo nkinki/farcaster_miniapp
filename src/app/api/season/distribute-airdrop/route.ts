@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
 
     let totalRewardAmount;
     if (testMode && testAmount) {
-      totalRewardAmount = testAmount * 1000000000000000000; // Convert to wei
+      totalRewardAmount = testAmount;
     } else {
-      totalRewardAmount = parseInt(season.total_rewards) * 1000000000000000000; // Convert to wei
+      totalRewardAmount = parseInt(season.total_rewards);
     }
 
     // Calculate distribution
