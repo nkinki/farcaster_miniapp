@@ -9,8 +9,15 @@ export async function POST(request: NextRequest) {
   const client = await pool.connect();
 
   try {
-    const { testAmount = 1000, testFids = [], userFid, distribute = false } = await request.json();
-    // Admin password removed by request – endpoint is open for now
+    const { testAmount = 1000, testFids = [], userFid, distribute = false, adminPassword } = await request.json();
+
+    // Check admin password
+    if (process.env.ADMIN_PASSWORD && adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== 'FarcasterAdmin2024!') {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid admin password'
+      }, { status: 401 });
+    }
 
     if (!testAmount || testAmount <= 0) {
       return NextResponse.json({
@@ -192,36 +199,6 @@ export async function POST(request: NextRequest) {
     const remainingAmount = testAmountWei - distributedAmount;
 
     console.log(`💰 Test distribution: ${Number(distributedAmount) / 1000000000000000000} CHESS distributed, ${Number(remainingAmount) / 1000000000000000000} CHESS remaining`);
-
-    // Migrate airdrop_claims if needed - change reward_amount from BIGINT to NUMERIC
-    try {
-      await client.query(`
-        ALTER TABLE airdrop_claims 
-        ALTER COLUMN reward_amount TYPE NUMERIC(18,2);
-      `);
-      console.log('✅ airdrop_claims.reward_amount migrated to NUMERIC');
-    } catch (migrateError: any) {
-      if (migrateError.message.includes('does not exist') || migrateError.message.includes('column already exists')) {
-        console.log('⚠️ Migration already applied or not needed');
-      } else {
-        console.error('⚠️ Migration error:', migrateError);
-      }
-    }
-
-    // Migrate airdrop_claims: Add UNIQUE constraint for (user_fid, season_id)
-    try {
-      await client.query(`
-        ALTER TABLE airdrop_claims 
-        ADD CONSTRAINT airdrop_claims_user_season_unique UNIQUE (user_fid, season_id);
-      `);
-      console.log('✅ UNIQUE constraint added to airdrop_claims');
-    } catch (constraintError: any) {
-      if (constraintError.message.includes('already exists')) {
-        console.log('⚠️ UNIQUE constraint already exists');
-      } else {
-        console.error('⚠️ Constraint migration error:', constraintError);
-      }
-    }
 
     // Insert rewards into airdrop_claims table (separate from shares to avoid FK constraint issues)
     if (distribute) {
