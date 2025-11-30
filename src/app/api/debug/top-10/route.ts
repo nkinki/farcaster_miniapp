@@ -8,10 +8,18 @@ const pool = new Pool({
 export async function GET(request: NextRequest) {
     const client = await pool.connect();
     try {
-        // Try to get top 10 from season_participants
+        // Get top 10 from season_participants (season_id = 1)
         const result = await client.query(`
-      SELECT * FROM season_participants 
-      ORDER BY points DESC 
+      SELECT 
+        farcaster_fid,
+        farcaster_username,
+        total_points,
+        games_played,
+        games_won,
+        wallet_address
+      FROM season_participants 
+      WHERE season_id = 1
+      ORDER BY total_points DESC 
       LIMIT 10
     `);
 
@@ -21,11 +29,9 @@ export async function GET(request: NextRequest) {
             count: result.rows.length
         });
     } catch (error: any) {
-        // If table doesn't exist, return error with helpful info
         return NextResponse.json({
             success: false,
-            error: error.message,
-            hint: 'Table season_participants might not exist in this database'
+            error: error.message
         }, { status: 500 });
     } finally {
         client.release();
