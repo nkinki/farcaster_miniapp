@@ -11,11 +11,11 @@ export async function POST(request: NextRequest) {
   try {
     const { testAmount = 1000, testFids = [], userFid, distribute = false, adminPassword } = await request.json();
 
-    // Check admin password
-    if (process.env.ADMIN_PASSWORD && adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== 'FarcasterAdmin2024!') {
+    // Check admin password ONLY if distributing rewards
+    if (distribute && process.env.ADMIN_PASSWORD && adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== 'FarcasterAdmin2024!') {
       return NextResponse.json({
         success: false,
-        error: 'Invalid admin password'
+        error: 'Invalid admin password for distribution'
       }, { status: 401 });
     }
 
