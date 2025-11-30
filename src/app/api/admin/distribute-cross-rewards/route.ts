@@ -19,8 +19,6 @@ const distribution = [
     { fid: 1062976, username: 'chrisshamter', points: 31, reward: 250404 }
 ];
 
-const SEASON_ID = 3; // Season 1 (completed)
-
 export async function POST(request: NextRequest) {
     const client = await pool.connect();
 
@@ -34,6 +32,24 @@ export async function POST(request: NextRequest) {
                 error: 'Invalid admin password'
             }, { status: 401 });
         }
+
+        // 1. Get or Create "Farchess Autumn top 10 user rewards" Season
+        let seasonId;
+        const seasonResult = await client.query("SELECT id FROM seasons WHERE name = 'Farchess Autumn top 10 user rewards'");
+
+        if (seasonResult.rows.length > 0) {
+            seasonId = seasonResult.rows[0].id;
+        } else {
+            console.log('Creating new Farchess Autumn top 10 user rewards season...');
+            const newSeason = await client.query(`
+        INSERT INTO seasons (name, start_date, end_date, total_rewards, status)
+        VALUES ('Farchess Autumn top 10 user rewards', NOW(), NOW(), 10000000, 'completed')
+        RETURNING id
+      `);
+            seasonId = newSeason.rows[0].id;
+        }
+
+        console.log(`Using Season ID: ${seasonId} for distribution`);
 
         const totalReward = distribution.reduce((sum, p) => sum + p.reward, 0);
 
@@ -51,7 +67,7 @@ export async function POST(request: NextRequest) {
             reward_amount = airdrop_claims.reward_amount + $4,
             points_used = airdrop_claims.points_used + $3
           WHERE airdrop_claims.status != 'claimed'
-        `, [player.fid, SEASON_ID, player.points, player.reward]);
+        `, [player.fid, seasonId, player.points, player.reward]);
 
                 results.push({
                     fid: player.fid,
@@ -74,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            seasonId: SEASON_ID,
+            seasonId: seasonId,
             totalPlayers: distribution.length,
             totalReward: totalReward,
             successCount,
