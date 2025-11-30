@@ -7,30 +7,30 @@ const pool = new Pool({
 
 export async function POST(request: NextRequest) {
   const client = await pool.connect();
-  
+
   try {
     const { testAmount = 1000, testFids = [], userFid, distribute = false } = await request.json();
     // Admin password removed by request – endpoint is open for now
 
     if (!testAmount || testAmount <= 0) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Test amount must be greater than 0' 
+      return NextResponse.json({
+        success: false,
+        error: 'Test amount must be greater than 0'
       }, { status: 400 });
     }
 
     // Check daily limit for user (if userFid provided)
     if (userFid) {
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-      
+
       const limitCheck = await client.query(`
         SELECT calculation_count FROM daily_calculation_limits 
         WHERE user_fid = $1 AND calculation_type = 'airdrop_distribution' AND last_calculation_date = $2
       `, [userFid, today]);
 
       if (limitCheck.rows.length > 0 && limitCheck.rows[0].calculation_count >= 1) {
-        return NextResponse.json({ 
-          success: false, 
+        return NextResponse.json({
+          success: false,
           error: 'Daily calculation limit reached. You can only calculate distribution once per day.',
           limit_reached: true,
           next_reset: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Next day
@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     `);
 
     if (seasonResult.rows.length === 0) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'No active season found' 
+      return NextResponse.json({
+        success: false,
+        error: 'No active season found'
       }, { status: 404 });
     }
 
@@ -123,12 +123,12 @@ export async function POST(request: NextRequest) {
 
     usersQuery += ` ORDER BY total_points DESC`;
 
-    const usersResult = await client.query(usersQuery, 
+    const usersResult = await client.query(usersQuery,
       testFids.length > 0 ? [seasonId, testFids] : [seasonId]
     );
 
     const users = usersResult.rows;
-    
+
     if (users.length === 0) {
       return NextResponse.json({
         success: true,
@@ -139,20 +139,20 @@ export async function POST(request: NextRequest) {
 
     // Calculate total points
     const totalPoints = users.reduce((sum, user) => sum + parseInt(user.total_points), 0);
-    
+
     console.log(`📊 Test: Found ${users.length} users with ${totalPoints} total points`);
 
     if (users.length === 0) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'No users found with points for this season' 
+      return NextResponse.json({
+        success: false,
+        error: 'No users found with points for this season'
       }, { status: 404 });
     }
 
     if (totalPoints === 0) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'No points found for any users in this season' 
+      return NextResponse.json({
+        success: false,
+        error: 'No points found for any users in this season'
       }, { status: 404 });
     }
 
@@ -165,10 +165,10 @@ export async function POST(request: NextRequest) {
       distribution = users.map((user, index) => {
         const userPoints = parseInt(user.total_points);
         const percentage = totalPoints > 0 ? (userPoints / totalPoints) * 100 : 0;
-        const rewardAmount = totalPoints > 0 ? 
-          (BigInt(userPoints) * testAmountWei) / BigInt(totalPoints) : 
+        const rewardAmount = totalPoints > 0 ?
+          (BigInt(userPoints) * testAmountWei) / BigInt(totalPoints) :
           BigInt(0);
-        
+
         const chessAmount = Number(rewardAmount) / 1000000000000000000;
         return {
           rank: index + 1,
@@ -181,8 +181,8 @@ export async function POST(request: NextRequest) {
       });
     } catch (distributionError) {
       console.error('❌ Error calculating distribution:', distributionError);
-      return NextResponse.json({ 
-        success: false, 
+      return NextResponse.json({
+        success: false,
         error: 'Failed to calculate distribution: ' + (distributionError instanceof Error ? distributionError.message : String(distributionError))
       }, { status: 500 });
     }
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
     // Calculate remaining amount (due to rounding)
     const distributedAmount = distribution.reduce((sum, user) => sum + user.reward_amount, BigInt(0));
     const remainingAmount = testAmountWei - distributedAmount;
-    
+
     console.log(`💰 Test distribution: ${Number(distributedAmount) / 1000000000000000000} CHESS distributed, ${Number(remainingAmount) / 1000000000000000000} CHESS remaining`);
 
     // Migrate airdrop_claims if needed - change reward_amount from BIGINT to NUMERIC
@@ -208,6 +208,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Migrate airdrop_claims: Add UNIQUE constraint for (user_fid, season_id)
+    try {
+      await client.query(`
+        ALTER TABLE airdrop_claims 
+        ADD CONSTRAINT airdrop_claims_user_season_unique UNIQUE (user_fid, season_id);
+      `);
+      console.log('✅ UNIQUE constraint added to airdrop_claims');
+    } catch (constraintError: any) {
+      if (constraintError.message.includes('already exists')) {
+        console.log('⚠️ UNIQUE constraint already exists');
+      } else {
+        console.error('⚠️ Constraint migration error:', constraintError);
+      }
+    }
+
     // Insert rewards into airdrop_claims table (separate from shares to avoid FK constraint issues)
     if (distribute) {
       console.log('📝 Inserting rewards into airdrop_claims table...');
@@ -216,7 +231,7 @@ export async function POST(request: NextRequest) {
           // reward_amount is in wei (from distribution calculation)
           // Convert to CHESS for storage (same as shares table uses DECIMAL)
           const chessAmount = Number(user.reward_amount) / 1000000000000000000; // wei to CHESS
-          
+
           await client.query(`
             INSERT INTO airdrop_claims (user_fid, season_id, points_used, reward_amount, status)
             VALUES ($1, $2, $3, $4, 'pending')
@@ -232,7 +247,7 @@ export async function POST(request: NextRequest) {
     // Record the calculation in daily limits (if userFid provided)
     if (userFid) {
       const today = new Date().toISOString().split('T')[0];
-      
+
       await client.query(`
         INSERT INTO daily_calculation_limits (user_fid, calculation_type, last_calculation_date, calculation_count)
         VALUES ($1, 'airdrop_distribution', $2, 1)
@@ -264,9 +279,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in test airdrop calculation:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to calculate test airdrop distribution' 
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to calculate test airdrop distribution'
     }, { status: 500 });
   } finally {
     client.release();
