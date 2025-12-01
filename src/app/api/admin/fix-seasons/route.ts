@@ -29,6 +29,11 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        if (action === 'delete_season_7') {
+            await client.query('DELETE FROM seasons WHERE id = 7');
+            return NextResponse.json({ success: true, message: 'Season 7 deleted' });
+        }
+
         // Default: list seasons
         const seasons = await client.query('SELECT * FROM seasons ORDER BY id');
         return NextResponse.json({ success: true, seasons: seasons.rows });
