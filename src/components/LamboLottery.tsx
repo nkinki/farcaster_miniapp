@@ -389,6 +389,17 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             <div className="flex-1 flex items-center justify-center"><div className="text-cyan-400 text-2xl font-bold animate-pulse">Loading lottery...</div></div>
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
+              {/* Buy CHESS Action Button (High visibility) */}
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border-2 border-purple-400/50 rounded-2xl text-white text-xl font-black transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse"
+                >
+                  <FiZap size={24} className="text-yellow-400" />
+                  SWITCH TO FARCHESS (BUY $CHESS)
+                </button>
+              </div>
+
               {/* Daily Code Section */}
               <div className="bg-[#23283a] rounded-xl p-4 border border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                 <h3 className="text-lg font-bold text-yellow-400 mb-2 flex items-center justify-center gap-2">
@@ -466,16 +477,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               )}
 
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-cyan-400 flex items-center gap-2"><FiDollarSign /> Payment Method</h3>
-                  <button
-                    onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 rounded-lg text-purple-300 text-xs font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
-                  >
-                    <FiZap size={14} className="text-yellow-400" />
-                    BUY CHESS
-                  </button>
-                </div>
+                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiDollarSign /> Payment Method</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                     <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div><span className="text-sm text-blue-300">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span></div>
