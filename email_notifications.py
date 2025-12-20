@@ -3,6 +3,7 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, date
+import psycopg2
 from dotenv import load_dotenv
 from config import get_email_config
 
@@ -85,34 +86,122 @@ def send_email_notification(subject, body, recipient_email=None):
         print(f"❌ Email küldési hiba: {e}")
         return False
 
-def send_success_notification(miniapps_count, top_changes):
-    """Sikeres frissítés értesítése"""
+def send_success_notification(miniapps_count, top_gainers, top_overall):
+    """Sikeres frissítés értesítése továbbfejlesztett sablonnal"""
     
-    subject = f"✅ Farcaster Miniapp Frissítés Sikeres - {date.today()}"
+    subject = f"✅ AppRank Frissítés: {miniapps_count} miniapp naprakész! - {date.today()}"
     
+    # Adatbázis kapcsolat a kódok lekéréséhez
+    apprank_code = "N/A"
+    lotto_code = "N/A"
+    try:
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        cursor = conn.cursor()
+        
+        # AppRank kód lekérése
+        cursor.execute("SELECT code FROM daily_codes WHERE is_active = TRUE LIMIT 1")
+        row = cursor.fetchone()
+        if row: apprank_code = row[0]
+        
+        # Lambo Lotto kód lekérése
+        cursor.execute("SELECT code FROM lotto_daily_codes WHERE is_active = TRUE LIMIT 1")
+        row = cursor.fetchone()
+        if row: lotto_code = row[0]
+        
+        conn.close()
+    except Exception as e:
+        print(f"❌ Hiba a kódok lekérésekor: {e}")
+    
+    # 1. HTML változások listája (Mostantól kattintható nevekkel)
+    gainers_html = "<ul>"
+    for m in top_gainers:
+        domain = m.get('domain', '')
+        if m['name'] == "Lambo Lotto":
+            domain = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"
+        
+        url = f"https://{domain}" if "farcaster.xyz" not in domain else f"https://{domain}"
+        gainers_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a>: #{m['rank']} <span style='color:green;'>(+{m['change']} hely)</span></li>"
+    gainers_html += "</ul>"
+
+    top_html = "<ol>"
+    for m in top_overall:
+        domain = m.get('domain', '')
+        if m['name'] == "Lambo Lotto":
+            domain = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"
+            
+        url = f"https://{domain}" if "farcaster.xyz" not in domain else f"https://{domain}"
+        top_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a></li>"
+    top_html += "</ol>"
+
+    # 2. Alternating Promotion Logic (Lambo Lotto vs FarChess)
+    # Even day: Lambo Lotto, Odd day: FarChess
+    is_even_day = date.today().day % 2 == 0
+    promo_name = "Lambo Lotto" if is_even_day else "FarChess"
+    promo_link = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto" if is_even_day else "farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
+
+    # 3. Cast Preview (Tisztább, @mention alapú formátum)
+    cast_text = f"🏆 Farcaster Miniapp Ranking Update!\n\n"
+    cast_text += f"Top 5 Gainers today on @apprank:\n"
+    for i, m in enumerate(top_gainers, 1):
+        mention = f"@{m['username']}" if m.get('username') else m['name']
+        
+        # Speciális említés Lambo Lotto esetén
+        if m['name'] == "Lambo Lotto":
+            mention = "@ifun"
+            
+        cast_text += f"{i}. {m['name']} ({mention}) +{m['change']} 📈\n"
+    
+    cast_text += f"\nFeatured App: {promo_name} 🚀\n"
+    cast_text += f"🔗 https://{promo_link}\n\n"
+    
+    cast_text += f"Full leaderboard (240+ apps):\n"
+    cast_text += f"🔗 https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank\n\n"
+    cast_text += f"Build on Base. @base.base.eth 🟦\n"
+    cast_text += f"#Farcaster #Miniapps #AppRank #Build #Base"
+
     body = f"""
-    <h2>🎉 Sikeres Automatikus Frissítés!</h2>
+    <h2 style="color: #764ba2;">🎉 Sikeres Frissítés!</h2>
     
-    <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0;">
-        <h3>📊 Frissített Adatok:</h3>
-        <ul>
-            <li><strong>Miniappok száma:</strong> {miniapps_count}</li>
-            <li><strong>Frissítés időpontja:</strong> {datetime.now().strftime('%H:%M:%S')}</li>
-            <li><strong>Státusz:</strong> ✅ Sikeres</li>
-        </ul>
+    <div style="background: #f0ecf9; padding: 15px; border-left: 5px solid #764ba2; border-radius: 5px; margin: 15px 0;">
+        <h3 style="margin-top:0;">📱 Cast Preview (Másold és posztold!)</h3>
+        <pre style="background: #ffffff; padding: 15px; border: 1px dashed #764ba2; border-radius: 5px; white-space: pre-wrap; font-family: monospace; font-size: 13px;">{cast_text}</pre>
+        <p style="font-size: 12px; color: #666;">💡 Tipp: A @ifun és @base.base.eth említések segítenek a láthatóság növelésében!</p>
     </div>
-    
-    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0;">
-        <h3>📈 Legnagyobb Változások:</h3>
-        {top_changes}
+
+    <div style="background: #fff8e1; padding: 15px; border: 2px solid #ffc107; border-radius: 5px; margin: 15px 0; text-align: center;">
+        <h3 style="margin-top:0; color: #ffa000;">🎁 Mai Napi Kódok:</h3>
+        <div style="display: flex; justify-content: space-around; gap: 10px;">
+            <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
+                <p style="margin: 0; font-size: 12px; color: #666;">AppRank (10k Promo Code):</p>
+                <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{apprank_code}</p>
+            </div>
+            <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
+                <p style="margin: 0; font-size: 12px; color: #666;">Lambo Lotto (3 Free Tickets):</p>
+                <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{lotto_code}</p>
+            </div>
+        </div>
+        <p style="font-size: 11px; color: #999; margin-top: 10px;">Oszd meg őket a közösséggel! 😉</p>
     </div>
-    
-    <div style="background: #d1ecf1; padding: 15px; border-radius: 5px; margin: 15px 0;">
-        <h3>🔗 Linkek:</h3>
-        <ul>
-            <li><a href="https://farcaster-miniapp.vercel.app">🌐 Weboldal</a></li>
-            <li><a href="https://github.com/nkinki/farcaster_miniapp">📁 GitHub</a></li>
-        </ul>
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px; background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+            <h3 style="margin-top:0;">📈 Legnagyobb Emelkedők:</h3>
+            <p style="font-size: 12px; color: #666;">(Kattints a nevekre az megnyitáshoz)</p>
+            {gainers_html}
+        </div>
+        
+        <div style="flex: 1; min-width: 250px; background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0;">
+            <h3 style="margin-top:0;">🏆 Aktuális Top 5:</h3>
+            {top_html}
+        </div>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0; text-align: center;">
+        <p><strong>Összes frissített miniapp:</strong> {miniapps_count}</p>
+        <p style="margin-bottom: 5px;">🔥 Mai ajánlat: <strong>{promo_name}</strong></p>
+        <a href="https://{promo_link}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-size: 14px; margin-bottom: 20px;">🎮 Megnyitás: {promo_name}</a>
+        <br>
+        <a href="https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; font-weight: bold;">🌐 Irány az AppRank</a>
     </div>
     """
     
@@ -201,11 +290,19 @@ def send_daily_summary(miniapps_data):
     return send_email_notification(subject, body)
 
 if __name__ == "__main__":
-    # Teszt email
-    test_body = """
-    <h2>🧪 Email Teszt</h2>
-    <p>Ez egy teszt email az automatikus értesítési rendszerhez.</p>
-    <p>Időpont: {}</p>
-    """.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    # Teszt adatok
+    test_gainers = [
+        {"name": "Polling Center", "username": "poll", "rank": 1, "change": 12, "domain": "poll.xyz"},
+        {"name": "Degen", "username": "degen", "rank": 5, "change": 8, "domain": "degen.tips"},
+        {"name": "Lambo Lotto", "username": "lambo", "rank": 12, "change": 5, "domain": "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"}
+    ]
+    test_top = [
+        {"name": "Polling Center", "username": "poll", "rank": 1, "domain": "poll.xyz"},
+        {"name": "Warpcast", "username": "warpcast", "rank": 2, "domain": "warpcast.com"},
+        {"name": "Supercast", "username": "supercast", "rank": 3, "domain": "supercast.xyz"},
+        {"name": "Degen", "username": "degen", "rank": 4, "domain": "degen.tips"},
+        {"name": "Lambo Lotto", "username": "lambo", "rank": 5, "domain": "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"}
+    ]
     
-    send_email_notification("🧪 Farcaster Miniapp Email Teszt", test_body) 
+    print("Testing send_success_notification with Farcaster App Links...")
+    send_success_notification(246, test_gainers, test_top)

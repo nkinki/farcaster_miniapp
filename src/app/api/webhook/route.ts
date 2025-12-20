@@ -24,28 +24,29 @@ export async function POST(request: NextRequest) {
 
     // 2. lépés: Dekódoljuk a Base64 payload-ot, és JSON-ként értelmezzük
     const event = JSON.parse(Buffer.from(body.payload, 'base64').toString());
-    
+
     console.log('Successfully decoded event payload:', JSON.stringify(event, null, 2));
 
     const notificationDetails = event.notificationDetails;
+    const fid = event.fid;
 
     // Most már helyesen fog működni az ellenőrzés
     if (['miniapp_added', 'notifications_enabled', 'frame_added'].includes(event.event)) {
       if (notificationDetails && notificationDetails.token) {
         const { token, url } = notificationDetails;
-        console.log(`Token found for event '${event.event}'. Attempting to save token: ${token}`);
-        
+        console.log(`Token found for event '${event.event}' for FID ${fid}. Attempting to save token: ${token}`);
+
         const result = await pool.query(
-          'INSERT INTO notification_tokens (token, url, created_at) VALUES ($1, $2, NOW()) ON CONFLICT (token) DO NOTHING',
-          [token, url]
+          'INSERT INTO notification_tokens (token, url, fid, app_id, created_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (token) DO UPDATE SET url = EXCLUDED.url, fid = EXCLUDED.fid, app_id = EXCLUDED.app_id',
+          [token, url, fid, 'apprank']
         );
 
         if ((result.rowCount ?? 0) > 0) {
-            console.log('✅ SUCCESS: Token saved to database:', token);
+          console.log('✅ SUCCESS: Token saved to database:', token);
         } else {
-            console.log('ℹ️ INFO: Token already exists in the database or insert failed, not saving again:', token);
+          console.log('ℹ️ INFO: Token already exists in the database or insert failed, not saving again:', token);
         }
-        
+
       } else {
         console.warn(`Event '${event.event}' received, but no 'notificationDetails.token' found.`);
       }
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
         // Maradjunk az egyszerűbb esettnél:
         console.log("INFO: 'frame_removed' event received. Deletion based on notificationDetails if available.");
       }
-      
+
       if (notificationDetails?.token) {
         tokenToRemove = notificationDetails.token;
       }
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
         console.warn(`Event '${event.event}' received, but no token found to remove.`);
       }
     }
-    
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('❌ FATAL_WEBHOOK_ERROR:', error);

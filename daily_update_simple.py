@@ -113,17 +113,36 @@ def update_database(miniapps_data):
                     best_rank = EXCLUDED.best_rank;
             """, (miniapp_id, today, current_rank, rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change, avg_rank, best_rank))
         
-        # 5. Update the daily snapshot backup
-        print("Updating ranking_snapshots backup...")
-        cursor.execute("DELETE FROM ranking_snapshots WHERE snapshot_date = %s;", (today,))
-        cursor.execute(
-            "INSERT INTO ranking_snapshots (snapshot_date, total_miniapps, raw_json) VALUES (%s, %s, %s);",
-            (today, len(miniapps_data), json.dumps(miniapps_data))
-        )
+        # 6. Fetch top 5 gainers and current top 5 for the notification
+        cursor.execute("""
+            SELECT m.name, m.author_username, s.current_rank, s.rank_24h_change, m.domain
+            FROM miniapp_statistics s
+            JOIN miniapps m ON s.miniapp_id = m.id
+            WHERE s.stat_date = %s AND s.rank_24h_change IS NOT NULL
+            ORDER BY s.rank_24h_change DESC
+            LIMIT 5
+        """, (today,))
+        top_gainers = [
+            {"name": r[0], "username": r[1], "rank": r[2], "change": r[3], "domain": r[4]} 
+            for r in cursor.fetchall()
+        ]
+
+        cursor.execute("""
+            SELECT m.name, m.author_username, s.current_rank, m.domain
+            FROM miniapp_statistics s
+            JOIN miniapps m ON s.miniapp_id = m.id
+            WHERE s.stat_date = %s
+            ORDER BY s.current_rank ASC
+            LIMIT 5
+        """, (today,))
+        top_overall = [
+            {"name": r[0], "username": r[1], "rank": r[2], "domain": r[3]} 
+            for r in cursor.fetchall()
+        ]
 
         conn.commit()
         print(f"Database update successful for {len(miniapps_data)} miniapps.")
-        send_success_notification(len(miniapps_data), "Daily DB update complete.")
+        send_success_notification(len(miniapps_data), top_gainers, top_overall)
     except Exception as e:
         print(f"Database error: {e}")
         send_error_notification("Database Update Failed", str(e))
