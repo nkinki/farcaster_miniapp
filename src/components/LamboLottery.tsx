@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react";
-import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap } from "react-icons/fi";
+import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap, FiGift } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '@/abis/LottoPaymentRouter';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 // --- Interface definíciók ---
 interface LotteryRound { id: number; round_number: number; start_date: string; end_date: string; draw_date: string; prize_pool: number; status: string; winner_fid?: number; winner_number?: number; total_tickets_sold: number; }
@@ -28,7 +29,7 @@ enum PurchaseStep {
 
 export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSuccess }: LamboLotteryProps) {
   const { address, isConnected } = useAccount();
-  
+
   // Safely get chainId to avoid connector errors
   let chainId: number | undefined;
   try {
@@ -53,7 +54,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [recentRounds, setRecentRounds] = useState<RecentRound[]>([]);
   const [userWinnings, setUserWinnings] = useState<UserWinning[]>([]);
   const [stats, setStats] = useState<LotteryStats | null>(null);
-  
+  const [dailyCode, setDailyCode] = useState("");
+  const [redeemStatus, setRedeemStatus] = useState<{ message: string; isError: boolean } | null>(null);
+  const [isRedeeming, setIsRedeeming] = useState(false);
+
   const [step, setStep] = useState<PurchaseStep>(PurchaseStep.Idle);
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
   const [purchaseTxHash, setPurchaseTxHash] = useState<Hash | undefined>();
@@ -103,10 +107,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       setLoading(false);
     }
   }, [userFid]);
-  
+
   useEffect(() => {
     if (selectedNumbers.length > 0 && isConnected) {
-      if (allowance !== undefined && allowance >= totalCost) { setStep(PurchaseStep.ReadyToPurchase); } 
+      if (allowance !== undefined && allowance >= totalCost) { setStep(PurchaseStep.ReadyToPurchase); }
       else { setStep(PurchaseStep.Idle); }
     } else if (selectedNumbers.length === 0) { setStep(PurchaseStep.Idle); }
   }, [selectedNumbers, allowance, totalCost, isConnected]);
@@ -117,7 +121,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       refetchAllowance();
     }
   }, [isApproved, step, refetchAllowance]);
-  
+
   useEffect(() => {
     if (!isPurchased || !purchaseTxHash || step !== PurchaseStep.PurchaseConfirming) return;
     const verifyAndRegister = async () => {
@@ -151,37 +155,37 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   }, [isPurchased, purchaseTxHash, step, userFid, currentRound, selectedNumbers, address, fetchLotteryData, onPurchaseSuccess]);
 
   useEffect(() => { if (isOpen) { fetchLotteryData(); } }, [isOpen, fetchLotteryData]);
-  
+
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const drawTime = new Date();
       drawTime.setUTCHours(19, 5, 0, 0); // 19:05 UTC
-      
+
       // Check if we're in the draw period (19:05-19:09)
       const drawStart = new Date();
       drawStart.setUTCHours(19, 5, 0, 0);
       const drawEnd = new Date();
       drawEnd.setUTCHours(19, 9, 0, 0);
-      
+
       if (now >= drawStart && now <= drawEnd) {
         setTimeRemaining("Draw in progress");
         return;
       }
-      
+
       // If past draw time today, set for tomorrow
-      if (now.getTime() > drawTime.getTime()) { 
-        drawTime.setDate(drawTime.getDate() + 1); 
+      if (now.getTime() > drawTime.getTime()) {
+        drawTime.setDate(drawTime.getDate() + 1);
       }
-      
+
       const difference = drawTime.getTime() - now.getTime();
       if (difference > 0) {
         const hours = Math.floor(difference / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
         setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      } else { 
-        setTimeRemaining("00:00:00"); 
+      } else {
+        setTimeRemaining("00:00:00");
       }
     };
     updateTimer();
@@ -192,14 +196,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const handleApprove = async () => {
     setErrorMessage(null);
     setStep(PurchaseStep.Approving);
-    
+
     // Check if user is on the correct network (Base)
     if (chainId && chainId !== 8453) {
       setErrorMessage("Please switch to Base network to purchase tickets.");
       setStep(PurchaseStep.Idle);
       return;
     }
-    
+
     // Debug info
     console.log('🔍 Approve debug:', {
       address,
@@ -209,7 +213,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       CHESS_TOKEN_ADDRESS,
       LOTTO_PAYMENT_ROUTER_ADDRESS
     });
-    
+
     try {
       const hash = await writeContractAsync({
         address: CHESS_TOKEN_ADDRESS,
@@ -236,32 +240,32 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       const currentTakenNumbers: number[] = takenData.takenNumbers || [];
       const newlyTaken = selectedNumbers.filter(num => currentTakenNumbers.includes(num));
       if (newlyTaken.length > 0) {
-          setErrorMessage(`Ticket(s) no longer available: ${newlyTaken.join(', ')}. Please select other numbers.`);
-          setTakenNumbers(currentTakenNumbers);
-          setSelectedNumbers(selectedNumbers.filter(num => !currentTakenNumbers.includes(num)));
-          setStep(PurchaseStep.Idle);
-          return;
+        setErrorMessage(`Ticket(s) no longer available: ${newlyTaken.join(', ')}. Please select other numbers.`);
+        setTakenNumbers(currentTakenNumbers);
+        setSelectedNumbers(selectedNumbers.filter(num => !currentTakenNumbers.includes(num)));
+        setStep(PurchaseStep.Idle);
+        return;
       }
-      
+
       let finalHash: Hash | undefined;
       for (const ticketNumber of selectedNumbers) {
         // Map the selected number (1-100) to the contract range (1-10)
         const mappedNumber = Math.ceil(ticketNumber / 10);
         const hash = await writeContractAsync({
-            address: LOTTO_PAYMENT_ROUTER_ADDRESS,
-            abi: LOTTO_PAYMENT_ROUTER_ABI,
-            functionName: 'buyTicket',
-            args: [BigInt(mappedNumber)],
+          address: LOTTO_PAYMENT_ROUTER_ADDRESS,
+          abi: LOTTO_PAYMENT_ROUTER_ABI,
+          functionName: 'buyTicket',
+          args: [BigInt(mappedNumber)],
         });
         finalHash = hash;
       }
 
       if (finalHash) {
-          setPurchaseTxHash(finalHash);
-          setStep(PurchaseStep.PurchaseConfirming);
+        setPurchaseTxHash(finalHash);
+        setStep(PurchaseStep.PurchaseConfirming);
       } else {
-          // This case should not happen if selectedNumbers.length > 0
-          throw new Error("No tickets were selected to purchase.");
+        // This case should not happen if selectedNumbers.length > 0
+        throw new Error("No tickets were selected to purchase.");
       }
     } catch (err: any) {
       setErrorMessage(err.shortMessage || "Purchase rejected or failed. A ticket might be taken.");
@@ -272,7 +276,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const handleClaimPrize = async (winningId: number) => {
     try {
       setErrorMessage(null);
-      
+
       const response = await fetch('/api/lottery/claim-prize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -281,9 +285,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           playerFid: userFid
         })
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         console.log('✅ Prize claimed successfully:', result);
         // Refresh data
@@ -299,7 +303,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   };
 
   const handleNumberSelect = (number: number) => {
-    if (selectedNumbers.includes(number)) { setSelectedNumbers(selectedNumbers.filter(n => n !== number)); } 
+    if (selectedNumbers.includes(number)) { setSelectedNumbers(selectedNumbers.filter(n => n !== number)); }
     else if (userTickets.length + selectedNumbers.length < 10) { setSelectedNumbers([...selectedNumbers, number]); }
   };
   const formatChessTokens = (amount: number) => {
@@ -309,6 +313,44 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     if (amount >= 1_000) return `$${(amount / 1_000).toLocaleString('en-US', { maximumFractionDigits: 0 })}K`;
     return `$${amount.toLocaleString('en-US')}`;
   };
+
+  const handleRedeemCode = async () => {
+    if (!dailyCode || !userFid) return;
+    setIsRedeeming(true);
+    setRedeemStatus(null);
+    try {
+      // Get notification details from SDK context to sync subscription if needed
+      const context = await (sdk as any).context;
+      const notificationDetails = context?.client?.notificationDetails;
+
+      const response = await fetch('/api/lottery/redeem-daily-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: dailyCode,
+          fid: userFid,
+          address: address,
+          notificationDetails: notificationDetails
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setRedeemStatus({ message: data.message, isError: false });
+        setDailyCode("");
+        fetchLotteryData();
+      } else {
+        setRedeemStatus({ message: data.error, isError: true });
+        if (data.needsSubscription) {
+          try { await sdk.actions.addMiniApp(); } catch (e) { }
+        }
+      }
+    } catch (error) {
+      setRedeemStatus({ message: "Failed to redeem code. Please try again.", isError: true });
+    } finally {
+      setIsRedeeming(false);
+    }
+  };
+
   const isNumberTaken = (number: number) => takenNumbers.includes(number);
 
   const isLoading = isPending || isApproveConfirming || isPurchaseConfirming || step === PurchaseStep.Saving;
@@ -321,24 +363,24 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
         <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
           <div className="relative z-10 flex flex-col items-start mb-6">
             <div className="w-full flex justify-between items-start mb-2">
-                <div className="flex items-center gap-4">
-                  <div className="w-full">
-                    <div className="flex items-center justify-center gap-2 mr-[8%]">
-                      <FiDollarSign size={38} className="text-yellow-300" />
-                      <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">BUY A LAMBO</h1>
-                    </div>
-                    <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
-                    {currentRound && (
-                      <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow mx-auto" style={{ animationDuration: '4s' }}>
-                        <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
-                          <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
-                          <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-6 min-w-0 w-full flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">JACKPOT</div><div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatChessTokens(currentRound.prize_pool)}</div></div>
-                          <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">LAST DRAW</div><div className="text-sm font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{lastWinningNumber || 'N/A'}</div></div>
-                        </div>
-                      </div>
-                    )}
+              <div className="flex items-center gap-4">
+                <div className="w-full">
+                  <div className="flex items-center justify-center gap-2 mr-[8%]">
+                    <FiDollarSign size={38} className="text-yellow-300" />
+                    <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">BUY A LAMBO</h1>
                   </div>
+                  <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
+                  {currentRound && (
+                    <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow mx-auto" style={{ animationDuration: '4s' }}>
+                      <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
+                        <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
+                        <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-6 min-w-0 w-full flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">JACKPOT</div><div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatChessTokens(currentRound.prize_pool)}</div></div>
+                        <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">LAST DRAW</div><div className="text-sm font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{lastWinningNumber || 'N/A'}</div></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
             </div>
             <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
           </div>
@@ -347,26 +389,57 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             <div className="flex-1 flex items-center justify-center"><div className="text-cyan-400 text-2xl font-bold animate-pulse">Loading lottery...</div></div>
           ) : (
             <div className="relative z-10 flex-1 overflow-y-auto space-y-6">
+              {/* Daily Code Section */}
+              <div className="bg-[#23283a] rounded-xl p-4 border border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                <h3 className="text-lg font-bold text-yellow-400 mb-2 flex items-center justify-center gap-2">
+                  <FiGift /> Daily Free Numbers
+                </h3>
+                <p className="text-xs text-gray-400 text-center mb-4">
+                  Enter today's code to get 1 free ticket! (Limit: first 3 fast users)
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={dailyCode}
+                    onChange={(e) => setDailyCode(e.target.value.toUpperCase())}
+                    placeholder="ENTER CODE..."
+                    className="flex-1 bg-black/40 border border-yellow-500/30 rounded-lg px-4 py-2 text-white font-mono focus:outline-none focus:border-yellow-500 transition-colors"
+                  />
+                  <button
+                    onClick={handleRedeemCode}
+                    disabled={isRedeeming || !dailyCode}
+                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:from-gray-700 disabled:to-gray-800 text-white font-bold px-6 py-2 rounded-lg transition-all duration-300"
+                  >
+                    {isRedeeming ? '...' : 'REDEEM'}
+                  </button>
+                </div>
+                {redeemStatus && (
+                  <div className={`mt-3 p-2 rounded text-center text-sm font-medium ${redeemStatus.isError ? 'bg-red-900/40 text-red-300' : 'bg-green-900/40 text-green-300'}`}>
+                    {redeemStatus.message}
+                  </div>
+                )}
+              </div>
+
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
                 <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                   <p className="text-sm text-blue-300">Maximum 10 tickets per user per round. Draw at 19:05 UTC daily via GitHub Action.{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
                 </div>
-                
+
                 <div className="grid grid-cols-10 gap-1 mb-4">
                   {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-9 h-9 rounded text-sm font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}>{number}</button>))}
                 </div>
-                
+
                 {errorMessage && (
                   <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-300 text-sm text-center">{errorMessage}</div>
                 )}
-                
+
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-gray-300">
-                    <div>Total cost: <span className="text-yellow-400 font-bold">{(Number(totalCost)/1e18).toLocaleString()} CHESS</span></div>
+                    <div>Total cost: <span className="text-yellow-400 font-bold">{(Number(totalCost) / 1e18).toLocaleString()} CHESS</span></div>
                     {!isConnected && <div className="text-red-400 text-xs mt-1">⚠️ Please connect your wallet.</div>}
                   </div>
-                  
+
                   {step < PurchaseStep.ReadyToPurchase ? (
                     <button onClick={handleApprove} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                       {isApproveConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : '1. Approve Budget'}
@@ -393,7 +466,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               )}
 
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiDollarSign /> Payment Method</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-cyan-400 flex items-center gap-2"><FiDollarSign /> Payment Method</h3>
+                  <button
+                    onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 rounded-lg text-purple-300 text-xs font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+                  >
+                    <FiZap size={14} className="text-yellow-400" />
+                    BUY CHESS
+                  </button>
+                </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                     <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div><span className="text-sm text-blue-300">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span></div>
@@ -401,7 +483,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   </div>
                   <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
                     <div className="text-sm text-yellow-300"><span className="font-bold">Price per ticket:</span> 100,000 CHESS</div>
-                    {selectedNumbers.length > 0 && <div className="text-sm text-yellow-300 mt-1"><span className="font-bold">Total cost:</span> {(Number(totalCost)/1e18).toLocaleString()} CHESS</div>}
+                    {selectedNumbers.length > 0 && <div className="text-sm text-yellow-300 mt-1"><span className="font-bold">Total cost:</span> {(Number(totalCost) / 1e18).toLocaleString()} CHESS</div>}
                   </div>
                   {isConnected && (<div className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg"><div className="text-sm font-medium text-green-300">Token Approval Status</div><div className="text-xs text-gray-400">{step === PurchaseStep.ReadyToPurchase ? 'Sufficient allowance approved.' : 'Approval will be needed to purchase.'}</div></div>)}
                 </div>
@@ -439,7 +521,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                         </div>
                         <div className="text-sm text-gray-300 mb-3">Winning Number: <span className="text-yellow-400 font-bold">{winning.winning_number}</span> | Your Ticket: <span className="text-cyan-400 font-bold">{winning.ticket_number}</span></div>
                         {!winning.claimed_at ? (
-                          <button 
+                          <button
                             onClick={() => handleClaimPrize(winning.id)}
                             className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
                           >
