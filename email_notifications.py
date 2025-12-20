@@ -107,10 +107,51 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
         cursor.execute("SELECT code FROM lotto_daily_codes WHERE is_active = TRUE LIMIT 1")
         row = cursor.fetchone()
         if row: lotto_code = row[0]
+
+        # RÉSZLETES STATISZTIKÁK LEKÉRÉSE
         
+        # 1. Feliratkozók száma
+        cursor.execute("SELECT app_id, COUNT(*) FROM notification_tokens GROUP BY app_id")
+        sub_stats = cursor.fetchall()
+        sub_stats_html = "<ul>"
+        for app, count in sub_stats:
+            sub_stats_html += f"<li><strong>{app}:</strong> {count} feliratkozó</li>"
+        sub_stats_html += "</ul>"
+
+        # 2. AppRank kód használat (Mai)
+        cursor.execute("SELECT fid, used_at FROM daily_code_usages WHERE code = %s ORDER BY used_at DESC", (apprank_code,))
+        apprank_usages = cursor.fetchall()
+        apprank_usages_html = "<ul>"
+        for fid, used_at in apprank_usages:
+            apprank_usages_html += f"<li>FID: {fid} - {used_at.strftime('%H:%M')}</li>"
+        if not apprank_usages: apprank_usages_html += "<li>Még nincs használat</li>"
+        apprank_usages_html += "</ul>"
+
+        # 3. Lambo Lotto kód használat (Mai)
+        cursor.execute("SELECT fid, used_at FROM lotto_daily_code_usages WHERE code = %s ORDER BY used_at DESC", (lotto_code,))
+        lotto_usages = cursor.fetchall()
+        lotto_usages_html = "<ul>"
+        for fid, used_at in lotto_usages:
+            lotto_usages_html += f"<li>FID: {fid} - {used_at.strftime('%H:%M')}</li>"
+        if not lotto_usages: lotto_usages_html += "<li>Még nincs használat</li>"
+        lotto_usages_html += "</ul>"
+
+        # 4. Aktuális Lotto Kör
+        cursor.execute("SELECT id, draw_number FROM lottery_draws WHERE status = 'active' ORDER BY draw_number DESC LIMIT 1")
+        active_draw = cursor.fetchone()
+        lotto_info_html = "Nincs aktív kör"
+        if active_draw:
+            draw_id = active_draw[0]
+            cursor.execute("SELECT COUNT(*) FROM lottery_tickets WHERE draw_id = %s", (draw_id,))
+            ticket_count = cursor.fetchone()[0]
+            lotto_info_html = f"Aktív kör (#{active_draw[1]}): <strong>{ticket_count} eladott jegy</strong>"
+
         conn.close()
     except Exception as e:
-        print(f"❌ Hiba a kódok lekérésekor: {e}")
+        print(f"❌ Hiba a statisztikák lekérésekor: {e}")
+        sub_stats_html = f"<p>Hiba: {e}</p>"
+        apprank_usages_html = lotto_usages_html = "<ul><li>N/A</li></ul>"
+        lotto_info_html = "N/A"
     
     # 1. HTML változások listája (Mostantól kattintható nevekkel)
     gainers_html = "<ul>"
@@ -187,6 +228,26 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
             </div>
         </div>
         <p style="font-size: 11px; color: #999; margin-top: 10px;">Másold ki a fenti szövegeket és oszd meg őket a közösséggel! 😉</p>
+    </div>
+
+    <div style="background: #e3f2fd; padding: 15px; border: 1px solid #2196f3; border-radius: 5px; margin: 15px 0;">
+        <h3 style="margin-top:0; color: #1976d2;">📊 Részletes Statisztikák (Valós idejű):</h3>
+        
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">🔔 Feliratkozások:</h4>
+                {sub_stats_html}
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">🏎️ Lambo Lotto Használat ({lotto_code}):</h4>
+                {lotto_usages_html}
+                <p style="font-size: 12px; margin-top: 5px;">{lotto_info_html}</p>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">📈 AppRank Használat ({apprank_code}):</h4>
+                {apprank_usages_html}
+            </div>
+        </div>
     </div>
 
     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
