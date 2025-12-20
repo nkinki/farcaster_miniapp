@@ -176,7 +176,7 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
                 <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{apprank_code}</p>
             </div>
             <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
-                <p style="margin: 0; font-size: 12px; color: #666;">Lambo Lotto (3 Free Tickets):</p>
+                <p style="margin: 0; font-size: 12px; color: #666;">Lambo Lotto (1 Free ticket - First 3 users):</p>
                 <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{lotto_code}</p>
             </div>
         </div>
