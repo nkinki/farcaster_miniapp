@@ -28,17 +28,7 @@ enum PurchaseStep {
 }
 
 export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSuccess }: LamboLotteryProps) {
-  const { address, isConnected } = useAccount();
-
-  // Safely get chainId to avoid connector errors
-  let chainId: number | undefined;
-  try {
-    const accountData = useAccount();
-    chainId = accountData.chainId;
-  } catch (error) {
-    console.warn('Could not get chainId:', error);
-    chainId = undefined;
-  }
+  const { address, isConnected, chainId } = useAccount();
 
   // Pontosan mint a PaymentForm.tsx-ben, csak a useWriteContract-ot használjuk
   const { writeContractAsync, isPending } = useWriteContract();
@@ -550,14 +540,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           )}
         </div>
       </div>
-      <style jsx>{`
-        @keyframes pulseGlow {
-          0% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
-          50% { box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff; }
-          100% { box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff; }
-        }
-        .pulse-glow { animation: pulseGlow 3.5s ease-in-out infinite; border: 2px solid #a259ff; }
-      `}</style>
     </>
   );
 }

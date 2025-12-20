@@ -27,35 +27,89 @@ body {
 
 @layer utilities {
   @keyframes apprankglow {
-    0%, 100% { filter: blur(36px) brightness(1.2); opacity: 0.85; }
-    50% { filter: blur(48px) brightness(1.5); opacity: 1; }
+
+    0%,
+    100% {
+      filter: blur(36px) brightness(1.2);
+      opacity: 0.85;
+    }
+
+    50% {
+      filter: blur(48px) brightness(1.5);
+      opacity: 1;
+    }
   }
+
   .animate-apprankglow {
     animation: apprankglow 5s ease-in-out infinite;
   }
-  
+
   @keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(-10px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
-  
+
   @keyframes claimSuccess {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+
+    100% {
+      transform: scale(1);
+    }
   }
+
   .animate-claimSuccess {
     animation: claimSuccess 0.6s ease-in-out;
   }
-  
+
   @keyframes slideInRight {
-    0% { transform: translateX(100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
+    0% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
+
   .animate-slideInRight {
     animation: slideInRight 0.3s ease-out;
+  }
+
+  @keyframes pulseGlow {
+    0% {
+      box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+    }
+
+    50% {
+      box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff;
+    }
+
+    100% {
+      box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
+    }
+  }
+
+  .pulse-glow {
+    animation: pulseGlow 3.5s ease-in-out infinite;
+    border: 2px solid #a259ff;
   }
 }
