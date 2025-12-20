@@ -139,6 +139,10 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
     promo_name = "Lambo Lotto" if is_even_day else "FarChess"
     promo_link = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto" if is_even_day else "farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
 
+    # Promo szövegek megosztáshoz (Farcaster barát)
+    apprank_promo = f"🚀 AppRank: 10,000 $CHESS Promo Code! 💎\nCode: {apprank_code}\nBoost your app now! 📈\nOpen: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank\n#AppRank #Farcaster"
+    lotto_promo = f"🎰 Lambo Lotto: 1 Free Ticket! 🎟️\nToday's Code: {lotto_code}\nFirst 3 users only! 🏎️\nPlay: https://farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto\n#LamboLotto #Base"
+
     # 3. Cast Preview (Tisztább, @mention alapú formátum)
     cast_text = f"🏆 Farcaster Miniapp Ranking Update!\n\n"
     cast_text += f"Top 5 Gainers today on @apprank:\n"
@@ -174,13 +178,15 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
             <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
                 <p style="margin: 0; font-size: 12px; color: #666;">AppRank (10k Promo Code):</p>
                 <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{apprank_code}</p>
+                <pre style="background: #f9f9f9; padding: 5px; border: 1px solid #ddd; font-size: 10px; white-space: pre-wrap; margin-top: 10px; text-align: left;">{apprank_promo}</pre>
             </div>
             <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
                 <p style="margin: 0; font-size: 12px; color: #666;">Lambo Lotto (1 Free ticket - First 3 users):</p>
                 <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{lotto_code}</p>
+                <pre style="background: #f9f9f9; padding: 5px; border: 1px solid #ddd; font-size: 10px; white-space: pre-wrap; margin-top: 10px; text-align: left;">{lotto_promo}</pre>
             </div>
         </div>
-        <p style="font-size: 11px; color: #999; margin-top: 10px;">Oszd meg őket a közösséggel! 😉</p>
+        <p style="font-size: 11px; color: #999; margin-top: 10px;">Másold ki a fenti szövegeket és oszd meg őket a közösséggel! 😉</p>
     </div>
 
     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
