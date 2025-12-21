@@ -156,10 +156,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       const drawStart = new Date();
       drawStart.setUTCHours(19, 5, 0, 0);
       const drawEnd = new Date();
-      drawEnd.setUTCHours(19, 9, 0, 0);
+      drawEnd.setUTCHours(19, 30, 0, 0);
 
       if (now >= drawStart && now <= drawEnd) {
-        setTimeRemaining("Draw in progress");
+        setTimeRemaining("DRAW IN PROGRESS");
         return;
       }
 

@@ -140,6 +140,14 @@ def update_database(miniapps_data):
             for r in cursor.fetchall()
         ]
 
+        # DEBUG: Check lists
+        print(f"DEBUG: Found {len(top_gainers)} top gainers")
+        print(f"DEBUG: Found {len(top_overall)} top overall")
+        if not top_gainers:
+            print(f"DEBUG: Today is {today}")
+            cursor.execute("SELECT COUNT(*) FROM miniapp_statistics WHERE stat_date = %s", (today,))
+            print(f"DEBUG: Stats count for today: {cursor.fetchone()[0]}")
+
         conn.commit()
         print(f"Database update successful for {len(miniapps_data)} miniapps.")
         send_success_notification(len(miniapps_data), top_gainers, top_overall)

@@ -168,23 +168,29 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
     
     # 1. HTML változások listája (Mostantól kattintható nevekkel)
     gainers_html = "<ul>"
-    for m in top_gainers:
-        domain = m.get('domain', '')
-        if m['name'] == "Lambo Lotto":
-            domain = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"
-        
-        url = f"https://{domain}" if "farcaster.xyz" not in domain else f"https://{domain}"
-        gainers_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a>: #{m['rank']} <span style='color:green;'>(+{m['change']} hely)</span></li>"
+    if not top_gainers:
+        gainers_html += "<li>Nincs adat</li>"
+    else:
+        for m in top_gainers:
+            domain = m.get('domain', '')
+            if m['name'] == "Lambo Lotto":
+                domain = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"
+            
+            url = f"https://{domain}" if "farcaster.xyz" not in domain else f"https://{domain}"
+            gainers_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a>: #{m['rank']} <span style='color:green;'>(+{m['change']} hely)</span></li>"
     gainers_html += "</ul>"
 
     top_html = "<ol>"
-    for m in top_overall:
-        domain = m.get('domain', '')
-        if m['name'] == "Lambo Lotto":
-            domain = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"
-            
-        url = f"https://{domain}" if "farcaster.xyz" not in domain else f"https://{domain}"
-        top_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a></li>"
+    if not top_overall:
+        top_html += "<li>Nincs adat</li>"
+    else:
+        for m in top_overall:
+            domain = m.get('domain', '')
+            if m['name'] == "Lambo Lotto":
+                domain = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"
+                
+            url = f"https://{domain}" if "farcaster.xyz" not in domain else f"https://{domain}"
+            top_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a></li>"
     top_html += "</ol>"
 
     # 2. Alternating Promotion Logic (Lambo Lotto vs FarChess)
