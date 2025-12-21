@@ -409,7 +409,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   <button
                     onClick={handleRedeemCode}
                     disabled={isRedeeming || !dailyCode}
-                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:from-gray-700 disabled:to-gray-800 text-white font-bold px-6 py-2 rounded-lg transition-all duration-300"
+                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:from-gray-700 disabled:to-gray-800 text-white font-bold px-3 py-2 rounded-lg transition-all duration-300"
                   >
                     {isRedeeming ? '...' : 'REDEEM'}
                   </button>
