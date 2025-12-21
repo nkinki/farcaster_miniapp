@@ -26,6 +26,7 @@ jobs:
       run: python daily_update_simple.py
       env:
         NEON_DB_URL: ${{ secrets.NEON_DB_URL }}
+        DATABASE_URL: ${{ secrets.NEON_DB_URL }} # Szinkronizálás az email hívásokhoz
         FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
         EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
