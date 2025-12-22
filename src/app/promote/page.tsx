@@ -2544,19 +2544,35 @@ export default function PromotePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Reward Per Share ($CHESS)
+                  <label className="block text-sm font-medium text-gray-400 mb-3">
+                    Choose Reward Per Share ($CHESS)
                   </label>
-                  <select
-                    value={dailyCodeRewardPerShare}
-                    onChange={(e) => setDailyCodeRewardPerShare(Number(e.target.value))}
-                    className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
-                  >
-                    <option value={500}>500 $CHESS</option>
-                    <option value={1000}>1,000 $CHESS</option>
-                    <option value={2000}>2,000 $CHESS</option>
-                    <option value={5000}>5,000 $CHESS</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 1000, label: '1,000', sub: 'Max Shares 🚀' },
+                      { value: 2000, label: '2,000', sub: 'Balanced ⚖️' },
+                      { value: 5000, label: '5,000', sub: 'High Reward 🔥', className: 'col-span-2 bg-gradient-to-r from-[#1a1d26] to-[#2a2f42]' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setDailyCodeRewardPerShare(opt.value)}
+                        className={`p-3 rounded-xl border transition-all duration-200 text-left relative overflow-hidden ${opt.className || ''} ${dailyCodeRewardPerShare === opt.value
+                            ? 'border-yellow-400 bg-yellow-400/10 shadow-lg scale-[1.02]'
+                            : 'border-gray-700 bg-[#1a1d26] hover:border-gray-500 hover:bg-[#23283a]'
+                          }`}
+                      >
+                        <div className="font-bold text-lg text-white">{opt.label}</div>
+                        <div className={`text-xs ${dailyCodeRewardPerShare === opt.value ? 'text-yellow-400' : 'text-gray-400'}`}>
+                          {opt.sub}
+                        </div>
+                        {dailyCodeRewardPerShare === opt.value && (
+                          <div className="absolute top-2 right-2 text-yellow-400">
+                            <FiCheck size={16} />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {dailyCodeError && (
