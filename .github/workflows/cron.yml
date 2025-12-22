@@ -21,6 +21,20 @@ jobs:
         
     - name: Install Python dependencies
       run: pip install -r requirements.txt
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install Node dependencies
+      run: npm install
+
+    - name: Generate Lotto Daily Code
+      run: node scripts/generate_lotto_daily_code.js
+      env:
+        DATABASE_URL: ${{ secrets.NEON_DB_URL }}
         
     - name: Run Database Update Script
       run: python daily_update_simple.py
