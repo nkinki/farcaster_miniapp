@@ -120,7 +120,7 @@ def update_database(miniapps_data):
             JOIN miniapps m ON s.miniapp_id = m.id
             WHERE s.stat_date = %s AND s.rank_24h_change IS NOT NULL
             ORDER BY s.rank_24h_change DESC
-            LIMIT 5
+            LIMIT 10
         """, (today,))
         top_gainers = [
             {"name": r[0], "username": r[1], "rank": r[2], "change": r[3], "domain": r[4]} 

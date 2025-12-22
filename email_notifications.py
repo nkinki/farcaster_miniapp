@@ -10,7 +10,7 @@ from config import get_email_config
 load_dotenv()
 
 def send_email_notification(subject, body, recipient_email=None):
-    """Email értesítés küldése"""
+    """Send email notification"""
     
     # Email konfiguráció - először .env-ből, majd config.py-ból
     sender_email = os.getenv("EMAIL_SENDER")
@@ -36,7 +36,7 @@ def send_email_notification(subject, body, recipient_email=None):
                 recipient_email = sender_email
     
     if not sender_email or not sender_password:
-        print("❌ Email konfiguráció hiányzik")
+        print("❌ Email configuration missing")
         return False
     
     try:
@@ -52,7 +52,7 @@ def send_email_notification(subject, body, recipient_email=None):
         <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
-                    <h1>🏆 Farcaster Miniapp Frissítés</h1>
+                    <h1>🏆 Farcaster Miniapp Update</h1>
                     <p>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
                 </div>
                 
@@ -61,7 +61,7 @@ def send_email_notification(subject, body, recipient_email=None):
                 </div>
                 
                 <div style="background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;">
-                    <p>🤖 Automatikus értesítés - Farcaster Miniapp Rendszer</p>
+                    <p>🤖 Automated Notification - Farcaster Miniapp System</p>
                 </div>
             </div>
         </body>
@@ -79,17 +79,17 @@ def send_email_notification(subject, body, recipient_email=None):
         server.sendmail(sender_email, recipient_email, text)
         server.quit()
         
-        print(f"✅ Email elküldve: {recipient_email}")
+        print(f"✅ Email sent: {recipient_email}")
         return True
         
     except Exception as e:
-        print(f"❌ Email küldési hiba: {e}")
+        print(f"❌ Email sending error: {e}")
         return False
 
 def send_success_notification(miniapps_count, top_gainers, top_overall):
-    """Sikeres frissítés értesítése továbbfejlesztett sablonnal"""
+    """Successful update notification with enhanced template"""
     
-    subject = f"✅ AppRank Frissítés: {miniapps_count} miniapp naprakész! - {date.today()}"
+    subject = f"✅ AppRank Update: {miniapps_count} miniapps updated! - {date.today()}"
     
     # Adatbázis kapcsolat a kódok lekéréséhez
     apprank_code = "N/A"
@@ -98,78 +98,79 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
     db_url = os.getenv("DATABASE_URL") or os.getenv("NEON_DB_URL")
     
     if not db_url:
-        print("❌ DATABASE_URL/NEON_DB_URL hiányzik az environmentből!")
-        sub_stats_html = "<p style='color:red;'>Hiba: Adatbázis URL hiányzik</p>"
+        print("❌ DATABASE_URL/NEON_DB_URL missing from environment!")
+        sub_stats_html = "<p style='color:red;'>Error: Database URL missing</p>"
         apprank_usages_html = lotto_usages_html = "<ul><li>N/A</li></ul>"
         lotto_info_html = "N/A"
     else:
         try:
-            # SSL kényszerítése Neon esetén
+            # Force SSL for Neon
             if "neon.tech" in db_url and "sslmode=" not in db_url:
                 db_url += ("&" if "?" in db_url else "?") + "sslmode=require"
                 
             conn = psycopg2.connect(db_url)
             cursor = conn.cursor()
         
-            # AppRank kód lekérése
+            # Get AppRank code
             cursor.execute("SELECT code FROM daily_codes WHERE is_active = TRUE LIMIT 1")
             row = cursor.fetchone()
             if row: apprank_code = row[0]
             
-            # Lambo Lotto kód lekérése
+            # Get Lambo Lotto code
             cursor.execute("SELECT code FROM lotto_daily_codes WHERE is_active = TRUE LIMIT 1")
             row = cursor.fetchone()
             if row: lotto_code = row[0]
 
-            # RÉSZLETES STATISZTIKÁK LEKÉRÉSE
+            # GET DETAILED STATISTICS
             
-            # 1. Feliratkozók száma
+            # 1. Number of subscribers
             cursor.execute("SELECT app_id, COUNT(*) FROM notification_tokens GROUP BY app_id")
             sub_stats = cursor.fetchall()
             sub_stats_html = "<ul>"
             for app, count in sub_stats:
-                sub_stats_html += f"<li><strong>{app}:</strong> {count} feliratkozó</li>"
+                sub_stats_html += f"<li><strong>{app}:</strong> {count} subscribers</li>"
             sub_stats_html += "</ul>"
 
-            # 2. AppRank kód használat (Mai)
+            # 2. AppRank code usage (Today)
             cursor.execute("SELECT fid, used_at FROM daily_code_usages WHERE code = %s ORDER BY used_at DESC", (apprank_code,))
             apprank_usages = cursor.fetchall()
             apprank_usages_html = "<ul>"
             for fid, used_at in apprank_usages:
                 apprank_usages_html += f"<li>FID: {fid} - {used_at.strftime('%H:%M')}</li>"
-            if not apprank_usages: apprank_usages_html += "<li>Még nincs használat</li>"
+            if not apprank_usages: apprank_usages_html += "<li>No usage yet</li>"
             apprank_usages_html += "</ul>"
 
-            # 3. Lambo Lotto kód használat (Mai)
+            # 3. Lambo Lotto code usage (Today)
             cursor.execute("SELECT fid, used_at FROM lotto_daily_code_usages WHERE code = %s ORDER BY used_at DESC", (lotto_code,))
             lotto_usages = cursor.fetchall()
             lotto_usages_html = "<ul>"
             for fid, used_at in lotto_usages:
                 lotto_usages_html += f"<li>FID: {fid} - {used_at.strftime('%H:%M')}</li>"
-            if not lotto_usages: lotto_usages_html += "<li>Még nincs használat</li>"
+            if not lotto_usages: lotto_usages_html += "<li>No usage yet</li>"
             lotto_usages_html += "</ul>"
 
-            # 4. Aktuális Lotto Kör
+            # 4. Current Lotto Round
             cursor.execute("SELECT id, draw_number FROM lottery_draws WHERE status = 'active' ORDER BY draw_number DESC LIMIT 1")
             active_draw = cursor.fetchone()
-            lotto_info_html = "Nincs aktív kör"
+            lotto_info_html = "No active round"
             if active_draw:
                 draw_id = active_draw[0]
                 cursor.execute("SELECT COUNT(*) FROM lottery_tickets WHERE draw_id = %s", (draw_id,))
                 ticket_count = cursor.fetchone()[0]
-                lotto_info_html = f"Aktív kör (#{active_draw[1]}): <strong>{ticket_count} eladott jegy</strong>"
+                lotto_info_html = f"Active Round (#{active_draw[1]}): <strong>{ticket_count} tickets sold</strong>"
 
             conn.close()
         except Exception as e:
-            print(f"❌ Hiba a statisztikák lekérésekor: {e}")
-            sub_stats_html = f"<p style='color:red;'>Hiba: {e}</p>"
+            print(f"❌ Error fetching statistics: {e}")
+            sub_stats_html = f"<p style='color:red;'>Error: {e}</p>"
             apprank_usages_html = lotto_usages_html = "<ul><li>N/A</li></ul>"
             lotto_info_html = "N/A"
     
-    # 1. HTML változások listája (Mostantól kattintható nevekkel)
+    
+    # 1. HTML list of changes (Clickable names)
     gainers_html = "<ul>"
     if not top_gainers:
-        gainers_html += "<li>Nincs adat</li>"
+        gainers_html += "<li>No Data</li>"
     else:
         for m in top_gainers:
             domain = m.get('domain', '')
@@ -177,12 +178,12 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
                 domain = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"
             
             url = f"https://{domain}" if "farcaster.xyz" not in domain else f"https://{domain}"
-            gainers_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a>: #{m['rank']} <span style='color:green;'>(+{m['change']} hely)</span></li>"
+            gainers_html += f"<li><a href='{url}' style='color: #764ba2; text-decoration: none; font-weight: bold;'>{m['name']}</a>: #{m['rank']} <span style='color:green;'>(+{m['change']} pos)</span></li>"
     gainers_html += "</ul>"
 
     top_html = "<ol>"
     if not top_overall:
-        top_html += "<li>Nincs adat</li>"
+        top_html += "<li>No Data</li>"
     else:
         for m in top_overall:
             domain = m.get('domain', '')
@@ -199,21 +200,22 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
     promo_name = "Lambo Lotto" if is_even_day else "FarChess"
     promo_link = "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto" if is_even_day else "farcaster.xyz/miniapps/DXCz8KIyfsme/farchess"
 
-    # Promo szövegek megosztáshoz (Farcaster barát)
+    # Promo texts for sharing (Farcaster friendly)
     apprank_promo = f"🚀 AppRank: 10,000 $CHESS Promo Code! 💎\nCode: {apprank_code}\nBoost your app now! 📈\nOpen: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank\n#AppRank #Farcaster"
     lotto_promo = f"🎰 Lambo Lotto: 1 Free Ticket! 🎟️\nToday's Code: {lotto_code}\nFirst 3 users only! 🏎️\nPlay: https://farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto\n#LamboLotto #Base"
 
-    # 3. Cast Preview (Tisztább, @mention alapú formátum)
+    # 3. Cast Preview (Cleaner, @mention based format)
     cast_text = f"🏆 Farcaster Miniapp Ranking Update!\n\n"
-    cast_text += f"Top 5 Gainers today on @apprank:\n"
+    cast_text += f"Top 10 Gainers today on @apprank:\n"
     for i, m in enumerate(top_gainers, 1):
         mention = f"@{m['username']}" if m.get('username') else m['name']
         
-        # Speciális említés Lambo Lotto esetén
+        # Special mention for Lambo Lotto
         if m['name'] == "Lambo Lotto":
             mention = "@ifun"
             
-        cast_text += f"{i}. {m['name']} ({mention}) +{m['change']} 📈\n"
+        # Removed parentheses around mention as requested
+        cast_text += f"{i}. {m['name']} {mention} +{m['change']} 📈\n"
     
     cast_text += f"\nFeatured App: {promo_name} 🚀\n"
     cast_text += f"🔗 https://{promo_link}\n\n"
@@ -224,16 +226,16 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
     cast_text += f"#Farcaster #Miniapps #AppRank #Build #Base"
 
     body = f"""
-    <h2 style="color: #764ba2;">🎉 Sikeres Frissítés!</h2>
+    <h2 style="color: #764ba2;">🎉 Update Successful!</h2>
     
     <div style="background: #f0ecf9; padding: 15px; border-left: 5px solid #764ba2; border-radius: 5px; margin: 15px 0;">
-        <h3 style="margin-top:0;">📱 Cast Preview (Másold és posztold!)</h3>
+        <h3 style="margin-top:0;">📱 Cast Preview (Copy & Post!)</h3>
         <pre style="background: #ffffff; padding: 15px; border: 1px dashed #764ba2; border-radius: 5px; white-space: pre-wrap; font-family: monospace; font-size: 13px;">{cast_text}</pre>
-        <p style="font-size: 12px; color: #666;">💡 Tipp: A @ifun és @base.base.eth említések segítenek a láthatóság növelésében!</p>
+        <p style="font-size: 12px; color: #666;">💡 Tip: Mentions like @ifun and @base.base.eth help visibility!</p>
     </div>
 
     <div style="background: #fff8e1; padding: 15px; border: 2px solid #ffc107; border-radius: 5px; margin: 15px 0; text-align: center;">
-        <h3 style="margin-top:0; color: #ffa000;">🎁 Mai Napi Kódok:</h3>
+        <h3 style="margin-top:0; color: #ffa000;">🎁 Daily Codes:</h3>
         <div style="display: flex; justify-content: space-around; gap: 10px;">
             <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
                 <p style="margin: 0; font-size: 12px; color: #666;">AppRank (10k Promo Code):</p>
@@ -246,24 +248,24 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
                 <pre style="background: #f9f9f9; padding: 5px; border: 1px solid #ddd; font-size: 10px; white-space: pre-wrap; margin-top: 10px; text-align: left;">{lotto_promo}</pre>
             </div>
         </div>
-        <p style="font-size: 11px; color: #999; margin-top: 10px;">Másold ki a fenti szövegeket és oszd meg őket a közösséggel! 😉</p>
+        <p style="font-size: 11px; color: #999; margin-top: 10px;">Copy the texts above and share with the community! 😉</p>
     </div>
 
     <div style="background: #e3f2fd; padding: 15px; border: 1px solid #2196f3; border-radius: 5px; margin: 15px 0;">
-        <h3 style="margin-top:0; color: #1976d2;">📊 Részletes Statisztikák (Valós idejű):</h3>
+        <h3 style="margin-top:0; color: #1976d2;">📊 Detailed Stats (Real-time):</h3>
         
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px;">
-                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">🔔 Feliratkozások:</h4>
+                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">🔔 Subscribers:</h4>
                 {sub_stats_html}
             </div>
             <div style="flex: 1; min-width: 200px;">
-                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">🏎️ Lambo Lotto Használat ({lotto_code}):</h4>
+                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">🏎️ Lambo Lotto Usage ({lotto_code}):</h4>
                 {lotto_usages_html}
                 <p style="font-size: 12px; margin-top: 5px;">{lotto_info_html}</p>
             </div>
             <div style="flex: 1; min-width: 200px;">
-                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">📈 AppRank Használat ({apprank_code}):</h4>
+                <h4 style="margin: 10px 0 5px 0; font-size: 14px;">📈 AppRank Usage ({apprank_code}):</h4>
                 {apprank_usages_html}
             </div>
         </div>
@@ -271,49 +273,49 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
 
     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 250px; background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
-            <h3 style="margin-top:0;">📈 Legnagyobb Emelkedők:</h3>
-            <p style="font-size: 12px; color: #666;">(Kattints a nevekre az megnyitáshoz)</p>
+            <h3 style="margin-top:0;">📈 Top Gainers:</h3>
+            <p style="font-size: 12px; color: #666;">(Click names to open)</p>
             {gainers_html}
         </div>
         
         <div style="flex: 1; min-width: 250px; background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0;">
-            <h3 style="margin-top:0;">🏆 Aktuális Top 5:</h3>
+            <h3 style="margin-top:0;">🏆 Current Top 5:</h3>
             {top_html}
         </div>
     </div>
 
     <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0; text-align: center;">
-        <p><strong>Összes frissített miniapp:</strong> {miniapps_count}</p>
-        <p style="margin-bottom: 5px;">🔥 Mai ajánlat: <strong>{promo_name}</strong></p>
-        <a href="https://{promo_link}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-size: 14px; margin-bottom: 20px;">🎮 Megnyitás: {promo_name}</a>
+        <p><strong>Total miniapps updated:</strong> {miniapps_count}</p>
+        <p style="margin-bottom: 5px;">🔥 Today's Offer: <strong>{promo_name}</strong></p>
+        <a href="https://{promo_link}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-size: 14px; margin-bottom: 20px;">🎮 Open: {promo_name}</a>
         <br>
-        <a href="https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; font-weight: bold;">🌐 Irány az AppRank</a>
+        <a href="https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; font-weight: bold;">🌐 Go to AppRank</a>
     </div>
     """
     
     return send_email_notification(subject, body)
 
 def send_error_notification(error_message, error_details):
-    """Hiba értesítése"""
+    """Error notification"""
     
-    subject = f"❌ Farcaster Miniapp Frissítés Hiba - {date.today()}"
+    subject = f"❌ Farcaster Miniapp Update Error - {date.today()}"
     
     body = f"""
-    <h2>🚨 Automatikus Frissítés Hiba!</h2>
+    <h2>🚨 Automated Update Error!</h2>
     
     <div style="background: #f8d7da; padding: 15px; border-radius: 5px; margin: 15px 0;">
-        <h3>❌ Hiba Részletek:</h3>
-        <p><strong>Hiba:</strong> {error_message}</p>
-        <p><strong>Időpont:</strong> {datetime.now().strftime('%H:%M:%S')}</p>
+        <h3>❌ Error Details:</h3>
+        <p><strong>Error:</strong> {error_message}</p>
+        <p><strong>Time:</strong> {datetime.now().strftime('%H:%M:%S')}</p>
         <pre style="background: #f1f1f1; padding: 10px; border-radius: 3px; overflow-x: auto;">{error_details}</pre>
     </div>
     
     <div style="background: #d1ecf1; padding: 15px; border-radius: 5px; margin: 15px 0;">
-        <h3>🔧 Javaslatok:</h3>
+        <h3>🔧 Suggestions:</h3>
         <ul>
-            <li>Ellenőrizd a GitHub Actions logokat</li>
-            <li>Nézd meg az adatbázis kapcsolatot</li>
-            <li>Ellenőrizd a Bearer token érvényességét</li>
+            <li>Check GitHub Actions logs</li>
+            <li>Check database connection</li>
+            <li>Check Bearer token validity</li>
         </ul>
     </div>
     """
@@ -321,9 +323,9 @@ def send_error_notification(error_message, error_details):
     return send_email_notification(subject, body)
 
 def send_daily_summary(miniapps_data):
-    """Napi összefoglaló"""
+    """Daily summary"""
     
-    subject = f"📊 Farcaster Miniapp Napi Összefoglaló - {date.today()}"
+    subject = f"📊 Farcaster Miniapp Daily Summary - {date.today()}"
     
     # Top 10 miniapp
     top_10_html = ""
@@ -344,26 +346,26 @@ def send_daily_summary(miniapps_data):
         """
     
     body = f"""
-    <h2>📊 Napi Miniapp Összefoglaló</h2>
+    <h2>📊 Daily Miniapp Summary</h2>
     
     <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0;">
-        <h3>📈 Áttekintés:</h3>
+        <h3>📈 Overview:</h3>
         <ul>
-            <li><strong>Összes miniapp:</strong> {len(miniapps_data)}</li>
-            <li><strong>Frissítés időpontja:</strong> {datetime.now().strftime('%H:%M:%S')}</li>
-            <li><strong>Dátum:</strong> {date.today()}</li>
+            <li><strong>Total miniapps:</strong> {len(miniapps_data)}</li>
+            <li><strong>Update time:</strong> {datetime.now().strftime('%H:%M:%S')}</li>
+            <li><strong>Date:</strong> {date.today()}</li>
         </ul>
     </div>
     
     <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0;">
-        <h3>🏆 Top 10 Miniapp:</h3>
+        <h3>🏆 Top 10 Miniapps:</h3>
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #f8f9fa;">
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Rangsor</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Név</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Rank</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Name</th>
                     <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Domain</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">72h Változás</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">72h Change</th>
                 </tr>
             </thead>
             <tbody>
@@ -376,7 +378,7 @@ def send_daily_summary(miniapps_data):
     return send_email_notification(subject, body)
 
 if __name__ == "__main__":
-    # Teszt adatok
+    # Test data
     test_gainers = [
         {"name": "Polling Center", "username": "poll", "rank": 1, "change": 12, "domain": "poll.xyz"},
         {"name": "Degen", "username": "degen", "rank": 5, "change": 8, "domain": "degen.tips"},
