@@ -36,9 +36,16 @@ export async function POST(request: NextRequest) {
         const { token, url } = notificationDetails;
         console.log(`Token found for event '${event.event}' for FID ${fid}. Attempting to save token: ${token}`);
 
+        // Determine App ID based on the Target URL
+        let appId = 'apprank'; // Default
+        if (url && (url.includes('lambo-lotto') || url.includes('lambo'))) {
+          appId = 'lambo-lotto';
+          console.log(`Detected Lambo Lotto subscription from URL: ${url}`);
+        }
+
         const result = await pool.query(
           'INSERT INTO notification_tokens (token, url, fid, app_id, created_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (token) DO UPDATE SET url = EXCLUDED.url, fid = EXCLUDED.fid, app_id = EXCLUDED.app_id',
-          [token, url, fid, 'apprank']
+          [token, url, fid, appId]
         );
 
         if ((result.rowCount ?? 0) > 0) {
