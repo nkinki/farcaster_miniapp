@@ -117,7 +117,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Verifier] Contract interaction verified (${isDirectCall ? 'Direct' : 'Account Abstraction'})`);
 
-    if (receipt.from?.toLowerCase() !== playerAddress.toLowerCase()) {
+    // For direct calls, verify the sender matches
+    // For AA calls, skip this check as the sender is the smart wallet, not the user's EOA
+    if (isDirectCall && receipt.from?.toLowerCase() !== playerAddress.toLowerCase()) {
       console.error(`[Verifier] Address mismatch. Expected: ${playerAddress}, Got: ${receipt.from}`);
       return NextResponse.json({ error: 'Transaction sender does not match the player address.' }, { status: 403 });
     }
