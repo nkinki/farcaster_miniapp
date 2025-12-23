@@ -99,10 +99,24 @@ export async function POST(request: NextRequest) {
       console.error(`[Verifier] Transaction failed on-chain. Status: ${receipt.status}`);
       return NextResponse.json({ error: 'On-chain transaction failed.', details: `Status: ${receipt.status}` }, { status: 400 });
     }
-    if (receipt.to?.toLowerCase() !== LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase()) {
-      console.error(`[Verifier] Wrong contract address. Expected: ${LOTTO_PAYMENT_ROUTER_ADDRESS}, Got: ${receipt.to}`);
-      return NextResponse.json({ error: 'Transaction was sent to the wrong contract address.' }, { status: 400 });
+
+    // ACCOUNT ABSTRACTION SUPPORT (Base app uses ERC-4337)
+    // For AA transactions, receipt.to is the Entry Point (0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789)
+    // We need to check if the LottoPaymentRouter was called in the logs
+    const isDirectCall = receipt.to?.toLowerCase() === LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase();
+    const isAACall = receipt.logs?.some(log =>
+      log.address?.toLowerCase() === LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase()
+    );
+
+    if (!isDirectCall && !isAACall) {
+      console.error(`[Verifier] LottoPaymentRouter not found in transaction. Receipt.to: ${receipt.to}, Logs checked: ${receipt.logs?.length || 0}`);
+      return NextResponse.json({
+        error: 'Transaction did not interact with the Lotto Payment Router contract.'
+      }, { status: 400 });
     }
+
+    console.log(`[Verifier] Contract interaction verified (${isDirectCall ? 'Direct' : 'Account Abstraction'})`);
+
     if (receipt.from?.toLowerCase() !== playerAddress.toLowerCase()) {
       console.error(`[Verifier] Address mismatch. Expected: ${playerAddress}, Got: ${receipt.from}`);
       return NextResponse.json({ error: 'Transaction sender does not match the player address.' }, { status: 403 });
