@@ -149,15 +149,45 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
             if not lotto_usages: lotto_usages_html += "<li>No usage yet</li>"
             lotto_usages_html += "</ul>"
 
-            # 4. Current Lotto Round
-            cursor.execute("SELECT id, draw_number FROM lottery_draws WHERE status = 'active' ORDER BY draw_number DESC LIMIT 1")
+            # 4. Current Lotto Round & Jackpot
+            cursor.execute("SELECT id, draw_number, jackpot FROM lottery_draws WHERE status = 'active' ORDER BY draw_number DESC LIMIT 1")
             active_draw = cursor.fetchone()
             lotto_info_html = "No active round"
+            jackpot_amount = 0
             if active_draw:
                 draw_id = active_draw[0]
+                jackpot_amount = int(active_draw[2])
                 cursor.execute("SELECT COUNT(*) FROM lottery_tickets WHERE draw_id = %s", (draw_id,))
                 ticket_count = cursor.fetchone()[0]
                 lotto_info_html = f"Active Round (#{active_draw[1]}): <strong>{ticket_count} tickets sold</strong>"
+            
+            # Format jackpot
+            def format_jackpot(amount):
+                if amount >= 1000000:
+                    return f"{(amount / 1000000):.1f}M"
+                if amount >= 1000:
+                    return f"{int(amount / 1000)}K"
+                return str(amount)
+            
+            jackpot_formatted = format_jackpot(jackpot_amount) if jackpot_amount > 0 else "1.0M"
+
+            # 5. Rising Stars (apps with positive change, not in top 10)
+            cursor.execute("""
+                SELECT m.name, m.author_username, s.rank_24h_change 
+                FROM miniapp_statistics s
+                JOIN miniapps m ON s.miniapp_id = m.id
+                WHERE s.stat_date = %s 
+                AND s.rank_24h_change > 0
+                AND s.current_rank > 10
+                ORDER BY s.rank_24h_change DESC
+                LIMIT 20
+            """, (date.today(),))
+            rising_stars_all = cursor.fetchall()
+            
+            # Randomize and pick 5-8
+            import random
+            num_stars = random.randint(5, min(8, len(rising_stars_all)))
+            rising_stars = random.sample(rising_stars_all, num_stars) if rising_stars_all else []
 
             conn.close()
         except Exception as e:
@@ -225,6 +255,63 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
     cast_text += f"Build on Base. @base.base.eth 🟦\n"
     cast_text += f"#Farcaster #Miniapps #AppRank #Build #Base"
 
+    # 4. Rising Stars HTML
+    import random
+    rising_stars_html = "<ul>"
+    if 'rising_stars' in locals() and rising_stars:
+        for star in rising_stars:
+            mention = f"@{star[1]}" if star[1] else star[0]
+            rising_stars_html += f"<li><strong>{star[0]}</strong> {mention} <span style='color:green;'>+{star[2]} 📈</span></li>"
+    else:
+        rising_stars_html += "<li>Check back tomorrow!</li>"
+    rising_stars_html += "</ul>"
+
+    # 5. Dynamic Promotional Blocks (Randomized)
+    promo_variants = [
+        {
+            'title': '♟️ FarChess',
+            'texts': [
+                f"Play chess, earn $CHESS tokens! Challenge players worldwide.",
+                f"Sharpen your skills and stack $CHESS. Every move counts!",
+                f"From beginner to grandmaster - earn $CHESS while you play!"
+            ],
+            'link': 'https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess'
+        },
+        {
+            'title': '🏎️ Buy a Lambo',
+            'texts': [
+                f"Current jackpot: {jackpot_formatted if 'jackpot_formatted' in locals() else '3.5M'} $CHESS! One winner takes all tonight at 19:00 UTC.",
+                f"{jackpot_formatted if 'jackpot_formatted' in locals() else '3.5M'} $CHESS up for grabs! Will you be the lucky one?",
+                f"The Lambo dream is real: {jackpot_formatted if 'jackpot_formatted' in locals() else '3.5M'} $CHESS jackpot waiting!"
+            ],
+            'link': 'https://farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto'
+        },
+        {
+            'title': '❄️ Winter Airdrop Season',
+            'texts': [
+                "Join the season, climb the leaderboard, and earn exclusive rewards!",
+                "Limited time: Winter Airdrop Season is live! Don't miss your chance.",
+                "Compete, share, and win big in the Winter Airdrop Season!"
+            ],
+            'link': 'https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'
+        }
+    ]
+    
+    # Pick 2-3 random promos
+    num_promos = random.randint(2, 3)
+    selected_promos = random.sample(promo_variants, num_promos)
+    
+    promo_blocks_html = ""
+    for promo in selected_promos:
+        promo_text = random.choice(promo['texts'])
+        promo_blocks_html += f"""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin: 10px 0;">
+            <h4 style="margin: 0 0 10px 0;">{promo['title']}</h4>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">{promo_text}</p>
+            <a href="{promo['link']}" style="display: inline-block; background: white; color: #764ba2; padding: 8px 16px; text-decoration: none; border-radius: 20px; font-weight: bold; font-size: 13px;">Try Now →</a>
+        </div>
+        """
+
     body = f"""
     <h2 style="color: #764ba2;">🎉 Update Successful!</h2>
     
@@ -234,21 +321,31 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
         <p style="font-size: 12px; color: #666;">💡 Tip: Mentions like @ifun and @base.base.eth help visibility!</p>
     </div>
 
+    <div style="background: #fff3e0; padding: 15px; border: 2px solid #ff9800; border-radius: 10px; margin: 15px 0;">
+        <h3 style="margin-top:0; color: #e65100;">🌟 Rising Stars - Apps on the Move!</h3>
+        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Check out these up-and-coming miniapps making waves:</p>
+        {rising_stars_html}
+    </div>
+
     <div style="background: #fff8e1; padding: 15px; border: 2px solid #ffc107; border-radius: 5px; margin: 15px 0; text-align: center;">
-        <h3 style="margin-top:0; color: #ffa000;">🎁 Daily Codes:</h3>
-        <div style="display: flex; justify-content: space-around; gap: 10px;">
+        <h3 style="margin-top:0; color: #ffa000;">🎁 Daily Codes & Promotions:</h3>
+        <div style="display: flex; justify-content: space-around; gap: 10px; margin-bottom: 15px;">
             <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
                 <p style="margin: 0; font-size: 12px; color: #666;">AppRank (10k Promo Code):</p>
                 <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{apprank_code}</p>
                 <pre style="background: #f9f9f9; padding: 5px; border: 1px solid #ddd; font-size: 10px; white-space: pre-wrap; margin-top: 10px; text-align: left;">{apprank_promo}</pre>
             </div>
             <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; flex: 1;">
-                <p style="margin: 0; font-size: 12px; color: #666;">Lambo Lotto (1 Free ticket - First 3 users):</p>
+                <p style="margin: 0; font-size: 12px; color: #666;">Lambo Lotto (1 Free ticket):</p>
                 <p style="margin: 5px 0; font-size: 18px; font-weight: bold; font-family: monospace; color: #333;">{lotto_code}</p>
+                <p style="margin: 5px 0; font-size: 14px; color: #ff6f00;">💰 Jackpot: {jackpot_formatted if 'jackpot_formatted' in locals() else '3.5M'} $CHESS</p>
                 <pre style="background: #f9f9f9; padding: 5px; border: 1px solid #ddd; font-size: 10px; white-space: pre-wrap; margin-top: 10px; text-align: left;">{lotto_promo}</pre>
             </div>
         </div>
-        <p style="font-size: 11px; color: #999; margin-top: 10px;">Copy the texts above and share with the community! 😉</p>
+        
+        {promo_blocks_html}
+        
+        <p style="font-size: 11px; color: #999; margin-top: 15px;">Copy the texts above and share with the community! 😉</p>
     </div>
 
     <div style="background: #e3f2fd; padding: 15px; border: 1px solid #2196f3; border-radius: 5px; margin: 15px 0;">
