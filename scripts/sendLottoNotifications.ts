@@ -1,7 +1,7 @@
 // Fájl: scripts/sendLottoNotifications.ts
 
 import { Pool } from 'pg';
-import fetch from 'node-fetch';
+// Using native fetch API (Node.js 18+)
 
 /**
  * A fő funkció, ami lefut, amikor a szkript elindul.
