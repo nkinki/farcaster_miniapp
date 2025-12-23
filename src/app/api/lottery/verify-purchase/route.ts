@@ -24,15 +24,15 @@ const publicClient = createPublicClient({
 
 export async function POST(request: NextRequest) {
   const client = await pool.connect();
-  
+
   try {
     const body = await request.json();
-    const { 
-      txHash, 
-      fid, 
-      round_id, 
-      ticket_numbers, 
-      playerAddress 
+    const {
+      txHash,
+      fid,
+      round_id,
+      ticket_numbers,
+      playerAddress
     } = body;
 
     // Részletes paraméter-ellenőrzés
@@ -47,45 +47,64 @@ export async function POST(request: NextRequest) {
 
     if (missingParams.length > 0) {
       console.error('Bad Request: Missing parameters', { missing: missingParams, received_body: body });
-      return NextResponse.json({ 
-        error: `Missing or invalid required parameters: ${missingParams.join(', ')}` 
+      return NextResponse.json({
+        error: `Missing or invalid required parameters: ${missingParams.join(', ')}`
       }, { status: 400 });
     }
 
     // BIZTONSÁGI VALIDÁCIÓ: Ticket number range check
     if (!ticket_numbers.every((num: any) => Number.isInteger(num) && num >= 1 && num <= 100)) {
       console.error('Security: Invalid ticket number range', { ticket_numbers });
-      return NextResponse.json({ 
-        error: 'Invalid ticket number range. Must be integers between 1-100.' 
+      return NextResponse.json({
+        error: 'Invalid ticket number range. Must be integers between 1-100.'
       }, { status: 400 });
     }
 
     // BIZTONSÁGI VALIDÁCIÓ: Maximum 10 tickets per user
     if (ticket_numbers.length > 10) {
       console.error('Security: Too many tickets', { count: ticket_numbers.length });
-      return NextResponse.json({ 
-        error: 'Maximum 10 tickets per user per round.' 
+      return NextResponse.json({
+        error: 'Maximum 10 tickets per user per round.'
       }, { status: 400 });
     }
 
     // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS (JAVÍTVA) ---
     console.log(`[Verifier] Waiting for receipt for txHash: ${txHash}`);
-    
-    // A waitForTransactionReceipt lecseréli a bonyolult while ciklust.
-    // Addig vár, amíg a bizonylat elérhetővé nem válik, vagy lejár a 30 másodperces időkorlát.
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: txHash as `0x${string}`,
-      timeout: 30_000 
-    });
+
+    // Increased timeout to 60s for Base app compatibility
+    // Base transactions may take longer to confirm than Farcaster miniapp
+    let receipt;
+    try {
+      receipt = await publicClient.waitForTransactionReceipt({
+        hash: txHash as `0x${string}`,
+        timeout: 60_000, // Increased from 30s to 60s
+        pollingInterval: 1_000 // Check every second
+      });
+    } catch (receiptError: any) {
+      console.error(`[Verifier] Failed to get receipt for ${txHash}:`, receiptError.message);
+
+      // If timeout, provide helpful message
+      if (receiptError.name === 'TimeoutError' || receiptError.message?.includes('timeout')) {
+        return NextResponse.json({
+          error: 'Transaction is taking longer than expected to confirm. Please wait a moment and try refreshing. Your purchase is likely processing.',
+          txHash
+        }, { status: 408 });
+      }
+
+      throw receiptError; // Re-throw for general error handler
+    }
 
     // A waitForTransactionReceipt hibát dob, ha nem találja, így a sikeres eset után folytatódhat a kód.
     if (receipt.status !== 'success') {
+      console.error(`[Verifier] Transaction failed on-chain. Status: ${receipt.status}`);
       return NextResponse.json({ error: 'On-chain transaction failed.', details: `Status: ${receipt.status}` }, { status: 400 });
     }
     if (receipt.to?.toLowerCase() !== LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase()) {
+      console.error(`[Verifier] Wrong contract address. Expected: ${LOTTO_PAYMENT_ROUTER_ADDRESS}, Got: ${receipt.to}`);
       return NextResponse.json({ error: 'Transaction was sent to the wrong contract address.' }, { status: 400 });
     }
     if (receipt.from?.toLowerCase() !== playerAddress.toLowerCase()) {
+      console.error(`[Verifier] Address mismatch. Expected: ${playerAddress}, Got: ${receipt.from}`);
       return NextResponse.json({ error: 'Transaction sender does not match the player address.' }, { status: 403 });
     }
 
@@ -123,10 +142,10 @@ export async function POST(request: NextRequest) {
         [round_id, fid, number, txHash, playerAddress]
       );
     }
-    
+
     await client.query('COMMIT');
     console.log(`[Verifier] Successfully committed tickets for txHash: ${txHash}`);
-    
+
     return NextResponse.json({ success: true, message: 'Tickets successfully verified and registered.' });
 
   } catch (error: any) {
