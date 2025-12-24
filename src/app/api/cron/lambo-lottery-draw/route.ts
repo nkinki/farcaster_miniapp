@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 async function performLamboLotteryDraw() {
   const client = await pool.connect();
   console.log('🏁 --- Starting Lambo Lottery Draw (19:05 UTC) --- 🏁');
-  
+
   try {
     console.log('[1/8] Connecting to database and starting transaction...');
     await client.query('BEGIN');
     console.log('✅ Transaction started.');
-    
+
     const forceNow = process.env.FORCE_DRAW_NOW === 'true';
     if (forceNow) {
       console.log('⏱️ FORCE NOW enabled – setting end_time to NOW() for active rounds...');
@@ -27,22 +23,22 @@ async function performLamboLotteryDraw() {
       ORDER BY draw_number DESC 
       LIMIT 1
     `);
-    
+
     if (roundResult.rows.length === 0) {
       console.log('ℹ️ No rounds ready for drawing.');
       await client.query('ROLLBACK');
       return;
     }
-    
+
     const round = roundResult.rows[0];
     console.log(`✅ Found round to draw: ID #${round.id}, Draw Number #${round.draw_number}`);
-    
+
     console.log(`[3/8] Fetching all tickets for round ID #${round.id}...`);
     const ticketsResult = await client.query(`
       SELECT * FROM lottery_tickets 
       WHERE round_id = $1
     `, [round.id]);
-    
+
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
@@ -57,7 +53,7 @@ async function performLamboLotteryDraw() {
       SELECT * FROM lottery_tickets 
       WHERE round_id = $1 AND number = $2
     `, [round.id, winningNumber]);
-    
+
     const winners = winnersResult.rows;
     console.log(`🏆 Found ${winners.length} winner(s) with number ${winningNumber}`);
 
@@ -78,7 +74,7 @@ async function performLamboLotteryDraw() {
       console.log('[7/8] Processing winners...');
       const jackpotAmount = parseInt(round.jackpot || '0', 10);
       const payoutPerWinner = Math.floor(jackpotAmount / winners.length);
-      
+
       for (const winner of winners) {
         await client.query(`
           UPDATE lottery_tickets 
@@ -88,7 +84,7 @@ async function performLamboLotteryDraw() {
             won_at = NOW()
           WHERE id = $2
         `, [payoutPerWinner, winner.id]);
-        
+
         console.log(`✅ Winner processed: FID ${winner.player_fid}, Amount: ${(payoutPerWinner / 1e18).toFixed(2)} CHESS`);
       }
     } else {
@@ -115,7 +111,7 @@ async function performLamboLotteryDraw() {
       round.draw_number + 1,
       winners.length === 0 ? round.jackpot : '1000000000000000000000000' // 1M CHESS base if no winners
     ]);
-    
+
     const newRound = newRoundResult.rows[0];
     console.log(`✅ New round created: ID #${newRound.id}, Draw Number #${newRound.draw_number}`);
 
@@ -125,22 +121,22 @@ async function performLamboLotteryDraw() {
     // --- EMAIL ÉRTESÍTÉS ---
     try {
       console.log('📧 Sending lottery results email...');
-      
+
       // Prepare winners data for email
       const winnersData = winners.map(winner => ({
         player_fid: winner.player_fid,
         number: winningNumber,
         amount_won: winners.length > 0 ? Math.floor(parseInt(round.jackpot || '0', 10) / winners.length) : 0
       }));
-      
+
       const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/lottery/send-results`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          round: { 
-            id: round.id, 
+          round: {
+            id: round.id,
             draw_number: round.draw_number,
             jackpot: round.jackpot
           },
@@ -175,11 +171,11 @@ async function performLamboLotteryDraw() {
 export async function GET(request: NextRequest) {
   try {
     console.log('🏁 Lambo Lottery Cron Job Started');
-    
+
     await performLamboLotteryDraw();
-    
+
     console.log('✅ Lambo Lottery Cron Job Completed Successfully');
-    
+
     return NextResponse.json({
       success: true,
       message: 'Lambo Lottery draw completed successfully',
@@ -188,10 +184,10 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Lambo Lottery Cron Job Failed:', error);
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Lambo Lottery draw failed',
         details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
@@ -205,11 +201,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('🏁 Manual Lambo Lottery Draw Triggered');
-    
+
     await performLamboLotteryDraw();
-    
+
     console.log('✅ Manual Lambo Lottery Draw Completed Successfully');
-    
+
     return NextResponse.json({
       success: true,
       message: 'Manual Lambo Lottery draw completed successfully',
@@ -218,10 +214,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Manual Lambo Lottery Draw Failed:', error);
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Manual Lambo Lottery draw failed',
         details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()

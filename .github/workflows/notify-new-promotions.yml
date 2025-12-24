@@ -2,8 +2,8 @@ name: 'Notification: New Promotions (Every 3 hours)'
 
 on:
   schedule:
-    # Ellenőrzés minden 3 órában (GitHub Actions kvóta takarékosság)
-    - cron: '0 */3 * * *'
+    # Ellenőrzés minden 6 órában
+    - cron: '0 */6 * * *'
   workflow_dispatch: # Manual trigger
 
 jobs:

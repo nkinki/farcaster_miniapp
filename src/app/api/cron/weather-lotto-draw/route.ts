@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 async function performWeatherLottoDraw() {
   const client = await pool.connect();
   console.log('🌤️ --- Starting Weather Lotto Draw (20:05 UTC) --- 🌤️');
-  
+
   try {
     console.log('[1/8] Connecting to database and starting transaction...');
     await client.query('BEGIN');
     console.log('✅ Transaction started.');
-    
+
     const forceNow = process.env.FORCE_DRAW_NOW === 'true';
     if (forceNow) {
       console.log('⏱️ FORCE NOW enabled – setting end_time to NOW() for active rounds...');
@@ -27,22 +23,22 @@ async function performWeatherLottoDraw() {
       ORDER BY round_number DESC 
       LIMIT 1
     `);
-    
+
     if (roundResult.rows.length === 0) {
       console.log('ℹ️ No rounds ready for drawing.');
       await client.query('ROLLBACK');
       return;
     }
-    
+
     const round = roundResult.rows[0];
     console.log(`✅ Found round to draw: ID #${round.id}, Round Number #${round.round_number}`);
-    
+
     console.log(`[3/8] Fetching all tickets for round ID #${round.id}...`);
     const ticketsResult = await client.query(`
       SELECT * FROM weather_lotto_tickets 
       WHERE round_id = $1
     `, [round.id]);
-    
+
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
@@ -56,7 +52,7 @@ async function performWeatherLottoDraw() {
     // Find winning tickets
     const winningTickets = ticketsResult.rows.filter(ticket => ticket.side === winningSide);
     const totalWinningTickets = winningTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
-    
+
     console.log(`[5/8] Processing ${winningTickets.length} winning ticket purchases...`);
     console.log(`📊 Total winning tickets: ${totalWinningTickets}`);
 
@@ -68,7 +64,7 @@ async function performWeatherLottoDraw() {
       const totalPoolWei = BigInt(round.total_pool);
       const winnersPoolWei = (totalPoolWei * BigInt(70)) / BigInt(100); // 70% winners
       const treasuryAmountWei = totalPoolWei - winnersPoolWei; // 30% treasury
-      
+
       console.log(`💰 Total pool: ${(Number(totalPoolWei) / 1e18).toFixed(2)} CHESS`);
       console.log(`🏆 Winners pool (70%): ${(Number(winnersPoolWei) / 1e18).toFixed(2)} CHESS`);
       console.log(`🏛️ Treasury (30%): ${(Number(treasuryAmountWei) / 1e18).toFixed(2)} CHESS`);
@@ -106,7 +102,7 @@ async function performWeatherLottoDraw() {
           totalTicketPayoutWei.toString()
         ]);
       }
-      
+
       treasuryAmount = Number(treasuryAmountWei);
     } else {
       // No winning tickets - all goes to treasury
@@ -153,7 +149,7 @@ async function performWeatherLottoDraw() {
     console.log(`💰 Total Payout: ${(totalPayout / 1e18).toFixed(2)} CHESS`);
     console.log(`🏛️ Treasury: ${(treasuryAmount / 1e18).toFixed(2)} CHESS`);
     console.log(`👥 Winners: ${winningTickets.length} players`);
-    
+
     if (winningTickets.length > 0) {
       console.log('\n🏆 WINNERS:');
       winningTickets.forEach((ticket, index) => {
@@ -217,11 +213,11 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('🌤️ Weather Lotto Cron Job Started');
-    
+
     await performWeatherLottoDraw();
-    
+
     console.log('✅ Weather Lotto Cron Job Completed Successfully');
-    
+
     return NextResponse.json({
       success: true,
       message: 'Weather Lotto draw completed successfully',
@@ -230,10 +226,10 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Weather Lotto Cron Job Failed:', error);
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Weather Lotto draw failed',
         details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
@@ -247,17 +243,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { force } = await request.json().catch(() => ({}));
-    
+
     if (force) {
       process.env.FORCE_DRAW_NOW = 'true';
     }
 
     console.log('🌤️ Weather Lotto Manual Draw Started');
-    
+
     await performWeatherLottoDraw();
-    
+
     console.log('✅ Weather Lotto Manual Draw Completed Successfully');
-    
+
     return NextResponse.json({
       success: true,
       message: 'Weather Lotto manual draw completed successfully',
@@ -266,10 +262,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Weather Lotto Manual Draw Failed:', error);
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Weather Lotto manual draw failed',
         details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
