@@ -3,13 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, fallback } from 'viem';
 import { base } from 'viem/chains';
-import { Pool } from 'pg';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS } from '@/abis/LottoPaymentRouter';
-
-// Adatbázis kapcsolat inicializálása
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 // Szerver-oldali viem kliens a blokklánc ellenőrzéséhez
 const publicClient = createPublicClient({

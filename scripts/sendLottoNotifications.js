@@ -1,11 +1,8 @@
 "use strict";
 // Fájl: scripts/sendLottoNotifications.ts
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const pg_1 = require("pg");
-const node_fetch_1 = __importDefault(require("node-fetch"));
+// Using native fetch API (Node.js 18+)
 /**
  * A fő funkció, ami lefut, amikor a szkript elindul.
  * Kezeli az adatbázis-kapcsolatot, lekérdezi a szükséges adatokat,
@@ -125,7 +122,7 @@ async function sendNotification(tokenRows, title, body, notificationType) {
                 tokens: batch
             };
             console.log(`Sending Lotto notification with ID: ${notificationPayload.notificationId} to ${url}`);
-            const res = await (0, node_fetch_1.default)(url, {
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(notificationPayload)

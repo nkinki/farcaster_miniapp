@@ -1,20 +1,7 @@
 // ./src/app/api/webhook/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-// Ez a sor maradhat, a környezeti változó ellenőrzése hasznos
-if (!process.env.DATABASE_URL) {
-  console.error("CRITICAL: DATABASE_URL environment variable is not set!");
-}
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // SSL beállítás hozzáadása a Neon adatbázishoz való biztonságos kapcsolódáshoz
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+import pool from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   console.log('Webhook processing started.');

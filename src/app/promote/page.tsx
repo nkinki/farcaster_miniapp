@@ -428,10 +428,10 @@ export default function PromotePage() {
   useEffect(() => {
     if (isAuthenticated && profile?.fid) {
       refreshAllData();
-      const interval = setInterval(fetchShareTimers, 60000);
+      const interval = setInterval(fetchShareTimers, 300000); // Every 5 minutes instead of 1 minute
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, profile]);
+  }, [isAuthenticated, profile, fetchShareTimers, refreshAllData]);
 
   const handleCreateSuccess = () => {
     setShowForm(false);
@@ -2557,8 +2557,8 @@ export default function PromotePage() {
                         key={opt.value}
                         onClick={() => setDailyCodeRewardPerShare(opt.value)}
                         className={`p-3 rounded-xl border transition-all duration-200 text-left relative overflow-hidden ${opt.className || ''} ${dailyCodeRewardPerShare === opt.value
-                            ? 'border-yellow-400 bg-yellow-400/10 shadow-lg scale-[1.02]'
-                            : 'border-gray-700 bg-[#1a1d26] hover:border-gray-500 hover:bg-[#23283a]'
+                          ? 'border-yellow-400 bg-yellow-400/10 shadow-lg scale-[1.02]'
+                          : 'border-gray-700 bg-[#1a1d26] hover:border-gray-500 hover:bg-[#23283a]'
                           }`}
                       >
                         <div className="font-bold text-lg text-white">{opt.label}</div>

@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 export async function GET() {
   const client = await pool.connect();
-  
+
   try {
     // Get all seasons
     const seasonsResult = await client.query(`
@@ -23,9 +19,9 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error fetching seasons:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to fetch seasons' 
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch seasons'
     }, { status: 500 });
   } finally {
     client.release();

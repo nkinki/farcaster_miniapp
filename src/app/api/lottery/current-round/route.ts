@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 export async function GET() {
   try {
     const client = await pool.connect();
-    
+
     try {
       // Get current active round
       const result = await client.query(`
@@ -21,21 +17,21 @@ export async function GET() {
       if (result.rows.length === 0) {
         // Create new round if none exists - jackpot starts from 0
         let newJackpot = 0; // Start from 0
-        
+
         // Check if there are completed rounds to get carryover
         const lastCompletedRound = await client.query(`
           SELECT jackpot, total_tickets FROM lottery_draws 
           WHERE status = 'completed' 
           ORDER BY draw_number DESC LIMIT 1
         `);
-        
-                 if (lastCompletedRound.rows.length > 0) {
-           const lastRound = lastCompletedRound.rows[0];
-           const ticketRevenue = (lastRound.total_tickets || 0) * 100000; // 100,000 CHESS per ticket
-           const carryOverAmount = Math.floor(ticketRevenue * 0.7);
-           newJackpot = carryOverAmount; // 70% of last round's revenue (NO accumulation)
-         }
-        
+
+        if (lastCompletedRound.rows.length > 0) {
+          const lastRound = lastCompletedRound.rows[0];
+          const ticketRevenue = (lastRound.total_tickets || 0) * 100000; // 100,000 CHESS per ticket
+          const carryOverAmount = Math.floor(ticketRevenue * 0.7);
+          newJackpot = carryOverAmount; // 70% of last round's revenue (NO accumulation)
+        }
+
         const newRoundResult = await client.query(`
           INSERT INTO lottery_draws (
             draw_number, 
@@ -52,9 +48,9 @@ export async function GET() {
           )
           RETURNING *
         `, [newJackpot]);
-        
-        return NextResponse.json({ 
-          success: true, 
+
+        return NextResponse.json({
+          success: true,
           round: {
             id: newRoundResult.rows[0].id,
             round_number: newRoundResult.rows[0].draw_number,
@@ -70,8 +66,8 @@ export async function GET() {
         });
       }
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         round: {
           id: result.rows[0].id,
           round_number: result.rows[0].draw_number,
@@ -90,7 +86,7 @@ export async function GET() {
     }
   } catch (error) {
     console.error('Error fetching current round:', error);
-    
+
     // Fallback to mock data for local development
     if (process.env.NODE_ENV === 'development') {
       console.log('Using mock data for local development');
@@ -106,13 +102,13 @@ export async function GET() {
         winner_number: null,
         total_tickets_sold: 0
       };
-      
-      return NextResponse.json({ 
-        success: true, 
+
+      return NextResponse.json({
+        success: true,
         round: mockRound
       });
     }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch current round' },
       { status: 500 }

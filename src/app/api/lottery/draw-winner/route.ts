@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.NEON_DB_URL || 'postgresql://test:test@localhost:5432/test',
-});
+import pool from '@/lib/db';
 
 // Alap főnyeremény (jackpot) konstansként definiálva
 const BASE_JACKPOT = 1000000;
@@ -13,7 +9,7 @@ export async function POST(request: NextRequest) {
     const { round_id } = await request.json();
 
     const client = await pool.connect();
-    
+
     try {
       await client.query('BEGIN');
 
@@ -59,7 +55,7 @@ export async function POST(request: NextRequest) {
         const currentJackpot = parseInt(round.jackpot || '0', 10);
         newRoundJackpot = currentJackpot + carryOverAmount;
       }
-      
+
       // Jelenlegi kör lezárása 'completed' státusszal
       await client.query(`
         UPDATE lottery_draws 
@@ -89,22 +85,22 @@ export async function POST(request: NextRequest) {
       // Send email notification
       try {
         console.log('📧 Sending lottery results email...');
-        
+
         // Prepare winners data for email
         const winners = winner ? [{
           player_fid: winner.player_fid,
           number: winningNumber,
           amount_won: parseInt(round.jackpot || '0', 10)
         }] : [];
-        
+
         const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app'}/api/lottery/send-results`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            round: { 
-              id: round.id, 
+            round: {
+              id: round.id,
               draw_number: round.draw_number,
               jackpot: round.jackpot
             },
@@ -134,7 +130,7 @@ export async function POST(request: NextRequest) {
             number: winningNumber,
             player_name: winner.player_name,
             player_address: winner.player_address,
-            jackpot_won: round.jackpot 
+            jackpot_won: round.jackpot
           },
           round: { id: round.id, draw_number: round.draw_number, total_tickets: totalTickets },
           new_round: newRoundResult.rows[0],

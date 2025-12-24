@@ -12,11 +12,11 @@
   "crons": [
     {
       "path": "/api/cron/weather-lotto-draw",
-      "schedule": "5 20 * * *"
+      "schedule": "15 20 * * *"
     },
     {
       "path": "/api/cron/lambo-lottery-draw",
-      "schedule": "5 19 * * *"
+      "schedule": "15 19 * * *"
     }
   ]
-} 
+}

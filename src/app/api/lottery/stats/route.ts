@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 export async function GET() {
   try {
     const client = await pool.connect();
-    
+
     try {
       const result = await client.query(`
         SELECT * FROM lottery_stats WHERE id = 1
@@ -26,9 +22,9 @@ export async function GET() {
           ) VALUES (0, 0, 1000000, NOW() + INTERVAL '1 day', 0)
           RETURNING *
         `);
-        
-        return NextResponse.json({ 
-          success: true, 
+
+        return NextResponse.json({
+          success: true,
           stats: {
             total_rounds: 0,
             total_tickets_sold: newStatsResult.rows[0].total_tickets,
@@ -38,8 +34,8 @@ export async function GET() {
         });
       }
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         stats: {
           total_rounds: result.rows[0].last_draw_number || 0,
           total_tickets_sold: result.rows[0].total_tickets || 0,
@@ -52,7 +48,7 @@ export async function GET() {
     }
   } catch (error) {
     console.error('Error fetching lottery stats:', error);
-    
+
     // Fallback to mock data for local development
     if (process.env.NODE_ENV === 'development') {
       console.log('Using mock stats for local development');
@@ -62,13 +58,13 @@ export async function GET() {
         total_prize_distributed: 0,
         treasury_balance: 1000000
       };
-      
-      return NextResponse.json({ 
-        success: true, 
+
+      return NextResponse.json({
+        success: true,
         stats: mockStats
       });
     }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch lottery stats' },
       { status: 500 }

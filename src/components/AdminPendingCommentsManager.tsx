@@ -50,7 +50,7 @@ export default function AdminPendingCommentsManager() {
 
   useEffect(() => {
     fetchPendingComments();
-    const interval = setInterval(fetchPendingComments, 30000); // Refresh every 30 seconds
+    const interval = setInterval(fetchPendingComments, 300000); // Refresh every 5 minutes
     return () => clearInterval(interval);
   }, [fetchPendingComments]);
 
@@ -67,7 +67,7 @@ export default function AdminPendingCommentsManager() {
     try {
       const response = await fetch('/api/admin/approve-comment', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-admin-key': 'admin-key-123' // Admin key for approval
         },
@@ -117,13 +117,13 @@ export default function AdminPendingCommentsManager() {
 
   const handleBulkApprove = async () => {
     if (selectedComments.size === 0) return;
-    
+
     setBulkActionLoading(true);
     try {
-      const promises = Array.from(selectedComments).map(commentId => 
+      const promises = Array.from(selectedComments).map(commentId =>
         fetch('/api/admin/approve-comment', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'x-admin-key': 'admin-key-123'
           },
@@ -137,7 +137,7 @@ export default function AdminPendingCommentsManager() {
       );
 
       await Promise.all(promises);
-      
+
       // Remove processed comments from the list
       setPendingComments(prev => prev.filter(comment => !selectedComments.has(comment.id)));
       setSelectedComments(new Set());
@@ -151,13 +151,13 @@ export default function AdminPendingCommentsManager() {
 
   const handleBulkReject = async () => {
     if (selectedComments.size === 0) return;
-    
+
     setBulkActionLoading(true);
     try {
-      const promises = Array.from(selectedComments).map(commentId => 
+      const promises = Array.from(selectedComments).map(commentId =>
         fetch('/api/admin/approve-comment', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'x-admin-key': 'admin-key-123'
           },
@@ -171,7 +171,7 @@ export default function AdminPendingCommentsManager() {
       );
 
       await Promise.all(promises);
-      
+
       // Remove processed comments from the list
       setPendingComments(prev => prev.filter(comment => !selectedComments.has(comment.id)));
       setSelectedComments(new Set());
@@ -247,7 +247,7 @@ export default function AdminPendingCommentsManager() {
                 </button>
               )}
             </div>
-            
+
             {selectedComments.size > 0 && (
               <div className="flex gap-2">
                 <button
@@ -299,13 +299,13 @@ export default function AdminPendingCommentsManager() {
                   <span className="text-gray-400">→</span>
                   <span className="text-purple-300 text-sm">@{comment.promoter_username}</span>
                 </div>
-                
+
                 <div className="mb-2">
                   <div className="text-gray-300 text-sm bg-gray-700/50 rounded p-2">
                     "{comment.comment_text}"
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-4 text-xs text-gray-400">
                   <span>Campaign #{comment.promotion_id}</span>
                   <span className="text-green-400 font-semibold">{comment.reward_amount} CHESS</span>
@@ -358,9 +358,9 @@ export default function AdminPendingCommentsManager() {
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                         <div className="text-gray-500 text-xs">Loading preview...</div>
                       </div>
-                      <iframe 
-                        src={comment.promotion_cast_url} 
-                        className="w-full h-full border-0 relative z-10" 
+                      <iframe
+                        src={comment.promotion_cast_url}
+                        className="w-full h-full border-0 relative z-10"
                         title={`Preview of post for comment #${comment.id}`}
                         loading="lazy"
                         sandbox="allow-scripts allow-same-origin"
@@ -377,7 +377,7 @@ export default function AdminPendingCommentsManager() {
                       />
                     </div>
                   </div>
-                  
+
                   {/* Additional Details */}
                   <div className="text-xs text-gray-400 space-y-1">
                     <div>Commenter FID: {comment.user_fid}</div>

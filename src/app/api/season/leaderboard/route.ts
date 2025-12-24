@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 export async function GET() {
   const client = await pool.connect();
-  
+
   try {
     // Set a reasonable timeout for this query
     await client.query('SET statement_timeout = 30000'); // 30 seconds
@@ -15,14 +11,14 @@ export async function GET() {
     const seasonResult = await client.query(`
       SELECT id FROM seasons WHERE status = 'active' ORDER BY created_at DESC LIMIT 1
     `);
-    
+
     if (seasonResult.rows.length === 0) {
-      return NextResponse.json({ 
-        success: true, 
-        leaderboard: [] 
+      return NextResponse.json({
+        success: true,
+        leaderboard: []
       });
     }
-    
+
     const seasonId = seasonResult.rows[0].id;
 
     // Get leaderboard data by calculating points from all tables
@@ -105,9 +101,9 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error fetching leaderboard:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Error fetching leaderboard' 
+    return NextResponse.json({
+      success: false,
+      error: 'Error fetching leaderboard'
     }, { status: 500 });
   } finally {
     client.release();

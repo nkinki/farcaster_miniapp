@@ -1,31 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import pool from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log('Purchase tickets request body:', body);
-    
+
     // Support both old and new format
-    const { 
-      fid, 
-      ticketNumbers, 
-      ticket_numbers, 
+    const {
+      fid,
+      ticketNumbers,
+      ticket_numbers,
       round_id,
-      playerAddress, 
-      playerName, 
-      playerAvatar 
+      playerAddress,
+      playerName,
+      playerAvatar
     } = body;
-    
+
     // Use new format if available, fallback to old format
     const finalFid = fid;
     const finalTicketNumbers = ticket_numbers || ticketNumbers;
     const finalRoundId = round_id;
-    
+
     if (!finalFid || !finalTicketNumbers || !Array.isArray(finalTicketNumbers) || finalTicketNumbers.length === 0) {
       console.log('Validation failed:', { finalFid, finalTicketNumbers, isArray: Array.isArray(finalTicketNumbers) });
       return NextResponse.json(
@@ -43,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has 10 tickets in this round
     const client = await pool.connect();
-    
+
     try {
       await client.query('BEGIN');
 
@@ -54,7 +50,7 @@ export async function POST(request: NextRequest) {
           SELECT id, total_tickets FROM lottery_draws 
           WHERE id = $1 AND status = 'active'
         `, [finalRoundId]);
-        
+
         if (roundResult.rows.length === 0) {
           await client.query('ROLLBACK');
           return NextResponse.json(
@@ -88,7 +84,7 @@ export async function POST(request: NextRequest) {
       `, [round.id, finalFid]);
 
       const currentUserTickets = parseInt(userTicketsResult.rows[0].ticket_count);
-      
+
       if (currentUserTickets + finalTicketNumbers.length > 10) {
         await client.query('ROLLBACK');
         return NextResponse.json(
@@ -117,8 +113,8 @@ export async function POST(request: NextRequest) {
       if (existingTickets.rows.length > 0) {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Some ticket numbers are already taken',
             takenNumbers: existingTickets.rows.map(t => t.number)
           },
@@ -135,7 +131,7 @@ export async function POST(request: NextRequest) {
           ) VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING *
         `, [round.id, finalFid, playerAddress || '0x0000000000000000000000000000000000000000', playerName || 'Anonymous', playerAvatar || '', number]);
-        
+
         insertedTickets.push(ticketResult.rows[0]);
       }
 
@@ -156,8 +152,8 @@ export async function POST(request: NextRequest) {
 
       await client.query('COMMIT');
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: `Successfully purchased ${finalTicketNumbers.length} tickets`,
         tickets: insertedTickets,
         round_id: round.id,
@@ -171,7 +167,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error purchasing tickets:', error);
-    
+
     // Fallback to mock data for local development
     if (process.env.NODE_ENV === 'development') {
       console.log('Using mock purchase for local development');
@@ -179,7 +175,7 @@ export async function POST(request: NextRequest) {
       const { fid, ticketNumbers, ticket_numbers } = body;
       const finalTicketNumbers = ticket_numbers || ticketNumbers;
       const finalFid = fid;
-      
+
       const mockTickets = finalTicketNumbers.map((number: number, index: number) => ({
         id: index + 1,
         draw_id: 1,
@@ -191,16 +187,16 @@ export async function POST(request: NextRequest) {
         is_active: true,
         created_at: new Date().toISOString()
       }));
-      
-      return NextResponse.json({ 
-        success: true, 
+
+      return NextResponse.json({
+        success: true,
         message: `Successfully purchased ${finalTicketNumbers.length} tickets (MOCK)`,
         tickets: mockTickets,
         round_id: 1,
         total_cost: finalTicketNumbers.length * 20000
       });
     }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to purchase tickets' },
       { status: 500 }
