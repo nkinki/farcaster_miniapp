@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, createWalletClient, http, parseUnits } from 'viem';
 import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
-import pool from '../../../lib/db';
+import pool from '../../../../lib/db';
 
 export async function POST(request: NextRequest) {
   try {
