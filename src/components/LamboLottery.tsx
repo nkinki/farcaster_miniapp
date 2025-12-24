@@ -103,6 +103,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       setShowRecentResults(false);
       return;
     }
+    // If we already have data, just show it immediately
+    if (recentRounds.length > 0) {
+      setShowRecentResults(true);
+      return;
+    }
     setLoadingRecentResults(true);
     try {
       const res = await fetch('/api/lottery/recent-results');
@@ -121,6 +126,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       return;
     }
     if (!userFid) return;
+    // If we already have data, just show it immediately
+    if (userWinnings.length > 0) {
+      setShowUserWinnings(true);
+      return;
+    }
     setLoadingUserWinnings(true);
     try {
       const res = await fetch(`/api/lottery/user-winnings?fid=${userFid}`);
