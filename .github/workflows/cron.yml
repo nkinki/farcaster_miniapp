@@ -46,6 +46,11 @@ jobs:
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
         
+    - name: Warm Miniapps Cache
+      run: |
+        curl -I "https://app-rank-miniapp.vercel.app/api/miniapps?limit=300"
+      continue-on-error: true
+
     - name: Notify success
       if: success()
       run: |

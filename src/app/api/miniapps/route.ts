@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 86400; // Cache for 24 hours (86400 seconds)
 
 // Típusdefiníció, ami leírja, mit várunk vissza az SQL lekérdezésből.
 interface MiniappQueryResult {
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
         LIMIT 5;
       `
     ]);
-    
+
     // JAVÍTÁS 1: Az `any` helyett a TypeScriptre bízzuk a típus kikövetkeztetését,
     // miután megmondtuk neki, hogy a `miniappsResult` egy `MiniappQueryResult` tömb.
     const transformedMiniapps = (miniappsResult as MiniappQueryResult[]).map((item) => ({
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       rank: item.rank,
       name: item.name,
       domain: item.domain,
-      description: '', 
+      description: '',
       author: item.author,
       category: item.primary_category || 'other',
       rank24hChange: item.rank_24h_change ?? 0,
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     }));
 
     const totalMiniapps = parseInt(totalResult[0].count as string, 10);
-    
+
     // JAVÍTÁS 2: `any[]` helyett a pontos `CategoryCount[]` típust használjuk
     const topCategories: CategoryInfo[] = (categoriesResult as CategoryCount[]).map(cat => ({
       name: cat.category || 'other',
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
 
     const stats = {
       totalMiniapps,
-      newToday: 0, 
+      newToday: 0,
       activeUsers: 'N/A',
       avgRating: 'N/A',
       topCategories
