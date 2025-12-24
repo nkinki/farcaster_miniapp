@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
-import LamboLottery from '@/components/LamboLottery';
+import LamboLottery from '../components/LamboLottery';
 
 // Force rebuild 2025-12-21
 export default function Home() {

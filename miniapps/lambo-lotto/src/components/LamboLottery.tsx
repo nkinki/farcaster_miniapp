@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap, FiGift } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
-import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '@/abis/LottoPaymentRouter';
-import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
+import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '../abis/LottoPaymentRouter';
+import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '../abis/chessToken';
 import { sdk } from '@farcaster/miniapp-sdk';
 
 // --- Interface definíciók ---

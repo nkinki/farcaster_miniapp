@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import pool from '../../../lib/db';
 
 export const revalidate = 86400; // Cache for 24 hours
 
