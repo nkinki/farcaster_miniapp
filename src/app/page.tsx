@@ -77,34 +77,34 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
 
   return (
     <div
-      className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${ isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]" }`}
+      className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]"}`}
       onClick={onOpen}
     >
       <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
       <div className="w-14 h-14 rounded-lg border border-purple-700/30 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mr-2">
         <FiZap className="text-white text-xl" />
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-lg text-white truncate">{app.name}</div>
         <div className="flex flex-col items-start mt-1 space-y-1">
-            <div className="text-sm text-[#a259ff]">@{app.author.username}</div>
-            <div className="flex items-center gap-1.5 text-sm text-[#b0b8d1]">
-                <span className="w-4 text-center">👥</span>
-                <span>{app.author.followerCount} Followers</span>
+          <div className="text-sm text-[#a259ff]">@{app.author.username}</div>
+          <div className="flex items-center gap-1.5 text-sm text-[#b0b8d1]">
+            <span className="w-4 text-center">👥</span>
+            <span>{app.author.followerCount} Followers</span>
+          </div>
+          {app.bestRank && (
+            <div className="flex items-center gap-1.5 text-sm text-yellow-400 font-semibold" title={`Best rank: ${app.bestRank}`}>
+              <span className="w-4 text-center">🏆</span>
+              <span>Best: {app.bestRank}</span>
             </div>
-            {app.bestRank && (
-                <div className="flex items-center gap-1.5 text-sm text-yellow-400 font-semibold" title={`Best rank: ${app.bestRank}`}>
-                    <span className="w-4 text-center">🏆</span>
-                    <span>Best: {app.bestRank}</span>
-                </div>
-            )}
-            {app.avgRank && (
-                <div className="flex items-center gap-1.5 text-sm text-blue-400 font-semibold" title={`Average rank: ${app.avgRank}`}>
-                    <span className="w-4 text-center">~</span>
-                    <span>Avg: {app.avgRank}</span>
-                </div>
-            )}
+          )}
+          {app.avgRank && (
+            <div className="flex items-center gap-1.5 text-sm text-blue-400 font-semibold" title={`Average rank: ${app.avgRank}`}>
+              <span className="w-4 text-center">~</span>
+              <span>Avg: {app.avgRank}</span>
+            </div>
+          )}
         </div>
       </div>
       <button
@@ -135,6 +135,8 @@ export default function Home() {
   const [showWeatherLotto, setShowWeatherLotto] = useState(false)
   const [userFid, setUserFid] = useState<number>(0)
   const [seasonData, setSeasonData] = useState<any>(null)
+  const [showMiniapps, setShowMiniapps] = useState(false)
+  const [fetchingMiniapps, setFetchingMiniapps] = useState(false)
 
   useEffect(() => {
     const checkHaptics = async () => {
@@ -147,7 +149,7 @@ export default function Home() {
         console.log('Haptics not supported:', error);
       }
     };
-    
+
     checkHaptics();
 
     const savedFavorites = localStorage.getItem("farcaster-favorites")
@@ -155,19 +157,7 @@ export default function Home() {
       setFavorites(JSON.parse(savedFavorites))
     }
 
-    const apiUrl = `${window.location.origin}/api/miniapps?limit=300`;
-    fetch(apiUrl, { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }))
-        setMiniapps(appsWithId || [])
-        setSnapshotDate(new Date().toLocaleDateString("en-US"))
-        setLoading(false)
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error)
-        setLoading(false)
-      })
+    // Miniapp fetching moved to lazy load function
 
     // Fetch current season data
     fetch(`${window.location.origin}/api/season/current`, { cache: 'no-store' })
@@ -213,8 +203,41 @@ export default function Home() {
       setUserFid(12345) // Test FID for development
       localStorage.setItem('userFid', '12345')
     })
+
+    // Set default snapshot date if not from API
+    setSnapshotDate(new Date().toLocaleDateString("en-US"))
+    setLoading(false)
   }, [])
-  
+
+  const loadMiniapps = async () => {
+    if (showMiniapps) {
+      setShowMiniapps(false);
+      return;
+    }
+
+    if (hapticsSupported) {
+      try {
+        await sdk.haptics.impactOccurred('medium');
+      } catch (error) {
+        console.log('Haptics error:', error);
+      }
+    }
+
+    setFetchingMiniapps(true);
+    try {
+      const apiUrl = `${window.location.origin}/api/miniapps?limit=300`;
+      const res = await fetch(apiUrl, { cache: 'no-store' });
+      const data = await res.json();
+      const appsWithId = data.miniapps.map((app: MiniappFromApi): Miniapp => ({ ...app, id: app.domain }));
+      setMiniapps(appsWithId || []);
+      setShowMiniapps(true);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setFetchingMiniapps(false);
+    }
+  };
+
   useEffect(() => {
     if (!loading) sdk.actions.ready()
   }, [loading])
@@ -227,7 +250,7 @@ export default function Home() {
         console.log('Haptics error:', error);
       }
     }
-    
+
     const newFavorites = favorites.includes(domain)
       ? favorites.filter((id) => id !== domain)
       : [...favorites, domain]
@@ -246,17 +269,17 @@ export default function Home() {
         (app.author?.displayName && app.author.displayName.toLowerCase().includes(search.trim().toLowerCase()))
       return matchesCategory && matchesSearch
     });
-    
+
     return filtered.reduce<{ favoriteApps: Miniapp[]; nonFavoriteApps: Miniapp[] }>(
-        (acc, app) => {
-            if (favorites.includes(app.domain)) {
-                acc.favoriteApps.push(app);
-            } else {
-                acc.nonFavoriteApps.push(app);
-            }
-            return acc;
-        },
-        { favoriteApps: [], nonFavoriteApps: [] }
+      (acc, app) => {
+        if (favorites.includes(app.domain)) {
+          acc.favoriteApps.push(app);
+        } else {
+          acc.nonFavoriteApps.push(app);
+        }
+        return acc;
+      },
+      { favoriteApps: [], nonFavoriteApps: [] }
     );
   }, [miniapps, filter, search, favorites]);
 
@@ -269,7 +292,7 @@ export default function Home() {
           console.log('Haptics error:', error);
         }
       }
-      
+
       setOpenMiniapp(apps[index]);
       setOpenMiniappIndex(index);
     }
@@ -289,7 +312,7 @@ export default function Home() {
       {seasonData && <SeasonStatusBanner seasonData={seasonData} />}
 
       {/* Lambo Lottery Modal */}
-      <LamboLottery 
+      <LamboLottery
         isOpen={showLamboLottery}
         onClose={() => setShowLamboLottery(false)}
         userFid={userFid}
@@ -299,7 +322,7 @@ export default function Home() {
       />
 
       {/* Weather Lotto Modal */}
-      <WeatherLottoModal 
+      <WeatherLottoModal
         isOpen={showWeatherLotto}
         onClose={() => setShowWeatherLotto(false)}
         userFid={userFid}
@@ -352,19 +375,19 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-1 pb-24 sm:px-4">
         <div className="max-w-6xl mx-auto">
           <header className="mb-6 text-center">
-             <div className="flex justify-center items-center mb-2">
-               <div className="flex items-center gap-2">
-                 <Image src="/icon.png" alt="AppRank icon" width={48} height={48} className="w-12 h-12" />
-                 <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
-                   APPRANK
-                 </h1>
-               </div>
-             </div>
-             <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster Toplist, Stats, Promotions, and Growth</p>
-             <p className="text-purple-200 text-xs font-medium">
-               {`Snapshot date: ${snapshotDate}`}
-             </p>
-           </header>
+            <div className="flex justify-center items-center mb-2">
+              <div className="flex items-center gap-2">
+                <Image src="/icon.png" alt="AppRank icon" width={48} height={48} className="w-12 h-12" />
+                <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
+                  APPRANK
+                </h1>
+              </div>
+            </div>
+            <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster Toplist, Stats, Promotions, and Growth</p>
+            <p className="text-purple-200 text-xs font-medium">
+              {`Snapshot date: ${snapshotDate}`}
+            </p>
+          </header>
 
           {/* 2x2 Grid Layout for Main Action Buttons */}
           <div className="grid grid-cols-2 gap-4 mb-6 max-w-2xl mx-auto">
@@ -390,7 +413,7 @@ export default function Home() {
                 <div className="text-xs text-gray-400">Earn $CHESS</div>
               </div>
             </button>
-            
+
             {/* Buy a Lambo */}
             <button
               onClick={async () => {
@@ -436,7 +459,7 @@ export default function Home() {
                 <div className="text-xs text-gray-400">Free Tokens</div>
               </div>
             </button>
-            
+
             {/* Sunny/Rainy */}
             <button
               onClick={async () => {
@@ -465,47 +488,91 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="flex justify-center items-center max-w-2xl mx-auto mb-1 px-2">
-            <form className="flex items-center" onSubmit={(e) => e.preventDefault()}>
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="px-2 py-1 rounded-l bg-gray-900 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-xs w-[110px]" />
-              <button type="submit" className="px-2 py-1 rounded-r bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-500 hover:bg-cyan-900" aria-label="Search">
-                <FiSearch size={14} />
-              </button>
-            </form>
-          </div>
-          
-          <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#a64d79] w-full">
-            {favoriteApps.length > 0 && (
-              <div 
-                className="sticky top-0 z-20 bg-[#23283a] py-2 cursor-pointer hover:bg-[#2a2f42] transition-colors"
-                onTouchStart={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('light');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
-                  }
-                }}
-                onMouseDown={async () => {
-                  if (hapticsSupported) {
-                    try {
-                      await sdk.haptics.impactOccurred('light');
-                    } catch (error) {
-                      console.log('Haptics error:', error);
-                    }
-                  }
-                }}
-              >
-                <div className="flex items-center justify-between px-2 mb-1">
-                  <div className="text-xs text-cyan-400 font-medium">⭐ Favorites</div>
+          <div className="flex flex-col items-center max-w-2xl mx-auto mb-6 px-2 gap-4">
+            <button
+              onClick={loadMiniapps}
+              disabled={fetchingMiniapps}
+              className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 border-2 ${showMiniapps
+                  ? "bg-red-900/40 border-red-500 text-red-200 hover:bg-red-900/60"
+                  : "bg-cyan-900/40 border-cyan-500 text-cyan-200 hover:bg-cyan-900/60 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                }`}
+            >
+              {fetchingMiniapps ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span>LOADING APPRANK...</span>
                 </div>
-                <div className="flex flex-col gap-2">
-                  {favoriteApps.map((app) => (
+              ) : (
+                <>
+                  <FiAward size={22} className={showMiniapps ? "text-red-400" : "text-cyan-400"} />
+                  <span>{showMiniapps ? "HIDE LEADERBOARD" : "SHOW APPRANK LEADERBOARD"}</span>
+                </>
+              )}
+            </button>
+
+            {showMiniapps && (
+              <form className="flex items-center w-full animate-fadeIn" onSubmit={(e) => e.preventDefault()}>
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search miniapps..." className="flex-1 px-4 py-2 rounded-l-xl bg-gray-900/80 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+                <button type="submit" className="px-4 py-2 rounded-r-xl bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-700 hover:bg-cyan-900" aria-label="Search">
+                  <FiSearch size={20} />
+                </button>
+              </form>
+            )}
+          </div>
+
+          {showMiniapps && (
+            <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#a64d79] w-full animate-fadeIn">
+              {favoriteApps.length > 0 && (
+                <div
+                  className="sticky top-0 z-20 bg-[#23283a] py-2 cursor-pointer hover:bg-[#2a2f42] transition-colors"
+                  // ... rest of the favorite apps code
+                  onTouchStart={async () => {
+                    if (hapticsSupported) {
+                      try {
+                        await sdk.haptics.impactOccurred('light');
+                      } catch (error) {
+                        console.log('Haptics error:', error);
+                      }
+                    }
+                  }}
+                  onMouseDown={async () => {
+                    if (hapticsSupported) {
+                      try {
+                        await sdk.haptics.impactOccurred('light');
+                      } catch (error) {
+                        console.log('Haptics error:', error);
+                      }
+                    }
+                  }}
+                >
+                  <div className="flex items-center justify-between px-2 mb-1">
+                    <div className="text-xs text-cyan-400 font-medium">⭐ Favorites</div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {favoriteApps.map((app) => (
+                      <MiniappCard
+                        key={app.id}
+                        app={app}
+                        isFavorite={true}
+                        onOpen={() => {
+                          const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
+                          setOpenMiniapp(app);
+                          setOpenMiniappIndex(idx);
+                        }}
+                        onToggleFavorite={() => toggleFavorite(app.domain)}
+                      />
+                    ))}
+                  </div>
+                  <div className="h-px bg-cyan-400/30 my-2"></div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                {nonFavoriteApps.map((app, index) => (
+                  <React.Fragment key={app.id}>
                     <MiniappCard
-                      key={app.id}
                       app={app}
-                      isFavorite={true}
+                      isFavorite={false}
                       onOpen={() => {
                         const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
                         setOpenMiniapp(app);
@@ -513,36 +580,17 @@ export default function Home() {
                       }}
                       onToggleFavorite={() => toggleFavorite(app.domain)}
                     />
-                  ))}
-                </div>
-                <div className="h-px bg-cyan-400/30 my-2"></div>
+                    {(index + 1 === 50 || index + 1 === 100) && (
+                      <div className="flex items-center justify-center py-2">
+                        <div className="flex-1 h-px bg-gray-600"></div>
+                        <span className="px-4 text-xs text-gray-500 font-medium">Reward Cutoff</span>
+                        <div className="flex-1 h-px bg-gray-600"></div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
-            )}
-            
-            <div className="flex flex-col gap-2">
-              {nonFavoriteApps.map((app, index) => (
-                <React.Fragment key={app.id}>
-                  <MiniappCard
-                    app={app}
-                    isFavorite={false}
-                    onOpen={() => {
-                      const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
-                      setOpenMiniapp(app);
-                      setOpenMiniappIndex(idx);
-                    }}
-                    onToggleFavorite={() => toggleFavorite(app.domain)}
-                  />
-                  {(index + 1 === 50 || index + 1 === 100) && (
-                    <div className="flex items-center justify-center py-2">
-                      <div className="flex-1 h-px bg-gray-600"></div>
-                      <span className="px-4 text-xs text-gray-500 font-medium">Reward Cutoff</span>
-                      <div className="flex-1 h-px bg-gray-600"></div>
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
             </div>
-          </div>
         </div>
 
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
@@ -552,11 +600,10 @@ export default function Home() {
               return (
                 <button
                   key={category}
-                  className={`flex-1 py-6 text-center font-sans tracking-wide uppercase focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 ${
-                    filter === category 
-                      ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]" 
+                  className={`flex-1 py-6 text-center font-sans tracking-wide uppercase focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 ${filter === category
+                      ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
                       : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
-                  }`}
+                    }`}
                   style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
                   onClick={async () => {
                     if (hapticsSupported) {
@@ -576,26 +623,26 @@ export default function Home() {
                 </button>
               );
             })}
-                          <button
-               onClick={async () => {
-                 if (hapticsSupported) {
-                   try {
-                     await sdk.haptics.notificationOccurred('success');
-                   } catch (error) {
-                     console.log('Haptics error:', error);
-                   }
-                 }
-                 sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
-               }}
-               className="flex-1 py-6 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
-               style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
-             >
-               <div className="flex flex-col items-center justify-center gap-1">
-                 <FiGift size={16} />
-                 <span className="text-[10px] font-bold animate-chessneon">Claim $CHESS</span>
-               </div>
-             </button>
-             
+            <button
+              onClick={async () => {
+                if (hapticsSupported) {
+                  try {
+                    await sdk.haptics.notificationOccurred('success');
+                  } catch (error) {
+                    console.log('Haptics error:', error);
+                  }
+                }
+                sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
+              }}
+              className="flex-1 py-6 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
+              style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
+            >
+              <div className="flex flex-col items-center justify-center gap-1">
+                <FiGift size={16} />
+                <span className="text-[10px] font-bold animate-chessneon">Claim $CHESS</span>
+              </div>
+            </button>
+
 
           </div>
         </nav>
@@ -627,6 +674,13 @@ export default function Home() {
         .pulse-glow {
           animation: pulseGlow 3.5s ease-in-out infinite;
           border: 2px solid #a259ff;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
         }
       `}</style>
     </>
