@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { mapPromotionsToPromoCasts } from "@/utils/promotionMapper"
 // MOSTANTÓL CSAK INNEN IMPORTÁLJUK A TÍPUSOKAT
 import type { PromoCast, Promotion } from "@/types/promotions"
@@ -23,7 +23,7 @@ export function usePromotions({ limit = 20, offset = 0, status }: UsePromotionsP
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchPromotions = async () => {
+  const fetchPromotions = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -44,13 +44,13 @@ export function usePromotions({ limit = 20, offset = 0, status }: UsePromotionsP
       }
 
       const data = await response.json()
-      
+
       console.log(`🔍 API Response:`, data)
       console.log(`🔍 Promotions count:`, data.promotions?.length || 0)
 
       // Explicit típusmegadás, hogy Promotion[]-ként kezelje
       const promotionsArray: Promotion[] = Array.isArray(data.promotions) ? data.promotions : []
-      
+
       console.log(`🔍 Promotions array:`, promotionsArray)
 
       const mappedPromotions = mapPromotionsToPromoCasts(promotionsArray)
@@ -63,15 +63,15 @@ export function usePromotions({ limit = 20, offset = 0, status }: UsePromotionsP
     } finally {
       setLoading(false)
     }
-  }
+  }, [limit, offset, status]);
 
   useEffect(() => {
     fetchPromotions()
-  }, [limit, offset, status])
+  }, [fetchPromotions])
 
-  const refetch = () => {
+  const refetch = useCallback(() => {
     fetchPromotions()
-  }
+  }, [fetchPromotions])
 
   return {
     promotions,
