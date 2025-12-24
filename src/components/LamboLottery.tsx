@@ -316,7 +316,8 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       if (result.success) {
         console.log('✅ Prize claimed successfully:', result);
         // Refresh data
-        fetchLotteryData();
+        fetchEssentialData();
+        fetchUserWinnings();
       } else {
         console.error('❌ Claim failed:', result.error);
         setErrorMessage(result.error || 'Claim failed');
@@ -362,7 +363,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       if (response.ok) {
         setRedeemStatus({ message: data.message, isError: false });
         setDailyCode("");
-        fetchLotteryData();
+        fetchEssentialData();
       } else {
         setRedeemStatus({ message: data.error, isError: true });
         if (data.needsSubscription) {
