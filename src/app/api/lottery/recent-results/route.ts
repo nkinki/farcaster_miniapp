@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+export const revalidate = 600; // Cache for 10 minutes
+
 export async function GET(request: NextRequest) {
   try {
     const client = await pool.connect();
