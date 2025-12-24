@@ -401,7 +401,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 <div className="w-full">
                   <div className="flex items-center justify-center gap-2 mr-[8%]">
                     <FiDollarSign size={38} className="text-yellow-300" />
-                    <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em] standalone-ui-fix" data-standalone-fix="true">BUY A LAMBO</h1>
+                    <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em] standalone-ui-fix" data-standalone-active="true">BUY A LAMBO</h1>
                   </div>
                   <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
                   {currentRound && (
