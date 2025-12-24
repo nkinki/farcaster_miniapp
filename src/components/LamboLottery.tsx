@@ -47,6 +47,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   const [dailyCode, setDailyCode] = useState("");
   const [redeemStatus, setRedeemStatus] = useState<{ message: string; isError: boolean } | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
+  const [showRecentResults, setShowRecentResults] = useState(false);
+  const [showUserWinnings, setShowUserWinnings] = useState(false);
+  const [loadingRecentResults, setLoadingRecentResults] = useState(false);
+  const [loadingUserWinnings, setLoadingUserWinnings] = useState(false);
 
   const [step, setStep] = useState<PurchaseStep>(PurchaseStep.Idle);
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
@@ -66,16 +70,14 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     query: { enabled: !!address }
   });
 
-  const fetchLotteryData = useCallback(async () => {
+  const fetchEssentialData = useCallback(async () => {
     try {
       setLoading(true);
-      const [roundRes, ticketsRes, statsRes, lastDrawRes, recentRes, winningsRes] = await Promise.all([
+      const [roundRes, ticketsRes, statsRes, lastDrawRes] = await Promise.all([
         fetch('/api/lottery/current-round'),
         userFid ? fetch(`/api/lottery/user-tickets?fid=${userFid}`) : Promise.resolve(null),
         fetch('/api/lottery/stats'),
-        fetch('/api/lottery/last-winning-number'),
-        fetch('/api/lottery/recent-results'),
-        userFid ? fetch(`/api/lottery/user-winnings?fid=${userFid}`) : Promise.resolve(null)
+        fetch('/api/lottery/last-winning-number')
       ]);
 
       if (roundRes.ok) {
@@ -89,14 +91,47 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       if (ticketsRes?.ok) setUserTickets((await ticketsRes.json()).tickets || []);
       if (statsRes.ok) setStats((await statsRes.json()).stats);
       if (lastDrawRes.ok) setLastWinningNumber((await lastDrawRes.json()).winning_number);
-      if (recentRes.ok) setRecentRounds((await recentRes.json()).rounds || []);
-      if (winningsRes?.ok) setUserWinnings((await winningsRes.json()).winnings || []);
     } catch (error) {
-      console.error('Failed to fetch lottery data:', error);
+      console.error('Failed to fetch essential lottery data:', error);
     } finally {
       setLoading(false);
     }
   }, [userFid]);
+
+  const fetchRecentResults = async () => {
+    if (showRecentResults) {
+      setShowRecentResults(false);
+      return;
+    }
+    setLoadingRecentResults(true);
+    try {
+      const res = await fetch('/api/lottery/recent-results');
+      if (res.ok) setRecentRounds((await res.json()).rounds || []);
+      setShowRecentResults(true);
+    } catch (error) {
+      console.error('Failed to fetch recent results:', error);
+    } finally {
+      setLoadingRecentResults(false);
+    }
+  };
+
+  const fetchUserWinnings = async () => {
+    if (showUserWinnings) {
+      setShowUserWinnings(false);
+      return;
+    }
+    if (!userFid) return;
+    setLoadingUserWinnings(true);
+    try {
+      const res = await fetch(`/api/lottery/user-winnings?fid=${userFid}`);
+      if (res.ok) setUserWinnings((await res.json()).winnings || []);
+      setShowUserWinnings(true);
+    } catch (error) {
+      console.error('Failed to fetch user winnings:', error);
+    } finally {
+      setLoadingUserWinnings(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedNumbers.length > 0 && isConnected) {
@@ -133,7 +168,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
           throw new Error(errorResult.error || 'Verification failed on the server.');
         }
         setSelectedNumbers([]);
-        await fetchLotteryData();
+        await fetchEssentialData();
         if (onPurchaseSuccess) onPurchaseSuccess();
         setStep(PurchaseStep.Idle);
       } catch (error: any) {
@@ -142,9 +177,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       }
     };
     verifyAndRegister();
-  }, [isPurchased, purchaseTxHash, step, userFid, currentRound, selectedNumbers, address, fetchLotteryData, onPurchaseSuccess]);
+  }, [isPurchased, purchaseTxHash, step, userFid, currentRound, selectedNumbers, address, fetchEssentialData, onPurchaseSuccess]);
 
-  useEffect(() => { if (isOpen) { fetchLotteryData(); } }, [isOpen, fetchLotteryData]);
+  useEffect(() => { if (isOpen) { fetchEssentialData(); } }, [isOpen, fetchEssentialData]);
 
   useEffect(() => {
     const updateTimer = () => {
@@ -481,58 +516,94 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 </div>
               </div>
 
-              {recentRounds.length > 0 && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-lg font-bold text-purple-400 mb-4 flex items-center justify-center gap-2">🏆 Recent Results</h3>
-                  <div className="space-y-3">
-                    {recentRounds.map((round) => (
-                      <div key={round.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-600">
-                        <div className="flex items-center gap-3">
-                          <div className="text-lg font-bold text-cyan-400">#{round.draw_number}</div>
-                          <div className="text-sm text-gray-300">Winning: <span className="text-yellow-400 font-bold">{round.winning_number}</span></div>
-                          <div className="text-sm text-gray-300">Tickets: <span className="text-green-400">{round.total_tickets}</span></div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-green-400">{formatChessTokens(round.jackpot)}</div>
-                          <div className="text-xs text-gray-400">Prize Pool</div>
-                        </div>
-                      </div>
-                    ))}
+              {/* Recent Results Section */}
+              <div className="bg-[#23283a] rounded-xl border border-[#a64d79] pulse-glow overflow-hidden">
+                <button
+                  onClick={fetchRecentResults}
+                  className="w-full p-4 flex items-center justify-between hover:bg-[#2a2f42] transition-colors"
+                >
+                  <h3 className="text-lg font-bold text-purple-400 flex items-center gap-2">
+                    🏆 Recent Results
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {loadingRecentResults && <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>}
+                    <span className="text-gray-400 text-xs">{showRecentResults ? 'Hide' : 'Show'}</span>
                   </div>
-                </div>
-              )}
-              {userWinnings.length > 0 && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">🎉 Your Winnings ({userWinnings.length})</h3>
-                  <div className="space-y-3">
-                    {userWinnings.map((winning) => (
-                      <div key={winning.id} className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="text-lg font-bold text-green-400">Round #{winning.draw_number}</div>
-                          <div className="text-lg font-bold text-yellow-400">{formatChessTokens(winning.amount_won)}</div>
+                </button>
+
+                {showRecentResults && (
+                  <div className="p-4 pt-0 space-y-3 animate-fadeIn">
+                    {recentRounds.length > 0 ? (
+                      recentRounds.map((round) => (
+                        <div key={round.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-600">
+                          <div className="flex items-center gap-3">
+                            <div className="text-lg font-bold text-cyan-400">#{round.draw_number}</div>
+                            <div className="text-sm text-gray-300">Winning: <span className="text-yellow-400 font-bold">{round.winning_number}</span></div>
+                            <div className="text-sm text-gray-300">Tickets: <span className="text-green-400">{round.total_tickets}</span></div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-green-400">{formatChessTokens(round.jackpot)}</div>
+                            <div className="text-xs text-gray-400">Prize Pool</div>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-300 mb-3">Winning Number: <span className="text-yellow-400 font-bold">{winning.winning_number}</span> | Your Ticket: <span className="text-cyan-400 font-bold">{winning.ticket_number}</span></div>
-                        {!winning.claimed_at ? (
-                          <button
-                            onClick={() => handleClaimPrize(winning.id)}
-                            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
-                          >
-                            🎯 Claim Prize
-                          </button>
-                        ) : (
-                          <div className="text-center text-green-400 font-bold">✅ Claimed on {new Date(winning.claimed_at).toLocaleDateString()}</div>
-                        )}
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-gray-500 text-sm italic">No recent results found.</div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Your Winnings Section */}
+              <div className="bg-[#23283a] rounded-xl border border-[#a64d79] pulse-glow overflow-hidden">
+                <button
+                  onClick={fetchUserWinnings}
+                  className="w-full p-4 flex items-center justify-between hover:bg-[#2a2f42] transition-colors"
+                >
+                  <h3 className="text-xl font-bold text-green-400 flex items-center gap-2">
+                    🎉 Your Winnings ({userWinnings.length})
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {loadingUserWinnings && <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>}
+                    <span className="text-gray-400 text-xs">{showUserWinnings ? 'Hide' : 'Show'}</span>
+                  </div>
+                </button>
+
+                {showUserWinnings && (
+                  <div className="p-4 pt-0 space-y-3 animate-fadeIn">
+                    {userWinnings.length > 0 ? (
+                      userWinnings.map((winning) => (
+                        <div key={winning.id} className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="text-lg font-bold text-green-400">Round #{winning.draw_number}</div>
+                            <div className="text-lg font-bold text-yellow-400">{formatChessTokens(winning.amount_won)}</div>
+                          </div>
+                          <div className="text-sm text-gray-300 mb-3">Winning Number: <span className="text-yellow-400 font-bold">{winning.winning_number}</span> | Your Ticket: <span className="text-cyan-400 font-bold">{winning.ticket_number}</span></div>
+                          {!winning.claimed_at ? (
+                            <button
+                              onClick={() => handleClaimPrize(winning.id)}
+                              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
+                            >
+                              🎯 Claim Prize
+                            </button>
+                          ) : (
+                            <div className="text-center text-green-400 font-bold">✅ Claimed on {new Date(winning.claimed_at).toLocaleDateString()}</div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-gray-500 text-sm italic">You haven't won anything yet. Good luck!</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
                 <ul className="text-sm text-gray-400 space-y-1">
                   <li>• Choose up to 10 numbers between 1-100.</li>
                   <li>• Each ticket costs 100,000 CHESS tokens.</li>
-                  <li>• Daily draw at 8 PM UTC.</li>
+                  <li>• Daily draw at 19:05 UTC (7:05 PM UTC).</li>
                   <li>• One winner takes the entire prize pool!</li>
                 </ul>
               </div>
