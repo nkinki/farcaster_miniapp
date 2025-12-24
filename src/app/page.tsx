@@ -493,8 +493,8 @@ export default function Home() {
               onClick={loadMiniapps}
               disabled={fetchingMiniapps}
               className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 border-2 ${showMiniapps
-                  ? "bg-red-900/40 border-red-500 text-red-200 hover:bg-red-900/60"
-                  : "bg-cyan-900/40 border-cyan-500 text-cyan-200 hover:bg-cyan-900/60 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                ? "bg-red-900/40 border-red-500 text-red-200 hover:bg-red-900/60"
+                : "bg-cyan-900/40 border-cyan-500 text-cyan-200 hover:bg-cyan-900/60 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
                 }`}
             >
               {fetchingMiniapps ? (
@@ -525,7 +525,6 @@ export default function Home() {
               {favoriteApps.length > 0 && (
                 <div
                   className="sticky top-0 z-20 bg-[#23283a] py-2 cursor-pointer hover:bg-[#2a2f42] transition-colors"
-                  // ... rest of the favorite apps code
                   onTouchStart={async () => {
                     if (hapticsSupported) {
                       try {
@@ -591,6 +590,7 @@ export default function Home() {
                 ))}
               </div>
             </div>
+          )}
         </div>
 
         <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
@@ -601,8 +601,8 @@ export default function Home() {
                 <button
                   key={category}
                   className={`flex-1 py-6 text-center font-sans tracking-wide uppercase focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 ${filter === category
-                      ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                      : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+                    ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
+                    : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
                     }`}
                   style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
                   onClick={async () => {
