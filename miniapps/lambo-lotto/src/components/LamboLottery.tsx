@@ -395,23 +395,41 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border border-[#a64d79] relative overflow-hidden shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
+        <div className="bg-[#050810] rounded-2xl shadow-2xl p-6 max-w-4xl w-full h-[90vh] flex flex-col border-2 border-[#ff00ff]/50 relative overflow-hidden shadow-[0_0_40px_rgba(255,0,255,0.3)]">
+          {/* Retro Grid Background */}
+          <div className="vice-grid"></div>
+          {/* Scanline Effect */}
+          <div className="scanline"></div>
+
           <div className="relative z-10 flex flex-col items-start mb-6">
             <div className="w-full flex justify-between items-start mb-2">
               <div className="flex items-center gap-4">
                 <div className="w-full">
-                  <div className="flex items-center justify-center gap-2 mr-[8%]">
-                    <FiDollarSign size={38} className="text-yellow-300" />
-                    <h1 className="text-3xl font-bold text-white uppercase tracking-[0.02em]">BUY A LAMBO</h1>
+                  <div className="flex items-center justify-center mr-[8%] whitespace-nowrap">
+                    <div className="flex items-center gap-2 animate-neonFlicker">
+                      <FiDollarSign size={32} className="text-[#00f2ff]" />
+                      <h1 className="text-3xl font-black text-white uppercase tracking-widest italic" style={{ textShadow: '3px 3px #ff00ff' }}>
+                        LAMBO LOTTO
+                      </h1>
+                    </div>
                   </div>
-                  <p className="text-purple-200 text-sm font-medium mt-1 text-center">One Winner Takes All!</p>
                   {currentRound && (
-                    <div className="mt-4 w-full max-w-full py-3 px-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-400/50 rounded-xl animate-pulse shadow-[0_0_25px_rgba(255,255,0,0.4)] pulse-glow mx-auto" style={{ animationDuration: '4s' }}>
-                      <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4">
-                        <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">TIME LEFT</div><div className="text-base font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{timeRemaining}</div></div>
-                        <div className="text-center border-l-2 border-r-2 border-yellow-400/30 px-6 min-w-0 w-full flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">JACKPOT</div><div className="text-lg font-bold text-cyan-300 animate-pulse drop-shadow-[0_0_10px_rgba(34,211,238,0.9)]" style={{ animationDuration: '4s' }}>{formatChessTokens(currentRound.prize_pool)}</div></div>
-                        <div className="text-center min-w-0 flex flex-col items-center"><div className="text-xs font-bold text-yellow-300 mb-1">LAST DRAW</div><div className="text-sm font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">{lastWinningNumber || 'N/A'}</div></div>
+                    <div className="mt-4 w-full max-w-full py-4 px-6 bg-black/60 border-2 border-[#ff00ff]/50 rounded-xl shadow-[0_0_20px_rgba(255,0,255,0.2)] mx-auto relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#ff00ff]/5 via-transparent to-[#00f2ff]/5"></div>
+                      <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4 relative z-10">
+                        <div className="text-center min-w-0 flex flex-col items-center">
+                          <div className="text-[10px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>TIME LEFT</div>
+                          <div className="text-xl font-black text-white tracking-widest" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{timeRemaining}</div>
+                        </div>
+                        <div className="text-center border-l-2 border-r-2 border-[#00f2ff]/20 px-6 min-w-0 w-full flex flex-col items-center">
+                          <div className="text-[10px] font-black text-[#ff00ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #ff00ff' }}>JACKPOT</div>
+                          <div className="text-xl font-black text-[#00f2ff] animate-pulse italic" style={{ textShadow: '0 0 15px #00f2ff' }}>{formatChessTokens(currentRound.prize_pool)}</div>
+                        </div>
+                        <div className="text-center min-w-0 flex flex-col items-center">
+                          <div className="text-[10px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>LAST DRAW</div>
+                          <div className="text-xl font-black text-white" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{lastWinningNumber || '??'}</div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -437,44 +455,58 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
 
               {/* Daily Code Section */}
-              <div className="bg-[#23283a] rounded-xl p-4 border border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-                <h3 className="text-lg font-bold text-yellow-400 mb-2 flex items-center justify-center gap-2">
+              <div className="glass-morphism rounded-xl p-4 border border-[#ff00ff]/40 shadow-[0_0_20px_rgba(255,0,255,0.2)]">
+                <h3 className="text-xl font-black text-[#ff00ff] mb-2 flex items-center justify-center gap-2 italic tracking-tighter uppercase" style={{ textShadow: '0 0 8px #ff00ff' }}>
                   <FiGift /> Daily Free Numbers
                 </h3>
-                <p className="text-xs text-gray-400 text-center mb-4">
-                  Enter today's code to get 1 free ticket! (Limit: first 3 fast users)
+                <p className="text-[11px] text-white/90 text-center mb-4 uppercase font-black tracking-widest">
+                  First 3 fast players get 1 free ticket
                 </p>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={dailyCode}
                     onChange={(e) => setDailyCode(e.target.value.toUpperCase())}
-                    placeholder="ENTER CODE..."
-                    className="flex-1 bg-black/40 border border-yellow-500/30 rounded-lg px-4 py-2 text-white font-mono focus:outline-none focus:border-yellow-500 transition-colors"
+                    placeholder="VICE CODE..."
+                    className="flex-1 bg-black/60 border border-[#00f2ff]/30 rounded-lg px-4 py-2 text-[#00f2ff] font-mono focus:outline-none focus:border-[#ff00ff] transition-colors placeholder:text-[#00f2ff]/30"
                   />
                   <button
                     onClick={handleRedeemCode}
                     disabled={isRedeeming || !dailyCode}
-                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:from-gray-700 disabled:to-gray-800 text-white font-bold px-3 py-2 rounded-lg transition-all duration-300"
+                    className="bg-gradient-to-r from-[#ff00ff] to-[#ff8c00] hover:brightness-110 disabled:grayscale text-white font-black italic px-4 py-2 rounded-lg transition-all duration-300 uppercase tracking-tighter"
                   >
                     {isRedeeming ? '...' : 'REDEEM'}
                   </button>
                 </div>
                 {redeemStatus && (
-                  <div className={`mt-3 p-2 rounded text-center text-sm font-medium ${redeemStatus.isError ? 'bg-red-900/40 text-red-300' : 'bg-green-900/40 text-green-300'}`}>
+                  <div className={`mt-3 p-2 rounded text-center text-[10px] font-black uppercase tracking-widest ${redeemStatus.isError ? 'bg-red-900/40 text-red-300' : 'bg-green-900/40 text-green-300'}`}>
                     {redeemStatus.message}
                   </div>
                 )}
               </div>
 
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiZap /> Select Numbers (1-100)</h3>
+              <div className="glass-morphism rounded-xl p-4 border border-[#00f2ff]/30">
+                <h3 className="text-xl font-black text-[#00f2ff] mb-4 flex items-center justify-center gap-2 italic uppercase tracking-tighter"><FiZap className="animate-neonFlicker" /> Select Numbers (1-100)</h3>
                 <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                   <p className="text-sm text-blue-300">Maximum 10 tickets per user per round. Draw at 19:05 UTC daily via GitHub Action.{userTickets.length > 0 && (<span className="block mt-1">You already have <span className="font-bold text-yellow-300">{userTickets.length}/10</span> tickets.</span>)}</p>
                 </div>
 
                 <div className="grid grid-cols-10 gap-1 mb-4">
-                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (<button key={number} onClick={() => !isNumberTaken(number) && handleNumberSelect(number)} disabled={isNumberTaken(number)} className={`w-9 h-9 rounded text-sm font-bold transition-all duration-200 border-2 ${isNumberTaken(number) ? 'bg-red-600/50 text-red-300 cursor-not-allowed opacity-60' : selectedNumbers.includes(number) ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}>{number}</button>))}
+                  {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (
+                    <button
+                      key={number}
+                      onClick={() => !isNumberTaken(number) && handleNumberSelect(number)}
+                      disabled={isNumberTaken(number)}
+                      className={`w-9 h-9 rounded text-[10px] font-black transition-all duration-200 border-2 ${isNumberTaken(number)
+                        ? 'bg-red-500/80 border-red-400/50 text-white cursor-not-allowed opacity-80'
+                        : selectedNumbers.includes(number)
+                          ? 'bg-gradient-to-br from-[#00f2ff] to-[#ff00ff] border-white text-[#050810] shadow-[0_0_15px_#00f2ff] scale-105 z-10'
+                          : 'bg-black/40 border-[#00f2ff]/20 hover:border-[#ff00ff]/60 text-[#00f2ff]/70 hover:text-white'
+                        }`}
+                    >
+                      {number}
+                    </button>
+                  ))}
                 </div>
 
                 {errorMessage && (
@@ -488,11 +520,19 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   </div>
 
                   {step < PurchaseStep.ReadyToPurchase ? (
-                    <button onClick={handleApprove} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                    <button
+                      onClick={handleApprove}
+                      disabled={isLoading || !isConnected || selectedNumbers.length === 0}
+                      className="px-6 py-3 rounded-xl font-black italic text-lg transition-all duration-300 disabled:grayscale bg-gradient-to-br from-[#00f2ff] to-[#0088ff] text-white shadow-[0_0_15px_rgba(0,242,255,0.4)] uppercase tracking-tighter"
+                    >
                       {isApproveConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : '1. Approve Budget'}
                     </button>
                   ) : (
-                    <button onClick={handlePurchase} disabled={isLoading || !isConnected || selectedNumbers.length === 0} className="px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed bg-gradient-to-r from-green-600 to-blue-600 text-white">
+                    <button
+                      onClick={handlePurchase}
+                      disabled={isLoading || !isConnected || selectedNumbers.length === 0}
+                      className="px-6 py-3 rounded-xl font-black italic text-lg transition-all duration-300 disabled:grayscale bg-gradient-to-br from-[#ff00ff] to-[#ff8c00] text-white shadow-[0_0_15px_rgba(255,0,255,0.4)] uppercase tracking-tighter"
+                    >
                       {isPurchased && step !== PurchaseStep.Saving ? 'Success!' : isPurchaseConfirming ? 'Confirming...' : isPending ? 'Check Wallet...' : `2. Buy ${selectedNumbers.length} Ticket(s)`}
                     </button>
                   )}
@@ -500,45 +540,44 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
 
               {userTickets.length > 0 && (
-                <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                  <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center justify-center gap-2"><FiUsers /> Your Tickets ({userTickets.length})</h3>
+                <div className="glass-morphism rounded-xl p-4 border border-[#00f2ff]/30">
+                  <h3 className="text-xl font-black text-[#ff00ff] mb-4 flex items-center justify-center gap-2 italic uppercase tracking-tighter"><FiUsers /> Your Tickets ({userTickets.length})</h3>
                   <div className="flex justify-center">
                     <div className="grid grid-cols-10 gap-2">
                       {userTickets.map((ticket) => (
-                        <div key={ticket.id} className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-bold flex items-center justify-center">{ticket.ticket_number}</div>
+                        <div key={ticket.id} className="w-8 h-8 rounded bg-gradient-to-br from-[#00f2ff] to-[#ff00ff] text-[#050810] text-xs font-black flex items-center justify-center shadow-[0_0_10px_rgba(0,242,255,0.4)]">{ticket.ticket_number}</div>
                       ))}
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FiDollarSign /> Payment Method</h3>
+              <div className="glass-morphism rounded-xl p-4 border border-[#ff00ff]/30">
+                <h3 className="text-xl font-black text-[#00f2ff] mb-4 flex items-center gap-2 italic uppercase tracking-tighter"><FiDollarSign /> Payment Method</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                    <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div><span className="text-sm text-blue-300">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span></div>
-                    {isConnected && address && <span className="text-xs text-gray-400 font-mono">{address.slice(0, 6)}...{address.slice(-4)}</span>}
+                  <div className="flex items-center justify-between p-3 bg-black/40 border border-[#00f2ff]/20 rounded-lg">
+                    <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-[#00ff00] shadow-[0_0_8px_#00ff00]' : 'bg-[#ff0000] shadow-[0_0_8px_#ff0000]'}`}></div><span className="text-[10px] font-black uppercase text-[#00f2ff] tracking-widest">Wallet: {isConnected ? 'Connected' : 'Not Connected'}</span></div>
+                    {isConnected && address && <span className="text-[10px] text-white font-mono">{address.slice(0, 6)}...{address.slice(-4)}</span>}
                   </div>
-                  <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
-                    <div className="text-sm text-yellow-300"><span className="font-bold">Price per ticket:</span> 100,000 CHESS</div>
-                    {selectedNumbers.length > 0 && <div className="text-sm text-yellow-300 mt-1"><span className="font-bold">Total cost:</span> {(Number(totalCost) / 1e18).toLocaleString()} CHESS</div>}
+                  <div className="p-3 bg-black/40 border border-[#ff00ff]/20 rounded-lg">
+                    <div className="text-[10px] font-black text-[#ff00ff] uppercase tracking-widest"><span className="text-gray-400">Price:</span> 100,000 CHESS</div>
+                    {selectedNumbers.length > 0 && <div className="text-[10px] font-black text-[#00f2ff] mt-1 uppercase tracking-widest"><span className="text-gray-400">Total:</span> {(Number(totalCost) / 1e18).toLocaleString()} CHESS</div>}
                   </div>
-                  {isConnected && (<div className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg"><div className="text-sm font-medium text-green-300">Token Approval Status</div><div className="text-xs text-gray-400">{step === PurchaseStep.ReadyToPurchase ? 'Sufficient allowance approved.' : 'Approval will be needed to purchase.'}</div></div>)}
                 </div>
               </div>
 
               {/* Recent Results Section */}
-              <div className="bg-[#23283a] rounded-xl border border-[#a64d79] pulse-glow overflow-hidden">
+              <div className="glass-morphism rounded-xl border border-[#ff00ff]/30 overflow-hidden">
                 <button
                   onClick={fetchRecentResults}
-                  className="w-full p-4 flex items-center justify-between hover:bg-[#2a2f42] transition-colors"
+                  className="w-full p-4 flex items-center justify-between hover:bg-black/40 transition-colors"
                 >
-                  <h3 className="text-lg font-bold text-purple-400 flex items-center gap-2">
+                  <h3 className="text-lg font-black text-[#ff00ff] flex items-center gap-2 italic uppercase tracking-tighter">
                     🏆 Recent Results
                   </h3>
                   <div className="flex items-center gap-2">
-                    {loadingRecentResults && <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>}
-                    <span className="text-gray-400 text-xs">{showRecentResults ? 'Hide' : 'Show'}</span>
+                    {loadingRecentResults && <div className="w-4 h-4 border-2 border-[#ff00ff] border-t-transparent rounded-full animate-spin"></div>}
+                    <span className="text-gray-500 text-[10px] font-black uppercase">{showRecentResults ? 'Hide' : 'Show'}</span>
                   </div>
                 </button>
 
@@ -566,17 +605,17 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
 
               {/* Your Winnings Section */}
-              <div className="bg-[#23283a] rounded-xl border border-[#a64d79] pulse-glow overflow-hidden">
+              <div className="glass-morphism rounded-xl border border-[#00f2ff]/30 overflow-hidden">
                 <button
                   onClick={fetchUserWinnings}
-                  className="w-full p-4 flex items-center justify-between hover:bg-[#2a2f42] transition-colors"
+                  className="w-full p-4 flex items-center justify-between hover:bg-black/40 transition-colors"
                 >
-                  <h3 className="text-xl font-bold text-green-400 flex items-center gap-2">
+                  <h3 className="text-xl font-black text-[#00f2ff] flex items-center gap-2 italic uppercase tracking-tighter">
                     🎉 Your Winnings ({userWinnings.length})
                   </h3>
                   <div className="flex items-center gap-2">
-                    {loadingUserWinnings && <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>}
-                    <span className="text-gray-400 text-xs">{showUserWinnings ? 'Hide' : 'Show'}</span>
+                    {loadingUserWinnings && <div className="w-4 h-4 border-2 border-[#00f2ff] border-t-transparent rounded-full animate-spin"></div>}
+                    <span className="text-gray-500 text-[10px] font-black uppercase">{showUserWinnings ? 'Hide' : 'Show'}</span>
                   </div>
                 </button>
 
@@ -593,7 +632,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                           {!winning.claimed_at ? (
                             <button
                               onClick={() => handleClaimPrize(winning.id)}
-                              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
+                              className="w-full px-4 py-2 bg-gradient-to-r from-[#ff00ff] to-[#ff8c00] hover:brightness-110 text-white font-black italic rounded-lg transition-all duration-300 hover:scale-105 shadow-[0_0_15px_rgba(255,0,255,0.4)] uppercase tracking-widest"
                             >
                               🎯 Claim Prize
                             </button>
@@ -609,13 +648,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 )}
               </div>
 
-              <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-                <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
-                <ul className="text-sm text-gray-400 space-y-1">
-                  <li>• Choose up to 10 numbers between 1-100.</li>
-                  <li>• Each ticket costs 100,000 CHESS tokens.</li>
-                  <li>• Daily draw at 19:05 UTC (7:05 PM UTC).</li>
-                  <li>• One winner takes the entire prize pool!</li>
+              <div className="glass-morphism rounded-xl p-4 border border-white/20 mb-8 bg-black/40">
+                <h3 className="text-[11px] font-black text-white mb-3 uppercase tracking-widest">How it works:</h3>
+                <ul className="text-[11px] text-gray-300 space-y-1 font-bold uppercase tracking-widest">
+                  <li>• Choose up to 10 numbers between 1-100</li>
+                  <li>• Each ticket costs 100,000 CHESS tokens</li>
+                  <li>• Daily draw at 19:05 UTC (7:05 PM UTC)</li>
+                  <li>• One winner takes the entire prize pool</li>
                 </ul>
               </div>
             </div>
