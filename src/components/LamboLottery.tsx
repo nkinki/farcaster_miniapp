@@ -406,10 +406,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
             <div className="w-full flex justify-between items-start mb-2">
               <div className="flex items-center gap-4">
                 <div className="w-full">
-                  <div className="flex flex-col items-center justify-center mr-[8%]">
+                  <div className="flex items-center justify-center mr-[8%] whitespace-nowrap">
                     <div className="flex items-center gap-2 animate-neonFlicker">
-                      <FiDollarSign size={38} className="text-[#00f2ff]" />
-                      <h1 className="text-4xl font-black text-white uppercase tracking-widest italic" style={{ textShadow: '3px 3px #ff00ff' }}>
+                      <FiDollarSign size={32} className="text-[#00f2ff]" />
+                      <h1 className="text-3xl font-black text-white uppercase tracking-widest italic" style={{ textShadow: '3px 3px #ff00ff' }}>
                         LAMBO LOTTO
                       </h1>
                     </div>
@@ -419,16 +419,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       <div className="absolute inset-0 bg-gradient-to-r from-[#ff00ff]/5 via-transparent to-[#00f2ff]/5"></div>
                       <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4 relative z-10">
                         <div className="text-center min-w-0 flex flex-col items-center">
-                          <div className="text-[11px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>TIME LEFT</div>
-                          <div className="text-2xl font-black text-white tracking-widest" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{timeRemaining}</div>
+                          <div className="text-[10px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>TIME LEFT</div>
+                          <div className="text-xl font-black text-white tracking-widest" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{timeRemaining}</div>
                         </div>
                         <div className="text-center border-l-2 border-r-2 border-[#00f2ff]/20 px-6 min-w-0 w-full flex flex-col items-center">
-                          <div className="text-[11px] font-black text-[#ff00ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #ff00ff' }}>JACKPOT</div>
-                          <div className="text-3xl font-black text-[#00f2ff] animate-pulse italic" style={{ textShadow: '0 0 20px #00f2ff' }}>{formatChessTokens(currentRound.prize_pool)}</div>
+                          <div className="text-[10px] font-black text-[#ff00ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #ff00ff' }}>JACKPOT</div>
+                          <div className="text-xl font-black text-[#00f2ff] animate-pulse italic" style={{ textShadow: '0 0 15px #00f2ff' }}>{formatChessTokens(currentRound.prize_pool)}</div>
                         </div>
                         <div className="text-center min-w-0 flex flex-col items-center">
-                          <div className="text-[11px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>LAST DRAW</div>
-                          <div className="text-2xl font-black text-white" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{lastWinningNumber || '??'}</div>
+                          <div className="text-[10px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>LAST DRAW</div>
+                          <div className="text-xl font-black text-white" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{lastWinningNumber || '??'}</div>
                         </div>
                       </div>
                     </div>
