@@ -8,23 +8,29 @@ export default function DiamondCard() {
     const [rotate, setRotate] = useState({ x: 0, y: 0 })
     const [glare, setGlare] = useState({ x: 50, y: 50, opacity: 0 })
     const [isInteracting, setIsInteracting] = useState(false)
+    const angleRef = useRef(0)
 
-    // Idle animation effect
+    // Smooth idle animation loop
     useEffect(() => {
         if (isInteracting) return;
 
-        const interval = setInterval(() => {
-            const randomX = (Math.random() - 0.5) * 10;
-            const randomY = (Math.random() - 0.5) * 10;
-            setRotate({ x: randomX, y: randomY });
-            setGlare({
-                x: 50 + (randomY * 2),
-                y: 50 + (randomX * 2),
-                opacity: 0.25
-            });
-        }, 4000);
+        let frameId: number;
+        const animate = () => {
+            angleRef.current += 0.03; // Slightly faster
+            const rotateX = Math.sin(angleRef.current) * 15; // Increased intensity
+            const rotateY = Math.cos(angleRef.current) * 15;
 
-        return () => clearInterval(interval);
+            setRotate({ x: rotateX, y: rotateY });
+            setGlare({
+                x: 50 + (rotateY * 1.5),
+                y: 50 + (rotateX * 1.5),
+                opacity: 0.3
+            });
+            frameId = requestAnimationFrame(animate);
+        };
+
+        frameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(frameId);
     }, [isInteracting]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -49,8 +55,7 @@ export default function DiamondCard() {
 
     const handleMouseLeave = () => {
         setIsInteracting(false)
-        setRotate({ x: 0, y: 0 })
-        setGlare({ x: 50, y: 50, opacity: 0 })
+        // Note: isInteracting being false will trigger the animate loop which resets values
     }
 
     // Mobile tilt support
@@ -86,7 +91,7 @@ export default function DiamondCard() {
                 onMouseLeave={handleMouseLeave}
                 style={{
                     transform: `rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`,
-                    transition: isInteracting ? "none" : "all 3s ease-in-out"
+                    transition: isInteracting ? "none" : "transform 0.1s linear"
                 }}
                 className="relative w-full max-w-[320px] aspect-[1/1] rounded-2xl overflow-hidden shadow-2xl cursor-pointer preserve-3d border border-cyan-500/30 ring-1 ring-white/10"
             >
