@@ -67,10 +67,10 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
   if (!seasonData) return null;
 
   const getStatusColor = () => {
-    if (seasonData.status === 'completed') return 'bg-[#23283a] border-green-500 text-green-300';
-    if (isExpired) return 'bg-[#23283a] border-red-500 text-red-300';
-    if (isExpiringSoon) return 'bg-[#23283a] border-yellow-400 text-yellow-300';
-    return 'bg-[#23283a] border-[#5D6AFF] text-[#5D6AFF]';
+    if (seasonData.status === 'completed') return 'bg-green-900/20 border-green-500/50 text-green-300';
+    if (isExpired) return 'bg-red-900/20 border-red-500/50 text-red-300';
+    if (isExpiringSoon) return 'bg-yellow-900/20 border-yellow-500/50 text-yellow-300';
+    return 'glass-morphism border-cyan-500/30 text-cyan-400';
   };
 
   const getStatusIcon = () => {
@@ -104,16 +104,16 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
       <style jsx>{`
         @keyframes pulseGlow {
           0% {
-            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
-            filter: brightness(1.05) saturate(1.1);
+            box-shadow: 0 0 4px rgba(0, 242, 255, 0.3);
+            filter: brightness(1);
           }
           50% {
-            box-shadow: 0 0 8px #a259ff, 0 0 16px #a259ff, 0 0 24px #a259ff;
-            filter: brightness(1.1) saturate(1.2);
+            box-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
+            filter: brightness(1.1);
           }
           100% {
-            box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
-            filter: brightness(1.05) saturate(1.1);
+            box-shadow: 0 0 4px rgba(0, 242, 255, 0.3);
+            filter: brightness(1);
           }
         }
         .pulse-glow {
@@ -122,65 +122,65 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
         }
       `}</style>
       <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 pulse-glow`}>
-      {/* Compact Header */}
-      <div 
-        className="flex items-center justify-between p-3 cursor-pointer hover:bg-black/10 transition-colors"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        <div className="flex items-center gap-3">
-          {getStatusIcon()}
-          <div>
-            <h3 className="text-sm font-bold text-white">{seasonData.name}</h3>
-            <p className="text-xs text-gray-400">{getStatusText()}</p>
+        {/* Compact Header */}
+        <div
+          className="flex items-center justify-between p-3 cursor-pointer hover:bg-black/10 transition-colors"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          <div className="flex items-center gap-3">
+            {getStatusIcon()}
+            <div>
+              <h3 className="text-sm font-bold text-white">{seasonData.name}</h3>
+              <p className="text-xs text-gray-400">{getStatusText()}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {seasonData.status === 'active' && timeLeft && (
+              <div className="text-right">
+                <div className="text-lg font-black text-cyan-300 italic tracking-tighter">
+                  {timeLeft}
+                </div>
+              </div>
+            )}
+            <div className="text-gray-400">
+              {isCollapsed ? <FiChevronDown className="w-4 h-4" /> : <FiChevronUp className="w-4 h-4" />}
+            </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-3">
-          {seasonData.status === 'active' && timeLeft && (
-            <div className="text-right">
-              <div className="text-lg font-bold text-white">
-                {timeLeft}
+
+        {/* Expandable Content */}
+        {!isCollapsed && (
+          <div className="px-3 pb-3 border-t border-white/10">
+            {/* Season Info - Ultra Compact */}
+            <div className="text-center mt-2 mb-3">
+              <div className="text-base font-bold text-white mb-1">{seasonData.name}</div>
+              <div className="flex justify-center gap-3 text-xs">
+                <span className="text-gray-400">{formatDate(seasonData.start_date)}</span>
+                <span className="text-gray-500">-</span>
+                <span className="text-gray-400">{formatDate(seasonData.end_date)}</span>
+              </div>
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <FiAward className="text-cyan-400 w-3 h-3" />
+                <span className="text-cyan-400 font-black text-sm italic">
+                  {formatNumber(parseInt(seasonData.total_rewards))} CHESS
+                </span>
               </div>
             </div>
-          )}
-          <div className="text-gray-400">
-            {isCollapsed ? <FiChevronDown className="w-4 h-4" /> : <FiChevronUp className="w-4 h-4" />}
-          </div>
-        </div>
-      </div>
 
-      {/* Expandable Content */}
-      {!isCollapsed && (
-        <div className="px-3 pb-3 border-t border-white/10">
-          {/* Season Info - Ultra Compact */}
-          <div className="text-center mt-2 mb-3">
-            <div className="text-base font-bold text-white mb-1">{seasonData.name}</div>
-            <div className="flex justify-center gap-3 text-xs">
-              <span className="text-gray-400">{formatDate(seasonData.start_date)}</span>
-              <span className="text-gray-500">-</span>
-              <span className="text-gray-400">{formatDate(seasonData.end_date)}</span>
-            </div>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <FiAward className="text-[#5D6AFF] w-3 h-3" />
-              <span className="text-[#5D6AFF] font-semibold text-sm">
-                {formatNumber(parseInt(seasonData.total_rewards))} CHESS
-              </span>
+            {/* Airdrop Button */}
+            <div className="flex justify-center">
+              <button
+                onClick={() => window.open('/airdrop', '_blank')}
+                className="flex items-center gap-1 px-3 py-1.5 rounded bg-cyan-500/20 border border-cyan-500/50 hover:bg-cyan-500/30 transition-colors"
+                title="View Airdrop Distribution"
+              >
+                <FiGift className="w-3 h-3 text-cyan-300" />
+                <span className="text-xs text-cyan-300 font-bold uppercase tracking-wider">Airdrop</span>
+              </button>
             </div>
           </div>
-
-          {/* Airdrop Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={() => window.open('/airdrop', '_blank')}
-              className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#5D6AFF]/20 border border-[#5D6AFF]/50 hover:bg-[#5D6AFF]/30 transition-colors"
-              title="View Airdrop Distribution"
-            >
-              <FiGift className="w-3 h-3 text-[#5D6AFF]" />
-              <span className="text-xs text-[#5D6AFF] font-medium">Airdrop</span>
-            </button>
-          </div>
-        </div>
-      )}
+        )}
 
       </div>
     </>

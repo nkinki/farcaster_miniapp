@@ -3,18 +3,27 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Diamond Theme Colors */
+  --diamond-bg: #050810;
+  --diamond-surface: rgba(10, 15, 30, 0.7);
+  --diamond-cyan: #00f2ff;
+  --diamond-purple: #7000ff;
+  --diamond-border: rgba(0, 242, 255, 0.2);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-diamond-cyan: var(--diamond-cyan);
+  --color-diamond-purple: var(--diamond-purple);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: var(--diamond-bg);
     --foreground: #ededed;
   }
 }
@@ -112,7 +121,28 @@ body {
     animation: pulseGlow 3.5s ease-in-out infinite;
     border: 2px solid #a259ff;
   }
+
+  /* Diamond Theme Utilities */
+  .glass-morphism {
+    background: var(--diamond-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--diamond-border);
+  }
+
+  .diamond-shadow {
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.15);
+  }
 }
-.perspective-1000 { perspective: 1000px; }
-.preserve-3d { transform-style: preserve-3d; }
-.backface-hidden { backface-visibility: hidden; }
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}

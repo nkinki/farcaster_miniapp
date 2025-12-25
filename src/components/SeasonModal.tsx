@@ -206,14 +206,14 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1a1f2e] rounded-2xl border border-[#a64d79] max-w-2xl w-full max-h-[90vh] overflow-y-auto pulse-glow">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+      <div className="glass-morphism rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto diamond-shadow">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <FiCalendar className="w-8 h-8 text-purple-400" />
+            <FiCalendar className="w-8 h-8 text-cyan-400" />
             <div>
-              <h2 className={`text-2xl font-bold ${seasonData?.name?.includes('Grinch') ? 'text-green-400' : 'text-white'}`}>
+              <h2 className={`text-2xl font-black italic tracking-tight ${seasonData?.name?.includes('Grinch') ? 'text-green-400' : 'text-white'}`}>
                 {seasonData?.name || "Season 1"}
               </h2>
               <p className="text-sm text-gray-400">Active Season</p>
@@ -230,8 +230,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Wallet Status */}
-          <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-            <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+          <div className="bg-black/40 rounded-xl p-4 border border-white/10">
+            <h3 className="text-lg font-black text-cyan-400 mb-3 flex items-center gap-2 italic">
               <FiCreditCard className="w-5 h-5" />
               Wallet Status
             </h3>
@@ -296,8 +296,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                     onClick={handleDailyCheck}
                     disabled={isChecking}
                     className={`px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 ${isChecking
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl'
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg hover:shadow-cyan-500/20'
                       }`}
                   >
                     {isChecking ? (
@@ -336,21 +336,21 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
           {/* Points Summary */}
           {isLoadingPoints ? (
-            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-              <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+            <div className="bg-black/40 rounded-xl p-4 border border-white/10">
+              <h3 className="text-lg font-black text-cyan-400 mb-3 flex items-center gap-2 italic">
                 <FiTrendingUp className="w-5 h-5" />
                 Your Points
               </h3>
               <div className="flex items-center justify-center py-6">
                 <div className="flex items-center gap-3">
                   <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-cyan-400 font-semibold text-sm">Loading your points...</span>
+                  <span className="text-cyan-400 font-bold text-sm">Loading points...</span>
                 </div>
               </div>
             </div>
           ) : userPoints && (
-            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-              <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+            <div className="bg-black/40 rounded-xl p-4 border border-white/10">
+              <h3 className="text-lg font-black text-cyan-400 mb-3 flex items-center gap-2 italic">
                 <FiTrendingUp className="w-5 h-5" />
                 Your Points
               </h3>
@@ -401,8 +401,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
           {/* Leaderboard */}
           {leaderboard.length > 0 && (
-            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-              <h3 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+            <div className="bg-black/40 rounded-xl p-4 border border-white/10">
+              <h3 className="text-lg font-black text-cyan-400 mb-3 flex items-center gap-2 italic">
                 <FiTrendingUp className="w-5 h-5" />
                 All Players ({leaderboard.length})
               </h3>
@@ -425,8 +425,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
           {/* Season Info */}
           {seasonData && (
-            <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
-              <h3 className="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2">
+            <div className="bg-black/40 rounded-xl p-4 border border-white/10">
+              <h3 className="text-lg font-black text-cyan-400 mb-3 flex items-center gap-2 italic">
                 <FiGift className="w-5 h-5" />
                 Season Info
               </h3>
@@ -451,7 +451,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                   </button>
                   <button
                     onClick={() => window.open('/airdrop', '_blank')}
-                    className="w-full px-3 py-2 bg-[#5D6AFF] hover:bg-[#5D6AFF]/80 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                    className="w-full px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 border border-cyan-500/30"
                   >
                     <FiBarChart className="w-4 h-4" />
                     View Stats

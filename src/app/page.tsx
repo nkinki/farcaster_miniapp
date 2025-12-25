@@ -78,11 +78,11 @@ function MiniappCard({ app, isFavorite, onOpen, onToggleFavorite }: { app: Minia
 
   return (
     <div
-      className={`flex items-center justify-between rounded-xl px-3 py-2 bg-[#181c23] shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${isFavorite ? "border-2 border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_12px_2px_rgba(0,200,255,0.5)]" : "border border-[#2e3650]"}`}
+      className={`glass-morphism flex items-center justify-between rounded-xl px-3 py-2 shadow-sm cursor-pointer hover:ring-2 hover:ring-cyan-400 transition ${isFavorite ? "border-2 border-cyan-400 ring-2 ring-cyan-400/50 shadow-[0_0_15px_rgba(0,242,255,0.4)]" : "border border-white/10"}`}
       onClick={onOpen}
     >
-      <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-purple-500 to-cyan-500 text-white mr-2`}>{app.rank}</div>
-      <div className="w-14 h-14 rounded-lg border border-purple-700/30 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mr-2">
+      <div className={`flex-shrink-0 ${rankSizeClass} rounded-full flex items-center justify-center font-bold ${rankTextClass} bg-gradient-to-br from-cyan-400 to-purple-600 text-white mr-2`}>{app.rank}</div>
+      <div className="w-14 h-14 rounded-lg border border-cyan-700/30 bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center mr-2">
         <FiZap className="text-white text-xl" />
       </div>
 
@@ -373,18 +373,18 @@ export default function Home() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900 px-1 pb-24 sm:px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#050810] via-[#0a1122] to-[#050810] px-1 pb-24 sm:px-4">
         <div className="max-w-6xl mx-auto">
           <header className="mb-6 text-center">
             <div className="flex justify-center items-center mb-2">
               <div className="flex items-center gap-2">
-                <Image src="/icon.png" alt="AppRank icon" width={48} height={48} className="w-12 h-12" />
-                <h1 className="text-3xl font-bold text-white uppercase tracking-[.35em]" style={{ letterSpacing: "0.35em" }}>
+                <Image src="/icon.png" alt="AppRank icon" width={48} height={48} className="w-12 h-12 diamond-shadow rounded-xl" />
+                <h1 className="text-3xl font-black uppercase tracking-[.35em] bg-gradient-to-r from-white via-cyan-400 to-purple-500 bg-clip-text text-transparent" style={{ letterSpacing: "0.35em" }}>
                   APPRANK
                 </h1>
               </div>
             </div>
-            <p className="text-purple-200 text-sm mb-1 font-medium">Farcaster Toplist, Stats, Promotions, and Growth</p>
+            <p className="text-cyan-200/70 text-sm mb-1 font-medium">Farcaster Toplist, Stats, Promotions, and Growth</p>
             <p className="text-purple-200 text-xs font-medium">
               {`Snapshot date: ${snapshotDate}`}
             </p>
@@ -404,14 +404,14 @@ export default function Home() {
                 }
                 window.location.href = '/promote';
               }}
-              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+              className="glass-morphism flex flex-col items-center gap-3 p-6 text-lg font-bold rounded-xl text-white shadow-lg sm:hover:scale-[1.02] transition-all duration-300 cursor-pointer diamond-shadow"
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center border-2 border-white/60">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-full flex items-center justify-center border-2 border-white/60">
                 <FiUsers size={32} className="text-white" />
               </div>
               <div className="text-center">
-                <div className="text-green-300">Share & Earn</div>
-                <div className="text-xs text-gray-400">Earn $CHESS</div>
+                <div className="text-cyan-300 italic tracking-tighter">Share & Earn</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Earn $CHESS</div>
               </div>
             </button>
 
@@ -427,14 +427,14 @@ export default function Home() {
                 }
                 setShowLamboLottery(true);
               }}
-              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-yellow-400 hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+              className="glass-morphism flex flex-col items-center gap-3 p-6 text-lg font-bold rounded-xl text-white shadow-lg sm:hover:scale-[1.02] transition-all duration-300 cursor-pointer diamond-shadow"
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-full flex items-center justify-center border-2 border-white/60">
                 <FiDollarSign size={32} className="text-white" />
               </div>
               <div className="text-center">
-                <div className="text-yellow-300">Buy a Lambo</div>
-                <div className="text-xs text-gray-400">Lottery</div>
+                <div className="text-cyan-300 italic tracking-tighter">Buy a Lambo</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Lottery</div>
               </div>
             </button>
 
@@ -450,14 +450,14 @@ export default function Home() {
                 }
                 sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
               }}
-              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#5D6AFF] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+              className="glass-morphism flex flex-col items-center gap-3 p-6 text-lg font-bold rounded-xl text-white shadow-lg sm:hover:scale-[1.02] transition-all duration-300 cursor-pointer diamond-shadow"
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-full flex items-center justify-center border-2 border-white/60">
                 <FiGift size={32} className="text-white" />
               </div>
               <div className="text-center">
-                <div className="text-[#5D6AFF] animate-chessneon">Claim $CHESS</div>
-                <div className="text-xs text-gray-400">Free Tokens</div>
+                <div className="text-cyan-300 italic tracking-tighter">Claim $CHESS</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Free Tokens</div>
               </div>
             </button>
 
@@ -473,18 +473,14 @@ export default function Home() {
                 }
                 setShowWeatherLotto(true);
               }}
-              className="flex flex-col items-center gap-3 p-6 text-lg font-bold bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer pulse-glow"
+              className="glass-morphism flex flex-col items-center gap-3 p-6 text-lg font-bold rounded-xl text-white shadow-lg sm:hover:scale-[1.02] transition-all duration-300 cursor-pointer diamond-shadow"
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-2 border-white/60">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-full flex items-center justify-center border-2 border-white/60">
                 <span className="text-2xl">☀️🌧️</span>
               </div>
               <div className="text-center">
-                <div className="flex items-center gap-1">
-                  <span className="text-orange-400">SUNNY</span>
-                  <span className="text-gray-400">/</span>
-                  <span className="text-blue-400">RAINY</span>
-                </div>
-                <div className="text-xs text-gray-400">Live</div>
+                <div className="text-cyan-300 italic tracking-tighter">SUNNY / RAINY</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Live</div>
               </div>
             </button>
           </div>
@@ -493,9 +489,9 @@ export default function Home() {
             <button
               onClick={loadMiniapps}
               disabled={fetchingMiniapps}
-              className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 border-2 ${showMiniapps
-                ? "bg-red-900/40 border-red-500 text-red-200 hover:bg-red-900/60"
-                : "bg-cyan-900/40 border-cyan-500 text-cyan-200 hover:bg-cyan-900/60 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+              className={`w-full py-4 rounded-xl font-black text-lg transition-all duration-300 flex items-center justify-center gap-2 border-2 ${showMiniapps
+                ? "bg-red-900/40 border-red-500/50 text-red-200"
+                : "glass-morphism border-cyan-500/50 text-cyan-200 diamond-shadow"
                 }`}
             >
               {fetchingMiniapps ? (
@@ -506,16 +502,16 @@ export default function Home() {
               ) : (
                 <>
                   <FiAward size={22} className={showMiniapps ? "text-red-400" : "text-cyan-400"} />
-                  <span>{showMiniapps ? "HIDE LEADERBOARD" : "SHOW APPRANK LEADERBOARD"}</span>
+                  <span className="italic tracking-tight">{showMiniapps ? "HIDE LEADERBOARD" : "SHOW APPRANK LEADERBOARD"}</span>
                 </>
               )}
             </button>
 
             {showMiniapps && (
               <form className="flex items-center w-full animate-fadeIn" onSubmit={(e) => e.preventDefault()}>
-                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search miniapps..." className="flex-1 px-4 py-2 rounded-l-xl bg-gray-900/80 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-                <button type="submit" className="px-4 py-2 rounded-r-xl bg-gray-800 text-cyan-300 border-t border-b border-r border-gray-700 hover:bg-cyan-900" aria-label="Search">
-                  <FiSearch size={20} />
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search miniapps..." className="flex-1 px-4 py-3 rounded-l-xl bg-black/40 text-white border border-white/10 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 placeholder:text-gray-500" />
+                <button type="submit" className="px-6 py-3 rounded-r-xl bg-cyan-900/40 text-cyan-400 border-t border-b border-r border-white/10 hover:bg-cyan-900/60 transition-colors" aria-label="Search">
+                  <FiSearch size={22} />
                 </button>
               </form>
             )}
@@ -573,7 +569,7 @@ export default function Home() {
           </div>
 
           {showMiniapps && (
-            <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#a64d79] w-full animate-fadeIn">
+            <div className="relative glass-morphism rounded-2xl shadow-2xl p-1 w-full animate-fadeIn border border-white/10">
               {favoriteApps.length > 0 && (
                 <div
                   className="sticky top-0 z-20 bg-[#23283a] py-2 cursor-pointer hover:bg-[#2a2f42] transition-colors"
@@ -645,18 +641,17 @@ export default function Home() {
           )}
         </div>
 
-        <nav className="fixed bottom-0 left-0 w-full z-50 bg-[#1a1a1a] border-t border-gray-700">
+        <nav className="fixed bottom-0 left-0 w-full z-50 glass-morphism border-t border-white/10">
           <div className="flex w-full max-w-6xl mx-auto">
             {["all", "games", "social", "utility", "finance"].map((category) => {
               const IconComponent = categoryIcons[category] || FiGrid;
               return (
                 <button
                   key={category}
-                  className={`flex-1 py-6 text-center font-sans tracking-wide uppercase focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 ${filter === category
-                    ? "bg-gray-800 text-cyan-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.9),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
-                    : "bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800"
+                  className={`flex-1 py-4 text-center font-sans tracking-wide uppercase transition-all duration-300 ${filter === category
+                    ? "bg-cyan-500/10 text-cyan-400 border-t-2 border-cyan-400"
+                    : "bg-transparent text-gray-500 hover:text-cyan-300"
                     }`}
-                  style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
                   onClick={async () => {
                     if (hapticsSupported) {
                       try {
@@ -669,8 +664,8 @@ export default function Home() {
                   }}
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
-                    <IconComponent size={16} />
-                    <span className="text-[10px] font-bold">{category}</span>
+                    <IconComponent size={18} />
+                    <span className="text-[9px] font-black">{category}</span>
                   </div>
                 </button>
               );
@@ -686,12 +681,11 @@ export default function Home() {
                 }
                 sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess");
               }}
-              className="flex-1 py-6 text-center font-sans tracking-wide bg-gray-900 text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.1)] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all duration-300 uppercase"
-              style={{ borderRadius: 0, fontFamily: "Geist, Inter, Arial, sans-serif" }}
+              className="flex-1 py-4 text-center font-sans tracking-wide bg-transparent text-cyan-400 transition-all duration-300 uppercase hover:bg-cyan-500/5"
             >
               <div className="flex flex-col items-center justify-center gap-1">
-                <FiGift size={16} />
-                <span className="text-[10px] font-bold animate-chessneon">Claim $CHESS</span>
+                <FiGift size={18} />
+                <span className="text-[9px] font-black italic">Claim $CHESS</span>
               </div>
             </button>
 
