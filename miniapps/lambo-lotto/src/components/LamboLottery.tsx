@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react";
-import { FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap, FiGift } from "react-icons/fi";
+import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap, FiGift } from "react-icons/fi";
 import { useAccount, useWaitForTransactionReceipt, useReadContract, useWriteContract } from 'wagmi';
 import { type Hash } from 'viem';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } from '../abis/LottoPaymentRouter';
@@ -103,6 +103,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       setShowRecentResults(false);
       return;
     }
+    // If we already have data, just show it immediately
     if (recentRounds.length > 0) {
       setShowRecentResults(true);
       return;
@@ -125,6 +126,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       return;
     }
     if (!userFid) return;
+    // If we already have data, just show it immediately
     if (userWinnings.length > 0) {
       setShowUserWinnings(true);
       return;
@@ -188,7 +190,6 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
   }, [isPurchased, purchaseTxHash, step, userFid, currentRound, selectedNumbers, address, fetchEssentialData, onPurchaseSuccess]);
 
   useEffect(() => { if (isOpen) { fetchEssentialData(); } }, [isOpen, fetchEssentialData]);
-
 
   useEffect(() => {
     const updateTimer = () => {
@@ -341,6 +342,13 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     if (selectedNumbers.includes(number)) { setSelectedNumbers(selectedNumbers.filter(n => n !== number)); }
     else if (userTickets.length + selectedNumbers.length < 10) { setSelectedNumbers([...selectedNumbers, number]); }
   };
+  const formatChessTokens = (amount: number) => {
+    if (amount === undefined || amount === null) return '$0';
+    if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toLocaleString('en-US', { maximumFractionDigits: 2 })}B`;
+    if (amount >= 1_000_000) return `$${(amount / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 2 })}M`;
+    if (amount >= 1_000) return `$${(amount / 1_000).toLocaleString('en-US', { maximumFractionDigits: 0 })}K`;
+    return `$${amount.toLocaleString('en-US')}`;
+  };
 
   const handleRedeemCode = async () => {
     if (!dailyCode || !userFid) return;
@@ -378,13 +386,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
       setIsRedeeming(false);
     }
   };
-  const formatChessTokens = (amount: number) => {
-    if (amount === undefined || amount === null) return '$0';
-    if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toLocaleString('en-US', { maximumFractionDigits: 2 })}B`;
-    if (amount >= 1_000_000) return `$${(amount / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 2 })}M`;
-    if (amount >= 1_000) return `$${(amount / 1_000).toLocaleString('en-US', { maximumFractionDigits: 0 })}K`;
-    return `$${amount.toLocaleString('en-US')}`;
-  };
+
   const isNumberTaken = (number: number) => takenNumbers.includes(number);
 
   const isLoading = isPending || isApproveConfirming || isPurchaseConfirming || step === PurchaseStep.Saving;
@@ -416,7 +418,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 </div>
               </div>
             </div>
-
+            <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
           </div>
 
           {loading ? (
@@ -430,7 +432,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border-2 border-purple-400/50 rounded-2xl text-white text-xl font-black transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse"
                 >
                   <FiZap size={24} className="text-yellow-400" />
-                  SWITCH TO FARCHESS (BUY $CHESS) ♟️
+                  SWITCH TO FARCHESS (BUY $CHESS)
                 </button>
               </div>
 
@@ -453,7 +455,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   <button
                     onClick={handleRedeemCode}
                     disabled={isRedeeming || !dailyCode}
-                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:from-gray-700 disabled:to-gray-800 text-white font-bold px-2 py-2 rounded-lg transition-all duration-300"
+                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:from-gray-700 disabled:to-gray-800 text-white font-bold px-3 py-2 rounded-lg transition-all duration-300"
                   >
                     {isRedeeming ? '...' : 'REDEEM'}
                   </button>
@@ -606,6 +608,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   </div>
                 )}
               </div>
+
               <div className="bg-[#23283a] rounded-xl p-4 border border-[#a64d79] pulse-glow">
                 <h3 className="text-lg font-bold text-gray-300 mb-3">How it works:</h3>
                 <ul className="text-sm text-gray-400 space-y-1">
