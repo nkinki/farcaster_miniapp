@@ -195,11 +195,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
     const updateTimer = () => {
       const now = new Date();
       const drawTime = new Date();
-      drawTime.setUTCHours(19, 5, 0, 0); // 19:05 UTC
+      drawTime.setUTCHours(19, 20, 0, 0); // 19:20 UTC
 
-      // Check if we're in the draw period (19:05-19:09)
+      // Check if we're in the draw period (19:20-19:30)
       const drawStart = new Date();
-      drawStart.setUTCHours(19, 5, 0, 0);
+      drawStart.setUTCHours(19, 20, 0, 0);
       const drawEnd = new Date();
       drawEnd.setUTCHours(19, 30, 0, 0);
 
