@@ -410,7 +410,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                     <div className="flex items-center gap-2 animate-neonFlicker">
                       <FiDollarSign size={32} className="text-[#00f2ff]" />
                       <h1 className="text-3xl font-black text-white uppercase tracking-widest italic" style={{ textShadow: '3px 3px #ff00ff' }}>
-                        LAMBO LOTTO
+                        BUY A LAMBO
                       </h1>
                     </div>
                   </div>
