@@ -429,9 +429,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => sdk.actions.openUrl("https://farcaster.xyz/miniapps/DXCz8KIyfsme/farchess")}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border-2 border-purple-400/50 rounded-2xl text-white text-xl font-black transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border-2 border-purple-400/50 rounded-xl text-white text-base font-bold transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                 >
-                  <FiZap size={24} className="text-yellow-400" />
+                  <FiZap size={20} className="text-yellow-400" />
                   SWITCH TO FARCHESS (BUY $CHESS)
                 </button>
               </div>
