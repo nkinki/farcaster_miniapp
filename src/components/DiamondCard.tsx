@@ -7,9 +7,29 @@ export default function DiamondCard() {
     const cardRef = useRef<HTMLDivElement>(null)
     const [rotate, setRotate] = useState({ x: 0, y: 0 })
     const [glare, setGlare] = useState({ x: 50, y: 50, opacity: 0 })
+    const [isInteracting, setIsInteracting] = useState(false)
+
+    // Idle animation effect
+    useEffect(() => {
+        if (isInteracting) return;
+
+        const interval = setInterval(() => {
+            const randomX = (Math.random() - 0.5) * 10;
+            const randomY = (Math.random() - 0.5) * 10;
+            setRotate({ x: randomX, y: randomY });
+            setGlare({
+                x: 50 + (randomY * 2),
+                y: 50 + (randomX * 2),
+                opacity: 0.25
+            });
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [isInteracting]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!cardRef.current) return
+        setIsInteracting(true)
 
         const rect = cardRef.current.getBoundingClientRect()
         const x = e.clientX - rect.left
@@ -28,14 +48,16 @@ export default function DiamondCard() {
     }
 
     const handleMouseLeave = () => {
+        setIsInteracting(false)
         setRotate({ x: 0, y: 0 })
-        setGlare(prev => ({ ...prev, opacity: 0 }))
+        setGlare({ x: 50, y: 50, opacity: 0 })
     }
 
     // Mobile tilt support
     useEffect(() => {
         const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
             if (e.beta === null || e.gamma === null) return
+            setIsInteracting(true)
 
             // Limit to reasonable tilt ranges
             const rotateX = Math.max(-20, Math.min(20, (e.beta - 45)))
@@ -47,6 +69,9 @@ export default function DiamondCard() {
                 y: (rotateX + 20) * 2.5,
                 opacity: 0.4
             })
+
+            // Reset interaction after some time of no movement if needed, 
+            // but usually mobile tilt is constant
         }
 
         window.addEventListener('deviceorientation', handleDeviceOrientation)
@@ -61,7 +86,7 @@ export default function DiamondCard() {
                 onMouseLeave={handleMouseLeave}
                 style={{
                     transform: `rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`,
-                    transition: rotate.x === 0 ? "transform 0.5s ease-out" : "none"
+                    transition: isInteracting ? "none" : "all 3s ease-in-out"
                 }}
                 className="relative w-full max-w-[320px] aspect-[1/1] rounded-2xl overflow-hidden shadow-2xl cursor-pointer preserve-3d border border-cyan-500/30 ring-1 ring-white/10"
             >
