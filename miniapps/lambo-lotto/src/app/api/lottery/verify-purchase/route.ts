@@ -66,21 +66,56 @@ export async function POST(request: NextRequest) {
     // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS (JAVÍTVA) ---
     console.log(`[Verifier] Waiting for receipt for txHash: ${txHash}`);
 
-    // A waitForTransactionReceipt lecseréli a bonyolult while ciklust.
-    // Addig vár, amíg a bizonylat elérhetővé nem válik, vagy lejár a 30 másodperces időkorlát.
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: txHash as `0x${string}`,
-      timeout: 30_000
-    });
+    // Increased timeout to 60s for Base app compatibility
+    // Base transactions may take longer to confirm than Farcaster miniapp
+    let receipt;
+    try {
+      receipt = await publicClient.waitForTransactionReceipt({
+        hash: txHash as `0x${string}`,
+        timeout: 60_000, // Increased from 30s to 60s
+        pollingInterval: 1_000 // Check every second
+      });
+    } catch (receiptError: any) {
+      console.error(`[Verifier] Failed to get receipt for ${txHash}:`, receiptError.message);
+
+      // If timeout, provide helpful message
+      if (receiptError.name === 'TimeoutError' || receiptError.message?.includes('timeout')) {
+        return NextResponse.json({
+          error: 'Transaction is taking longer than expected to confirm. Please wait a moment and try refreshing. Your purchase is likely processing.',
+          txHash
+        }, { status: 408 });
+      }
+
+      throw receiptError; // Re-throw for general error handler
+    }
 
     // A waitForTransactionReceipt hibát dob, ha nem találja, így a sikeres eset után folytatódhat a kód.
     if (receipt.status !== 'success') {
+      console.error(`[Verifier] Transaction failed on-chain. Status: ${receipt.status}`);
       return NextResponse.json({ error: 'On-chain transaction failed.', details: `Status: ${receipt.status}` }, { status: 400 });
     }
-    if (receipt.to?.toLowerCase() !== LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase()) {
-      return NextResponse.json({ error: 'Transaction was sent to the wrong contract address.' }, { status: 400 });
+
+    // ACCOUNT ABSTRACTION SUPPORT (Base app uses ERC-4337)
+    // For AA transactions, receipt.to is the Entry Point (0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789)
+    // We need to check if the LottoPaymentRouter was called in the logs
+    const isDirectCall = receipt.to?.toLowerCase() === LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase();
+    const isAACall = receipt.logs?.some(log =>
+      log.address?.toLowerCase() === LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase()
+    );
+
+    if (!isDirectCall && !isAACall) {
+      console.error(`[Verifier] LottoPaymentRouter not found in transaction. Receipt.to: ${receipt.to}, Logs checked: ${receipt.logs?.length || 0}`);
+      return NextResponse.json({
+        error: 'Transaction did not interact with the Lotto Payment Router contract.'
+      }, { status: 400 });
     }
-    if (receipt.from?.toLowerCase() !== playerAddress.toLowerCase()) {
+
+    console.log(`[Verifier] Contract interaction verified (${isDirectCall ? 'Direct' : 'Account Abstraction'})`);
+
+    // For direct calls, verify the sender matches
+    // For AA calls, skip this check as the sender is the smart wallet, not the user's EOA
+    if (isDirectCall && receipt.from?.toLowerCase() !== playerAddress.toLowerCase()) {
+      console.error(`[Verifier] Address mismatch. Expected: ${playerAddress}, Got: ${receipt.from}`);
       return NextResponse.json({ error: 'Transaction sender does not match the player address.' }, { status: 403 });
     }
 
