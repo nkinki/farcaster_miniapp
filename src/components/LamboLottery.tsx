@@ -409,7 +409,7 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                   <div className="flex flex-col items-center justify-center mr-[8%]">
                     <div className="flex items-center gap-2 animate-neonFlicker">
                       <FiDollarSign size={38} className="text-[#00f2ff]" />
-                      <h1 className="text-4xl font-black text-white uppercase tracking-widest italic" style={{ fontFamily: "'Brush Script MT', cursive, sans-serif", textShadow: '3px 3px #ff00ff' }}>
+                      <h1 className="text-4xl font-black text-white uppercase tracking-widest italic" style={{ textShadow: '3px 3px #ff00ff' }}>
                         LAMBO LOTTO
                       </h1>
                     </div>
@@ -419,16 +419,16 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       <div className="absolute inset-0 bg-gradient-to-r from-[#ff00ff]/5 via-transparent to-[#00f2ff]/5"></div>
                       <div className="w-full grid grid-cols-3 items-center justify-items-center gap-4 relative z-10">
                         <div className="text-center min-w-0 flex flex-col items-center">
-                          <div className="text-[10px] font-black text-[#00f2ff] uppercase tracking-widest mb-1">TIME LEFT</div>
-                          <div className="text-xl font-black text-white tracking-widest" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{timeRemaining}</div>
+                          <div className="text-[11px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>TIME LEFT</div>
+                          <div className="text-2xl font-black text-white tracking-widest" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{timeRemaining}</div>
                         </div>
                         <div className="text-center border-l-2 border-r-2 border-[#00f2ff]/20 px-6 min-w-0 w-full flex flex-col items-center">
-                          <div className="text-[10px] font-black text-[#ff00ff] uppercase tracking-widest mb-1">JACKPOT</div>
-                          <div className="text-2xl font-black text-[#00f2ff] animate-pulse italic" style={{ textShadow: '0 0 15px #00f2ff' }}>{formatChessTokens(currentRound.prize_pool)}</div>
+                          <div className="text-[11px] font-black text-[#ff00ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #ff00ff' }}>JACKPOT</div>
+                          <div className="text-3xl font-black text-[#00f2ff] animate-pulse italic" style={{ textShadow: '0 0 20px #00f2ff' }}>{formatChessTokens(currentRound.prize_pool)}</div>
                         </div>
                         <div className="text-center min-w-0 flex flex-col items-center">
-                          <div className="text-[10px] font-black text-[#00f2ff] uppercase tracking-widest mb-1">LAST DRAW</div>
-                          <div className="text-xl font-black text-white" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{lastWinningNumber || '??'}</div>
+                          <div className="text-[11px] font-black text-[#00f2ff] uppercase tracking-widest mb-1" style={{ textShadow: '0 0 5px #00f2ff' }}>LAST DRAW</div>
+                          <div className="text-2xl font-black text-white" style={{ fontFamily: 'monospace', textShadow: '0 0 10px #ff00ff' }}>{lastWinningNumber || '??'}</div>
                         </div>
                       </div>
                     </div>
@@ -455,11 +455,11 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
               </div>
 
               {/* Daily Code Section */}
-              <div className="glass-morphism rounded-xl p-4 border border-[#ff00ff]/30 shadow-[0_0_15px_rgba(255,0,255,0.1)]">
-                <h3 className="text-lg font-black text-[#ff00ff] mb-2 flex items-center justify-center gap-2 italic tracking-tighter uppercase">
+              <div className="glass-morphism rounded-xl p-4 border border-[#ff00ff]/40 shadow-[0_0_20px_rgba(255,0,255,0.2)]">
+                <h3 className="text-xl font-black text-[#ff00ff] mb-2 flex items-center justify-center gap-2 italic tracking-tighter uppercase" style={{ textShadow: '0 0 8px #ff00ff' }}>
                   <FiGift /> Daily Free Numbers
                 </h3>
-                <p className="text-[10px] text-gray-400 text-center mb-4 uppercase font-bold tracking-widest">
+                <p className="text-[11px] text-white/90 text-center mb-4 uppercase font-black tracking-widest">
                   First 3 fast players get 1 free ticket
                 </p>
                 <div className="flex gap-2">
@@ -498,10 +498,10 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                       onClick={() => !isNumberTaken(number) && handleNumberSelect(number)}
                       disabled={isNumberTaken(number)}
                       className={`w-9 h-9 rounded text-[10px] font-black transition-all duration-200 border-2 ${isNumberTaken(number)
-                          ? 'bg-red-900/20 border-red-500/30 text-red-700 cursor-not-allowed opacity-40'
-                          : selectedNumbers.includes(number)
-                            ? 'bg-gradient-to-br from-[#00f2ff] to-[#ff00ff] border-white text-[#050810] shadow-[0_0_15px_#00f2ff] scale-105 z-10'
-                            : 'bg-black/40 border-[#00f2ff]/20 hover:border-[#ff00ff]/60 text-[#00f2ff]/70 hover:text-white'
+                        ? 'bg-red-500/80 border-red-400/50 text-white cursor-not-allowed opacity-80'
+                        : selectedNumbers.includes(number)
+                          ? 'bg-gradient-to-br from-[#00f2ff] to-[#ff00ff] border-white text-[#050810] shadow-[0_0_15px_#00f2ff] scale-105 z-10'
+                          : 'bg-black/40 border-[#00f2ff]/20 hover:border-[#ff00ff]/60 text-[#00f2ff]/70 hover:text-white'
                         }`}
                     >
                       {number}
@@ -648,9 +648,9 @@ export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSucce
                 )}
               </div>
 
-              <div className="glass-morphism rounded-xl p-4 border border-white/10 mb-8">
-                <h3 className="text-[10px] font-black text-gray-300 mb-3 uppercase tracking-widest">How it works:</h3>
-                <ul className="text-[10px] text-gray-500 space-y-1 font-bold uppercase tracking-widest">
+              <div className="glass-morphism rounded-xl p-4 border border-white/20 mb-8 bg-black/40">
+                <h3 className="text-[11px] font-black text-white mb-3 uppercase tracking-widest">How it works:</h3>
+                <ul className="text-[11px] text-gray-300 space-y-1 font-bold uppercase tracking-widest">
                   <li>• Choose up to 10 numbers between 1-100</li>
                   <li>• Each ticket costs 100,000 CHESS tokens</li>
                   <li>• Daily draw at 19:05 UTC (7:05 PM UTC)</li>
