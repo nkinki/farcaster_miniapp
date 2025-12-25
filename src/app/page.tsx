@@ -9,6 +9,7 @@ import Image from "next/image"
 import LamboLottery from "@/components/LamboLottery"
 import WeatherLottoModal from "@/components/WeatherLottoModal"
 import SeasonStatusBanner from "@/components/SeasonStatusBanner"
+import DiamondCard from "@/components/DiamondCard"
 
 // Tipusok
 interface Miniapp {
@@ -520,6 +521,57 @@ export default function Home() {
             )}
           </div>
 
+          {/* Diamond VIP Teaser - COMING SOON */}
+          <div className="max-w-2xl mx-auto mb-12 px-2 animate-fadeIn">
+            <div className="bg-gradient-to-br from-slate-900 via-[#1a1f2e] to-slate-900 rounded-3xl p-6 border-2 border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative overflow-hidden group">
+              {/* Background Glow */}
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full" />
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 blur-[100px] rounded-full" />
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                {/* 3D Card Component */}
+                <div className="w-full md:w-1/2">
+                  <DiamondCard />
+                </div>
+
+                {/* Text Content */}
+                <div className="w-full md:w-1/2 text-center md:text-left space-y-4">
+                  <div className="inline-block px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-[10px] font-bold text-cyan-400 tracking-widest uppercase mb-2">
+                    Coming Soon
+                  </div>
+                  <h2 className="text-3xl font-black text-white italic tracking-tight">
+                    DIAMOND <span className="text-cyan-400">VIP</span> 💎
+                  </h2>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    Exclusive membership for the ultimate $CHESS holders. Unlock massive perks and dominate the leaderboards.
+                  </p>
+
+                  <div className="grid grid-cols-1 gap-2 pt-2">
+                    {[
+                      "🔥 2x Season Points Multiplier",
+                      "🎟️ 1x Daily Free Lotto Ticket",
+                      "⚡ Free Social Boosts (Like/Recast/Quote)",
+                      "✨ Exclusive Diamond Badge on Profile"
+                    ].map((perk, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs font-semibold text-cyan-100/80">
+                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                        {perk}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4">
+                    <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Requirement</div>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 border border-white/10 rounded-xl">
+                      <FiDollarSign className="text-yellow-400" />
+                      <span className="text-white font-bold text-sm">10,000,000 $CHESS</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {showMiniapps && (
             <div className="relative bg-[#23283a] rounded-2xl shadow-2xl p-1 border border-[#a64d79] w-full animate-fadeIn">
               {favoriteApps.length > 0 && (
@@ -646,7 +698,7 @@ export default function Home() {
 
           </div>
         </nav>
-      </div>
+      </div >
       <style jsx global>{`
         @keyframes chessneon {
           0% { color: #5D6AFF; text-shadow: 0 0 6px #5D6AFF, 0 0 12px #5D6AFF; }

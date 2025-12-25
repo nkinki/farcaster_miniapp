@@ -42,13 +42,13 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [isChecking, setIsChecking] = useState(false);
   const [isLoadingPoints, setIsLoadingPoints] = useState(false);
-  const [checkResult, setCheckResult] = useState<{points: number} | null>(null);
+  const [checkResult, setCheckResult] = useState<{ points: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<string>('');
-  
+
   // Wallet connection for CHESS balance
   const { address, isConnected } = useAccount();
-  
+
   // CHESS token balance
   const { data: chessBalance, isLoading: balanceLoading } = useReadContract({
     address: CHESS_TOKEN_ADDRESS,
@@ -64,17 +64,17 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
   // Countdown timer for season expiration
   useEffect(() => {
     if (!seasonData) return;
-    
+
     const updateCountdown = () => {
       const now = new Date().getTime();
       const endTime = new Date(seasonData.end_date).getTime();
       const timeDiff = endTime - now;
-      
+
       if (timeDiff > 0) {
         const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        
+
         if (days > 0) {
           setTimeLeft(`${days} day${days !== 1 ? 's' : ''} left`);
         } else if (hours > 0) {
@@ -88,10 +88,10 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
         setTimeLeft('EXPIRED');
       }
     };
-    
+
     updateCountdown();
     const interval = setInterval(updateCountdown, 60000); // Update every minute
-    
+
     return () => clearInterval(interval);
   }, [seasonData]);
 
@@ -118,12 +118,12 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
 
   const fetchUserPoints = async () => {
     if (!userFid) return;
-    
+
     setIsLoadingPoints(true);
     try {
       // Add a small delay for animation
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       const response = await fetch(`/api/season/user-points?fid=${userFid}`);
       if (response.ok) {
         const data = await response.json();
@@ -213,7 +213,9 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
           <div className="flex items-center gap-3">
             <FiCalendar className="w-8 h-8 text-purple-400" />
             <div>
-              <h2 className="text-2xl font-bold text-white">Season 1</h2>
+              <h2 className={`text-2xl font-bold ${seasonData?.name?.includes('Grinch') ? 'text-green-400' : 'text-white'}`}>
+                {seasonData?.name || "Season 1"}
+              </h2>
               <p className="text-sm text-gray-400">Active Season</p>
             </div>
           </div>
@@ -233,7 +235,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
               <FiCreditCard className="w-5 h-5" />
               Wallet Status
             </h3>
-            
+
             {!isConnected ? (
               <div className="text-center py-4">
                 <p className="text-gray-400 mb-2">Wallet not connected</p>
@@ -266,8 +268,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">CHESS Points:</span>
                   <span className="text-purple-400 font-semibold">
-                    {chessBalance ? 
-                      `${Math.floor(parseFloat(formatUnits(chessBalance, 18)) / 1000000)} pts` : 
+                    {chessBalance ?
+                      `${Math.floor(parseFloat(formatUnits(chessBalance, 18)) / 1000000)} pts` :
                       '0 pts'
                     }
                   </span>
@@ -282,7 +284,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
               <FiCheckCircle className="w-5 h-5 text-green-400" />
               Daily Check-in
             </h3>
-            
+
             {!userFid ? (
               <div className="text-center py-8">
                 <p className="text-gray-400 mb-4">User not found</p>
@@ -293,11 +295,10 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                   <button
                     onClick={handleDailyCheck}
                     disabled={isChecking}
-                    className={`px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 ${
-                      isChecking
+                    className={`px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 ${isChecking
                         ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl'
-                    }`}
+                      }`}
                   >
                     {isChecking ? (
                       <div className="flex items-center gap-3">
@@ -353,7 +354,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                 <FiTrendingUp className="w-5 h-5" />
                 Your Points
               </h3>
-              
+
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-400">{userPoints.total_points}</div>
@@ -407,9 +408,8 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
               </h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {leaderboard.map((user, index) => (
-                  <div key={user.user_fid} className={`flex justify-between items-center p-2 rounded-lg ${
-                    user.user_fid === userFid ? 'bg-cyan-900/30 border border-cyan-400' : 'bg-gray-800/30'
-                  }`}>
+                  <div key={user.user_fid} className={`flex justify-between items-center p-2 rounded-lg ${user.user_fid === userFid ? 'bg-cyan-900/30 border border-cyan-400' : 'bg-gray-800/30'
+                    }`}>
                     <div className="flex items-center gap-2">
                       <span className="text-yellow-400 font-bold text-sm">#{index + 1}</span>
                       <span className="text-white text-sm">
@@ -430,7 +430,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                 <FiGift className="w-5 h-5" />
                 Season Info
               </h3>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Status:</span>
@@ -443,13 +443,13 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                   </span>
                 </div>
                 <div className="mt-3 space-y-2">
-                  <button 
+                  <button
                     disabled
                     className="w-full px-3 py-2 bg-gray-600 text-gray-400 rounded-lg cursor-not-allowed text-xs font-semibold"
                   >
                     Claim Rewards (Coming Soon)
                   </button>
-                  <button 
+                  <button
                     onClick={() => window.open('/airdrop', '_blank')}
                     className="w-full px-3 py-2 bg-[#5D6AFF] hover:bg-[#5D6AFF]/80 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2"
                   >
