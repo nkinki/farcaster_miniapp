@@ -539,15 +539,19 @@ export default function Home() {
                     DIAMOND <span className="text-cyan-400">VIP</span> 💎
                   </h2>
                   <p className="text-gray-400 text-sm leading-relaxed">
-                    Exclusive membership for the ultimate $CHESS holders. Unlock massive perks and dominate the leaderboards.
+                    Exclusive membership for the ultimate $CHESS holders.<br />
+                    <span className="text-cyan-300 font-bold">Total Value: Over 400k $CHESS Daily — Forever.</span><br />
+                    <span className="text-xs text-purple-300 italic">Community Whitelist Presale first, then full price for everyone.</span>
                   </p>
 
                   <div className="grid grid-cols-1 gap-2 pt-2">
                     {[
-                      "🔥 2x Season Points Multiplier",
-                      "🎟️ 1x Daily Free Lotto Ticket",
-                      "⚡ Free Social Boosts (Like/Recast/Quote)",
-                      "✨ Exclusive Diamond Badge on Profile"
+                      "🎟️ 1. Free Lambo Lotto Ticket (100k Value)",
+                      "👍 2. Like & Share Promotion (100k Limit)",
+                      "💬 3. Quote Promotion (100k Limit)",
+                      "📝 4. Comment Promotion (100k Limit)",
+                      "💎 5. Exclusive NFT Ownership",
+                      "🚀 6. 2x Season Points Multiplier"
                     ].map((perk, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs font-semibold text-cyan-100/80">
                         <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
