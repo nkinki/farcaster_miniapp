@@ -214,7 +214,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
             <FiCalendar className="w-8 h-8 text-cyan-400" />
             <div>
               <h2 className={`text-2xl font-black italic tracking-tight ${seasonData?.name?.includes('Grinch') ? 'text-green-400' : 'text-white'}`}>
-                {seasonData?.name || "Season 1"}
+                {seasonData?.name || "Current Season"}
               </h2>
               <p className="text-sm text-gray-400">Active Season</p>
             </div>
