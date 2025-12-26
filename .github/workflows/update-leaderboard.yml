@@ -1,0 +1,36 @@
+name: Update Leaderboard Cache
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Run every 6 hours (at minute 0)
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install Node dependencies
+      run: npm ci
+
+    - name: Run Leaderboard Update Script
+      run: node scripts/update-leaderboard-cache.js
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        
+    - name: Notify success
+      if: success()
+      run: echo "✅ Leaderboard cache updated successfully"
+        
+    - name: Notify failure
+      if: failure()
+      run: echo "❌ Leaderboard cache update failed"
