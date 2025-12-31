@@ -149,6 +149,7 @@ export default function PromotePage() {
 
   // Season modal state
   const [showSeasonModal, setShowSeasonModal] = useState(false);
+  const [seasonData, setSeasonData] = useState<any>(null);
 
   // Filter state for promotion types
   const [promotionFilter, setPromotionFilter] = useState<'all' | 'quote' | 'like_recast' | 'comment' | 'follow'>('all');
@@ -314,6 +315,23 @@ export default function PromotePage() {
         setProfile(ctx.user as FarcasterUser);
       }
     }).catch(err => console.error("Farcaster context error:", err));
+
+    // Fetch current season data
+    fetch(`${window.location.origin}/api/season/current`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.seasons && data.seasons.length > 0) {
+          const activeSeason = data.seasons.find((season: any) => season.status === 'active');
+          if (activeSeason) {
+            setSeasonData(activeSeason);
+          } else {
+            setSeasonData(data.seasons[0]);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching season data:", error)
+      })
   }, []);
 
   const currentUser = useMemo(() => {
@@ -1335,7 +1353,7 @@ export default function PromotePage() {
             </div>
             <div className="text-center">
               <div className="text-blue-300">Daily Check</div>
-              <div className="text-xs text-gray-400">Season 1</div>
+              <div className="text-xs text-gray-400">{seasonData?.name || "Season 1"}</div>
             </div>
           </button>
         </div>

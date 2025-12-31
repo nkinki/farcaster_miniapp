@@ -14,7 +14,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      seasons: seasonsResult.rows
+      seasons: seasonsResult.rows,
+      season: seasonsResult.rows[0]
     });
 
   } catch (error) {

@@ -213,7 +213,10 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
           <div className="flex items-center gap-3">
             <FiCalendar className="w-8 h-8 text-cyan-400" />
             <div>
-              <h2 className={`text-2xl font-black italic tracking-tight ${seasonData?.name?.includes('Grinch') ? 'text-green-400' : 'text-white'}`}>
+              <h2 className={`text-2xl font-black italic tracking-tight ${seasonData?.name?.includes('Grinch') ? 'text-green-400' :
+                seasonData?.name?.includes('Galaxy') ? 'text-cyan-400' :
+                  'text-white'
+                }`}>
                 {seasonData?.name || "Current Season"}
               </h2>
               <p className="text-sm text-gray-400">Active Season</p>
@@ -282,7 +285,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
           <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-4 border border-purple-400/50 pulse-glow">
             <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
               <FiCheckCircle className="w-5 h-5 text-green-400" />
-              Daily Check-in
+              {seasonData?.name ? `${seasonData.name} Check-in` : 'Daily Check-in'}
             </h3>
 
             {!userFid ? (
@@ -306,7 +309,7 @@ export default function SeasonModal({ isOpen, onClose, userFid }: SeasonModalPro
                         <span>Processing...</span>
                       </div>
                     ) : (
-                      '✅ Daily Check'
+                      `✅ Checked: ${seasonData?.name || 'Daily'}`
                     )}
                   </button>
                 </div>
