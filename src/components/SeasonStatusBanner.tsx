@@ -138,7 +138,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
           <div className="flex items-center gap-3">
             {seasonData.status === 'active' && (
               <div className="text-right">
-                <div className="text-lg font-black text-cyan-300 italic tracking-tighter">
+                <div className="text-sm font-black text-cyan-300 italic tracking-tighter">
                   {seasonData.name === "Growth Galaxy" ? "ENDS JAN 31" : timeLeft}
                 </div>
               </div>
