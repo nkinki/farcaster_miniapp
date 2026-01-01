@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
-import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2 } from "react-icons/fi"
+import { DIAMOND_VIP_ADDRESS, DIAMOND_VIP_ABI } from "@/abis/diamondVip"
+import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken"
+import { toast } from "react-hot-toast"
+import { useAccount, useReadContract, useWriteContract } from "wagmi"
+import { parseUnits } from "viem"
+import { useChessToken } from "@/hooks/useChessToken"
+import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2, FiExternalLink } from "react-icons/fi"
 import type { IconType } from "react-icons";
 import React from "react"
 import Image from "next/image"
@@ -138,6 +144,74 @@ export default function Home() {
   const [seasonData, setSeasonData] = useState<any>(null)
   const [showMiniapps, setShowMiniapps] = useState(false)
   const [fetchingMiniapps, setFetchingMiniapps] = useState(false)
+
+  const { address } = useAccount()
+  const { data: vipBalance, isLoading: isCheckingVip } = useReadContract({
+    address: DIAMOND_VIP_ADDRESS,
+    abi: DIAMOND_VIP_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+    }
+  })
+
+  const { writeContractAsync: writeMint, isPending: isMinting } = useWriteContract()
+  const {
+    balance: chessBalance,
+    allowance: chessAllowance,
+    needsApproval,
+    approve: approveChess,
+    isApproving,
+    isApprovalConfirming,
+    refetchAllowance: refetchChessAllowance,
+  } = useChessToken()
+
+  const isAlreadyVip = useMemo(() => {
+    return vipBalance ? Number(vipBalance) > 0 : false
+  }, [vipBalance])
+
+  const handleMint = async () => {
+    if (!address) {
+      toast.error("Please connect your wallet first!")
+      return
+    }
+
+    if (DIAMOND_VIP_ADDRESS === "0x0000000000000000000000000000000000000000") {
+      toast.error("Diamond VIP Contract not deployed yet! Please update the contract address.")
+      return
+    }
+
+    try {
+      const price = parseUnits("5000000", 18) // Presale price
+
+      if (!chessBalance || chessBalance < price) {
+        toast.error("Insufficient $CHESS balance! You need 5,000,000 $CHESS.")
+        return
+      }
+
+      // Check allowance
+      if (needsApproval(price)) {
+        toast.loading("Approving $CHESS tokens...", { id: "mint-toast" })
+        await approveChess(DIAMOND_VIP_ADDRESS, price)
+        toast.success("Approval successful!", { id: "mint-toast" })
+        await refetchChessAllowance()
+      }
+
+      toast.loading("Minting your Diamond VIP NFT...", { id: "mint-toast" })
+      await writeMint({
+        address: DIAMOND_VIP_ADDRESS,
+        abi: DIAMOND_VIP_ABI,
+        functionName: "mint",
+      })
+
+      toast.success("Congratulations! You are now a Diamond VIP! 💎 Use any Daily Code in the Promote section to activate your daily bundle!", { id: "mint-toast", duration: 8000 })
+      await sdk.haptics.impactOccurred("medium")
+    } catch (err: any) {
+      console.error("Mint error:", err)
+      toast.error(err.message || "Minting failed. Please try again.", { id: "mint-toast" })
+    }
+  }
 
   useEffect(() => {
     const checkHaptics = async () => {
@@ -517,7 +591,7 @@ export default function Home() {
             )}
           </div>
 
-          {/* Diamond VIP Teaser - COMING SOON */}
+          {/* Diamond VIP Minting Section */}
           <div className="max-w-2xl mx-auto mb-12 px-2 animate-fadeIn">
             <div className="bg-gradient-to-br from-slate-900 via-[#1a1f2e] to-slate-900 rounded-3xl p-6 border-2 border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative overflow-hidden group">
               {/* Background Glow */}
@@ -533,15 +607,14 @@ export default function Home() {
                 {/* Text Content */}
                 <div className="w-full md:w-1/2 text-center md:text-left space-y-4">
                   <div className="inline-block px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-[10px] font-bold text-cyan-400 tracking-widest uppercase mb-2">
-                    Coming Soon
+                    Diamond VIP Pass
                   </div>
                   <h2 className="text-3xl font-black text-white italic tracking-tight">
                     DIAMOND <span className="text-cyan-400">VIP</span> 💎
                   </h2>
                   <p className="text-gray-400 text-sm leading-relaxed">
                     Exclusive membership for the ultimate $CHESS holders.<br />
-                    <span className="text-cyan-300 font-bold">Total Value: Over 400k $CHESS Daily — Forever.</span><br />
-                    <span className="text-xs text-purple-300 italic">Community Whitelist Presale first, then full price for everyone.</span>
+                    <span className="text-cyan-300 font-bold">Total Value: Over 400k $CHESS Daily — Forever.</span>
                   </p>
 
                   <div className="grid grid-cols-1 gap-2 pt-2">
@@ -560,12 +633,34 @@ export default function Home() {
                     ))}
                   </div>
 
-                  <div className="pt-4">
-                    <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Requirement</div>
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 border border-white/10 rounded-xl">
-                      <FiDollarSign className="text-yellow-400" />
-                      <span className="text-white font-bold text-sm">10,000,000 $CHESS</span>
+                  <div className="pt-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between md:justify-start gap-4">
+                      <div>
+                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Presale Price</div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-900/40 border border-cyan-500/30 rounded-lg">
+                          <span className="text-white font-bold text-sm">5,000,000 $CHESS</span>
+                        </div>
+                      </div>
+                      <div className="text-gray-600 font-bold hidden md:block">→</div>
+                      <div>
+                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Public Price</div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/40 border border-white/10 rounded-lg">
+                          <span className="text-gray-400 font-bold text-sm">10,000,000 $CHESS</span>
+                        </div>
+                      </div>
                     </div>
+
+                    <button
+                      onClick={handleMint}
+                      disabled={isMinting || isApproving || isApprovalConfirming || isAlreadyVip || isCheckingVip}
+                      className={`w-full py-4 font-black text-xl rounded-2xl transition-all duration-300 diamond-shadow disabled:opacity-50 disabled:cursor-not-allowed ${isAlreadyVip
+                        ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
+                        : "bg-gradient-to-r from-cyan-500 to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                        }`}
+                    >
+                      {isAlreadyVip ? "ALREADY A VIP 💎" : isMinting ? "MINTING... 💎" : isApproving || isApprovalConfirming ? "APPROVING..." : isCheckingVip ? "CHECKING..." : "MINT NOW 🚀"}
+                    </button>
+                    <p className="text-[9px] text-purple-400 text-center uppercase font-black tracking-widest">Limited Presale Active (50% OFF)</p>
                   </div>
                 </div>
               </div>

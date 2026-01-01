@@ -16,6 +16,7 @@ import type { PromoCast } from "@/types/promotions";
 import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi';
 import { SignInButton, useProfile } from '@farcaster/auth-kit';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
+import { DIAMOND_VIP_ADDRESS, DIAMOND_VIP_ABI } from '@/abis/diamondVip';
 import { formatUnits } from 'viem';
 
 // Share szövegek promótereknek - $CHESS token és ingyenes promóció
@@ -123,9 +124,21 @@ export default function PromotePage() {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address && isConnected,
-      refetchInterval: 10000, // Refresh every 10 seconds
+      refetchInterval: 10000,
     }
   });
+
+  const { data: vipBalance } = useReadContract({
+    address: DIAMOND_VIP_ADDRESS,
+    abi: DIAMOND_VIP_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address && isConnected,
+    }
+  });
+
+  const isVip = useMemo(() => vipBalance ? Number(vipBalance) > 0 : false, [vipBalance]);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
@@ -2515,8 +2528,35 @@ export default function PromotePage() {
 
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
               <FiGift className="text-yellow-400" />
-              Redeem Daily Code (Under Dev)
+              Redeem Daily Code {isVip && <span className="text-xs bg-cyan-500 text-white px-2 py-0.5 rounded-full animate-pulse ml-2">DIAMOND VIP 💎</span>}
             </h2>
+
+            {isVip && !dailyCodeSuccess && (
+              <div className="mb-6 p-4 bg-cyan-900/30 border border-cyan-500/50 rounded-xl">
+                <h3 className="text-cyan-300 font-bold text-sm mb-2 flex items-center gap-2">
+                  <span>💎</span> Your Diamond VIP Bundle
+                </h3>
+                <ul className="text-xs text-cyan-100/80 space-y-1.5">
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
+                    1x Ingyenes Lambo Lotto Ticket
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
+                    100k Like & Recast Promóció
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
+                    100k Quote Promóció
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
+                    100k Comment Promóció
+                  </li>
+                </ul>
+                <p className="text-[10px] text-cyan-400/60 mt-2 italic">Aktiváld bármelyik napi kóddal!</p>
+              </div>
+            )}
 
             {dailyCodeSuccess ? (
               <div className="text-center py-8">

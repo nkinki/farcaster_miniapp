@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
 import { config } from '@/lib/wagmi-config'
 import { AuthKitProvider } from '@farcaster/auth-kit'
+import { Toaster } from 'react-hot-toast'
 
 const queryClient = new QueryClient()
 
@@ -16,15 +17,16 @@ export default function Web3Providers({ children }: Web3ProvidersProps) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <AuthKitProvider config={{ 
+        <AuthKitProvider config={{
           domain: 'apprank.xyz',
           relay: 'https://relay.farcaster.xyz',
           rpcUrl: 'https://mainnet.optimism.io', // Optimism RPC for Farcaster Auth
           siweUri: 'https://apprank.xyz'
         }}>
+          <Toaster position="top-center" />
           {children}
         </AuthKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   )
-} 
+}
