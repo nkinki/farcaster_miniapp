@@ -104,21 +104,21 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
       <style jsx>{`
         @keyframes pulseGlow {
           0% {
-            box-shadow: 0 0 2px rgba(0, 242, 255, 0.2);
-            filter: brightness(1);
+            box-shadow: 0 0 3px rgba(6, 182, 212, 0.3);
+            border-color: rgba(6, 182, 212, 0.3);
           }
           50% {
-            box-shadow: 0 0 6px rgba(0, 242, 255, 0.4);
-            filter: brightness(1.05);
+            box-shadow: 0 0 10px rgba(162, 89, 255, 0.4);
+            border-color: rgba(162, 89, 255, 0.6);
           }
           100% {
-            box-shadow: 0 0 2px rgba(0, 242, 255, 0.2);
-            filter: brightness(1);
+            box-shadow: 0 0 3px rgba(6, 182, 212, 0.3);
+            border-color: rgba(6, 182, 212, 0.3);
           }
         }
         .pulse-glow {
           animation: pulseGlow 4s ease-in-out infinite;
-          border: 1px solid #a259ff80;
+          border-width: 1px;
         }
       `}</style>
       <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4 shadow-md transition-all duration-300 pulse-glow max-w-sm mx-auto`}>
