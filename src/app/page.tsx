@@ -616,7 +616,8 @@ export default function Home() {
                       "💬 3. Quote Promotion (100k Limit)",
                       "📝 4. Comment Promotion (100k Limit)",
                       "💎 5. Exclusive NFT Ownership",
-                      "🚀 6. 2x Season Points Multiplier"
+                      "🚀 6. 2x Season Points Multiplier",
+                      "🏆 7. TOP 3 Season Reward (Automatic VIP)"
                     ].map((perk, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs font-semibold text-cyan-100/80">
                         <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
