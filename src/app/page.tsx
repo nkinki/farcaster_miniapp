@@ -146,15 +146,17 @@ export default function Home() {
   const [fetchingMiniapps, setFetchingMiniapps] = useState(false)
 
   const { address } = useAccount()
-  const { data: vipBalance, isLoading: isCheckingVip } = useReadContract({
+
+  // Disabled auto-read to avoid DB/On-chain calls on start
+  const { data: vipBalance } = useReadContract({
     address: DIAMOND_VIP_ADDRESS,
     abi: DIAMOND_VIP_ABI,
-    functionName: "balanceOf",
+    functionName: 'balanceOf',
     args: address ? [address] : undefined,
     query: {
-      enabled: !!address,
+      enabled: false,
     }
-  })
+  });
 
   const { writeContractAsync: writeMint, isPending: isMinting } = useWriteContract()
   const {
@@ -652,13 +654,13 @@ export default function Home() {
 
                     <button
                       onClick={handleMint}
-                      disabled={isMinting || isApproving || isApprovalConfirming || isAlreadyVip || isCheckingVip}
+                      disabled={true} // Inactive for now
                       className={`w-full py-4 font-black text-xl rounded-2xl transition-all duration-300 diamond-shadow disabled:opacity-50 disabled:cursor-not-allowed ${isAlreadyVip
                         ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-                        : "bg-gradient-to-r from-cyan-500 to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                        : "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]"
                         }`}
                     >
-                      {isAlreadyVip ? "ALREADY A VIP 💎" : isMinting ? "MINTING... 💎" : isApproving || isApprovalConfirming ? "APPROVING..." : isCheckingVip ? "CHECKING..." : "MINT NOW 🚀"}
+                      {isAlreadyVip ? "ALREADY A VIP 💎" : "INACTIVE 🚀"}
                     </button>
                     <p className="text-[9px] text-purple-400 text-center uppercase font-black tracking-widest">Limited Presale Active (50% OFF)</p>
                   </div>
