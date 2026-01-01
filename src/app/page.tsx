@@ -236,26 +236,16 @@ export default function Home() {
 
     // Miniapp fetching moved to lazy load function
 
-    // Fetch current season data
-    fetch(`${window.location.origin}/api/season/current`, { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Season data received:", data);
-        if (data.seasons && data.seasons.length > 0) {
-          const activeSeason = data.seasons.find((season: any) => season.status === 'active');
-          console.log("Active season found:", activeSeason);
-          if (activeSeason) {
-            setSeasonData(activeSeason);
-          } else {
-            // Fallback: use first season if no active season
-            console.log("No active season, using first season:", data.seasons[0]);
-            setSeasonData(data.seasons[0]);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching season data:", error)
-      })
+    // Temporarily static season name to reduce DB usage on start
+    // TODO: Remember to update or restore fetch for the next season!
+    setSeasonData({
+      id: 1,
+      name: "Growth Galaxy",
+      status: "active",
+      start_date: "2024-01-01",
+      end_date: "2026-12-31",
+      total_rewards: "10000000"
+    });
 
     sdk.actions.addMiniApp();
 

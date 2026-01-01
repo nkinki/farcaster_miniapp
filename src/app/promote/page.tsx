@@ -329,22 +329,16 @@ export default function PromotePage() {
       }
     }).catch(err => console.error("Farcaster context error:", err));
 
-    // Fetch current season data
-    fetch(`${window.location.origin}/api/season/current`, { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.seasons && data.seasons.length > 0) {
-          const activeSeason = data.seasons.find((season: any) => season.status === 'active');
-          if (activeSeason) {
-            setSeasonData(activeSeason);
-          } else {
-            setSeasonData(data.seasons[0]);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching season data:", error)
-      })
+    // Temporarily static season name to reduce DB usage on start
+    // TODO: Remember to update or restore fetch for the next season!
+    setSeasonData({
+      id: 1,
+      name: "Growth Galaxy",
+      status: "active",
+      start_date: "2024-01-01",
+      end_date: "2026-12-31",
+      total_rewards: "10000000"
+    });
   }, []);
 
   const currentUser = useMemo(() => {
