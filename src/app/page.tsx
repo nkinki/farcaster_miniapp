@@ -650,7 +650,7 @@ export default function Home() {
                         : "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]"
                         }`}
                     >
-                      {isAlreadyVip ? "ALREADY A VIP 💎" : "INACTIVE 🚀"}
+                      {isAlreadyVip ? "ALREADY A VIP 💎" : "COMING SOON 🚀"}
                     </button>
                     <p className="text-[9px] text-purple-400 text-center uppercase font-black tracking-widest">Limited Presale Active (50% OFF)</p>
                   </div>
