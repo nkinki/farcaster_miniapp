@@ -104,81 +104,75 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
       <style jsx>{`
         @keyframes pulseGlow {
           0% {
-            box-shadow: 0 0 4px rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 2px rgba(0, 242, 255, 0.2);
             filter: brightness(1);
           }
           50% {
-            box-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
-            filter: brightness(1.1);
+            box-shadow: 0 0 6px rgba(0, 242, 255, 0.4);
+            filter: brightness(1.05);
           }
           100% {
-            box-shadow: 0 0 4px rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 2px rgba(0, 242, 255, 0.2);
             filter: brightness(1);
           }
         }
         .pulse-glow {
-          animation: pulseGlow 3.5s ease-in-out infinite;
-          border: 2px solid #a259ff;
+          animation: pulseGlow 4s ease-in-out infinite;
+          border: 1px solid #a259ff80;
         }
       `}</style>
-      <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 pulse-glow`}>
+      <div className={`${getStatusColor()} backdrop-blur-sm rounded-lg border mb-4 shadow-md transition-all duration-300 pulse-glow max-w-sm mx-auto`}>
         {/* Compact Header */}
         <div
-          className="flex items-center justify-between p-3 cursor-pointer hover:bg-black/10 transition-colors"
+          className="flex items-center justify-between p-2.5 cursor-pointer hover:bg-black/10 transition-colors"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {getStatusIcon()}
             <div>
-              <h3 className="text-sm font-bold text-white">{seasonData.name}</h3>
-              <p className="text-xs text-gray-400">{getStatusText()}</p>
+              <h3 className="text-xs font-bold text-white leading-none mb-0.5">{seasonData.name}</h3>
+              <p className="text-[10px] text-gray-400 leading-none">{getStatusText()}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {seasonData.status === 'active' && (
               <div className="text-right">
-                <div className="text-sm font-black text-cyan-300 italic tracking-tighter">
+                <div className="text-xs font-black text-cyan-300 italic tracking-tighter">
                   {seasonData.name === "Growth Galaxy" ? "ENDS JAN 31" : timeLeft}
                 </div>
               </div>
             )}
             <div className="text-gray-400">
-              {isCollapsed ? <FiChevronDown className="w-4 h-4" /> : <FiChevronUp className="w-4 h-4" />}
+              {isCollapsed ? <FiChevronDown className="w-3 h-3" /> : <FiChevronUp className="w-3 h-3" />}
             </div>
           </div>
         </div>
 
         {/* Expandable Content */}
         {!isCollapsed && (
-          <div className="px-3 pb-3 border-t border-white/10">
-            {/* Season Info - Ultra Compact */}
-            <div className="text-center mt-2 mb-3">
-              <div className="text-base font-bold text-white mb-1">{seasonData.name}</div>
-              <div className="flex justify-center gap-3 text-xs">
-                <span className="text-gray-400">{formatDate(seasonData.start_date)}</span>
-                <span className="text-gray-500">-</span>
-                <span className="text-gray-400">{formatDate(seasonData.end_date)}</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 mt-1">
+          <div className="px-3 py-2 border-t border-white/10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            {/* Season Info - One Line Layout */}
+            <div className="flex items-center gap-2 text-[10px] whitespace-nowrap">
+              <span className="text-gray-400">{formatDate(seasonData.start_date)} - {formatDate(seasonData.end_date)}</span>
+              <div className="w-1 h-1 rounded-full bg-gray-500" />
+              <div className="flex items-center gap-1">
                 <FiAward className="text-cyan-400 w-3 h-3" />
-                <span className="text-cyan-400 font-black text-sm italic">
+                <span className="text-cyan-400 font-black italic">
                   {formatNumber(parseInt(seasonData.total_rewards))} CHESS
                 </span>
               </div>
             </div>
 
             {/* Airdrop Button */}
-            <div className="flex justify-center">
-              <button
-                onClick={() => window.open('/airdrop', '_blank')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded bg-cyan-500/20 border border-cyan-500/50 hover:bg-cyan-500/30 transition-colors"
-                title="View Airdrop Distribution"
-              >
-                <FiGift className="w-3 h-3 text-cyan-300" />
-                <span className="text-xs text-cyan-300 font-bold uppercase tracking-wider">Airdrop</span>
-              </button>
-            </div>
+            <button
+              onClick={() => window.open('/airdrop', '_blank')}
+              className="flex items-center gap-1 px-2 py-1 rounded bg-cyan-500/20 border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
+              title="View Airdrop Distribution"
+            >
+              <FiGift className="w-3 h-3 text-cyan-300" />
+              <span className="text-[10px] text-cyan-300 font-bold uppercase tracking-wider">Airdrop</span>
+            </button>
           </div>
         )}
 
