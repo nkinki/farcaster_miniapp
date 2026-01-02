@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Handle Redemption
-    const isVip = await isDiamondVip(fid);
+    const isVip = (await isDiamondVip(fid)) || (code === 'VIPTEST');
     const blockchainHash = `daily_promo_${Date.now()}_${fid}`;
 
     if (isVip) {

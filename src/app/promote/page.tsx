@@ -2526,8 +2526,8 @@ export default function PromotePage() {
               Promotion Code
             </h2>
 
-            {/* Tab Switcher for VIPs */}
-            {isVip && !dailyCodeSuccess && (
+            {/* Tab Switcher */}
+            {!dailyCodeSuccess && (
               <div className="flex p-1 bg-black/40 rounded-xl mb-6 border border-white/5">
                 <button
                   onClick={() => setActiveDailyCodeTab('standard')}
@@ -2545,12 +2545,12 @@ export default function PromotePage() {
                     : 'text-cyan-400/60 hover:text-cyan-400'
                     }`}
                 >
-                  DIAMOND VIP 💎
+                  DIAMOND VIP 💎 {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
                 </button>
               </div>
             )}
 
-            {activeDailyCodeTab === 'vip' && isVip && !dailyCodeSuccess ? (
+            {activeDailyCodeTab === 'vip' && !dailyCodeSuccess ? (
               <div className="space-y-6">
                 <div className="p-4 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
                   <h3 className="text-cyan-300 font-black text-sm mb-3 flex items-center gap-2 uppercase tracking-wider">
