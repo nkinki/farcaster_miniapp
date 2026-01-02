@@ -151,28 +151,33 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
 
         {/* Expandable Content */}
         {!isCollapsed && (
-          <div className="px-3 py-2 border-t border-white/10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-            {/* Season Info - One Line Layout */}
-            <div className="flex items-center gap-2 text-[10px] whitespace-nowrap">
-              <span className="text-gray-400">{formatDate(seasonData.start_date)} - {formatDate(seasonData.end_date)}</span>
-              <div className="w-1 h-1 rounded-full bg-gray-500" />
-              <div className="flex items-center gap-1">
+          <div className="px-3 pb-3 border-t border-white/10">
+            {/* Season Info - Multi Line */}
+            <div className="text-center mt-2 mb-3">
+              <div className="flex justify-center gap-2 text-[10px] mb-1">
+                <span className="text-gray-400">{formatDate(seasonData.start_date)}</span>
+                <span className="text-gray-500">-</span>
+                <span className="text-gray-400">{formatDate(seasonData.end_date)}</span>
+              </div>
+              <div className="flex items-center justify-center gap-1">
                 <FiAward className="text-cyan-400 w-3 h-3" />
-                <span className="text-cyan-400 font-black italic">
+                <span className="text-cyan-400 font-black text-xs italic">
                   {formatNumber(parseInt(seasonData.total_rewards))} CHESS
                 </span>
               </div>
             </div>
 
             {/* Airdrop Button */}
-            <button
-              onClick={() => window.open('/airdrop', '_blank')}
-              className="flex items-center gap-1 px-2 py-1 rounded bg-cyan-500/20 border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
-              title="View Airdrop Distribution"
-            >
-              <FiGift className="w-3 h-3 text-cyan-300" />
-              <span className="text-[10px] text-cyan-300 font-bold uppercase tracking-wider">Airdrop</span>
-            </button>
+            <div className="flex justify-center">
+              <button
+                onClick={() => window.open('/airdrop', '_blank')}
+                className="flex items-center gap-1 px-3 py-1.5 rounded bg-cyan-500/20 border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
+                title="View Airdrop Distribution"
+              >
+                <FiGift className="w-3 h-3 text-cyan-300" />
+                <span className="text-[10px] text-cyan-300 font-bold uppercase tracking-wider">Airdrop</span>
+              </button>
+            </div>
           </div>
         )}
 
