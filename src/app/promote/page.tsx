@@ -2571,7 +2571,7 @@ export default function PromotePage() {
                   </div>
                   <div className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
                     <p className="text-[10px] text-cyan-200/80 leading-relaxed font-medium">
-                      Redeem any daily code (including <span className="text-yellow-400 font-bold">VIPTEST</span>) to activate your full bundle instantly!
+                      Redeem any daily code to activate your full bundle instantly!
                     </p>
                   </div>
                 </div>
@@ -2585,7 +2585,7 @@ export default function PromotePage() {
                       type="text"
                       value={dailyCode}
                       onChange={(e) => setDailyCode(e.target.value)}
-                      placeholder="e.g. VIPTEST"
+                      placeholder="Enter secret code..."
                       className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold"
                     />
                   </div>
