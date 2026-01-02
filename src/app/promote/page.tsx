@@ -194,6 +194,7 @@ export default function PromotePage() {
   const [dailyCodeCastUrl, setDailyCodeCastUrl] = useState('');
   const [dailyCodeError, setDailyCodeError] = useState<string | null>(null);
   const [dailyCodeSuccess, setDailyCodeSuccess] = useState<string | null>(null);
+  const [activeDailyCodeTab, setActiveDailyCodeTab] = useState<'standard' | 'vip'>('standard');
 
   const handleRedeemCode = async () => {
     if (!dailyCode || !dailyCodeCastUrl) {
@@ -2520,39 +2521,105 @@ export default function PromotePage() {
               <FiX size={24} />
             </button>
 
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-black text-white mb-6 flex items-center gap-2 italic tracking-tighter uppercase">
               <FiGift className="text-yellow-400" />
-              Redeem Daily Code {isVip && <span className="text-xs bg-cyan-500 text-white px-2 py-0.5 rounded-full animate-pulse ml-2">DIAMOND VIP 💎</span>}
+              Promotion Code
             </h2>
 
+            {/* Tab Switcher for VIPs */}
             {isVip && !dailyCodeSuccess && (
-              <div className="mb-6 p-4 bg-cyan-900/30 border border-cyan-500/50 rounded-xl">
-                <h3 className="text-cyan-300 font-bold text-sm mb-2 flex items-center gap-2">
-                  <span>💎</span> Your Diamond VIP Bundle
-                </h3>
-                <ul className="text-xs text-cyan-100/80 space-y-1.5">
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
-                    1x Ingyenes Lambo Lotto Ticket
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
-                    100k Like & Recast Promóció
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
-                    100k Quote Promóció
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
-                    100k Comment Promóció
-                  </li>
-                </ul>
-                <p className="text-[10px] text-cyan-400/60 mt-2 italic">Aktiváld bármelyik napi kóddal!</p>
+              <div className="flex p-1 bg-black/40 rounded-xl mb-6 border border-white/5">
+                <button
+                  onClick={() => setActiveDailyCodeTab('standard')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeDailyCodeTab === 'standard'
+                    ? 'bg-gray-700 text-white shadow-lg'
+                    : 'text-gray-500 hover:text-gray-300'
+                    }`}
+                >
+                  STANDARD
+                </button>
+                <button
+                  onClick={() => setActiveDailyCodeTab('vip')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${activeDailyCodeTab === 'vip'
+                    ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                    : 'text-cyan-400/60 hover:text-cyan-400'
+                    }`}
+                >
+                  DIAMOND VIP 💎
+                </button>
               </div>
             )}
 
-            {dailyCodeSuccess ? (
+            {activeDailyCodeTab === 'vip' && isVip && !dailyCodeSuccess ? (
+              <div className="space-y-6">
+                <div className="p-4 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
+                  <h3 className="text-cyan-300 font-black text-sm mb-3 flex items-center gap-2 uppercase tracking-wider">
+                    <span className="text-xl">💎</span> VIP Daily Bundle
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { icon: "🎟️", text: "1x FREE Lambo Lotto Ticket", color: "text-cyan-300" },
+                      { icon: "📈", text: "100k Like & Recast Promo", color: "text-purple-300" },
+                      { icon: "💬", text: "100k Quote Promotion", color: "text-cyan-300" },
+                      { icon: "📝", text: "100k Comment Promotion", color: "text-purple-300" }
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-2 bg-black/30 rounded-lg border border-white/5">
+                        <span className="text-lg">{item.icon}</span>
+                        <span className={`text-xs font-bold ${item.color}`}>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                    <p className="text-[10px] text-cyan-200/80 leading-relaxed font-medium">
+                      Redeem any daily code (including <span className="text-yellow-400 font-bold">VIPTEST</span>) to activate your full bundle instantly!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1.5 ml-1">
+                      Enter VIP or Daily Code
+                    </label>
+                    <input
+                      type="text"
+                      value={dailyCode}
+                      onChange={(e) => setDailyCode(e.target.value)}
+                      placeholder="e.g. VIPTEST"
+                      className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">
+                      Warpcast URL to Promote
+                    </label>
+                    <input
+                      type="text"
+                      value={dailyCodeCastUrl}
+                      onChange={(e) => setDailyCodeCastUrl(e.target.value)}
+                      placeholder="https://warpcast.com/..."
+                      className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleRedeemCode}
+                    disabled={loading || !dailyCode || !dailyCodeCastUrl}
+                    className="w-full py-4 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl font-black text-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 uppercase tracking-tighter"
+                  >
+                    {loading ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    ) : (
+                      <>
+                        <FiZap className="animate-pulse" />
+                        Activate VIP Bundle
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : dailyCodeSuccess ? (
               <div className="text-center py-8">
                 <div className="text-5xl mb-4">🎉</div>
                 <h3 className="text-xl font-bold text-green-400 mb-2">Success!</h3>
