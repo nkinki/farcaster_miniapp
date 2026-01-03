@@ -170,7 +170,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         })
       };
 
-      const response = await fetch('/api/promotions-with-comments', {
+      const response = await fetch('/api/promotions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(promotionData)
@@ -282,8 +282,8 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
           type="button"
           onClick={() => setSelectedAction('quote')}
           className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'quote'
-              ? 'bg-orange-600 text-white border border-orange-500'
-              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+            ? 'bg-orange-600 text-white border border-orange-500'
+            : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
             }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
@@ -293,8 +293,8 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
           type="button"
           onClick={() => setSelectedAction('like_recast')}
           className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'like_recast'
-              ? 'bg-purple-600 text-white border border-purple-500'
-              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+            ? 'bg-purple-600 text-white border border-purple-500'
+            : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
             }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
@@ -304,8 +304,8 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
           type="button"
           onClick={() => setSelectedAction('comment')}
           className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'comment'
-              ? 'bg-green-600 text-white border border-green-500'
-              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+            ? 'bg-green-600 text-white border border-green-500'
+            : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
             }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
@@ -315,8 +315,8 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
           type="button"
           onClick={() => setSelectedAction('follow')}
           className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'follow'
-              ? 'bg-pink-600 text-white border border-pink-500'
-              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+            ? 'bg-pink-600 text-white border border-pink-500'
+            : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
             }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >

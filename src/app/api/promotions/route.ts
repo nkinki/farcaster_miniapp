@@ -51,17 +51,18 @@ export async function POST(request: NextRequest) {
     // FID to Number
     const userFid = Number(fid);
 
-    // Insert without comment data for now (until migration is fixed)
-    // TODO: Re-enable comment columns after database migration is applied
+    // Insert with comment data
     const result = await sql`
       INSERT INTO promotions (
         fid, username, display_name, cast_url, share_text,
-        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
+        reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type,
+        comment_templates, custom_comment, allow_custom_comments
       ) VALUES (
         ${fid}, ${username}, ${displayName || null}, ${castUrl}, ${shareText || null}, 
-        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'}
+        ${rewardPerShare}, ${totalBudget}, ${totalBudget}, 'active', ${blockchainHash}, ${actionType || 'quote'},
+        ${JSON.stringify(commentTemplates || [])}, ${customComment || null}, ${allowCustomComments !== false}
       )
-      RETURNING id, cast_url, created_at
+      RETURNING *
     `;
     const newPromotion = result[0];
 

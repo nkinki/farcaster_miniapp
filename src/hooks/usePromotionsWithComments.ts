@@ -36,7 +36,7 @@ export function usePromotionsWithComments({ limit = 20, offset = 0, status }: Us
         params.append("status", status)
       }
 
-      const response = await fetch(`/api/promotions-with-comments?${params}`)
+      const response = await fetch(`/api/promotions?${params}`)
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
