@@ -1384,6 +1384,12 @@ export default function PromotePage() {
               <FiStar className="text-purple-300" size={24} />
             </div>
           </div>
+          <div className="flex items-center justify-start mt-1">
+            <Link href="/" className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors">
+              <FiArrowLeft size={20} />
+              <span>Back</span>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -2901,7 +2907,7 @@ export default function PromotePage() {
           onClose={() => setShowSeasonModal(false)}
           userFid={profile?.fid}
         />
-            </div>
+      </div>
     </div>
-      );
+  );
 }

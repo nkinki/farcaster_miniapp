@@ -17,6 +17,8 @@ import WeatherLottoModal from "@/components/WeatherLottoModal"
 import SeasonStatusBanner from "@/components/SeasonStatusBanner"
 import DiamondCard from "@/components/DiamondCard"
 
+const PRESALE_END_DATE = new Date('2026-01-10T23:59:59');
+
 const CountdownTimer = ({ targetDate }: { targetDate: Date }) => {
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
 
@@ -638,7 +640,7 @@ export default function Home() {
                     <FiClock className="animate-pulse" /> Presale Ends
                   </div>
                   <div className="scale-90 origin-center">
-                    <CountdownTimer targetDate={new Date('2026-01-10T23:59:59')} />
+                    <CountdownTimer targetDate={PRESALE_END_DATE} />
                   </div>
                 </div>
 
