@@ -210,16 +210,16 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
             )}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white">{user.displayName || user.username}</h2>
+            <h2 className="text-xl font-bold text-white leading-tight -mb-1">{user.displayName || user.username}</h2>
+            <div className="flex items-center gap-2 mt-1">
               {isVip && (
-                <span className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full text-[10px] font-black text-white uppercase tracking-tighter shadow-[0_0_10px_rgba(6,182,212,0.4)] animate-pulse">
-                  <FiAward size={10} />
+                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-md text-[9px] font-black text-white uppercase tracking-tighter shadow-[0_0_10px_rgba(6,182,212,0.4)] animate-pulse">
+                  <FiAward size={8} />
                   VIP
                 </span>
               )}
+              <p className="text-gray-400 text-sm">@{user.username}</p>
             </div>
-            <p className="text-gray-400">@{user.username}</p>
           </div>
         </div>
 
