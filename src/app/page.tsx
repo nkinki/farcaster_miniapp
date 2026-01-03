@@ -8,7 +8,7 @@ import { toast } from "react-hot-toast"
 import { useAccount, useReadContract, useWriteContract } from "wagmi"
 import { parseUnits } from "viem"
 import { useChessToken } from "@/hooks/useChessToken"
-import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2, FiExternalLink } from "react-icons/fi"
+import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2, FiExternalLink, FiClock } from "react-icons/fi"
 import type { IconType } from "react-icons";
 import React from "react"
 import Image from "next/image"
@@ -16,6 +16,48 @@ import LamboLottery from "@/components/LamboLottery"
 import WeatherLottoModal from "@/components/WeatherLottoModal"
 import SeasonStatusBanner from "@/components/SeasonStatusBanner"
 import DiamondCard from "@/components/DiamondCard"
+
+const CountdownTimer = ({ targetDate }: { targetDate: Date }) => {
+  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate.getTime() - now;
+
+      if (distance < 0) {
+        clearInterval(interval);
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + Math.floor(distance / (1000 * 60 * 60 * 24)) * 24; // Total hours
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeLeft({ hours, minutes, seconds });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return (
+    <div className="flex justify-center gap-2 text-white font-mono font-bold text-xl">
+      <div className="bg-black/50 p-2 rounded-lg min-w-[50px] text-center">
+        {String(timeLeft.hours).padStart(2, '0')}
+        <span className="text-[8px] block font-sans font-normal text-gray-400 mt-1">HOURS</span>
+      </div>
+      <div className="py-2 text-gray-500">:</div>
+      <div className="bg-black/50 p-2 rounded-lg min-w-[50px] text-center">
+        {String(timeLeft.minutes).padStart(2, '0')}
+        <span className="text-[8px] block font-sans font-normal text-gray-400 mt-1">MINS</span>
+      </div>
+      <div className="py-2 text-gray-500">:</div>
+      <div className="bg-black/50 p-2 rounded-lg min-w-[50px] text-center">
+        {String(timeLeft.seconds).padStart(2, '0')}
+        <span className="text-[8px] block font-sans font-normal text-gray-400 mt-1">SECS</span>
+      </div>
+    </div>
+  );
+};
 
 // Tipusok
 interface Miniapp {
@@ -581,6 +623,37 @@ export default function Home() {
                 </button>
               </form>
             )}
+          </div>
+
+          {/* PRESALE BANNER - COMPACT DIAMOND STYLE */}
+          <div className="max-w-2xl mx-auto mb-6 px-2 animate-fadeIn">
+            <div className="relative overflow-hidden rounded-xl border border-cyan-500/40 bg-black/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+              {/* Background Glow */}
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 via-purple-900/20 to-cyan-900/20 animate-pulse"></div>
+
+              <div className="relative p-3 flex items-center justify-between gap-3">
+                {/* Left: Ticker */}
+                <div className="flex-1 text-center border-r border-white/10 pr-3">
+                  <div className="text-[10px] text-cyan-300 uppercase tracking-widest font-bold mb-1 flex items-center justify-center gap-1">
+                    <FiClock className="animate-pulse" /> Presale Ends
+                  </div>
+                  <div className="scale-90 origin-center">
+                    <CountdownTimer targetDate={new Date('2026-01-10T23:59:59')} />
+                  </div>
+                </div>
+
+                {/* Right: Top 3 Auto */}
+                <div className="flex-1 text-center pl-1">
+                  <div className="text-[10px] text-yellow-200 uppercase tracking-widest font-bold mb-1 flex items-center justify-center gap-1">
+                    Current Season
+                  </div>
+                  <div className="text-xs font-bold text-white leading-tight">
+                    Top 3 <span className="text-yellow-400">Auto-Win</span><br />
+                    <span className="text-[10px] text-cyan-300 font-normal">Diamond VIP Status</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Diamond VIP Minting Section */}
