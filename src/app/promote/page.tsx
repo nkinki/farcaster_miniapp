@@ -2600,8 +2600,8 @@ export default function PromotePage() {
 
       {/* Daily Code Modal */}
       {showDailyCodeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] max-w-md w-full p-6 pulse-glow relative">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] max-w-md w-full p-4 sm:p-6 pulse-glow relative max-h-[95vh] overflow-y-auto">
             <button
               onClick={() => setShowDailyCodeModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -2640,11 +2640,11 @@ export default function PromotePage() {
 
             {activeDailyCodeTab === 'vip' && !dailyCodeSuccess ? (
               <div className="space-y-6">
-                <div className="p-4 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
-                  <h3 className="text-cyan-300 font-black text-sm mb-3 flex items-center gap-2 uppercase tracking-wider">
-                    <span className="text-xl">💎</span> VIP Daily Bundle
+                <div className="p-3 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
+                  <h3 className="text-cyan-300 font-black text-[10px] mb-2 flex items-center gap-2 uppercase tracking-wider">
+                    <span className="text-lg">💎</span> VIP Daily Bundle
                   </h3>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {[
                       { icon: "🎟️", text: "1x FREE Lambo Lotto Ticket", color: "text-cyan-300" },
                       { icon: "📈", text: "100k Like & Recast Promo", color: "text-purple-300" },
@@ -2657,9 +2657,9 @@ export default function PromotePage() {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
-                    <p className="text-[10px] text-cyan-200/80 leading-relaxed font-medium">
-                      Redeem any daily code to activate your full bundle instantly!
+                  <div className="mt-2 p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                    <p className="text-[9px] text-cyan-200 leading-tight font-bold">
+                      VIP detected! Your full 300k bundle + Lotto ticket is ready.
                     </p>
                   </div>
                 </div>
@@ -2704,8 +2704,10 @@ export default function PromotePage() {
                       type="text"
                       value={dailyCode}
                       onChange={(e) => setDailyCode(e.target.value)}
-                      placeholder={isVip ? "VIP detected - code not required" : "Enter secret code..."}
-                      className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none transition-all placeholder:text-cyan-400/30 font-bold"
+                      placeholder={isVip ? "✨ VIP DETECTED - NO CODE NEEDED ✨" : "Enter secret code..."}
+                      className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-white focus:ring-1 focus:outline-none transition-all font-black uppercase text-xs ${isVip
+                        ? 'border-cyan-400 ring-1 ring-cyan-400/50 placeholder:text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                        : 'border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400 placeholder:text-cyan-400/30'}`}
                     />
                   </div>
 
