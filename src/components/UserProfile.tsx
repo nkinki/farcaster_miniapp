@@ -22,21 +22,22 @@ interface UserProfileProps {
     pendingRewards?: number;
   };
   onClaimSuccess: () => void;
+  isVip?: boolean;
 }
 
-const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
+const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProps) => {
   const { address } = useAccount();
   const { balance, formatChessAmount } = useChessToken();
 
   // Összecsukható logika
   const [collapsed, setCollapsed] = useState(true);
-  
+
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [justClaimed, setJustClaimed] = useState(false);
   const [claimedAmount, setClaimedAmount] = useState(0);
-  
+
   // Share functionality states
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedShareText, setSelectedShareText] = useState<string>('');
@@ -62,9 +63,9 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fid: user.fid }),
       });
-      
+
       const claimData = await claimResponse.json();
-      
+
       if (!claimResponse.ok) {
         throw new Error(claimData.error || "Claim failed.");
       }
@@ -73,19 +74,19 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       const claimedRewards = pendingRewards;
       setClaimedAmount(claimedRewards);
       setJustClaimed(true);
-      
+
       // Automatically trigger share after a short delay
       setTimeout(async () => {
         console.log('🚀 Auto-triggering share after claim');
-        
+
         let randomText = '';
-        
+
         try {
           randomText = getRandomShareText(claimedRewards);
           console.log('📝 Auto-share text:', randomText);
-          
+
           const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
-          
+
           const castOptions: any = {
             text: randomText,
             embeds: [
@@ -93,9 +94,9 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
               'https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'
             ]
           };
-          
+
           console.log('📝 Auto-cast options:', castOptions);
-          
+
           // Try composeCast
           if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
             const castResult = await miniAppSdk.actions.composeCast(castOptions);
@@ -108,14 +109,14 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
           // Fallback to external compose
           const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
           const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-          
+
           if (isMobile) {
             window.location.href = composeUrl;
           } else {
             window.open(composeUrl, '_blank');
           }
         }
-        
+
         // Page refresh after share
         setTimeout(() => {
           setJustClaimed(false);
@@ -126,11 +127,11 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
     } catch (err: any) {
       console.error('Claim error:', err);
       let errorMessage = "An unknown error occurred.";
-      
+
       if (err.message) {
         errorMessage = err.message;
       }
-      
+
       // Specifikus hibák kezelése
       if (err.message?.includes('No rewards to claim')) {
         errorMessage = "No rewards available to claim.";
@@ -139,7 +140,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       } else if (err.message?.includes('insufficient funds')) {
         errorMessage = "Backend wallet has insufficient funds. Please contact support.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsClaiming(false);
@@ -159,7 +160,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
       `Claimed ${amount.toFixed(2)} $CHESS on @base.base.eth! 🌟 Join $CHESS earners: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`,
       `Got ${amount.toFixed(2)} $CHESS on @base.base.eth! 🎊 Start earning $CHESS now: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`
     ];
-    
+
     const randomIndex = Math.floor(Math.random() * shareTexts.length);
     return shareTexts[randomIndex];
   };
@@ -190,11 +191,19 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             <FiUser className="text-white text-xl" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">{user.displayName || user.username}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-white">{user.displayName || user.username}</h2>
+              {isVip && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full text-[10px] font-black text-white uppercase tracking-tighter shadow-[0_0_10px_rgba(6,182,212,0.4)] animate-pulse">
+                  <FiAward size={10} />
+                  VIP
+                </span>
+              )}
+            </div>
             <p className="text-gray-400">@{user.username}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           {/* Total Reward Info Blokk */}
           <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-lg p-3 text-center min-w-[100px]">
@@ -204,7 +213,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
             </div>
             <p className="text-xs text-green-300 font-medium">Total Earned</p>
           </div>
-          
+
           {/* Összecsukó gomb - jobb szélre */}
           <button
             onClick={() => setCollapsed((prev) => !prev)}
@@ -218,175 +227,174 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
 
       {/* Tartalom csak ha nincs összecsukva */}
       {!collapsed && <>
-      <div className="grid grid-cols-2 gap-3 mb-6 text-white">
-        <div className="p-3 bg-[#181c23] rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiTrendingUp className="text-blue-400" />
-            <span className="font-semibold">{userStats.totalShares}</span>
+        <div className="grid grid-cols-2 gap-3 mb-6 text-white">
+          <div className="p-3 bg-[#181c23] rounded-lg">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <FiTrendingUp className="text-blue-400" />
+              <span className="font-semibold">{userStats.totalShares}</span>
+            </div>
+            <p className="text-xs text-gray-400 text-center">Total Shares</p>
           </div>
-          <p className="text-xs text-gray-400 text-center">Total Shares</p>
-        </div>
-        <div className="p-3 bg-[#181c23] rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiAward className="text-green-400" />
-            <span className="font-semibold">{pendingRewards.toFixed(2)}</span>
+          <div className="p-3 bg-[#181c23] rounded-lg">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <FiAward className="text-green-400" />
+              <span className="font-semibold">{pendingRewards.toFixed(2)}</span>
+            </div>
+            <p className="text-xs text-gray-400 text-center">Pending Rewards</p>
           </div>
-          <p className="text-xs text-gray-400 text-center">Pending Rewards</p>
-        </div>
-        <div className="p-3 bg-[#181c23] rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiDollarSign className="text-purple-400" />
-            <span className="font-semibold">{formatChessAmount(balance)}</span>
+          <div className="p-3 bg-[#181c23] rounded-lg">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <FiDollarSign className="text-purple-400" />
+              <span className="font-semibold">{formatChessAmount(balance)}</span>
+            </div>
+            <p className="text-xs text-gray-400 text-center">Your Balance</p>
           </div>
-          <p className="text-xs text-gray-400 text-center">Your Balance</p>
-        </div>
-        <div className="p-3 bg-[#181c23] rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <FiUser className="text-yellow-400" />
-            <span className="font-semibold">FID: {user.fid}</span>
+          <div className="p-3 bg-[#181c23] rounded-lg">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <FiUser className="text-yellow-400" />
+              <span className="font-semibold">FID: {user.fid}</span>
+            </div>
+            <p className="text-xs text-gray-400 text-center">Farcaster ID</p>
           </div>
-          <p className="text-xs text-gray-400 text-center">Farcaster ID</p>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <button
-          onClick={handleClaim}
-          disabled={isLoading || !hasPendingRewards || justClaimed || !canClaim}
-          className={`w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-500 flex items-center justify-center gap-2 ${
-            justClaimed 
-              ? 'bg-gradient-to-r from-green-500 to-green-600 animate-claimSuccess' 
-              : canClaim && hasPendingRewards
-                ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transform' 
-                : 'bg-gray-600 opacity-50 cursor-not-allowed'
-          }`}
-        >
-          {isClaiming ? (
-            <>
-              <FiLoader className="animate-spin" />
-              <span>Processing...</span>
-            </>
-          ) : justClaimed ? (
-            <>
-              <FiCheck className="animate-bounce" />
-              <span>Claimed {claimedAmount.toFixed(2)} $CHESS!</span>
-            </>
-          ) : canClaim && hasPendingRewards ? (
-            <>
-              <FiAward className="animate-pulse" />
-              <span>Claim {pendingRewards.toFixed(2)} $CHESS</span>
-            </>
-          ) : (
-            <>
-              <FiAward />
-              <span>No Rewards to Claim</span>
-            </>
+        <div className="space-y-2">
+          <button
+            onClick={handleClaim}
+            disabled={isLoading || !hasPendingRewards || justClaimed || !canClaim}
+            className={`w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-500 flex items-center justify-center gap-2 ${justClaimed
+                ? 'bg-gradient-to-r from-green-500 to-green-600 animate-claimSuccess'
+                : canClaim && hasPendingRewards
+                  ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transform'
+                  : 'bg-gray-600 opacity-50 cursor-not-allowed'
+              }`}
+          >
+            {isClaiming ? (
+              <>
+                <FiLoader className="animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : justClaimed ? (
+              <>
+                <FiCheck className="animate-bounce" />
+                <span>Claimed {claimedAmount.toFixed(2)} $CHESS!</span>
+              </>
+            ) : canClaim && hasPendingRewards ? (
+              <>
+                <FiAward className="animate-pulse" />
+                <span>Claim {pendingRewards.toFixed(2)} $CHESS</span>
+              </>
+            ) : (
+              <>
+                <FiAward />
+                <span>No Rewards to Claim</span>
+              </>
+            )}
+          </button>
+          <p className="text-xs text-gray-400 text-center mt-1">Min. 10,000 $CHESS required</p>
+
+          {/* Share button - always visible, copy promotional logic exactly */}
+          <button
+            onClick={async () => {
+              console.log('🔘 Share button clicked!');
+
+              // Define variables outside try block
+              let claimAmount = 0;
+              let randomText = '';
+
+              try {
+                // Get the latest claim
+                const response = await fetch(`/api/users/${user.fid}/latest-claim`);
+                let latestClaimAmount = 0;
+
+                if (response.ok) {
+                  const claimData = await response.json();
+                  latestClaimAmount = claimData.amount || 0;
+                  console.log('📊 Latest claim from API:', latestClaimAmount);
+                } else {
+                  console.log('⚠️ No latest claim API, using fallback');
+                  const userResponse = await fetch(`/api/users/${user.fid}`);
+                  const userData = await userResponse.json();
+                  latestClaimAmount = userData.totalEarnings || userStats.totalEarnings;
+                }
+
+                // Use claimed amount if just claimed, otherwise use latest claim from DB
+                claimAmount = justClaimed ? claimedAmount : latestClaimAmount;
+                console.log('💰 Claim amount to use:', claimAmount);
+
+                randomText = getRandomShareText(claimAmount);
+                console.log('📝 Share text:', randomText);
+
+                console.log('🔍 MiniAppSdk available:', !!miniAppSdk);
+
+                // Copy promotional logic exactly
+                const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
+                const shortHash = appRankPostUrl.split('/').pop();
+
+                const castOptions: any = {
+                  text: randomText
+                };
+
+                // Cast hash validation - use embed for this specific short hash
+                // The hash 0x9dfbcf59 is too short for quote, so we'll just embed the URL
+                console.log('🔍 URL Analysis:', {
+                  shortHash,
+                  hashLength: shortHash?.length || 0
+                });
+
+                // Always use embed for this specific case (too short hash)
+                castOptions.embeds = [
+                  appRankPostUrl,
+                  'https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'
+                ];
+                console.log(`📎 Creating embed with URL: ${appRankPostUrl} + AppRank link`);
+
+                console.log('📝 Cast options:', castOptions);
+
+                // Try composeCast like promotional
+                if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
+                  const castResult = await miniAppSdk.actions.composeCast(castOptions);
+                  console.log('✅ Cast created:', castResult);
+                } else {
+                  throw new Error('MiniAppSdk not available');
+                }
+              } catch (shareError) {
+                console.error('❌ Quote sharing failed:', shareError);
+                // Fallback to external compose
+                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                  window.location.href = composeUrl;
+                } else {
+                  window.open(composeUrl, '_blank');
+                }
+              }
+            }}
+            className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+          >
+            <FiShare2 />
+            <span>Share Your Claim</span>
+          </button>
+          <p className="text-xs text-gray-400 text-center mt-1">Thank you if you share! 🙏</p>
+
+          {error && (
+            <div className="p-3 text-sm bg-red-900/50 border border-red-600 text-red-300 rounded-md flex items-center gap-2 animate-fadeIn">
+              <FiX size={16} className="text-red-400" />
+              {error}
+            </div>
           )}
-        </button>
-        <p className="text-xs text-gray-400 text-center mt-1">Min. 10,000 $CHESS required</p>
-        
-        {/* Share button - always visible, copy promotional logic exactly */}
-        <button
-          onClick={async () => {
-            console.log('🔘 Share button clicked!');
-            
-            // Define variables outside try block
-            let claimAmount = 0;
-            let randomText = '';
-            
-            try {
-              // Get the latest claim
-              const response = await fetch(`/api/users/${user.fid}/latest-claim`);
-              let latestClaimAmount = 0;
-              
-              if (response.ok) {
-                const claimData = await response.json();
-                latestClaimAmount = claimData.amount || 0;
-                console.log('📊 Latest claim from API:', latestClaimAmount);
-              } else {
-                console.log('⚠️ No latest claim API, using fallback');
-                const userResponse = await fetch(`/api/users/${user.fid}`);
-                const userData = await userResponse.json();
-                latestClaimAmount = userData.totalEarnings || userStats.totalEarnings;
-              }
-              
-              // Use claimed amount if just claimed, otherwise use latest claim from DB
-              claimAmount = justClaimed ? claimedAmount : latestClaimAmount;
-              console.log('💰 Claim amount to use:', claimAmount);
-              
-              randomText = getRandomShareText(claimAmount);
-              console.log('📝 Share text:', randomText);
-              
-              console.log('🔍 MiniAppSdk available:', !!miniAppSdk);
-              
-              // Copy promotional logic exactly
-              const appRankPostUrl = 'https://farcaster.xyz/ifun/0x9dfbcf59';
-              const shortHash = appRankPostUrl.split('/').pop();
-              
-              const castOptions: any = {
-                text: randomText
-              };
-              
-              // Cast hash validation - use embed for this specific short hash
-              // The hash 0x9dfbcf59 is too short for quote, so we'll just embed the URL
-              console.log('🔍 URL Analysis:', {
-                shortHash,
-                hashLength: shortHash?.length || 0
-              });
-              
-              // Always use embed for this specific case (too short hash)
-              castOptions.embeds = [
-                appRankPostUrl,
-                'https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'
-              ];
-              console.log(`📎 Creating embed with URL: ${appRankPostUrl} + AppRank link`);
-              
-              console.log('📝 Cast options:', castOptions);
-              
-              // Try composeCast like promotional
-              if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.composeCast) {
-                const castResult = await miniAppSdk.actions.composeCast(castOptions);
-                console.log('✅ Cast created:', castResult);
-              } else {
-                throw new Error('MiniAppSdk not available');
-              }
-            } catch (shareError) {
-              console.error('❌ Quote sharing failed:', shareError);
-              // Fallback to external compose
-              const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomText)}`;
-              const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-              
-              if (isMobile) {
-                window.location.href = composeUrl;
-              } else {
-                window.open(composeUrl, '_blank');
-              }
-            }
-          }}
-          className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
-        >
-          <FiShare2 />
-          <span>Share Your Claim</span>
-        </button>
-        <p className="text-xs text-gray-400 text-center mt-1">Thank you if you share! 🙏</p>
-        
-        {error && (
-          <div className="p-3 text-sm bg-red-900/50 border border-red-600 text-red-300 rounded-md flex items-center gap-2 animate-fadeIn">
-            <FiX size={16} className="text-red-400" /> 
-            {error}
-          </div>
-        )}
-        
-        {success && !justClaimed && (
-          <div className="p-3 text-sm bg-green-900/50 border border-green-600 text-green-300 rounded-md flex items-center gap-2 animate-fadeIn">
-            <FiCheck size={16} className="text-green-400" /> 
-            {success}
-          </div>
-        )}
-        
-      </div>
+
+          {success && !justClaimed && (
+            <div className="p-3 text-sm bg-green-900/50 border border-green-600 text-green-300 rounded-md flex items-center gap-2 animate-fadeIn">
+              <FiCheck size={16} className="text-green-400" />
+              {success}
+            </div>
+          )}
+
+        </div>
       </>}
-      
+
       {/* Share Modal - Egyszerű reklám ablak sikeres claim után */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
@@ -402,7 +410,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 <FiX className="w-6 h-6" />
               </button>
             </div>
-            
+
             {/* Claimed Amount */}
             <div className="text-center mb-4 p-3 bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-lg">
               <div className="text-2xl font-bold text-green-400">
@@ -412,23 +420,23 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                 Claimed successfully!
               </div>
             </div>
-            
+
             {/* Share Image from public folder */}
             <div className="mb-4">
-              <img 
-                src="/og-image.png" 
-                alt="AppRank" 
+              <img
+                src="/og-image.png"
+                alt="AppRank"
                 className="w-full rounded-lg border border-purple-500/30"
               />
             </div>
-            
+
             {/* Promotional text with gratitude */}
             <div className="text-center mb-4">
               <p className="text-sm text-gray-300">
                 Thank you for sharing! Together we grow the $CHESS community. 🌱
               </p>
             </div>
-            
+
             {/* Single Share Button */}
             <button
               onClick={async () => {
@@ -442,20 +450,20 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                       embeds: []
                     })
                   });
-                  
+
                   const data = await response.json();
-                  
+
                   if (response.ok && data.success) {
                     console.log('✅ Cast created successfully:', data.cast?.hash);
                     console.log('📱 Response data:', data);
                     console.log('🔍 Mock flag:', data.mock);
-                    
+
                     // Check if it's a mock response
                     if (data.mock) {
                       console.log('🔄 Mock response detected, triggering fallback sharing');
                       throw new Error('Mock response - using fallback');
                     }
-                    
+
                     // Real cast created - close modal and show success
                     setShowShareModal(false);
                     setSuccess('Cast shared successfully!');
@@ -469,10 +477,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                   // Fallback to external sharing with mobile detection
                   const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(selectedShareText)}`;
                   const miniAppSdk = (window as any).miniAppSdk;
-                  
+
                   // Detect mobile device
                   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                  
+
                   // Try miniAppSdk openUrl first
                   try {
                     if (miniAppSdk && miniAppSdk.actions && miniAppSdk.actions.openUrl) {
@@ -484,7 +492,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                     }
                   } catch (sdkError) {
                     console.log('SDK openUrl failed, trying mobile-specific approach...');
-                    
+
                     if (isMobile) {
                       // For mobile, use location.href to redirect in same window
                       window.location.href = composeUrl;
@@ -493,7 +501,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess }: UserProfileProps) => {
                       window.open(composeUrl, '_blank');
                     }
                   }
-                  
+
                   setShowShareModal(false);
                 }
               }}

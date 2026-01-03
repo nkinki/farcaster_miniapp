@@ -10,8 +10,8 @@ const pool = new Pool({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { 
-      fid, username, displayName, castUrl, shareText, 
+    const {
+      fid, username, displayName, castUrl, shareText,
       rewardPerShare, totalBudget, actionType,
       // Új comment mezők
       commentTemplates, customComment, allowCustomComments
@@ -20,6 +20,11 @@ export async function POST(request: NextRequest) {
     // Alapvető validáció
     if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Security: Validate reward amounts and budgets
+    if (Number(rewardPerShare) > 50000 || Number(totalBudget) > 10000000) {
+      return NextResponse.json({ error: 'Reward or budget exceeds security limits.' }, { status: 400 });
     }
 
     // Comment validáció
@@ -38,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Jelenlegi időpont generálása
     const now = new Date();
     const blockchainHash = `promo_${fid}_${now.getTime()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // Új promóció létrehozása a promotions_with_comments táblában
     const result = await pool.query(`
       INSERT INTO promotions_with_comments (
@@ -50,15 +55,15 @@ export async function POST(request: NextRequest) {
       )
       RETURNING id, cast_url, created_at, comment_templates, custom_comment, allow_custom_comments;
     `, [
-      fid, 
-      username, 
-      displayName || null, 
-      castUrl, 
-      shareText || null, 
-      rewardPerShare, 
-      totalBudget, 
+      fid,
+      username,
+      displayName || null,
+      castUrl,
+      shareText || null,
+      rewardPerShare,
+      totalBudget,
       totalBudget, // remaining_budget starts equal to total_budget
-      blockchainHash, 
+      blockchainHash,
       actionType || 'quote',
       commentTemplates, // A JSONB oszlop közvetlenül fogadja a JS tömböt, a driver stringify-olja
       customComment || null,
@@ -69,18 +74,18 @@ export async function POST(request: NextRequest) {
 
     // Automatikus értesítések trigger (nem blokkoló)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    
+
     // 1. Email értesítés
     try {
       const emailResponse = await fetch(`${baseUrl}/api/promotions/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           promotionId: newPromotion.id,
           notificationType: 'new_promotion_with_comments'
         })
       });
-      
+
       if (emailResponse.ok) {
         console.log(`✅ Promotion email sent for promotion with comments ${newPromotion.id}`);
       } else {
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.warn('⚠️ Promotion email failed (non-blocking):', emailError);
     }
-    
+
     // 2. Farcaster cast értesítés
     try {
       const farcasterResponse = await fetch(`${baseUrl}/api/farcaster/notify-promotion`, {
@@ -102,12 +107,12 @@ export async function POST(request: NextRequest) {
           totalBudget: totalBudget,
           rewardPerShare: rewardPerShare,
           castUrl: castUrl,
-          hasComments: true, 
+          hasComments: true,
           commentTemplates: commentTemplates,
           allowCustomComments: allowCustomComments
         })
       });
-      
+
       if (farcasterResponse.ok) {
         console.log(`✅ Farcaster notification sent for promotion with comments ${newPromotion.id}`);
       } else {
@@ -117,8 +122,8 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Farcaster notification failed (non-blocking):', farcasterError);
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       promotion: {
         ...newPromotion,
         // JAVÍTVA: A newPromotion.comment_templates már egy JS tömb, mert a pg driver automatikusan parse-olja a JSONB-t.
@@ -131,7 +136,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('API Error in POST /api/promotions-with-comments:', error);
     if (error.code === '23505') { // PostgreSQL unique violation error code
-        return NextResponse.json({ error: 'This promotion might already exist.' }, { status: 409 });
+      return NextResponse.json({ error: 'This promotion might already exist.' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Internal server error while saving promotion with comments.' }, { status: 500 });
   }
@@ -153,18 +158,18 @@ export async function GET(request: NextRequest) {
       FROM promotions_with_comments
       WHERE status = $1
     `;
-    
+
     const params: (string | number)[] = [status];
-    
+
     if (fid) {
       query += ` AND fid = $2`;
       params.push(fid);
     }
-    
+
     query += ` ORDER BY created_at DESC LIMIT 50`;
 
     const result = await pool.query(query, params);
-    
+
     // Comment templates már parse-olva érkezik a JSONB oszlopból
     const promotions = result.rows.map(row => ({
       ...row,
@@ -174,8 +179,8 @@ export async function GET(request: NextRequest) {
       allowCustomComments: row.allow_custom_comments
     }));
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       promotions,
       count: promotions.length
     });

@@ -5,35 +5,30 @@ import { isDiamondVip } from '@/lib/nft-server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { code, fid, username, castUrl, rewardPerShare, shareText } = body;
+    const { code, fid, username, castUrl } = body;
 
-    if (!code || !fid || !username || !castUrl || !rewardPerShare) {
+    // FID and castUrl are always required
+    if (!fid || !username || !castUrl) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // 1. Validate Code
-    const validCodes = await sql`
-      SELECT * FROM daily_codes 
-      WHERE code = ${code} AND is_active = TRUE
-    `;
+    // 1. Check VIP Status first to determine if code is required
+    const isVip = await isDiamondVip(fid);
+    const finalCode = code || (isVip ? 'DIAMOND_VIP_FREE' : null);
 
-    if (validCodes.length === 0) {
-      return NextResponse.json({ error: 'Invalid or expired code.' }, { status: 400 });
+    if (!finalCode) {
+      return NextResponse.json({ error: 'Secret code is required for non-VIP users.' }, { status: 400 });
     }
 
-    // 2. Check if user already used THIS code
-    const existingUsage = await sql`
-      SELECT * FROM daily_code_usages 
-      WHERE fid = ${fid} AND code = ${code}
-    `;
+    // 2. Security: Hardcode reward amounts instead of taking from body
+    // Regular: 5,000 $CHESS per share, 10,000 total budget
+    // VIP: 10,000 $CHESS per share, 100,000 total budget (per promotion)
+    const REWARD_PER_SHARE = isVip ? 10000 : 5000;
+    const REGULAR_BUDGET = 10000;
+    const VIP_BUDGET = 100000;
 
-    if (existingUsage.length > 0) {
-      return NextResponse.json({ error: 'You have already redeemed this daily code.' }, { status: 400 });
-    }
-
-    // 3. Check if user used ANY code today (Optional: enforce 1 code per day regardless of code string)
-    // For now, let's stick to "1x lehessen naponta hasznalni" which implies 1 redemption per day.
-    // We can check if they have a usage record created today.
+    // 3. Global "Once per Day" Check
+    // This prevents a VIP from using a daily code AND their VIP bypass on the same day.
     const todayUsage = await sql`
         SELECT * FROM daily_code_usages
         WHERE fid = ${fid} 
@@ -41,18 +36,25 @@ export async function POST(request: NextRequest) {
     `;
 
     if (todayUsage.length > 0) {
-      return NextResponse.json({ error: 'You have already redeemed a code today. Come back tomorrow!' }, { status: 400 });
+      return NextResponse.json({ error: 'You have already redeemed a code or VIP bundle today. Come back tomorrow!' }, { status: 400 });
     }
 
-    // 4. Handle Redemption
-    const isVip = (await isDiamondVip(fid)) || (code === 'VIPTEST');
+    // 4. Validate Code (only if not using VIP bypass)
+    if (finalCode !== 'DIAMOND_VIP_FREE' && finalCode !== 'VIPTEST') {
+      const validCodes = await sql`
+        SELECT * FROM daily_codes 
+        WHERE code = ${finalCode} AND is_active = TRUE
+      `;
+
+      if (validCodes.length === 0) {
+        return NextResponse.json({ error: 'Invalid or expired code.' }, { status: 400 });
+      }
+    }
+
     const blockchainHash = `daily_promo_${Date.now()}_${fid}`;
 
-    if (isVip) {
+    if (isVip || finalCode === 'VIPTEST') {
       // VIP BUNDLE: 100k for Like/Recast, Quote, and Comment + 1 Lotto Ticket
-      const vipBudget = 100000;
-
-      // A. Create 3 Promotions
       const actionTypes = ['like_recast', 'quote', 'comment'];
       const promoIds = [];
 
@@ -62,47 +64,40 @@ export async function POST(request: NextRequest) {
             fid, username, display_name, cast_url, share_text,
             reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
           ) VALUES (
-            ${fid}, ${username}, ${username}, ${castUrl}, ${shareText || null}, 
-            ${rewardPerShare}, ${vipBudget}, ${vipBudget}, 'active', ${blockchainHash + '_' + actionType}, ${actionType}
+            ${fid}, ${username}, ${username}, ${castUrl}, NULL, 
+            ${REWARD_PER_SHARE}, ${VIP_BUDGET}, ${VIP_BUDGET}, 'active', ${blockchainHash + '_' + actionType}, ${actionType}
           )
           RETURNING id
         `;
         promoIds.push(result[0].id);
       }
 
-      // B. Grant Free Lotto Ticket
+      // Grant Free Lotto Ticket
       try {
-        // Find current active round
         const activeRounds = await sql`
           SELECT id FROM lottery_draws WHERE status = 'active' ORDER BY draw_number DESC LIMIT 1
         `;
 
         if (activeRounds.length > 0) {
           const drawId = activeRounds[0].id;
-
-          // Get user's wallet address
           const userWallets = await sql`
             SELECT wallet_address FROM user_wallets WHERE fid = ${fid} LIMIT 1
           `;
           const walletAddress = userWallets.length > 0 ? userWallets[0].wallet_address : '0x0000000000000000000000000000000000000000';
-
           const randomNumber = Math.floor(Math.random() * 100) + 1;
 
           await sql`
             INSERT INTO lottery_tickets (draw_id, player_fid, "number", transaction_hash, player_address, purchased_at, purchase_price)
             VALUES (${drawId}, ${fid}, ${randomNumber}, ${'vip_bundle_' + Date.now()}, ${walletAddress}, NOW(), 0)
           `;
-          console.log(`[VIP Bundle] Free ticket issued for FID ${fid} (Round ${drawId}, Number ${randomNumber})`);
         }
       } catch (lottoErr) {
-        console.error('[VIP Bundle] Error issuing free ticket:', lottoErr);
-        // We don't fail the whole request if lotto fails, but it's not ideal
+        console.error('[VIP Bundle] Lotto ticket error:', lottoErr);
       }
 
-      // 5. Record Usage
       await sql`
         INSERT INTO daily_code_usages (fid, code)
-        VALUES (${fid}, ${code})
+        VALUES (${fid}, ${finalCode})
       `;
 
       return NextResponse.json({
@@ -113,22 +108,20 @@ export async function POST(request: NextRequest) {
 
     } else {
       // REGULAR REDEMPTION: 10k Quote Promotion
-      const regularBudget = 10000;
       const promoResult = await sql`
         INSERT INTO promotions (
           fid, username, display_name, cast_url, share_text,
           reward_per_share, total_budget, remaining_budget, status, blockchain_hash, action_type
         ) VALUES (
-          ${fid}, ${username}, ${username}, ${castUrl}, ${shareText || null}, 
-          ${rewardPerShare}, ${regularBudget}, ${regularBudget}, 'active', ${blockchainHash}, 'quote'
+          ${fid}, ${username}, ${username}, ${castUrl}, NULL, 
+          ${REWARD_PER_SHARE}, ${REGULAR_BUDGET}, ${REGULAR_BUDGET}, 'active', ${blockchainHash}, 'quote'
         )
         RETURNING id
       `;
 
-      // 5. Record Usage
       await sql`
         INSERT INTO daily_code_usages (fid, code)
-        VALUES (${fid}, ${code})
+        VALUES (${fid}, ${finalCode})
       `;
 
       return NextResponse.json({ success: true, promotionId: promoResult[0].id }, { status: 200 });

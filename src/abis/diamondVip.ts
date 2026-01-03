@@ -1,4 +1,4 @@
-export const DIAMOND_VIP_ADDRESS = "0x0000000000000000000000000000000000000000"; // To be updated after deployment
+export const DIAMOND_VIP_ADDRESS = "0x4bcd137419c0f224bd19f0a0d2925e9b60934a39";
 
 export const DIAMOND_VIP_ABI = [
     {

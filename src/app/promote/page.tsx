@@ -13,8 +13,9 @@ import SeasonModal from "@/components/SeasonModal";
 import { usePromotions } from "@/hooks/usePromotions"
 import { usePromotionsWithComments } from "@/hooks/usePromotionsWithComments";
 import type { PromoCast } from "@/types/promotions";
-import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { SignInButton, useProfile } from '@farcaster/auth-kit';
+import { toast } from 'react-hot-toast';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 import { DIAMOND_VIP_ADDRESS, DIAMOND_VIP_ABI } from '@/abis/diamondVip';
 import { formatUnits } from 'viem';
@@ -140,6 +141,91 @@ export default function PromotePage() {
 
   const isVip = useMemo(() => vipBalance ? Number(vipBalance) > 0 : false, [vipBalance]);
 
+  // Diamond VIP NFT Data
+  const { data: presaleActive } = useReadContract({
+    address: DIAMOND_VIP_ADDRESS,
+    abi: DIAMOND_VIP_ABI,
+    functionName: 'presaleActive',
+    query: { enabled: isConnected }
+  });
+
+  const { data: presalePrice } = useReadContract({
+    address: DIAMOND_VIP_ADDRESS,
+    abi: DIAMOND_VIP_ABI,
+    functionName: 'PRESALE_MINT_PRICE',
+    query: { enabled: isConnected }
+  });
+
+  const { data: publicPrice } = useReadContract({
+    address: DIAMOND_VIP_ADDRESS,
+    abi: DIAMOND_VIP_ABI,
+    functionName: 'PUBLIC_MINT_PRICE',
+    query: { enabled: isConnected }
+  });
+
+  const { data: chessAllowance, refetch: refetchAllowance } = useReadContract({
+    address: CHESS_TOKEN_ADDRESS,
+    abi: CHESS_TOKEN_ABI,
+    functionName: 'allowance',
+    args: address ? [address, DIAMOND_VIP_ADDRESS] : undefined,
+    query: { enabled: !!address && isConnected }
+  });
+
+  const currentPrice = presaleActive ? presalePrice : publicPrice;
+  const hasAllowance = chessAllowance && currentPrice ? BigInt(chessAllowance as string) >= BigInt(currentPrice as string) : false;
+
+  const { data: approveHash, writeContract: writeApprove, isPending: approvePending } = useWriteContract();
+  const { data: mintHash, writeContract: writeMint, isPending: mintPending } = useWriteContract();
+
+  const { isLoading: isWaitingApprove, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({
+    hash: approveHash,
+  });
+
+  const { isLoading: isWaitingMint, isSuccess: isMintSuccess } = useWaitForTransactionReceipt({
+    hash: mintHash,
+  });
+
+  useEffect(() => {
+    if (isApproveSuccess) {
+      refetchAllowance();
+      toast.success("CHESS Approved!");
+    }
+  }, [isApproveSuccess, refetchAllowance]);
+
+  useEffect(() => {
+    if (isMintSuccess) {
+      refreshAllData();
+      toast.success("Diamond VIP Minted!");
+    }
+  }, [isMintSuccess]);
+
+  const handleMintNft = async () => {
+    if (!address || !currentPrice) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    try {
+      if (!hasAllowance) {
+        writeApprove({
+          address: CHESS_TOKEN_ADDRESS,
+          abi: CHESS_TOKEN_ABI,
+          functionName: 'approve',
+          args: [DIAMOND_VIP_ADDRESS, currentPrice],
+        });
+      } else {
+        writeMint({
+          address: DIAMOND_VIP_ADDRESS,
+          abi: DIAMOND_VIP_ABI,
+          functionName: 'mint',
+        });
+      }
+    } catch (error: any) {
+      console.error("Mint error:", error);
+      toast.error(error.message || "Transaction failed");
+    }
+  };
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,8 +283,9 @@ export default function PromotePage() {
   const [activeDailyCodeTab, setActiveDailyCodeTab] = useState<'standard' | 'vip'>('standard');
 
   const handleRedeemCode = async () => {
-    if (!dailyCode || !dailyCodeCastUrl) {
-      setDailyCodeError("Please fill in all fields");
+    const canRedeem = (isVip || dailyCode) && dailyCodeCastUrl;
+    if (!canRedeem) {
+      setDailyCodeError(isVip ? "Please enter a Cast URL" : "Please fill in all fields");
       return;
     }
 
@@ -1297,6 +1384,7 @@ export default function PromotePage() {
             user={currentUser}
             userStats={userStats}
             onClaimSuccess={refreshAllData}
+            isVip={isVip}
           />
         </div>
 
@@ -2576,17 +2664,48 @@ export default function PromotePage() {
                   </div>
                 </div>
 
+                {!isVip && (
+                  <div className="p-5 bg-black/60 border border-cyan-500/30 rounded-2xl shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-2 opacity-20 transform group-hover:scale-110 transition-transform">
+                      <FiZap size={40} className="text-cyan-400" />
+                    </div>
+                    <h4 className="text-white font-black text-sm mb-2 uppercase tracking-tighter">Become a Diamond VIP</h4>
+                    <p className="text-[11px] text-gray-400 mb-4 leading-normal">
+                      Unlock lifetime rewards and become a legend in the AppRank ecosystem.
+                    </p>
+                    <div className="flex items-center justify-between mb-4 bg-gray-900/50 p-3 rounded-xl border border-white/5">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase">Mint Price</div>
+                      <div className="flex flex-col items-end">
+                        <div className="text-xs font-black text-cyan-400">{currentPrice ? Number(formatUnits(BigInt(currentPrice as string), 18)).toLocaleString() : "..."} $CHESS</div>
+                        {presaleActive && <div className="text-[8px] font-bold text-purple-400 uppercase tracking-widest">Presale 50% Off</div>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleMintNft}
+                      disabled={approvePending || mintPending || isWaitingApprove || isWaitingMint || balanceLoading}
+                      className="w-full py-3 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-[0_5px_15px_rgba(6,182,212,0.2)] active:scale-95 disabled:opacity-50"
+                    >
+                      {approvePending || isWaitingApprove ? "Approving CHESS..." :
+                        mintPending || isWaitingMint ? "Minting NFT..." :
+                          !hasAllowance ? "Step 1: Approve $CHESS" : "Step 2: Mint Diamond VIP"}
+                    </button>
+                    {chessBalance && currentPrice && BigInt(chessBalance as string) < BigInt(currentPrice as string) && (
+                      <p className="mt-2 text-[9px] text-red-400 font-bold text-center">Insufficient $CHESS balance</p>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1.5 ml-1">
-                      Enter VIP or Daily Code
+                      {isVip ? "VIP Status: ACTIVE (Optional Code)" : "Enter VIP or Daily Code"}
                     </label>
                     <input
                       type="text"
                       value={dailyCode}
                       onChange={(e) => setDailyCode(e.target.value)}
-                      placeholder="Enter secret code..."
-                      className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold"
+                      placeholder={isVip ? "VIP detected - code not required" : "Enter secret code..."}
+                      className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none transition-all placeholder:text-cyan-400/30 font-bold"
                     />
                   </div>
 
@@ -2605,7 +2724,7 @@ export default function PromotePage() {
 
                   <button
                     onClick={handleRedeemCode}
-                    disabled={loading || !dailyCode || !dailyCodeCastUrl}
+                    disabled={loading || (!isVip && !dailyCode) || !dailyCodeCastUrl}
                     className="w-full py-4 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl font-black text-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 uppercase tracking-tighter"
                   >
                     {loading ? (
