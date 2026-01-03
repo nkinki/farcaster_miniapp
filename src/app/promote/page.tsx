@@ -2704,28 +2704,7 @@ export default function PromotePage() {
                     <p className="text-[10px] text-cyan-300 uppercase tracking-widest mb-3 flex items-center justify-center gap-2">
                       <FiClock /> Presale Price Ends In
                     </p>
-                    <CountdownTimer targetDate={new Date(Date.now() + 49 * 60 * 60 * 1000)} />
-                  </div>
-
-                  {/* Top 3 Banner */}
-                  <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
-                    <div className="text-2xl animate-bounce">🏆</div>
-                    <div>
-                      <p className="text-xs font-bold text-yellow-100 flex items-center gap-1">
-                        Season Top 3 Reward <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-[9px] rounded font-black">AUTO</span>
-                      </p>
-                      <p className="text-[10px] text-yellow-200/70 leading-tight">
-                        Top 3 players automatically receive <span className="text-white font-bold">Diamond VIP</span> status!
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Countdown Timer */}
-                  <div className="bg-black/40 rounded-xl p-4 mb-4 border border-cyan-500/20 text-center">
-                    <p className="text-[10px] text-cyan-300 uppercase tracking-widest mb-3 flex items-center justify-center gap-2">
-                      <FiClock /> Presale Price Ends In
-                    </p>
-                    <CountdownTimer targetDate={new Date(Date.now() + 48 * 60 * 60 * 1000)} />
+                    <CountdownTimer targetDate={new Date('2026-01-10T23:59:59')} />
                   </div>
 
                   {/* Top 3 Banner */}
