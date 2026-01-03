@@ -1,5 +1,5 @@
-// FÁJL: /src/app/api/farcaster/notify-promotion/route.ts
-// Új promotion Farcaster értesítés küldése
+// FILE: /src/app/api/farcaster/notify-promotion/route.ts
+// Sending new promotion Farcaster notification
 
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -16,17 +16,17 @@ interface PromotionNotificationRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: PromotionNotificationRequest = await request.json();
-    const { 
-      promotionId, 
-      username, 
-      displayName, 
-      totalBudget, 
-      rewardPerShare, 
+    const {
+      promotionId,
+      username,
+      displayName,
+      totalBudget,
+      rewardPerShare,
       castUrl,
       channelId = 'apprank' // Default channel
     } = body;
-    
-    // Promotion értesítő cast szöveg
+
+    // Promotion notification cast text
     const castText = `🚀 NEW PROMOTION ALERT!
 
 👤 @${username} (${displayName}) just created a promotion:
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
 Share this cast to earn CHESS rewards! 💎
 
 #AppRank #Promotion #CHESS #Farcaster`;
-    
-    // Cast küldése a Farcaster API-n keresztül
+
+    // Sending cast via the Farcaster API
     const castResponse = await fetch(`${request.nextUrl.origin}/api/farcaster/cast`, {
       method: 'POST',
       headers: {
@@ -52,7 +52,7 @@ Share this cast to earn CHESS rewards! 💎
         channelId: channelId
       })
     });
-    
+
     if (!castResponse.ok) {
       const errorData = await castResponse.text();
       console.error('Failed to send promotion cast:', errorData);
@@ -61,11 +61,11 @@ Share this cast to earn CHESS rewards! 💎
         details: errorData
       }, { status: 500 });
     }
-    
+
     const castData = await castResponse.json();
-    
+
     console.log(`✅ Promotion notification cast sent for promotion ${promotionId}:`, castData.cast?.hash);
-    
+
     return NextResponse.json({
       success: true,
       message: 'Farcaster promotion notification sent',
@@ -78,7 +78,7 @@ Share this cast to earn CHESS rewards! 💎
       cast: castData.cast,
       timestamp: new Date().toISOString()
     }, { status: 200 });
-    
+
   } catch (error: any) {
     console.error('❌ Promotion notification error:', error);
     return NextResponse.json({

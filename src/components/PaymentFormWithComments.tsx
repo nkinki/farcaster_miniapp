@@ -7,7 +7,7 @@ import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 import { treasuryDepositAddress, treasuryDepositABI } from '@/abis/treasuryDeposit';
 import { FiX, FiDollarSign, FiClock, FiUsers, FiTrendingUp, FiZap, FiMessageSquare } from 'react-icons/fi';
 
-// --- Interface definíciók ---
+// --- Interface definitions ---
 interface User {
   fid: number;
   username: string;
@@ -20,7 +20,7 @@ interface PaymentFormWithCommentsProps {
   onCancel: () => void;
 }
 
-// Állapotgép a vásárlási folyamathoz
+// State machine for the purchase process
 enum CreationStep {
   Idle,
   Approving,
@@ -32,7 +32,7 @@ enum CreationStep {
   Success
 }
 
-// Előre elkészített szöveg sablonok
+// Pre-made text templates
 const COMMENT_TEMPLATES = [
   "🚀 This is amazing!",
   "💯 Totally agree with this!",
@@ -74,23 +74,23 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
 
-  // Reward opciók - előre definiálva
+  // Reward options - pre-defined
   const rewardOptions = [1000, 2000, 5000, 10000, 20000];
   const budgetOptions = [10000, 100000, 500000, 1000000, 5000000];
 
-  // --- Állapotok ---
+  // --- States ---
   const [step, setStep] = useState<CreationStep>(CreationStep.Idle);
   const [castUrl, setCastUrl] = useState('');
   const [shareText, setShareText] = useState('');
   const [rewardPerShare, setRewardPerShare] = useState(rewardOptions[0].toString());
   const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
   const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast' | 'comment' | 'follow'>('quote');
-  
-  // Új comment állapotok
+
+  // New comment states
   const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
   const [customComment, setCustomComment] = useState('');
   const [allowCustomComments, setAllowCustomComments] = useState(true);
-  
+
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
   const [createTxHash, setCreateTxHash] = useState<Hash | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -104,7 +104,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
     return num.toString();
   };
 
-  // Template kiválasztás kezelése
+  // Handle template selection
   const handleTemplateSelect = (template: string) => {
     setSelectedTemplates(prev => {
       if (prev.includes(template)) {
@@ -115,7 +115,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
     });
   };
 
-  // Approve kezelése
+  // Handle Approval
   const handleApprove = async () => {
     if (!isConnected || !address) {
       setErrorMessage('Please connect your wallet first');
@@ -141,7 +141,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
     }
   };
 
-  // Promotion létrehozás kezelése
+  // Handle promotion creation
   const handleCreatePromotion = async () => {
     if (!isConnected || !address) {
       setErrorMessage('Please connect your wallet first');
@@ -152,7 +152,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
     setStep(CreationStep.Creating);
 
     try {
-      // Itt fogjuk a comment adatokat is elküldeni
+      // We will also send the comment data here
       const promotionData = {
         fid: user.fid,
         username: user.username,
@@ -162,7 +162,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         rewardPerShare: parseInt(rewardPerShare),
         totalBudget: parseInt(totalBudget),
         actionType: selectedAction,
-        // Új comment mezők - csak akkor küldjük, ha comment action van kiválasztva
+        // New comment fields - only sent if comment action is selected
         ...(selectedAction === 'comment' && {
           commentTemplates: selectedTemplates,
           customComment,
@@ -199,22 +199,22 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
 
     setStep(CreationStep.Creating);
     try {
-        const totalBudgetInWei = parseUnits(totalBudget, 18);
-        const hash = await writeContractAsync({
-            address: treasuryDepositAddress,
-            abi: treasuryDepositABI,
-            functionName: 'depositFunds',
-            args: [totalBudgetInWei],
-        });
-        setCreateTxHash(hash);
-        setStep(CreationStep.CreateConfirming);
+      const totalBudgetInWei = parseUnits(totalBudget, 18);
+      const hash = await writeContractAsync({
+        address: treasuryDepositAddress,
+        abi: treasuryDepositABI,
+        functionName: 'depositFunds',
+        args: [totalBudgetInWei],
+      });
+      setCreateTxHash(hash);
+      setStep(CreationStep.CreateConfirming);
     } catch (err: any) {
-        setErrorMessage(err.shortMessage || "Deposit transaction failed.");
-        setStep(CreationStep.ReadyToCreate);
+      setErrorMessage(err.shortMessage || "Deposit transaction failed.");
+      setStep(CreationStep.ReadyToCreate);
     }
   };
 
-  // Approve állapot figyelése
+  // Monitor Approve state
   useEffect(() => {
     if (isApproved && step === CreationStep.ApproveConfirming) {
       setStep(CreationStep.ReadyToCreate);
@@ -222,7 +222,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
     }
   }, [isApproved, step]);
 
-  // Deposit és mentés kezelése
+  // Handle Deposit and saving
   useEffect(() => {
     const saveToDb = async () => {
       if (isCreated && step === CreationStep.CreateConfirming) {
@@ -275,17 +275,16 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-white text-center">Create a New Promotion with Comments</h2>
-      
+
       {/* Action Selection Buttons */}
       <div className="flex gap-2 mb-4">
         <button
           type="button"
           onClick={() => setSelectedAction('quote')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'quote'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'quote'
               ? 'bg-orange-600 text-white border border-orange-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           💬 Quote
@@ -293,11 +292,10 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         <button
           type="button"
           onClick={() => setSelectedAction('like_recast')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'like_recast'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'like_recast'
               ? 'bg-purple-600 text-white border border-purple-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           👍 Like & Recast
@@ -305,11 +303,10 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         <button
           type="button"
           onClick={() => setSelectedAction('comment')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'comment'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'comment'
               ? 'bg-green-600 text-white border border-green-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           💬 Comment
@@ -317,36 +314,35 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         <button
           type="button"
           onClick={() => setSelectedAction('follow')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'follow'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'follow'
               ? 'bg-pink-600 text-white border border-pink-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           👥 Follow
         </button>
       </div>
-      
+
       {/* Follow Development Notice */}
       {selectedAction === 'follow' && (
         <div className="text-xs text-yellow-400 text-center bg-yellow-900/20 py-2 px-3 rounded-md border border-yellow-600/30">
           👥 Follow & Earn CHESS
         </div>
       )}
-      
+
       <div>
         <label htmlFor="castUrl" className="block text-xs font-medium text-slate-400 mb-1">
           {selectedAction === 'follow' ? 'Target User Profile URL*' : 'Cast URL*'}
         </label>
-        <input 
-          type="text" 
-          id="castUrl" 
-          value={castUrl} 
-          onChange={(e) => setCastUrl(e.target.value)} 
+        <input
+          type="text"
+          id="castUrl"
+          value={castUrl}
+          onChange={(e) => setCastUrl(e.target.value)}
           placeholder={selectedAction === 'follow' ? 'https://farcaster.xyz/username' : 'https://farcaster.xyz/username/0x...'}
-          className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" 
-          disabled={step >= CreationStep.ReadyToCreate} 
+          className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none"
+          disabled={step >= CreationStep.ReadyToCreate}
         />
         {selectedAction === 'follow' && (
           <p className="text-xs text-slate-500 mt-1">
@@ -360,52 +356,52 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
       {/* Custom Comment Section - Only shown when comment action is selected */}
       {selectedAction === 'comment' && (
         <div>
-        <label htmlFor="customComment" className="block text-sm font-medium text-purple-300 mb-1">
-          Custom Comment Text (Optional)
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            id="customComment"
-            value={customComment}
-            onChange={(e) => setCustomComment(e.target.value)}
-            placeholder="Add your custom comment here..."
-            className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white pr-10"
-            disabled={step >= CreationStep.ReadyToCreate || !allowCustomComments}
-            maxLength={280}
-          />
-          {customComment && (
-            <button
-              type="button"
-              onClick={() => setCustomComment("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              tabIndex={-1}
-              aria-label="Clear custom comment"
-            >
-              <FiX size={18} />
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-2 mt-2">
-          <input
-            type="checkbox"
-            id="allowCustomComments"
-            checked={allowCustomComments}
-            onChange={(e) => setAllowCustomComments(e.target.checked)}
-            className="rounded"
-            disabled={step >= CreationStep.ReadyToCreate}
-          />
-          <label htmlFor="allowCustomComments" className="text-xs text-gray-400">
-            Allow users to add custom comments
+          <label htmlFor="customComment" className="block text-sm font-medium text-purple-300 mb-1">
+            Custom Comment Text (Optional)
           </label>
-        </div>
+          <div className="relative">
+            <input
+              type="text"
+              id="customComment"
+              value={customComment}
+              onChange={(e) => setCustomComment(e.target.value)}
+              placeholder="Add your custom comment here..."
+              className="w-full bg-[#181c23] border border-gray-600 rounded-md py-2 px-3 text-white pr-10"
+              disabled={step >= CreationStep.ReadyToCreate || !allowCustomComments}
+              maxLength={280}
+            />
+            {customComment && (
+              <button
+                type="button"
+                onClick={() => setCustomComment("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                tabIndex={-1}
+                aria-label="Clear custom comment"
+              >
+                <FiX size={18} />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="checkbox"
+              id="allowCustomComments"
+              checked={allowCustomComments}
+              onChange={(e) => setAllowCustomComments(e.target.checked)}
+              className="rounded"
+              disabled={step >= CreationStep.ReadyToCreate}
+            />
+            <label htmlFor="allowCustomComments" className="text-xs text-gray-400">
+              Allow users to add custom comments
+            </label>
+          </div>
           <p className="text-xs text-gray-400 mt-1">
             {customComment.length}/280 characters
           </p>
         </div>
       )}
 
-      {/* Meglévő Share Text (opcionális) */}
+      {/* Existing Share Text (optional) */}
       <div>
         <label htmlFor="shareText" className="block text-sm font-medium text-purple-300 mb-1">Additional Share Text (Optional)</label>
         <div className="relative">
@@ -483,7 +479,7 @@ export default function PaymentFormWithComments({ user, onSuccess, onCancel }: P
         >
           Cancel
         </button>
-        
+
         {step < CreationStep.ReadyToCreate ? (
           <button
             onClick={handleApprove}

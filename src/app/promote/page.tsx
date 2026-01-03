@@ -63,21 +63,21 @@ const CountdownTimer = ({ targetDate }: { targetDate: Date }) => {
   );
 };
 
-// Share szĂ¶vegek promĂłtereknek - $CHESS token Ă©s ingyenes promĂłciĂł
+// Share texts for promoters - $CHESS token and free promotion
 // TEMPORARILY DISABLED - No promotional messages
 const SHARE_TEXTS: string[] = [
-  // "đźš€ Free promotion + earn $CHESS tokens! Try AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "â­ Promote for FREE & get $CHESS rewards! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đźŚ Free promo + $CHESS earnings! Check AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "â™źď¸Ź Earn $CHESS while promoting FREE! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đźŽŻ Free promotion + $CHESS tokens! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đź’¸ Get $CHESS for FREE promotion! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đźŽ® Free promo + earn $CHESS! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đź‘€ $CHESS rewards + free promotion! Check: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đź”Ą Promote FREE & earn $CHESS! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đźŹ† Free promotion + $CHESS earnings! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "đź’° Earn $CHESS with free promo! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
-  // "âś¨ Free promotion + $CHESS tokens! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank"
+  // "🚀 Free promotion + earn $CHESS tokens! Try AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "⭐ Promote for FREE & get $CHESS rewards! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "🚀 Free promo + $CHESS earnings! Check AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "♟️ Earn $CHESS while promoting FREE! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "🎯 Free promotion + $CHESS tokens! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "💸 Get $CHESS for FREE promotion! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "🎮 Free promo + earn $CHESS! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "👀 $CHESS rewards + free promotion! Check: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "🔥 Promote FREE & earn $CHESS! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "🏆 Free promotion + $CHESS earnings! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "💰 Earn $CHESS with free promo! Try: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank",
+  // "✨ Free promotion + $CHESS tokens! AppRank: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank"
 ];
 
 // New Channel Distribution: 80% Home Feed + 20% targeted channels
@@ -92,7 +92,7 @@ const SELECTED_CHANNELS = [
   { id: 'onchain', name: 'Onchain', weight: 2, description: 'Onchain activity' }
 ];
 
-// SĂşlyozott vĂ©letlenszerĹ± csatorna kivĂˇlasztĂˇs
+// Weighted random channel selection
 const getRandomChannel = (): string => {
   const totalWeight = SELECTED_CHANNELS.reduce((sum, channel) => sum + channel.weight, 0);
   let random = Math.random() * totalWeight;
@@ -109,15 +109,15 @@ const getRandomChannel = (): string => {
 
 
 
-// Fallback csatornĂˇk listĂˇja hiba esetĂ©n - prioritĂˇs szerint
+// Fallback channel list in case of error - by priority
 const getChannelFallbacks = (failedChannel: string): (string | null)[] => {
-  // PrioritĂˇs: Home Feed â†’ nagyobb sĂşlyĂş csatornĂˇk â†’ kisebbek
+  // Priority: Home Feed → larger weight channels → smaller ones
   const fallbacks = SELECTED_CHANNELS
     .filter(ch => ch.id !== failedChannel)
-    .sort((a, b) => b.weight - a.weight) // SĂşly szerint csĂ¶kkenĹ‘ sorrendben
+    .sort((a, b) => b.weight - a.weight) // Descending order by weight
     .map(ch => ch.id === '' ? null : ch.id); // Home Feed = null
 
-  // Mindig legyen Home Feed az utolsĂł fallback
+  // Always have Home Feed as the last fallback
   if (!fallbacks.includes(null)) {
     fallbacks.push(null);
   }
@@ -376,22 +376,22 @@ export default function PromotePage() {
 
   // Comment templates - same as in PaymentForm
   const COMMENT_TEMPLATES = [
-    "đźš€ This is amazing!",
-    "đź’Ż Totally agree with this!",
-    "đź”Ą This is fire!",
-    "đź’Ž Great content!",
-    "đźŽŻ Spot on!",
-    "âšˇ This hits different!",
-    "đźŚź Absolutely brilliant!",
-    "đźš€ Love this energy!",
-    "đź’Ş This is the way!",
-    "đźŽ‰ Amazing work!",
+    "🚀 This is amazing!",
+    "💯 Totally agree with this!",
+    "🔥 This is fire!",
+    "💎 Great content!",
+    "🎯 Spot on!",
+    "🛡️ This hits different!",
+    "🌟 Absolutely brilliant!",
+    "🚀 Love this energy!",
+    "💪 This is the way!",
+    "🎉 Amazing work!",
     "â­ Perfect!",
-    "đź‘Ź Well said!",
-    "đźŹ† Top tier content!",
-    "đź’« Mind blown!",
-    "đźŽ¨ Beautiful work!",
-    "đź’Ž Pure gold!",
+    "👏 Well said!",
+    "🏆 Top tier content!",
+    "💫 Mind blown!",
+    "🎨 Beautiful work!",
+    "💎 Pure gold!",
     "Love this insight!",
     "Totally agree, well said.",
     "This adds real value, thanks!",
@@ -403,7 +403,7 @@ export default function PromotePage() {
     "Thanks for the alpha!",
     "Signal > noise. Bookmarked.",
     "This aged well.",
-    "Context matters â€” this nails it.",
+    "Context matters — this nails it.",
     "Data-backed and practical. +1",
     "Learned something new today.",
     "Useful for builders.",
@@ -567,7 +567,7 @@ export default function PromotePage() {
         data.pendingActions?.forEach((action: any) => {
           pending[action.promotion_id] = true;
         });
-        console.log('đź”Ť Setting pending actions:', pending);
+        console.log('🔍 Setting pending actions:', pending);
         setPendingActions(pending);
       }
     } catch (error) {
@@ -626,7 +626,7 @@ export default function PromotePage() {
 
         console.log(`đźŽ Lucky Box reward claimed: ${amount} CHESS`);
       } else {
-        console.log(`đź‘€ Lucky Box preview: ${amount} CHESS (not claimed)`);
+        console.log(`👀 Lucky Box preview: ${amount} CHESS (not claimed)`);
       }
     } catch (error) {
       console.error('Failed to process lucky box reward:', error);
@@ -655,13 +655,13 @@ export default function PromotePage() {
         throw new Error(data.error || 'Failed to delete campaign');
       }
 
-      console.log('âś… Campaign deleted successfully!');
+      console.log('✅ Campaign deleted successfully!');
       setShowCampaignManager(false);
       setManagingPromo(null);
       refreshAllData();
     } catch (error) {
       console.error('Error deleting campaign:', error);
-      console.error('âťŚ Failed to delete campaign:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('✖️ Failed to delete campaign:', error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
@@ -710,13 +710,13 @@ export default function PromotePage() {
 
       // Show success message
       setShareError(null);
-      console.log(`âś… ${actionType} action submitted successfully!`);
+      console.log(`✅ ${actionType} action submitted successfully!`);
 
       // Refresh data
       await refreshAllData();
 
     } catch (error: any) {
-      console.error(`âťŚ ${actionType} action failed:`, error);
+      console.error(`✖️ ${actionType} action failed:`, error);
       setShareError(error.message || `Failed to submit ${actionType} action`);
     } finally {
       setSharingPromoId(null);
@@ -725,16 +725,16 @@ export default function PromotePage() {
 
   // Like & Recast combined action with timer and verification
   const handleLikeRecastBoth = async (promo: PromoCast, e?: React.MouseEvent) => {
-    console.log('đźš€ handleLikeRecastBoth called!');
-    console.log('đź“Š Promo:', promo);
-    console.log('đź“± Event:', e);
+    console.log('🚀 handleLikeRecastBoth called!');
+    console.log('📊 Promo:', promo);
+    console.log('📱 Event:', e);
 
     // Prevent default behavior to avoid page reload
     if (e) {
-      console.log('đź›‘ Preventing default behavior...');
+      console.log('🛑 Preventing default behavior...');
       e.preventDefault();
       e.stopPropagation();
-      console.log('âś… Default behavior prevented');
+      console.log('✅ Default behavior prevented');
     }
 
     if (!isAuthenticated || !currentUser.fid) {
@@ -746,7 +746,7 @@ export default function PromotePage() {
     setSharingPromoId(promo.id.toString());
 
     try {
-      console.log('đźš€ Starting like & recast actions for promo:', promo.id);
+      console.log('🚀 Starting like & recast actions for promo:', promo.id);
 
       // Extract cast hash from URL
       const castHash = promo.castUrl.split('/').pop() || '';
@@ -755,26 +755,26 @@ export default function PromotePage() {
         throw new Error('Invalid cast hash. Please check the cast URL.');
       }
 
-      console.log('đź”Ť Using cast hash:', castHash);
+      console.log('🔍 Using cast hash:', castHash);
 
       // First, open the cast so user can see it
-      console.log('đź“± Opening cast for user to view...');
+      console.log('📱 Opening cast for user to view...');
       try {
         await (miniAppSdk as any).actions.viewCast({ hash: castHash });
-        console.log('âś… Cast opened successfully');
+        console.log('✅ Cast opened successfully');
       } catch (viewError) {
-        console.log('âš ď¸Ź Could not open cast, continuing with like/recast...');
+        console.log('⚠️ Could not open cast, continuing with like/recast...');
       }
 
       // Show instruction message
-      setShareError('đź“± Cast opened! Please like & recast it, then wait for verification...');
+      setShareError('📱 Cast opened! Please like & recast it, then wait for verification...');
 
       // Wait 5 seconds for user to complete actions
-      console.log('âŹł Waiting 5 seconds for user to complete like/recast...');
+      console.log('⏳ Waiting 5 seconds for user to complete like/recast...');
       await new Promise(resolve => setTimeout(resolve, 5000));
 
       // Now submit to our backend for reward verification
-      console.log('đź’° Submitting actions for reward...');
+      console.log('💰 Submitting actions for reward...');
       const response = await fetch('/api/like-recast-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -795,7 +795,7 @@ export default function PromotePage() {
         throw new Error(data.error || 'Failed to submit actions for reward');
       }
 
-      console.log('âś… Like & recast actions completed successfully');
+      console.log('✅ Like & recast actions completed successfully');
       setShareError(null);
 
       // Mark this promotion as completed
@@ -805,13 +805,13 @@ export default function PromotePage() {
       }));
 
       // Show success message
-      setShareError('đźŽ‰ Like & Recast completed! Reward will be credited soon.');
+      setShareError('🎉 Like & Recast completed! Reward will be credited soon.');
 
       // Refresh data
       await refreshAllData();
 
     } catch (error: any) {
-      console.error('âťŚ Like & recast actions failed:', error);
+      console.error('✖️ Like & recast actions failed:', error);
       setShareError(error.message || 'Failed to complete like & recast actions');
     } finally {
       setSharingPromoId(null);
@@ -819,16 +819,16 @@ export default function PromotePage() {
   };
 
   const handleCommentAction = async (promo: PromoCast, e?: React.MouseEvent) => {
-    console.log('đźš€ handleCommentAction called!');
-    console.log('đź“Š Promo:', promo);
-    console.log('đź“± Event:', e);
+    console.log('🚀 handleCommentAction called!');
+    console.log('📊 Promo:', promo);
+    console.log('📱 Event:', e);
 
     // Prevent default behavior to avoid page reload
     if (e) {
-      console.log('đź›‘ Preventing default behavior...');
+      console.log('🛑 Preventing default behavior...');
       e.preventDefault();
       e.stopPropagation();
-      console.log('âś… Default behavior prevented');
+      console.log('✅ Default behavior prevented');
     }
 
     if (!isAuthenticated || !currentUser.fid) {
@@ -843,16 +843,16 @@ export default function PromotePage() {
   };
 
   const handleFollowAction = async (promo: PromoCast, e?: React.MouseEvent) => {
-    console.log('đźš€ handleFollowAction called!');
-    console.log('đź“Š Promo:', promo);
-    console.log('đź“± Event:', e);
+    console.log('🚀 handleFollowAction called!');
+    console.log('📊 Promo:', promo);
+    console.log('📱 Event:', e);
 
     // Prevent default behavior to avoid page reload
     if (e) {
-      console.log('đź›‘ Preventing default behavior...');
+      console.log('🛑 Preventing default behavior...');
       e.preventDefault();
       e.stopPropagation();
-      console.log('âś… Default behavior prevented');
+      console.log('✅ Default behavior prevented');
     }
 
     if (!isAuthenticated || !currentUser.fid) {
@@ -864,7 +864,7 @@ export default function PromotePage() {
     setSharingPromoId(promo.id.toString());
 
     try {
-      console.log('đźš€ Starting follow action for promo:', promo.id);
+      console.log('🚀 Starting follow action for promo:', promo.id);
 
       // Extract target username from cast URL
       const targetUsername = promo.castUrl.split('/').pop() || '';
@@ -873,14 +873,14 @@ export default function PromotePage() {
         throw new Error('Invalid target username. Please check the cast URL.');
       }
 
-      console.log('đź”Ť Target username:', targetUsername);
+      console.log('🔍 Target username:', targetUsername);
 
       // Profile already opened in modal, just show instruction
-      console.log('đź“± Profile should already be opened from modal');
-      setShareError('đź“± Profile opened! Please follow the user, then the action will be verified automatically...');
+      console.log('📱 Profile should already be opened from modal');
+      setShareError('📱 Profile opened! Please follow the user, then the action will be verified automatically...');
 
       // Now submit the follow action
-      console.log('đź“ť Submitting follow action...');
+      console.log('📝 Submitting follow action...');
       const response = await fetch('/api/follow-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -899,7 +899,7 @@ export default function PromotePage() {
 
       if (!response.ok) {
         if (response.status === 409) {
-          setFollowToastMessage(`âś… You already completed this follow action! (Status: ${data.status || 'completed'})`);
+          setFollowToastMessage(`✅ You already completed this follow action! (Status: ${data.status || 'completed'})`);
           setShowFollowToast(true);
 
           // Mark as completed immediately
@@ -930,9 +930,9 @@ export default function PromotePage() {
 
       // Show success message
       if (data.message?.includes('admin approval')) {
-        setFollowToastMessage('âś… Follow submitted for admin approval! Reward credited immediately.');
+        setFollowToastMessage('✅ Follow submitted for admin approval! Reward credited immediately.');
       } else {
-        setFollowToastMessage('âś… Follow verified! Reward will be credited soon.');
+        setFollowToastMessage('✅ Follow verified! Reward will be credited soon.');
       }
       setShowFollowToast(true);
 
@@ -944,10 +944,10 @@ export default function PromotePage() {
       // Refresh all data to update pending state
       await refreshAllData();
 
-      console.log(`âś… Follow action completed successfully! You earned ${promo.rewardPerShare} $CHESS.`);
+      console.log(`✅ Follow action completed successfully! You earned ${promo.rewardPerShare} $CHESS.`);
 
     } catch (error: any) {
-      console.error('âťŚ Follow action failed:', error);
+      console.error('✖️ Follow action failed:', error);
       setShareError(error.message || 'Failed to complete follow action');
     } finally {
       setSharingPromoId(null);
@@ -965,14 +965,14 @@ export default function PromotePage() {
     setSharingPromoId(selectedCommentPromo.id.toString());
 
     try {
-      console.log('đź“ť Comment template selected:', selectedCommentTemplate);
-      console.log('đź”— Original post URL:', selectedCommentPromo.castUrl);
+      console.log('📝 Comment template selected:', selectedCommentTemplate);
+      console.log('🔗 Original post URL:', selectedCommentPromo.castUrl);
 
       // Extract cast hash from URL
       const shortHash = selectedCommentPromo.castUrl.split('/').pop();
       let castHash: string | undefined = shortHash;
 
-      console.log(`đź”Ť Cast hash analysis:`, {
+      console.log(`🔍 Cast hash analysis:`, {
         originalUrl: selectedCommentPromo.castUrl,
         shortHash,
         castHash
@@ -981,20 +981,20 @@ export default function PromotePage() {
       // Try to open the original cast for manual commenting
       try {
         await (miniAppSdk as any).actions.viewCast({ hash: castHash || shortHash });
-        console.log('âś… Cast opened for manual comment');
+        console.log('✅ Cast opened for manual comment');
 
-        setShareError('đź“± Cast opened! Please copy the comment template above, paste it as a reply, then click "Verify Comment" below.');
+        setShareError('📱 Cast opened! Please copy the comment template above, paste it as a reply, then click "Verify Comment" below.');
 
         // Keep modal open for manual verification
         // User can click "Verify Comment" button when ready
 
       } catch (viewError) {
-        console.log('âš ď¸Ź Could not open cast');
-        setShareError('đź“± Please manually navigate to the post and comment. Then click "Verify Comment" below.');
+        console.log('⚠️ Could not open cast');
+        setShareError('📱 Please manually navigate to the post and comment. Then click "Verify Comment" below.');
       }
 
     } catch (error: any) {
-      console.error('âťŚ Comment action failed:', error);
+      console.error('✖️ Comment action failed:', error);
       setShareError(error.message || 'Failed to complete comment action');
     } finally {
       setSharingPromoId(null);
@@ -1092,7 +1092,7 @@ export default function PromotePage() {
 
   const handleSharePromo = async (promo: PromoCast) => {
     if (!isAuthenticated || !currentUser.fid) {
-      console.error("âťŚ Please connect your Farcaster account first.");
+      console.error("✖️ Please connect your Farcaster account first.");
       return;
     }
 
@@ -1100,46 +1100,46 @@ export default function PromotePage() {
     setSharingPromoId(promo.id.toString());
 
     try {
-      // Minden megosztĂˇsnĂˇl Ăşj random AppRank szĂ¶veg generĂˇlĂˇsa
+      // Generate a new random AppRank text for each share
       const randomAppRankText = SHARE_TEXTS[Math.floor(Math.random() * SHARE_TEXTS.length)];
 
-      // Premium check: ha a promo 5M+ budget volt, akkor nincs AppRank szĂ¶veg
+      // Premium check: if the promo budget was 5M+, there is no AppRank text
       const isPremium = promo.totalBudget >= 5000000;
       const finalText = isPremium
-        ? (promo.shareText || ``) // Premium: csak user szĂ¶veg, ha nincs akkor ĂĽres
+        ? (promo.shareText || ``) // Premium: only user text, if none then empty
         : (promo.shareText
-          ? `${randomAppRankText} ${promo.shareText}` // NormĂˇl: random AppRank + user szĂ¶veg
-          : randomAppRankText // NormĂˇl: csak random AppRank szĂ¶veg
+          ? `${randomAppRankText} ${promo.shareText}` // Normal: random AppRank + user text
+          : randomAppRankText // Normal: only random AppRank text
         );
 
-      // VĂ©letlenszerĹ± csatorna kivĂˇlasztĂˇsa minden megosztĂˇsnĂˇl
+      // Choose a random channel for each share
       const randomChannel = getRandomChannel();
 
-      // URL tĂ­pus felismerĂ©s Ă©s kezelĂ©s
-      console.log(`đź”Ť Original URL: ${promo.castUrl}`);
+      // URL type recognition and handling
+      console.log(`🔍 Original URL: ${promo.castUrl}`);
 
       const castOptions: any = {
         text: finalText
       };
 
-      // URL tĂ­pus ellenĹ‘rzĂ©se Ă©s cast hash kinyerĂ©se
+      // Verify URL type and extract cast hash
       const shortHash = promo.castUrl.split('/').pop();
       const isWarpcastUrl = promo.castUrl.includes('warpcast.com');
       const isFarcasterUrl = promo.castUrl.includes('farcaster.xyz');
       const isConversationUrl = promo.castUrl.includes('/conversations/');
 
-      // Teljes cast hash lekĂ©rĂ©se API-bĂłl (ha rĂ¶vid hash)
+      // Retrieve full cast hash from API (if short hash)
       let castHash: string | undefined = shortHash;
       let hasValidCastHash: boolean = false;
 
-      // EgyszerĹ± megkĂ¶zelĂ­tĂ©s: csak akkor quote cast, ha mĂˇr hosszĂş hash van
-      // RĂ¶vid hash-ek â†’ embed (biztonsĂˇgosabb Ă©s stabil)
+      // Simple approach: only use quote cast if we have a full hash
+      // Short hashes → embed (safer and more stable)
 
-      // Farcaster cast hash validĂˇciĂł: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
-      // VAGY 42 karakteres hash is elfogadhatĂł (gyakori formĂˇtum)
+      // Farcaster cast hash validation: 256-bit Blake2B = 64 hex chars + 0x = 66 chars total
+      // OR 42 character hash is also acceptable (common format)
       hasValidCastHash = Boolean(castHash && castHash.startsWith('0x') && (castHash.length === 66 || castHash.length === 42));
 
-      console.log(`đź”Ť URL Analysis:`, {
+      console.log(`🔍 URL Analysis:`, {
         isWarpcastUrl,
         isFarcasterUrl,
         isConversationUrl,
@@ -1155,34 +1155,34 @@ export default function PromotePage() {
           type: 'cast',
           hash: castHash
         };
-        // HozzĂˇadjuk az AppRank miniapp linket is
+        // Also add the AppRank miniapp link
         castOptions.embeds = ['https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank'];
-        console.log(`đź”— Creating quote cast with hash: ${castHash} + AppRank embed`);
+        console.log(`🔗 Creating quote cast with hash: ${castHash} + AppRank embed`);
       } else {
-        // RĂ¶vid hash vagy nincs hash - csak embed (biztonsĂˇgosabb)
+        // Short hash or no hash - only embed (safer)
         castOptions.embeds = [promo.castUrl];
-        console.log(`đź“Ž Creating embed with URL: ${promo.castUrl} (hash: ${castHash}, length: ${castHash?.length || 0} chars)`);
+        console.log(`📎 Creating embed with URL: ${promo.castUrl} (hash: ${castHash}, length: ${castHash?.length || 0} chars)`);
       }
 
-      // Ha nem Home Feed, akkor hozzĂˇadjuk a csatornĂˇt
+      // If not Home Feed, add the channel
       if (randomChannel) {
         castOptions.channelKey = randomChannel;
       }
 
-      console.log(`đźŽŻ Selected channel: "${randomChannel || 'Home Feed'}"`);
-      console.log(`đź“Š New Channel Distribution: Home Feed (80%), Crypto (3%), Web3 (3%), Farcaster (3%), Founders (3%), Builders (3%), Airdrop (3%), Onchain (2%)`);
-      console.log(`đź“ť Cast options:`, castOptions);
+      console.log(`🎯 Selected channel: "${randomChannel || 'Home Feed'}"`);
+      console.log(`📊 New Channel Distribution: Home Feed (80%), Crypto (3%), Web3 (3%), Farcaster (3%), Founders (3%), Builders (3%), Airdrop (3%), Onchain (2%)`);
+      console.log(`📝 Cast options:`, castOptions);
 
-      // Fallback rendszer: prĂłbĂˇljuk meg kĂĽlĂ¶nbĂ¶zĹ‘ csatornĂˇkkal
+      // Fallback system: try with different channels
       let castResult = null;
       let attemptedChannels: (string | null)[] = [randomChannel];
 
       try {
         castResult = await (miniAppSdk as any).actions.composeCast(castOptions);
       } catch (channelError) {
-        console.log(`âťŚ Channel "${randomChannel}" failed, trying fallbacks...`);
+        console.log(`✖️ Channel "${randomChannel}" failed, trying fallbacks...`);
 
-        // Fallback csatornĂˇk lekĂ©rĂ©se
+        // Retrieve fallback channels
         const fallbackChannels = getChannelFallbacks(randomChannel);
 
         for (const fallbackChannel of fallbackChannels) {
@@ -1196,15 +1196,15 @@ export default function PromotePage() {
               delete fallbackOptions.channelKey; // Home Feed
             }
 
-            console.log(`đź”„ Trying fallback channel: "${fallbackChannel || 'Home Feed'}"`);
+            console.log(`🔄 Trying fallback channel: "${fallbackChannel || 'Home Feed'}"`);
             castResult = await (miniAppSdk as any).actions.composeCast(fallbackOptions);
 
             if (castResult && castResult.cast && castResult.cast.hash) {
-              console.log(`âś… Success with fallback channel: "${fallbackChannel || 'Home Feed'}"`);
+              console.log(`✅ Success with fallback channel: "${fallbackChannel || 'Home Feed'}"`);
               break;
             }
           } catch (fallbackError) {
-            console.log(`âťŚ Fallback channel "${fallbackChannel || 'Home Feed'}" also failed`);
+            console.log(`✖️ Fallback channel "${fallbackChannel || 'Home Feed'}" also failed`);
             attemptedChannels.push(fallbackChannel);
             continue;
           }
@@ -1212,7 +1212,7 @@ export default function PromotePage() {
       }
 
       if (!castResult || !castResult.cast || !castResult.cast.hash) {
-        console.error(`âťŚ All channels failed. Attempted: ${attemptedChannels.join(', ')}`);
+        console.error(`✖️ All channels failed. Attempted: ${attemptedChannels.join(', ')}`);
         throw new Error(`Failed to share in any channel. Tried: ${attemptedChannels.map(ch => ch || 'Home Feed').join(', ')}`);
       }
 
@@ -1233,7 +1233,7 @@ export default function PromotePage() {
         throw new Error(data.error || "Failed to record share on the backend.");
       }
 
-      console.log(`âś… Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
+      console.log(`✅ Shared successfully! You earned ${promo.rewardPerShare} $CHESS.`);
 
       await refreshAllData();
 
@@ -1243,7 +1243,7 @@ export default function PromotePage() {
       setShareError(errorMessage);
 
       if (errorMessage.includes('can share this campaign again in')) {
-        console.error(`âťŚ Share error: ${errorMessage}`);
+        console.error(`✖️ Share error: ${errorMessage}`);
       }
     } finally {
       setSharingPromoId(null);
@@ -1262,12 +1262,12 @@ export default function PromotePage() {
     if (p.remainingBudget < p.rewardPerShare) return false;
 
     // Debug logging
-    console.log(`đź”Ť Filtering promo ${p.id}: actionType="${p.actionType}", filter="${promotionFilter}"`);
+    console.log(`🔍 Filtering promo ${p.id}: actionType="${p.actionType}", filter="${promotionFilter}"`);
 
     // Apply promotion type filter
     if (promotionFilter !== 'all') {
       const promoActionType = p.actionType || 'quote'; // Use mapped actionType field
-      console.log(`  đź“Š Action type check: ${promoActionType} === ${promotionFilter}? ${promoActionType === promotionFilter}`);
+      console.log(`  📊 Action type check: ${promoActionType} === ${promotionFilter}? ${promoActionType === promotionFilter}`);
 
       if (promotionFilter === 'quote' && promoActionType !== 'quote') return false;
       if (promotionFilter === 'like_recast' && promoActionType !== 'like_recast') return false;
@@ -1310,7 +1310,7 @@ export default function PromotePage() {
 
       // Debug logging for follow actions
       if (promo.actionType === 'follow') {
-        console.log(`đź”Ť Follow action ${promo.id}: isCompleted=${isCompleted}, shouldBeInCountdown=${shouldBeInCountdown}, isFollowCompleted=${isFollowCompleted}`);
+        console.log(`🔍 Follow action ${promo.id}: isCompleted=${isCompleted}, shouldBeInCountdown=${shouldBeInCountdown}, isFollowCompleted=${isFollowCompleted}`);
       }
     });
 
@@ -1408,7 +1408,7 @@ export default function PromotePage() {
       {showFollowToast && (
         <div className="fixed top-4 right-4 z-50 bg-green-900/90 border border-green-600 rounded-lg p-4 shadow-lg animate-slideInRight max-w-sm">
           <div className="flex items-center gap-3">
-            <div className="text-green-400 text-xl">đź‘Ą</div>
+            <div className="text-green-400 text-xl">👥</div>
             <div className="flex-1">
               <div className="text-green-200 font-medium text-sm">
                 {followToastMessage}
@@ -1581,7 +1581,7 @@ export default function PromotePage() {
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
                       }`}
                   >
-                    đź’¬ Quote
+                    💬 Quote
                   </button>
                   <button
                     onClick={() => setPromotionFilter('like_recast')}
@@ -1590,7 +1590,7 @@ export default function PromotePage() {
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
                       }`}
                   >
-                    đź‘Ť Like & Recast
+                    👍 Like & Recast
                   </button>
                   <button
                     onClick={() => setPromotionFilter('comment')}
@@ -1599,7 +1599,7 @@ export default function PromotePage() {
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
                       }`}
                   >
-                    đź’¬ Comment
+                    💬 Comment
                   </button>
                   <button
                     onClick={() => setPromotionFilter('follow')}
@@ -1608,14 +1608,14 @@ export default function PromotePage() {
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
                       }`}
                   >
-                    đź‘Ą Follow
+                    👥 Follow
                   </button>
                 </div>
                 {/* Available Promotions Section */}
                 {sortedAvailablePromos.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                      <span className="bg-green-600 text-white px-2 py-1 rounded-md text-sm">âś…</span>
+                      <span className="bg-green-600 text-white px-2 py-1 rounded-md text-sm">✅</span>
                       Available Campaigns ({sortedAvailablePromos.length})
                     </h3>
                     {sortedAvailablePromos.map((promo) => {
@@ -1647,7 +1647,7 @@ export default function PromotePage() {
 
                           {/* Content Preview - SEO Optimized */}
                           <div className="bg-gray-900 rounded-lg p-2">
-                            <div className="text-xs text-gray-400 mb-2">đź“± Content Preview:</div>
+                            <div className="text-xs text-gray-400 mb-2">📱 Content Preview:</div>
                             <div className="bg-white rounded overflow-hidden h-40 sm:h-48 lg:h-56 relative">
                               {/* Loading Skeleton */}
                               <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
@@ -1668,7 +1668,7 @@ export default function PromotePage() {
                                   // Show error message if iframe fails to load
                                   const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
                                   if (skeleton) {
-                                    skeleton.innerHTML = '<div class="text-red-500 text-sm">âťŚ Preview unavailable</div>';
+                                    skeleton.innerHTML = '<div class="text-red-500 text-sm">✖️ Preview unavailable</div>';
                                   }
                                 }}
                               />
@@ -1689,7 +1689,7 @@ export default function PromotePage() {
 
                             {/* Different buttons based on promotion type */}
                             {(() => {
-                              console.log(`đź”Ť Rendering button for promo ${promo.id}:`, {
+                              console.log(`🔍 Rendering button for promo ${promo.id}:`, {
                                 actionType: promo.actionType,
                                 canShare,
                                 sharingPromoId,
@@ -1728,8 +1728,8 @@ export default function PromotePage() {
                                     {sharingPromoId === promo.id.toString()
                                       ? 'Processing...'
                                       : isCountingDown
-                                        ? `âŹł Wait ${countdown}s to Quote`
-                                        : `đź’¬ Quote & Earn ${promo.rewardPerShare} $CHESS`
+                                        ? `⏳ Wait ${countdown}s to Quote`
+                                        : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
@@ -1740,7 +1740,7 @@ export default function PromotePage() {
                                 if (isCompleted) {
                                   return (
                                     <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-green-400 text-white text-sm font-bold rounded-xl shadow-lg">
-                                      <span>âś…</span>
+                                      <span>✅</span>
                                       <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
                                     </div>
                                   );
@@ -1755,9 +1755,9 @@ export default function PromotePage() {
                                     onClick={(e) => {
                                       if (!isCountingDown) {
                                         console.log('đź” Button clicked!');
-                                        console.log('đź“± Event:', e);
-                                        console.log('đźŽŻ Promo:', promo);
-                                        console.log('âś… Button clicked successfully!');
+                                        console.log('📱 Event:', e);
+                                        console.log('🎯 Promo:', promo);
+                                        console.log('✅ Button clicked successfully!');
                                         // Add click animation
                                         e.currentTarget.style.transform = 'scale(0.95)';
                                         setTimeout(() => {
@@ -1775,12 +1775,12 @@ export default function PromotePage() {
                                     ) : isCountingDown ? (
                                       <FiClock size={14} />
                                     ) : (
-                                      'đź‘Ť'
+                                      '👍'
                                     )}
                                     {sharingPromoId === promo.id.toString()
                                       ? 'Processing...'
                                       : isCountingDown
-                                        ? `âŹł Wait ${countdown}s to Like & Recast`
+                                        ? `⏳ Wait ${countdown}s to Like & Recast`
                                         : `Like & Recast & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
@@ -1792,7 +1792,7 @@ export default function PromotePage() {
                                 if (isCompleted) {
                                   return (
                                     <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-green-400 text-white text-sm font-bold rounded-xl shadow-lg">
-                                      <span>âś…</span>
+                                      <span>✅</span>
                                       <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
                                     </div>
                                   );
@@ -1824,13 +1824,13 @@ export default function PromotePage() {
                                     ) : isCountingDown ? (
                                       <FiClock size={14} />
                                     ) : (
-                                      'đź’¬'
+                                      '💬'
                                     )}
                                     {sharingPromoId === promo.id.toString()
                                       ? 'Processing...'
                                       : isCountingDown
-                                        ? `âŹł Wait ${countdown}s to Comment`
-                                        : `đź’¬ Comment & Earn ${promo.rewardPerShare} $CHESS`
+                                        ? `⏳ Wait ${countdown}s to Comment`
+                                        : `💬 Comment & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
@@ -1842,7 +1842,7 @@ export default function PromotePage() {
                                 if (isCompleted || isPending) {
                                   return (
                                     <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#23283a] border border-green-400 text-white text-sm font-bold rounded-xl shadow-lg">
-                                      <span>âś…</span>
+                                      <span>✅</span>
                                       <span>Completed! Earned {promo.rewardPerShare} $CHESS</span>
                                     </div>
                                   );
@@ -1884,21 +1884,21 @@ export default function PromotePage() {
                                       ) : isCountingDown ? (
                                         <FiClock size={14} />
                                       ) : (
-                                        'đź‘Ą'
+                                        '👥'
                                       )}
                                       {sharingPromoId === promo.id.toString()
                                         ? 'Processing...'
                                         : completedActions[promo.id]
-                                          ? 'âś… Followed & Earned'
+                                          ? '✅ Followed & Earned'
                                           : isPending
-                                            ? 'âŹł Pending Follow - Awaiting Admin Approval'
+                                            ? '⏳ Pending Follow - Awaiting Admin Approval'
                                             : isCountingDown
-                                              ? `âŹł Wait ${countdown}s to Follow`
-                                              : `đź‘Ą Follow & Earn ${promo.rewardPerShare} $CHESS`
+                                              ? `⏳ Wait ${countdown}s to Follow`
+                                              : `👥 Follow & Earn ${promo.rewardPerShare} $CHESS`
                                       }
                                     </button>
                                     <div className="text-xs text-yellow-400 text-center mt-1">
-                                      đźŽŻ Available Now
+                                      🎯 Available Now
                                     </div>
                                   </div>
                                 );
@@ -1929,8 +1929,8 @@ export default function PromotePage() {
                                     {sharingPromoId === promo.id.toString()
                                       ? 'Processing...'
                                       : isCountingDown
-                                        ? `âŹł Wait ${countdown}s to Quote`
-                                        : `đź’¬ Quote & Earn ${promo.rewardPerShare} $CHESS`
+                                        ? `⏳ Wait ${countdown}s to Quote`
+                                        : `💬 Quote & Earn ${promo.rewardPerShare} $CHESS`
                                     }
                                   </button>
                                 );
@@ -1947,7 +1947,7 @@ export default function PromotePage() {
                 {sortedCountdownPromos.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                      <span className="bg-yellow-600 text-white px-2 py-1 rounded-md text-sm">âŹ°</span>
+                      <span className="bg-yellow-600 text-white px-2 py-1 rounded-md text-sm">⏰</span>
                       Countdown & Pending Campaigns ({sortedCountdownPromos.length})
                     </h3>
                     {sortedCountdownPromos.map((promo) => {
@@ -1979,7 +1979,7 @@ export default function PromotePage() {
 
                           {/* Content Preview */}
                           <div className="bg-gray-900 rounded-lg p-2">
-                            <div className="text-xs text-gray-400 mb-2">đź“± Content Preview:</div>
+                            <div className="text-xs text-gray-400 mb-2">📱 Content Preview:</div>
                             <div className="bg-white rounded overflow-hidden h-40 sm:h-48 lg:h-56 relative">
                               <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                                 <div className="text-gray-500 text-sm">Loading preview...</div>
@@ -1997,7 +1997,7 @@ export default function PromotePage() {
                                 onError={(e) => {
                                   const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
                                   if (skeleton) {
-                                    skeleton.innerHTML = '<div class="text-red-500 text-sm">âťŚ Preview unavailable</div>';
+                                    skeleton.innerHTML = '<div class="text-red-500 text-sm">✖️ Preview unavailable</div>';
                                   }
                                 }}
                               />
@@ -2022,9 +2022,9 @@ export default function PromotePage() {
                                 ? `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Comment Again`
                                 : promo.actionType === 'follow'
                                   ? pendingActions[promo.id]
-                                    ? `âŹł Pending Follow - Awaiting Admin Approval`
+                                    ? `⏳ Pending Follow - Awaiting Admin Approval`
                                     : completedActions[promo.id]
-                                      ? `âś… Follow Completed - $CHESS Earned`
+                                      ? `✅ Follow Completed - $CHESS Earned`
                                       : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Follow Again`
                                   : `Wait ${formatTimeRemaining(timerInfo.timeRemaining)} to Quote Again`
                               }
@@ -2092,7 +2092,7 @@ export default function PromotePage() {
       {false && luckyBoxReward > 0 && (
         <div className="flex justify-center mt-4 mb-6">
           <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl p-4 text-center pulse-glow">
-            <div className="text-2xl mb-2">đźŽ‰</div>
+            <div className="text-2xl mb-2">🎉</div>
             <div className="text-white font-bold">Lucky Box Opened!</div>
             <div className="text-yellow-300 text-lg font-bold">+{luckyBoxReward.toLocaleString()} CHESS</div>
             <div className="text-gray-300 text-sm">Added to your earnings!</div>
@@ -2193,7 +2193,7 @@ export default function PromotePage() {
                     }}
                     className="text-gray-400 hover:text-white"
                   >
-                    âś•
+                    ✕
                   </button>
                 </div>
 
@@ -2257,22 +2257,22 @@ export default function PromotePage() {
                     }}
                     className="text-gray-400 hover:text-white"
                   >
-                    âś•
+                    ✕
                   </button>
                 </div>
 
                 {/* Comment Process Info Box */}
                 <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-400 text-sm">â„ąď¸Ź</span>
+                    <span className="text-blue-400 text-sm">ℹ️</span>
                     <div className="text-blue-300 text-xs">
                       <p className="font-semibold mb-1">Comment Process:</p>
                       <ol className="list-decimal list-inside space-y-1 text-xs">
                         <li>Choose a comment template below</li>
-                        <li>Click "1ď¸ŹâŁ Copy" to copy the template</li>
-                        <li>Click "2ď¸ŹâŁ Open Post" to open the original post</li>
+                        <li>Click "1️âŁ Copy" to copy the template</li>
+                        <li>Click "2️âŁ Open Post" to open the original post</li>
                         <li>Paste the comment as a reply</li>
-                        <li>Click "3ď¸ŹâŁ Verify" to claim your reward</li>
+                        <li>Click "3️âŁ Verify" to claim your reward</li>
                       </ol>
                     </div>
                   </div>
@@ -2280,7 +2280,7 @@ export default function PromotePage() {
 
                 {/* Original Post Preview */}
                 <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-                  <p className="text-sm text-gray-300 mb-2">đź“± Original Post Preview:</p>
+                  <p className="text-sm text-gray-300 mb-2">📱 Original Post Preview:</p>
 
                   {/* Original Post Iframe */}
                   <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -2295,7 +2295,7 @@ export default function PromotePage() {
                   {/* Instruction */}
                   <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
                     <p className="text-blue-300 text-sm">
-                      đź“± <strong>Above is the original post</strong> - Choose a comment template below, then copy and paste it as a reply
+                      📱 <strong>Above is the original post</strong> - Choose a comment template below, then copy and paste it as a reply
                     </p>
                   </div>
                 </div>
@@ -2309,8 +2309,8 @@ export default function PromotePage() {
                         onClick={toggleTemplateSort}
                         className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
                       >
-                        {templateSortOrder === 'default' ? 'đź”„ Random' :
-                          templateSortOrder === 'random' ? 'đź“¦ Compact' : 'đź“‹ Default'}
+                        {templateSortOrder === 'default' ? '🔄 Random' :
+                          templateSortOrder === 'random' ? '📦 Compact' : '📋 Default'}
                       </button>
                       {/* Display mode toggle removed - only compact view */}
                     </div>
@@ -2337,7 +2337,7 @@ export default function PromotePage() {
                   {/* Selected Template Preview */}
                   {selectedCommentTemplate && (
                     <div className="mt-4 p-3 bg-green-900 border border-green-600 rounded-lg">
-                      <p className="text-green-300 text-sm mb-2">đź’¬ Your comment:</p>
+                      <p className="text-green-300 text-sm mb-2">💬 Your comment:</p>
                       <div className="bg-slate-800 p-2 rounded border">
                         <p className="text-white text-sm break-words">
                           {selectedCommentTemplate}
@@ -2347,15 +2347,15 @@ export default function PromotePage() {
                         onClick={async () => {
                           try {
                             await navigator.clipboard.writeText(selectedCommentTemplate);
-                            setShareError('đź“‹ Comment copied to clipboard! Now paste it as a reply to the post above.');
+                            setShareError('📋 Comment copied to clipboard! Now paste it as a reply to the post above.');
                           } catch (err) {
                             console.error('Failed to copy:', err);
-                            setShareError('âťŚ Failed to copy to clipboard. Please copy manually.');
+                            setShareError('✖️ Failed to copy to clipboard. Please copy manually.');
                           }
                         }}
                         className="mt-2 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors active:scale-95"
                       >
-                        1ď¸ŹâŁ Copy Comment to Clipboard
+                        1️âŁ Copy Comment to Clipboard
                       </button>
                     </div>
                   )}
@@ -2383,7 +2383,7 @@ export default function PromotePage() {
                       disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
                       className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                     >
-                      {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '2ď¸ŹâŁ Open Post & Comment'}
+                      {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '2️âŁ Open Post & Comment'}
                     </button>
                   )}
 
@@ -2395,12 +2395,12 @@ export default function PromotePage() {
 
                         // Prevent multiple clicks
                         if (sharingPromoId === selectedCommentPromo.id.toString()) {
-                          console.log('âŹł Already processing, please wait...');
+                          console.log('⏳ Already processing, please wait...');
                           return;
                         }
 
-                        console.log('đź”Ť Verifying comment manually...');
-                        setShareError('đź”Ť Verifying comment...');
+                        console.log('🔍 Verifying comment manually...');
+                        setShareError('🔍 Verifying comment...');
                         setSharingPromoId(selectedCommentPromo.id.toString());
 
                         try {
@@ -2425,8 +2425,8 @@ export default function PromotePage() {
                             throw new Error(data.error || 'Failed to verify comment');
                           }
 
-                          console.log('âś… Comment submitted for approval');
-                          setShareError('âś… Comment submitted for admin approval! Reward will be credited after review.');
+                          console.log('✅ Comment submitted for approval');
+                          setShareError('✅ Comment submitted for admin approval! Reward will be credited after review.');
 
                           // Mark action as completed
                           setCompletedActions(prev => ({
@@ -2445,15 +2445,15 @@ export default function PromotePage() {
                           refreshAllData();
 
                         } catch (error: any) {
-                          console.error('âťŚ Comment verification failed:', error);
-                          setShareError(`âťŚ Verification failed: ${error.message}`);
+                          console.error('✖️ Comment verification failed:', error);
+                          setShareError(`✖️ Verification failed: ${error.message}`);
                           setSharingPromoId(null);
                         }
                       }}
                       disabled={sharingPromoId === selectedCommentPromo.id.toString()}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                     >
-                      {sharingPromoId === selectedCommentPromo.id.toString() ? 'âŹł Verifying...' : '3ď¸ŹâŁ Verify Comment'}
+                      {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '3️âŁ Verify Comment'}
                     </button>
                   )}
                 </div>
@@ -2493,7 +2493,7 @@ export default function PromotePage() {
                     </div>
 
                     <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3 mb-3">
-                      <h5 className="text-blue-300 font-medium text-sm mb-2">đź“± How to follow:</h5>
+                      <h5 className="text-blue-300 font-medium text-sm mb-2">📱 How to follow:</h5>
                       <ol className="text-gray-300 text-xs space-y-1 list-decimal list-inside">
                         <li>Click "Open in Farcaster App" below</li>
                         <li>This will open the user's profile</li>
@@ -2504,7 +2504,7 @@ export default function PromotePage() {
                     </div>
 
                     <p className="text-yellow-400 text-xs">
-                      âš ď¸Ź One-time only - no back-and-forth follows
+                      ⚠️ One-time only - no back-and-forth follows
                     </p>
                   </div>
 
@@ -2522,7 +2522,7 @@ export default function PromotePage() {
                       onClick={async () => {
                         try {
                           const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
-                          console.log('đź”— Opening profile for:', targetUsername);
+                          console.log('🔗 Opening profile for:', targetUsername);
 
                           // Try different methods to open profile
                           try {
@@ -2530,12 +2530,12 @@ export default function PromotePage() {
                             if ((miniAppSdk as any).actions?.openUrl) {
                               const profileUrl = `https://farcaster.xyz/${targetUsername}`;
                               await (miniAppSdk as any).actions.openUrl(profileUrl);
-                              console.log('âś… Profile opened via miniAppSdk.openUrl');
+                              console.log('✅ Profile opened via miniAppSdk.openUrl');
                             } else {
                               throw new Error('openUrl not available');
                             }
                           } catch (sdkError) {
-                            console.log('âš ď¸Ź miniAppSdk.openUrl failed, trying window.open...');
+                            console.log('⚠️ miniAppSdk.openUrl failed, trying window.open...');
                             try {
                               // Method 2: Try window.open with _blank
                               const profileUrl = `https://farcaster.xyz/${targetUsername}`;
@@ -2543,26 +2543,26 @@ export default function PromotePage() {
                               if (!newWindow) {
                                 throw new Error('Popup blocked');
                               }
-                              console.log('âś… Profile opened via window.open');
+                              console.log('✅ Profile opened via window.open');
                             } catch (windowError) {
-                              console.log('âš ď¸Ź window.open failed, trying location.href...');
+                              console.log('⚠️ window.open failed, trying location.href...');
                               // Method 3: Fallback to location.href
                               const profileUrl = `https://farcaster.xyz/${targetUsername}`;
                               window.location.href = profileUrl;
-                              console.log('âś… Profile opened via location.href');
+                              console.log('✅ Profile opened via location.href');
                             }
                           }
 
                           // Show instruction message
-                          setShareError('đź“± Profile opened! Please follow the user, then click "Verify Follow" below...');
+                          setShareError('📱 Profile opened! Please follow the user, then click "Verify Follow" below...');
 
                         } catch (error) {
-                          console.error('âťŚ Error opening profile:', error);
+                          console.error('✖️ Error opening profile:', error);
                         }
                       }}
                       className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors active:scale-95"
                     >
-                      đź“± Open in Farcaster App
+                      📱 Open in Farcaster App
                     </button>
                     <button
                       onClick={async () => {
@@ -2572,7 +2572,7 @@ export default function PromotePage() {
                         setShareError(null);
 
                         try {
-                          console.log('đź”Ť Verifying follow action...');
+                          console.log('🔍 Verifying follow action...');
                           await handleFollowAction(selectedFollowPromo);
 
                           // Close modal and refresh data
@@ -2584,15 +2584,15 @@ export default function PromotePage() {
                           await refreshAllData();
 
                         } catch (error: any) {
-                          console.error('âťŚ Follow verification failed:', error);
-                          setShareError(`âťŚ Verification failed: ${error.message}`);
+                          console.error('✖️ Follow verification failed:', error);
+                          setShareError(`✖️ Verification failed: ${error.message}`);
                           setSharingPromoId(null);
                         }
                       }}
                       disabled={sharingPromoId === selectedFollowPromo.id.toString()}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                     >
-                      {sharingPromoId === selectedFollowPromo.id.toString() ? 'âŹł Verifying...' : 'âś… Verify Follow'}
+                      {sharingPromoId === selectedFollowPromo.id.toString() ? '⏳ Verifying...' : '✅ Verify Follow'}
                     </button>
                   </div>
                 </div>
@@ -2677,7 +2677,7 @@ export default function PromotePage() {
                         : 'text-cyan-400/60 hover:text-cyan-400'
                         }`}
                     >
-                      DIAMOND VIP đź’Ž {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
+                      DIAMOND VIP 💎 {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
                     </button>
                   </div>
                 )}
@@ -2688,14 +2688,14 @@ export default function PromotePage() {
                       {/* Countdown Timer */}
 
                       <h3 className="text-cyan-300 font-black text-[10px] mb-2 flex items-center gap-2 uppercase tracking-wider">
-                        <span className="text-lg">đź’Ž</span> VIP Daily Bundle
+                        <span className="text-lg">💎</span> VIP Daily Bundle
                       </h3>
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          { icon: "đźŽźď¸Ź", text: "1x FREE Lambo Lotto Ticket", color: "text-cyan-300" },
-                          { icon: "đź“", text: "100k Like & Recast Promo", color: "text-purple-300" },
-                          { icon: "đź’¬", text: "100k Quote Promotion", color: "text-cyan-300" },
-                          { icon: "đź“ť", text: "100k Comment Promotion", color: "text-purple-300" }
+                          { icon: "🎟️", text: "1x FREE Lambo Lotto Ticket", color: "text-cyan-300" },
+                          { icon: "📈", text: "100k Like & Recast Promo", color: "text-purple-300" },
+                          { icon: "💬", text: "100k Quote Promotion", color: "text-cyan-300" },
+                          { icon: "📝", text: "100k Comment Promotion", color: "text-purple-300" }
                         ].map((item, idx) => (
                           <div key={idx} className="flex items-center gap-3 p-2 bg-black/30 rounded-lg border border-white/5">
                             <span className="text-lg">{item.icon}</span>
@@ -2750,7 +2750,7 @@ export default function PromotePage() {
                           type="text"
                           value={dailyCode}
                           onChange={(e) => setDailyCode(e.target.value)}
-                          placeholder={isVip ? "âś¨ VIP DETECTED - NO CODE NEEDED âś¨" : "Enter secret code..."}
+                          placeholder={isVip ? "✨ VIP DETECTED - NO CODE NEEDED ✨" : "Enter secret code..."}
                           className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-white focus:ring-1 focus:outline-none transition-all font-black uppercase text-xs ${isVip
                             ? 'border-cyan-400 ring-1 ring-cyan-400/50 placeholder:text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
                             : 'border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400 placeholder:text-cyan-400/30'}`}
@@ -2809,7 +2809,7 @@ export default function PromotePage() {
                   </div>
                 ) : dailyCodeSuccess ? (
                   <div className="text-center py-8">
-                    <div className="text-5xl mb-4">đźŽ‰</div>
+                    <div className="text-5xl mb-4">🎉</div>
                     <h3 className="text-xl font-bold text-green-400 mb-2">Success!</h3>
                     <p className="text-white mb-6">{dailyCodeSuccess}</p>
                     <button

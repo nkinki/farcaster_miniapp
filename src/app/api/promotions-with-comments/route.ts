@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
-// Adatbázis kapcsolat inicializálása
+// Initializing database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Új promóció létrehozása comment funkcionalitással
+// Creating new promotion with comment functionality
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
       fid, username, displayName, castUrl, shareText,
       rewardPerShare, totalBudget, actionType,
-      // Új comment mezők
+      // New comment fields
       commentTemplates, customComment, allowCustomComments
     } = body;
 
-    // Alapvető validáció
+    // Basic validation
     if (!fid || !username || !castUrl || !rewardPerShare || !totalBudget) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Reward or budget exceeds security limits.' }, { status: 400 });
     }
 
-    // Comment validáció
+    // Comment validation
     if (!commentTemplates || !Array.isArray(commentTemplates)) {
       return NextResponse.json({ error: 'commentTemplates must be an array' }, { status: 400 });
     }
@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Custom comment too long (max 280 characters)' }, { status: 400 });
     }
 
-    // Jelenlegi időpont generálása
+    // Generating current timestamp
     const now = new Date();
     const blockchainHash = `promo_${fid}_${now.getTime()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Új promóció létrehozása a promotions_with_comments táblában
+    // Creating new promotion in the promotions_with_comments table
     const result = await pool.query(`
       INSERT INTO promotions_with_comments (
         fid, username, display_name, cast_url, share_text,
@@ -65,17 +65,17 @@ export async function POST(request: NextRequest) {
       totalBudget, // remaining_budget starts equal to total_budget
       blockchainHash,
       actionType || 'quote',
-      commentTemplates, // A JSONB oszlop közvetlenül fogadja a JS tömböt, a driver stringify-olja
+      commentTemplates, // The JSONB column directly accepts the JS array, the driver stringifies it
       customComment || null,
       allowCustomComments !== false // Default true
     ]);
 
     const newPromotion = result.rows[0];
 
-    // Automatikus értesítések trigger (nem blokkoló)
+    // Automatic notifications trigger (non-blocking)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    // 1. Email értesítés
+    // 1. Email notification
     try {
       const emailResponse = await fetch(`${baseUrl}/api/promotions/send-email`, {
         method: 'POST',
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Promotion email failed (non-blocking):', emailError);
     }
 
-    // 2. Farcaster cast értesítés
+    // 2. Farcaster cast notification
     try {
       const farcasterResponse = await fetch(`${baseUrl}/api/farcaster/notify-promotion`, {
         method: 'POST',
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       success: true,
       promotion: {
         ...newPromotion,
-        // JAVÍTVA: A newPromotion.comment_templates már egy JS tömb, mert a pg driver automatikusan parse-olja a JSONB-t.
+        // FIXED: newPromotion.comment_templates is already a JS array because the pg driver automatically parses JSONB.
         commentTemplates: newPromotion.comment_templates || [],
         customComment: newPromotion.custom_comment,
         allowCustomComments: newPromotion.allow_custom_comments
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Promóciók lekérése comment funkcionalitással
+// Fetching promotions with comment functionality
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -170,10 +170,10 @@ export async function GET(request: NextRequest) {
 
     const result = await pool.query(query, params);
 
-    // Comment templates már parse-olva érkezik a JSONB oszlopból
+    // Comment templates arrive already parsed from the JSONB column
     const promotions = result.rows.map(row => ({
       ...row,
-      // JAVÍTVA: A row.comment_templates már egy JS tömb, mert a pg driver automatikusan parse-olja a JSONB-t.
+      // FIXED: row.comment_templates is already a JS array because the pg driver automatically parses JSONB.
       commentTemplates: row.comment_templates || [],
       customComment: row.custom_comment,
       allowCustomComments: row.allow_custom_comments

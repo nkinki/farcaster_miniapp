@@ -3,17 +3,17 @@
 import { useState } from "react"
 import FundingForm from "./FundingForm"
 import { useChessToken } from "../hooks/useChessToken"
-// JAVÍTÁS: A helyi 'Promo' interfész helyett a központi, szigorúan tipizált 'PromoCast'-ot használjuk.
+// FIX: Instead of the local 'Promo' interface, we use the central, strictly typed 'PromoCast'.
 import { PromoCast } from "@/types/promotions"
 
 interface MyPromotionsDropdownProps {
-  // JAVÍTÁS: A prop típusa is 'PromoCast' lesz.
+  // FIX: Prop type will also be 'PromoCast'.
   promotions: PromoCast[]
 }
 
 export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdownProps) {
   const [open, setOpen] = useState(false)
-  // JAVÍTÁS: A state-ek típusát is a helyes 'PromoCast'-ra állítjuk.
+  // FIX: State types are also set to the correct 'PromoCast'.
   const [editPromo, setEditPromo] = useState<PromoCast | null>(null)
   const [fundPromo, setFundPromo] = useState<PromoCast | null>(null)
 
@@ -27,15 +27,15 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
   const [editSaving, setEditSaving] = useState(false)
   const [editSuccess, setEditSuccess] = useState(false)
 
-  // A 'handleEditSave' logika változatlan maradhat, de a 'editPromo' már helyesen tipizált.
+  // The 'handleEditSave' logic can remain unchanged, but 'editPromo' is now correctly typed.
   const handleEditSave = async () => {
-    // ... a meglévő mentési logika ...
+    // ... the existing save logic ...
   }
 
-  // JAVÍTÁS: Handler függvények a FundingForm-nak.
+  // FIX: Handler functions for FundingForm.
   const handleFundSuccess = () => {
     setFundPromo(null);
-    // Ideális esetben itt jelezni kellene a szülőnek (page.tsx), hogy frissítsen.
+    // Ideally, we should notify the parent (page.tsx) to refresh.
     alert("Campaign funded successfully! The list will update on the next reload.");
   }
 
@@ -72,7 +72,7 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                       <button className="px-2 py-1 text-xs bg-green-700 text-white rounded hover:bg-green-600" onClick={() => setFundPromo(promo)}>Fund</button>
                     </div>
                   </div>
-                  
+
                   {/* Embedded Content Preview */}
                   <div className="bg-gray-900 rounded-lg p-2">
                     <div className="text-xs text-gray-400 mb-2">📱 Content Preview (what users will share):</div>
@@ -81,9 +81,9 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                         <div className="text-gray-500 text-sm">Loading preview...</div>
                       </div>
-                      <iframe 
-                        src={promo.castUrl} 
-                        className="w-full h-full border-0 relative z-10" 
+                      <iframe
+                        src={promo.castUrl}
+                        className="w-full h-full border-0 relative z-10"
                         title={`Preview of ${promo.castUrl}`}
                         loading="lazy"
                         sandbox="allow-scripts allow-same-origin"
@@ -121,7 +121,7 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                       <button className="px-2 py-1 text-xs bg-green-700 text-white rounded hover:bg-green-600" onClick={() => setFundPromo(promo)}>Fund</button>
                     </div>
                   </div>
-                  
+
                   {/* Embedded Content Preview */}
                   <div className="bg-gray-900 rounded-lg p-2">
                     <div className="text-xs text-gray-400 mb-2">📱 Content Preview (what users will share):</div>
@@ -130,9 +130,9 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                         <div className="text-gray-500 text-sm">Loading preview...</div>
                       </div>
-                      <iframe 
-                        src={promo.castUrl} 
-                        className="w-full h-full border-0 relative z-10" 
+                      <iframe
+                        src={promo.castUrl}
+                        className="w-full h-full border-0 relative z-10"
                         title={`Preview of ${promo.castUrl}`}
                         loading="lazy"
                         sandbox="allow-scripts allow-same-origin"
@@ -158,27 +158,27 @@ export default function MyPromotionsDropdown({ promotions }: MyPromotionsDropdow
               ))}
             </>
           )}
-          
-          {/* Edit Modal (változatlan) */}
+
+          {/* Edit Modal (unchanged) */}
           {editPromo && (
             <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-              {/* ... az edit modal teljes JSX kódja ... */}
+              {/* ... the full JSX code for the edit modal ... */}
             </div>
           )}
 
-          {/* Funding Modal - A hibát itt javítjuk */}
+          {/* Funding Modal - We fix the error here */}
           {fundPromo && (
-            // A FundingForm most a saját JSX-ét rendereli, nem kell külön becsomagolni.
+            // FundingForm now renders its own JSX, no need to wrap it separately.
             <FundingForm
               promotionId={Number(fundPromo.id)}
               totalBudget={fundPromo.totalBudget}
               rewardPerShare={fundPromo.rewardPerShare}
               castUrl={fundPromo.castUrl}
               shareText={fundPromo.shareText || ""}
-              // JAVÍTÁS: A `fundPromo.status` típusa most már helyes, így nincs hiba.
+              // FIX: The type of `fundPromo.status` is now correct, so there is no error.
               status={fundPromo.status}
               onSuccess={handleFundSuccess}
-              // JAVÍTÁS: A hiányzó onCancel prop átadása.
+              // FIX: Passing the missing onCancel prop.
               onCancel={handleFundCancel}
             />
           )}

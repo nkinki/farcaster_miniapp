@@ -8,14 +8,14 @@ export async function GET(request: NextRequest) {
     const pathSegments = url.pathname.split('/');
     const fidString = pathSegments[pathSegments.length - 1];
     const fid = parseInt(fidString, 10);
-    
+
     if (isNaN(fid)) {
         return NextResponse.json({ error: 'Invalid FID in URL' }, { status: 400 });
     }
 
     try {
         console.log(`Fetching user stats for FID: ${fid}`);
-        
+
         // Get user stats from shares table (same as quote system)
         const [userStatsResult] = await sql`
             SELECT
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
             FROM shares
             WHERE sharer_fid = ${fid};
         `;
-        
+
         // Get follow actions stats
         const [followStatsResult] = await sql`
             SELECT
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
             FROM follow_actions
             WHERE user_fid = ${fid} AND status = 'verified';
         `;
-        
+
         // Get airdrop claims pending rewards (reward_amount is in milliCHESS, convert to CHESS by dividing by 10^15)
         const [airdropResult] = await sql`
             SELECT
@@ -43,19 +43,19 @@ export async function GET(request: NextRequest) {
             FROM airdrop_claims
             WHERE user_fid = ${fid};
         `;
-        
+
         const userStats = userStatsResult || { total_shares: 0, total_earnings: 0, pending_rewards: 0 };
         const followStats = followStatsResult || { total_follows: 0, follow_earnings: 0, follow_pending_rewards: 0 };
         const airdropStats = airdropResult || { airdrop_pending: 0 };
-        
+
         // Combine stats from all tables
         // Note: airdrop_pending is in CHESS (DECIMAL format, same as shares table)
         const airdropPendingInCHESS = Number(airdropStats.airdrop_pending);
-        
+
         const totalShares = Number(userStats.total_shares) + Number(followStats.total_follows);
         const totalEarnings = Number(userStats.total_earnings) + Number(followStats.follow_earnings);
         const totalPendingRewards = Number(userStats.pending_rewards) + Number(followStats.follow_pending_rewards) + airdropPendingInCHESS;
-        
+
         return NextResponse.json({
             user: {
                 total_shares: totalShares,
@@ -77,8 +77,8 @@ export async function GET(request: NextRequest) {
 
     } catch (error: any) {
         console.error(`API Error in GET /api/users/${fid}:`, error.message);
-        
-        // Ha a reward_claimed oszlop nem létezik, adjunk vissza egy alap állapotot
+
+        // If the reward_claimed column does not exist, return a default state
         if (error.message.includes('column "reward_claimed" does not exist')) {
             try {
                 const [fallbackStats] = await sql`
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
                 console.error('Fallback query also failed:', fallbackError);
             }
         }
-        
+
         return NextResponse.json({
             user: {
                 total_shares: 0,

@@ -42,7 +42,7 @@ async function performWeatherLottoDraw() {
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
-    // --- WEATHER SORSOLÁS ---
+    // --- WEATHER DRAW ---
     console.log('[4/8] Generating random weather result...');
     const random = Math.random();
     const winningSide = random < 0.5 ? 'sunny' : 'rainy';
@@ -140,7 +140,7 @@ async function performWeatherLottoDraw() {
     await client.query('COMMIT');
     console.log('✅ Transaction committed successfully!');
 
-    // --- EREDMÉNYEK KIÍRÁSA ---
+    // --- OUTPUT RESULTS ---
     console.log('\n🎉 === WEATHER LOTTO DRAW COMPLETED === 🎉');
     console.log(`📅 Round: #${round.round_number}`);
     console.log(`🏆 Winning Side: ${winningSide.toUpperCase()}`);

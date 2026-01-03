@@ -13,13 +13,13 @@ interface CampaignManagerProps {
   onDeleteClick?: (promo: PromoCast) => void;
 }
 
-export default function CampaignManager({ 
-  promotionId, 
-  currentStatus, 
-  castUrl, 
-  onSuccess, 
+export default function CampaignManager({
+  promotionId,
+  currentStatus,
+  castUrl,
+  onSuccess,
   onCancel,
-  onDeleteClick 
+  onDeleteClick
 }: CampaignManagerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +49,8 @@ export default function CampaignManager({
       }
 
       setSuccess(`Campaign ${newStatus === 'active' ? 'started' : 'paused'} successfully!`);
-      
-      // Kis késleltetés után bezárjuk a modalt és frissítjük az adatokat
+
+      // After a short delay, we close the modal and refresh the data
       setTimeout(() => {
         onSuccess();
       }, 1500);
@@ -69,7 +69,7 @@ export default function CampaignManager({
         id: Number(promotionId),
         castUrl,
         status: currentStatus,
-        // Minimális PromoCast objektum, mivel csak az id és castUrl szükséges a törléshez
+        // Minimal PromoCast object, as only id and castUrl are needed for deletion
       } as PromoCast;
       onDeleteClick(promo);
     }
@@ -83,7 +83,7 @@ export default function CampaignManager({
       <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] max-w-md w-full pulse-glow">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-white">Manage Campaign</h2>
-          <button 
+          <button
             onClick={onCancel}
             className="text-gray-400 hover:text-white"
           >
@@ -95,11 +95,10 @@ export default function CampaignManager({
           <p className="text-gray-400 text-sm mb-2">Campaign URL:</p>
           <p className="text-white font-medium truncate">{castUrl}</p>
           <p className="text-gray-400 text-sm mt-2">
-            Current Status: <span className={`font-semibold ${
-              currentStatus === 'active' ? 'text-green-400' :
-              currentStatus === 'paused' ? 'text-yellow-400' :
-              'text-red-400'
-            }`}>
+            Current Status: <span className={`font-semibold ${currentStatus === 'active' ? 'text-green-400' :
+                currentStatus === 'paused' ? 'text-yellow-400' :
+                  'text-red-400'
+              }`}>
               {currentStatus === 'inactive' ? 'Needs Funding' : currentStatus}
             </span>
           </p>

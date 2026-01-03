@@ -1,7 +1,6 @@
-// Fájl: /src/abis/chessToken.ts
-
-// JAVÍTÁS: Biztosítjuk, hogy az `export const` szerepel mindkét változó előtt,
-// és a nevek pontosan megegyeznek azzal, amit a többi fájl importálni próbál.
+// File: /src/abis/chessToken.ts
+// IMPROVEMENT: Ensure that `export const` is present before both variables,
+// and that the names exactly match what other files are trying to import.
 
 export const CHESS_TOKEN_ADDRESS = '0x47AF6bd390D03E266EB87cAb81Aa6988B65d5B07' as const;
 

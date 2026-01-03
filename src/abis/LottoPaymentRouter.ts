@@ -1,10 +1,10 @@
-// FÁJL: src/abis/LottoPaymentRouter.ts
-// CÉL: A lottó okosszerződés ABI-ját és a kapcsolódó konstansokat tartalmazza.
+// FILE: src/abis/LottoPaymentRouter.ts
+// PURPOSE: Contains the lottery smart contract ABI and related constants.
 
 import { parseUnits } from 'viem';
 
-// --- Okosszerződés ABI (Application Binary Interface) ---
-// Ez a te Remix-ből másolt, teljes és helyes ABI-d.
+// --- Smart Contract ABI (Application Binary Interface) ---
+// This is your full and correct ABI copied from Remix.
 export const LOTTO_PAYMENT_ROUTER_ABI = [
 	{
 		"inputs": [
@@ -15,18 +15,18 @@ export const LOTTO_PAYMENT_ROUTER_ABI = [
 		"type": "constructor"
 	},
 	{
-		"inputs": [ { "internalType": "address", "name": "owner", "type": "address" } ],
+		"inputs": [{ "internalType": "address", "name": "owner", "type": "address" }],
 		"name": "OwnableInvalidOwner",
 		"type": "error"
 	},
 	{
-		"inputs": [ { "internalType": "address", "name": "account", "type": "address" } ],
+		"inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
 		"name": "OwnableUnauthorizedAccount",
 		"type": "error"
 	},
 	{
 		"anonymous": false,
-		"inputs": [ { "indexed": true, "internalType": "address", "name": "newWallet", "type": "address" } ],
+		"inputs": [{ "indexed": true, "internalType": "address", "name": "newWallet", "type": "address" }],
 		"name": "DestinationWalletChanged",
 		"type": "event"
 	},
@@ -60,26 +60,26 @@ export const LOTTO_PAYMENT_ROUTER_ABI = [
 	{
 		"inputs": [],
 		"name": "MAX_TICKET_NUMBER",
-		"outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+		"outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [],
 		"name": "MIN_TICKET_NUMBER",
-		"outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+		"outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [],
 		"name": "TICKET_PRICE",
-		"outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+		"outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [ { "internalType": "uint256", "name": "_ticketNumber", "type": "uint256" } ],
+		"inputs": [{ "internalType": "uint256", "name": "_ticketNumber", "type": "uint256" }],
 		"name": "buyTicket",
 		"outputs": [],
 		"stateMutability": "nonpayable",
@@ -88,21 +88,21 @@ export const LOTTO_PAYMENT_ROUTER_ABI = [
 	{
 		"inputs": [],
 		"name": "chessToken",
-		"outputs": [ { "internalType": "contract IERC20", "name": "", "type": "address" } ],
+		"outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [],
 		"name": "destinationWallet",
-		"outputs": [ { "internalType": "address", "name": "", "type": "address" } ],
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [],
 		"name": "owner",
-		"outputs": [ { "internalType": "address", "name": "", "type": "address" } ],
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -124,14 +124,14 @@ export const LOTTO_PAYMENT_ROUTER_ABI = [
 		"type": "function"
 	},
 	{
-		"inputs": [ { "internalType": "address", "name": "_newWallet", "type": "address" } ],
+		"inputs": [{ "internalType": "address", "name": "_newWallet", "type": "address" }],
 		"name": "setDestinationWallet",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"inputs": [ { "internalType": "address", "name": "newOwner", "type": "address" } ],
+		"inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }],
 		"name": "transferOwnership",
 		"outputs": [],
 		"stateMutability": "nonpayable",
@@ -140,9 +140,9 @@ export const LOTTO_PAYMENT_ROUTER_ABI = [
 ] as const;
 
 
-// --- Okosszerződés Címek ---
+// --- Smart Contract Addresses ---
 export const LOTTO_PAYMENT_ROUTER_ADDRESS = "0xdae08347a8a2d508d9f7a890b9997d771aab6d71";
 
-// --- Szerződésből Származó Konstansok ---
-// A jegy árát a CHESS token 18 tizedesjegyének megfelelően kell formázni.
+// --- Constants from the Contract ---
+// The ticket price must be formatted according to the 18 decimals of the CHESS token.
 export const TICKET_PRICE = parseUnits("100000", 18); // 100,000 CHESS

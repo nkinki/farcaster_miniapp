@@ -171,7 +171,7 @@ export default function AdminPage() {
 
       await Promise.all(promises);
 
-      // Ne töltse újra az adatokat, csak frissítse a lokális state-et
+      // Do not reload data, just update local state
       setShareablePromos(prev => prev.map(promo =>
         selectedPromos.has(promo.id)
           ? { ...promo, status: newStatus }
@@ -477,7 +477,7 @@ export default function AdminPage() {
                 <div className="border-t border-gray-700 pt-6 mt-6">
                   <h3 className="text-xl font-bold text-white mb-4">📢 Promotion Post</h3>
                   <p className="text-gray-300 mb-4 text-center">
-                    Share this <span className="text-green-400 font-semibold">daily free code</span> with the community! Users can redeem it to <span className="text-green-400 font-semibold">create a free 10,000 $CHESS promotion</span> every day. 
+                    Share this <span className="text-green-400 font-semibold">daily free code</span> with the community! Users can redeem it to <span className="text-green-400 font-semibold">create a free 10,000 $CHESS promotion</span> every day.
                     Help them get started on AppRank! 🚀
                   </p>
                   <button
@@ -503,7 +503,7 @@ Limited to one use per person per day.
         {/* Stats Tab */}
         {activeTab === 'stats' && stats && (
           <div className="space-y-6">
-            {/* Fő statisztikák */}
+            {/* Main Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-purple-400">{stats.totalPromotions}</div>
@@ -527,7 +527,7 @@ Limited to one use per person per day.
               </div>
             </div>
 
-            {/* További statisztikák */}
+            {/* Additional Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-red-400">{stats.pendingVerifications || 0}</div>
@@ -551,7 +551,7 @@ Limited to one use per person per day.
               </div>
             </div>
 
-            {/* Lottery Statisztikák */}
+            {/* Lottery Statistics */}
             {stats.lottery && (
               <>
                 <div className="mt-8">
@@ -560,7 +560,7 @@ Limited to one use per person per day.
                   </h2>
                 </div>
 
-                {/* Lottery fő statisztikák */}
+                {/* Lottery Main Statistics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-purple-400">{stats.lottery.totalRounds}</div>
@@ -584,7 +584,7 @@ Limited to one use per person per day.
                   </div>
                 </div>
 
-                {/* Lottery részletes statisztikák */}
+                {/* Lottery Detailed Statistics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-red-400">{stats.lottery.totalWinners}</div>
@@ -604,7 +604,7 @@ Limited to one use per person per day.
                   </div>
                 </div>
 
-                {/* Legnépszerűbb számok */}
+                {/* Most Popular Numbers */}
                 {stats.lottery.mostPopularNumbers && stats.lottery.mostPopularNumbers.length > 0 && (
                   <div className="bg-[#23283a] border border-[#a64d79] rounded-lg p-6">
                     <h3 className="text-xl font-bold text-white mb-4">🔥 Most Popular Numbers</h3>
@@ -649,7 +649,7 @@ Limited to one use per person per day.
               </>
             )}
 
-            {/* FarChess statisztikák */}
+            {/* FarChess Statistics */}
             {stats.farChess && (
               <div className="mt-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -809,9 +809,9 @@ Limited to one use per person per day.
                     </button>
                   </div>
                 </div>
-                {/* Másolható szövegek */}
+                {/* Copyable texts */}
                 <div className="mt-4 space-y-2">
-                  <div className="text-purple-300 text-xs font-semibold">Cast URL (kattintható)</div>
+                  <div className="text-purple-300 text-xs font-semibold">Cast URL (clickable)</div>
                   <div
                     className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
                     onClick={() => copyToClipboard(promo.cast_url)}
@@ -819,7 +819,7 @@ Limited to one use per person per day.
                     <div className="text-blue-400 text-sm break-all select-all">{promo.cast_url}</div>
                   </div>
 
-                  <div className="text-purple-300 text-xs font-semibold">Share Text (másolható)</div>
+                  <div className="text-purple-300 text-xs font-semibold">Share Text (copyable)</div>
                   <div
                     className="bg-[#1a1f2e] border border-gray-600 rounded p-3 cursor-pointer hover:bg-[#252b3d] transition-colors"
                     onClick={() => copyToClipboard(`🎯 @${promo.author_username} offers ${promo.reward_per_share} $CHESS for ${promo.action_type} (${promo.remaining_budget}/${promo.total_budget} budget left)! Join: https://farcaster.xyz/miniapps/NL6KZtrtF7Ih/apprank`)}

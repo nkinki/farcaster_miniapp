@@ -1,4 +1,4 @@
-// FÁJL: src/app/api/lottery/verify-purchase/route.ts
+// FILE: src/app/api/lottery/verify-purchase/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, fallback } from 'viem';
@@ -6,7 +6,7 @@ import { base } from 'viem/chains';
 import { LOTTO_PAYMENT_ROUTER_ADDRESS } from '@/abis/LottoPaymentRouter';
 import pool from '@/lib/db';
 
-// Szerver-oldali viem kliens a blokklánc ellenőrzéséhez
+// Server-side viem client for blockchain verification
 const publicClient = createPublicClient({
   chain: base,
   transport: fallback([
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       playerAddress
     } = body;
 
-    // Részletes paraméter-ellenőrzés
+    // Detailed parameter check
     const missingParams = [];
     if (!txHash) missingParams.push('txHash');
     if (!fid) missingParams.push('fid');
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // BIZTONSÁGI VALIDÁCIÓ: Ticket number range check
+    // SECURITY VALIDATION: Ticket number range check
     if (!ticket_numbers.every((num: any) => Number.isInteger(num) && num >= 1 && num <= 100)) {
       console.error('Security: Invalid ticket number range', { ticket_numbers });
       return NextResponse.json({
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // BIZTONSÁGI VALIDÁCIÓ: Maximum 10 tickets per user
+    // SECURITY VALIDATION: Maximum 10 tickets per user
     if (ticket_numbers.length > 10) {
       console.error('Security: Too many tickets', { count: ticket_numbers.length });
       return NextResponse.json({
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // --- 1. SZERVER-OLDALI TRANZAKCIÓ ELLENŐRZÉS (JAVÍTVA) ---
+    // --- 1. SERVER-SIDE TRANSACTION VERIFICATION (FIXED) ---
     console.log(`[Verifier] Waiting for receipt for txHash: ${txHash}`);
 
     // Increased timeout to 60s for Base app compatibility
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       throw receiptError; // Re-throw for general error handler
     }
 
-    // A waitForTransactionReceipt hibát dob, ha nem találja, így a sikeres eset után folytatódhat a kód.
+    // waitForTransactionReceipt throws an error if it fails, so we can continue here for success.
     if (receipt.status !== 'success') {
       console.error(`[Verifier] Transaction failed on-chain. Status: ${receipt.status}`);
       return NextResponse.json({ error: 'On-chain transaction failed.', details: `Status: ${receipt.status}` }, { status: 400 });
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Verifier] Verification successful for txHash: ${txHash}`);
 
-    // --- 2. KUMULATÍV LIMIT ELLENŐRZÉS (max 10 jegy / felhasználó / kör) ---
+    // --- 2. CUMULATIVE LIMIT CHECK (max 10 tickets / user / round) ---
     const existingCountRes = await client.query(
       `SELECT COUNT(*) AS ticket_count FROM lottery_tickets WHERE draw_id = $1 AND player_fid = $2`,
       [round_id, fid]
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // --- 3. ADATBÁZISBA ÍRÁS ---
+    // --- 3. DATABASE WRITE ---
     await client.query('BEGIN');
 
     const existingTx = await client.query('SELECT id FROM lottery_tickets WHERE transaction_hash = $1', [txHash]);
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Verifier] Registering ${ticket_numbers.length} tickets for round ${round_id}`);
     for (const number of ticket_numbers) {
-      // JAVÍTVA: A "number" oszlopnév idézőjelek közé került, mert az SQL-ben foglalt kulcsszó.
+      // FIXED: The "number" column name is in quotes because it's a reserved keyword in SQL.
       await client.query(
         `INSERT INTO lottery_tickets (draw_id, player_fid, "number", transaction_hash, player_address, purchased_at, purchase_price)
          VALUES ($1, $2, $3, $4, $5, NOW(), 100000)`,
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     await client.query('ROLLBACK').catch(rollbackError => console.error('Rollback failed:', rollbackError));
     console.error('[Verifier] API Error:', error);
 
-    // Külön hibakezelés az időtúllépésre
+    // Separate error handling for timeout
     if (error.name === 'TimeoutError') {
       return NextResponse.json({ error: 'Transaction verification timed out. It might still be processing. Please check back later.' }, { status: 408 });
     }

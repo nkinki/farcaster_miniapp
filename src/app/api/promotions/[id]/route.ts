@@ -1,4 +1,4 @@
-// FÁJL: /src/app/api/promotions/[id]/route.ts
+// FILE: /src/app/api/promotions/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
@@ -11,19 +11,19 @@ if (!process.env.NEON_DB_URL) {
 
 const sql = neon(process.env.NEON_DB_URL);
 
-// JAVÍTÁS: A problémás második argumentumot (`params`) teljesen eltávolítjuk.
-// Az `id`-t manuálisan olvassuk ki az URL-ből, ami minden környezetben működik.
+// FIX: We completely remove the problematic second argument (`params`).
+// We manually read the `id` from the URL, which works in all environments.
 export async function GET(request: NextRequest) {
   try {
-    // 1. Kiolvassuk a teljes URL-t
+    // 1. Read the full URL
     const url = new URL(request.url);
-    // 2. Szétvágjuk az útvonalat a '/' mentén
+    // 2. Split the path along '/'
     const pathSegments = url.pathname.split('/');
-    // 3. A dinamikus `[id]` mindig az utolsó elem lesz az útvonalban
+    // 3. The dynamic [id] will always be the last element in the path
     const idString = pathSegments[pathSegments.length - 1];
 
     const id = parseInt(idString, 10);
-    
+
     if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid promotion ID in URL' },
@@ -55,15 +55,15 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // 1. Kiolvassuk a teljes URL-t
+    // 1. Read the full URL
     const url = new URL(request.url);
-    // 2. Szétvágjuk az útvonalat a '/' mentén
+    // 2. Split the path along '/'
     const pathSegments = url.pathname.split('/');
-    // 3. A dinamikus `[id]` mindig az utolsó elem lesz az útvonalban
+    // 3. The dynamic [id] will always be the last element in the path
     const idString = pathSegments[pathSegments.length - 1];
 
     const id = parseInt(idString, 10);
-    
+
     if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid promotion ID in URL' },
@@ -71,7 +71,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Ellenőrizzük, hogy létezik-e a kampány
+    // Check if the campaign exists
     const [promotion] = await sql`
       SELECT * FROM promotions WHERE id = ${id};
     `;
@@ -83,14 +83,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Töröljük a kampányt
+    // Delete the campaign
     await sql`
       DELETE FROM promotions WHERE id = ${id};
     `;
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Promotion deleted successfully',
-      deletedId: id 
+      deletedId: id
     });
 
   } catch (error) {

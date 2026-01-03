@@ -47,7 +47,7 @@ export function usePromotionsWithComments({ limit = 20, offset = 0, status }: Us
       console.log(`🔍 Promotions with Comments API Response:`, data)
       console.log(`🔍 Promotions with Comments count:`, data.promotions?.length || 0)
 
-      // Explicit típusmegadás, hogy Promotion[]-ként kezelje
+      // Explicit type definition to treat as Promotion[]
       const promotionsArray: Promotion[] = Array.isArray(data.promotions) ? data.promotions : []
 
       console.log(`🔍 Promotions with Comments array:`, promotionsArray)

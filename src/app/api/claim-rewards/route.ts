@@ -1,4 +1,4 @@
-// FÁJL: /src/app/api/claim-rewards/route.ts
+// FILE: /src/app/api/claim-rewards/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
@@ -19,8 +19,8 @@ const publicClient = createPublicClient({ chain: base, transport: http() });
 const walletClient = createWalletClient({ account: treasuryAccount, chain: base, transport: http() });
 
 async function setupDatabase() {
-    // Create claims table if it doesn't exist
-    await sql`
+  // Create claims table if it doesn't exist
+  await sql`
       CREATE TABLE IF NOT EXISTS claims (
         id SERIAL PRIMARY KEY,
         user_fid INTEGER NOT NULL,
@@ -32,9 +32,9 @@ async function setupDatabase() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    
-    // Create lottery_winnings table if it doesn't exist
-    await sql`
+
+  // Create lottery_winnings table if it doesn't exist
+  await sql`
       CREATE TABLE IF NOT EXISTS lottery_winnings (
         id SERIAL PRIMARY KEY,
         player_fid INTEGER NOT NULL,
@@ -45,13 +45,13 @@ async function setupDatabase() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    
-    // Add reward_claimed column to shares table if it doesn't exist
-    try {
-        await sql`ALTER TABLE shares ADD COLUMN IF NOT EXISTS reward_claimed BOOLEAN DEFAULT FALSE`;
-    } catch (e) {
-        console.log('reward_claimed column might already exist, continuing...');
-    }
+
+  // Add reward_claimed column to shares table if it doesn't exist
+  try {
+    await sql`ALTER TABLE shares ADD COLUMN IF NOT EXISTS reward_claimed BOOLEAN DEFAULT FALSE`;
+  } catch (e) {
+    console.log('reward_claimed column might already exist, continuing...');
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
       });
       if (!neynarResponse.ok) throw new Error('Failed to fetch user data from Neynar.');
-      
+
       const neynarData = await neynarResponse.json();
       const recipientAddress = neynarData.users[0]?.verified_addresses?.eth_addresses[0];
 
@@ -125,8 +125,8 @@ export async function POST(request: NextRequest) {
         WHERE id = ${winningId}
       `;
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         transactionHash: txHash,
         claimedAmount: amountToClaim,
         type: 'lottery_winning'
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     const shareIds = userShares.map(s => s.id);
     const followIds = userFollows.map(f => f.id);
     const airdropIds = userAirdrops.map((a: any) => a.id);
-    
+
     if (!amountToClaim || amountToClaim <= 0) {
       throw new Error('No rewards to claim.');
     }
@@ -180,10 +180,10 @@ export async function POST(request: NextRequest) {
     }
 
     const neynarResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
-        headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
+      headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY! }
     });
     if (!neynarResponse.ok) throw new Error('Failed to fetch user data from Neynar.');
-    
+
     const neynarData = await neynarResponse.json();
     const recipientAddress = neynarData.users[0]?.verified_addresses?.eth_addresses[0];
 
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
 
     if (receipt.status === 'reverted') {
-        throw new Error('On-chain transfer transaction failed.');
+      throw new Error('On-chain transfer transaction failed.');
     }
 
     // Mark shares as claimed
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
         WHERE id = ANY(${shareIds})
       `;
     }
-    
+
     // Mark follow actions as claimed
     if (followIds.length > 0) {
       await sql`
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
         WHERE id = ANY(${followIds})
       `;
     }
-    
+
     // Mark airdrops as claimed
     if (airdropIds.length > 0) {
       await sql`
@@ -235,17 +235,17 @@ export async function POST(request: NextRequest) {
         WHERE id = ANY(${airdropIds})
       `;
     }
-    
+
     // Record the claim
     await sql`
       INSERT INTO claims (user_fid, amount, shares_count, recipient_address, tx_hash, claimed_shares_ids)
       VALUES (${fid}, ${amountToClaim}, ${rewardsCount}, ${recipientAddress}, ${txHash}, ${shareIds})
     `;
-    
+
     console.log(`Marked ${rewardsCount} rewards as claimed for FID ${fid} (${shareIds.length} shares, ${followIds.length} follows, ${airdropIds.length} airdrops) and recorded claim history`);
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       transactionHash: txHash,
       claimedAmount: amountToClaim,
       sharesCount: shareIds.length,
@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('API Error in /api/claim-rewards:', error.message);
     if (error.message === 'No rewards to claim.') {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

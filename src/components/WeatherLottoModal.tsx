@@ -7,7 +7,7 @@ import { type Hash } from 'viem';
 import { WEATHER_LOTTO_ADDRESS, WEATHER_LOTTO_ABI, TICKET_PRICE } from '@/abis/WeatherLotto';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 
-// --- Interface definíciók ---
+// --- Interface definitions ---
 interface WeatherLottoRound {
   id: number;
   round_number: number;
@@ -80,7 +80,7 @@ interface WeatherLottoModalProps {
   onPurchaseSuccess?: () => void;
 }
 
-// Állapotgép a vásárlási folyamathoz
+// State machine for the purchase process
 enum PurchaseStep {
   Idle,
   Approving,
@@ -98,7 +98,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     hash: undefined,
   });
 
-  // --- Állapotok ---
+  // --- States ---
   const [currentRound, setCurrentRound] = useState<WeatherLottoRound | null>(null);
   const [userTickets, setUserTickets] = useState<WeatherLottoTicket[]>([]);
   const [stats, setStats] = useState<WeatherLottoStats | null>(null);
@@ -107,25 +107,25 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   const [selectedSide, setSelectedSide] = useState<'sunny' | 'rainy' | null>(null);
   const [quantity] = useState(1); // Fixed to 1 ticket only
   const [timeRemaining, setTimeRemaining] = useState<string>("");
-  
+
   const [step, setStep] = useState<PurchaseStep>(PurchaseStep.Idle);
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
   const [purchaseTxHash, setPurchaseTxHash] = useState<Hash | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isManualDrawing, setIsManualDrawing] = useState(false);
-  const [drawResult, setDrawResult] = useState<{winner: string, round: number} | null>(null);
+  const [drawResult, setDrawResult] = useState<{ winner: string, round: number } | null>(null);
   const [claimingTicket, setClaimingTicket] = useState<number | null>(null);
-  
+
   // Collapsible sections state
   const [isMyTicketsOpen, setIsMyTicketsOpen] = useState(false);
   const [isClaimableWinningsOpen, setIsClaimableWinningsOpen] = useState(false);
   const [isLastRoundsOpen, setIsLastRoundsOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
 
-  const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({ 
+  const { isLoading: isApproveConfirming, isSuccess: isApproved } = useWaitForTransactionReceipt({
     hash: approveTxHash
   });
-  const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({ 
+  const { isLoading: isPurchaseConfirming, isSuccess: isPurchased } = useWaitForTransactionReceipt({
     hash: purchaseTxHash
   });
 
@@ -150,7 +150,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       if (roundRes.ok) {
         const roundData = await roundRes.json();
         setCurrentRound(roundData.round);
-        
+
         // Fetch tickets for all rounds
         if (userFid) {
           const ticketsRes = await fetch(`/api/weather-lotto/user-tickets?fid=${userFid}`);
@@ -183,12 +183,12 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       const now = new Date();
       const today = new Date(now);
       today.setUTCHours(20, 5, 0, 0); // 20:05 UTC today
-      
+
       // If 20:05 has passed today, set to tomorrow
       if (now.getTime() > today.getTime()) {
         today.setUTCDate(today.getUTCDate() + 1);
       }
-      
+
       const timeLeft = Math.max(0, today.getTime() - now.getTime());
 
       if (timeLeft > 0) {
@@ -238,7 +238,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
       // Onchain transaction
       const functionName = selectedSide === 'sunny' ? 'buySunnyTickets' : 'buyRainyTickets';
-      
+
       const hash = await writeContractAsync({
         address: WEATHER_LOTTO_ADDRESS,
         abi: WEATHER_LOTTO_ABI,
@@ -307,14 +307,14 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     try {
       setIsManualDrawing(true);
       setErrorMessage(null);
-      
+
       const response = await fetch('/api/weather-lotto/draw-winner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         console.log('✅ Manual draw successful:', result);
         // Show draw result
@@ -351,11 +351,11 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       return;
     }
 
-    console.log('🔍 Frontend claim request:', { 
-      ticketId, 
-      userFid, 
+    console.log('🔍 Frontend claim request:', {
+      ticketId,
+      userFid,
       round_id: ticket.round_id,
-      ticket: ticket 
+      ticket: ticket
     });
 
     try {
@@ -392,7 +392,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
   const handlePurchase = async () => {
     if (!selectedSide || !address || !isConnected) return;
-    
+
     // Prevent double-clicking during transaction
     if (step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase) {
       console.log('⚠️ Purchase already in progress, ignoring click');
@@ -407,13 +407,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
       if (!allowance || allowance < totalCost) {
         console.log('⚠️ Insufficient allowance, requesting approve...');
         setStep(PurchaseStep.Approving);
-        
+
         // Prevent multiple approve calls
         if (isPending) {
           console.log('⚠️ Transaction already pending, ignoring approve request');
           return;
         }
-        
+
         const approveHash = await writeContractAsync({
           address: CHESS_TOKEN_ADDRESS,
           abi: CHESS_TOKEN_ABI,
@@ -429,13 +429,13 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
       // Purchase tickets
       setStep(PurchaseStep.Purchasing);
-      
+
       // Prevent multiple purchase calls
       if (isPending) {
         console.log('⚠️ Transaction already pending, ignoring purchase request');
         return;
       }
-      
+
       const purchaseHash = await writeContractAsync({
         address: WEATHER_LOTTO_ADDRESS,
         abi: WEATHER_LOTTO_ABI,
@@ -454,7 +454,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
   const formatNumber = (num: number | bigint | string) => {
     let value: number;
-    
+
     if (typeof num === 'string') {
       value = Number(num) / 1e18;
     } else if (typeof num === 'bigint') {
@@ -462,8 +462,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     } else {
       value = num;
     }
-    
-    // Rövidített formátum: 100k, 1m, 10m stb.
+
+    // Shortened format: 100k, 1m, 10m etc.
     if (value >= 1000000) {
       return (value / 1000000).toFixed(1) + 'm';
     } else if (value >= 1000) {
@@ -474,7 +474,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
   };
 
   const formatTime = (time: string) => {
-    return new Date(time).toLocaleString('hu-HU');
+    return new Date(time).toLocaleString('en-US');
   };
 
   if (!isOpen) return null;
@@ -483,7 +483,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div className="bg-gradient-to-br from-purple-900 via-black to-purple-900 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[95vh] flex flex-col border border-[#a64d79] relative shadow-[0_0_30px_rgba(166,77,121,0.4)] pulse-glow">
-          
+
           {/* Draw Result Overlay */}
           {drawResult && (
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
@@ -512,20 +512,19 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
             </div>
             <p className="text-purple-200 text-sm font-medium mt-1 text-center">Weather Lottery</p>
             <p className="text-cyan-300 text-xs font-medium mt-1 text-center">The decision is in your hands - choose your side, draw your fate!</p>
-            
+
             {/* Manual Draw Button */}
-            <button 
+            <button
               onClick={handleManualDraw}
               disabled={!currentRound || currentRound.total_tickets < 6 || isManualDrawing}
-              className={`mt-3 px-4 py-2 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg ${
-                !currentRound || currentRound.total_tickets < 6 || isManualDrawing
+              className={`mt-3 px-4 py-2 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg ${!currentRound || currentRound.total_tickets < 6 || isManualDrawing
                   ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-red-500 via-purple-500 via-blue-500 to-green-500 bg-[length:400%_400%] pulse-color shadow-[0_0_20px_rgba(255,0,255,0.6)] hover:shadow-[0_0_30px_rgba(0,255,255,0.8)]'
-              }`}
+                }`}
             >
               {isManualDrawing ? '🎲 Drawing...' : `🎲 Manual Draw ${!currentRound || currentRound.total_tickets < 6 ? '(Need 6+ total tickets)' : ''}`}
             </button>
-            
+
             <button onClick={onClose} className="absolute top-0 right-0 p-2 rounded-full bg-[#23283a] border border-[#a64d79] hover:bg-[#2a2f42] text-white transition-all duration-300 hover:scale-110"><FiX size={24} /></button>
           </div>
 
@@ -542,18 +541,17 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                       <div className="text-yellow-300 text-lg font-bold animate-bounce">🎯 Pick Your Side!</div>
                     </div>
                   )}
-              
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setSelectedSide('sunny')}
-                    className={`p-6 rounded-xl border-2 transition-all ${
-                      selectedSide === 'sunny'
-                        ? 'border-orange-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg'
-                        : selectedSide === null
-                        ? 'border-orange-400 bg-gradient-to-br from-yellow-200 to-orange-200 shadow-lg animate-pulse hover:scale-105'
-                        : 'border-gray-600 hover:border-orange-300 hover:bg-gradient-to-br hover:from-yellow-50 hover:to-orange-50'
-                    }`}
-                  >
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setSelectedSide('sunny')}
+                      className={`p-6 rounded-xl border-2 transition-all ${selectedSide === 'sunny'
+                          ? 'border-orange-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg'
+                          : selectedSide === null
+                            ? 'border-orange-400 bg-gradient-to-br from-yellow-200 to-orange-200 shadow-lg animate-pulse hover:scale-105'
+                            : 'border-gray-600 hover:border-orange-300 hover:bg-gradient-to-br hover:from-yellow-50 hover:to-orange-50'
+                        }`}
+                    >
                       <div className="text-center">
                         <FiSun className="w-8 h-8 text-orange-500 mx-auto mb-2" />
                         <div className="font-semibold text-orange-700 text-lg">Sunny ☀️</div>
@@ -567,18 +565,17 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                           </div>
                         </div>
                       </div>
-                  </button>
+                    </button>
 
-                  <button
-                    onClick={() => setSelectedSide('rainy')}
-                    className={`p-6 rounded-xl border-2 transition-all ${
-                      selectedSide === 'rainy'
-                        ? 'border-blue-400 bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg'
-                        : selectedSide === null
-                        ? 'border-blue-400 bg-gradient-to-br from-blue-200 to-indigo-200 shadow-lg animate-pulse hover:scale-105'
-                        : 'border-gray-600 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50'
-                    }`}
-                  >
+                    <button
+                      onClick={() => setSelectedSide('rainy')}
+                      className={`p-6 rounded-xl border-2 transition-all ${selectedSide === 'rainy'
+                          ? 'border-blue-400 bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg'
+                          : selectedSide === null
+                            ? 'border-blue-400 bg-gradient-to-br from-blue-200 to-indigo-200 shadow-lg animate-pulse hover:scale-105'
+                            : 'border-gray-600 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50'
+                        }`}
+                    >
                       <div className="text-center">
                         <FiCloudRain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
                         <div className="font-semibold text-blue-700 text-lg">Rainy 🌧️</div>
@@ -592,8 +589,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                           </div>
                         </div>
                       </div>
-                  </button>
-                </div>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -625,145 +622,143 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     </div>
                   )}
 
-                    {!isConnected ? (
-                      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
-                        <p className="text-red-400 text-sm text-center">⚠️ Please connect your wallet to purchase tickets</p>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={handlePurchase}
-                        disabled={step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase}
-                        className={`w-full py-4 px-6 rounded-xl font-bold text-xl transition-all duration-300 disabled:cursor-not-allowed hover:scale-105 shadow-lg pulse-glow ${
-                          step === PurchaseStep.Approving || step === PurchaseStep.ApproveConfirming
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
-                            : step === PurchaseStep.Purchasing || step === PurchaseStep.PurchaseConfirming || step === PurchaseStep.Saving
+                  {!isConnected ? (
+                    <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                      <p className="text-red-400 text-sm text-center">⚠️ Please connect your wallet to purchase tickets</p>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handlePurchase}
+                      disabled={step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase}
+                      className={`w-full py-4 px-6 rounded-xl font-bold text-xl transition-all duration-300 disabled:cursor-not-allowed hover:scale-105 shadow-lg pulse-glow ${step === PurchaseStep.Approving || step === PurchaseStep.ApproveConfirming
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
+                          : step === PurchaseStep.Purchasing || step === PurchaseStep.PurchaseConfirming || step === PurchaseStep.Saving
                             ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
                             : step !== PurchaseStep.Idle && step !== PurchaseStep.ReadyToPurchase
-                            ? 'bg-gray-600 text-gray-400'
-                            : selectedSide === 'sunny'
-                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
-                            : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white'
+                              ? 'bg-gray-600 text-gray-400'
+                              : selectedSide === 'sunny'
+                                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
+                                : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white'
                         }`}
-                      >
-                        {step === PurchaseStep.Approving && '1️⃣ Approving CHESS...'}
-                        {step === PurchaseStep.ApproveConfirming && '1️⃣ Confirming Approval...'}
-                        {step === PurchaseStep.ReadyToPurchase && '2️⃣ Buy Ticket'}
-                        {step === PurchaseStep.Purchasing && '2️⃣ Buying Ticket...'}
-                        {step === PurchaseStep.PurchaseConfirming && '2️⃣ Confirming Purchase...'}
-                        {step === PurchaseStep.Saving && '2️⃣ Saving...'}
-                        {step === PurchaseStep.Idle && '1️⃣ Approve & 2️⃣ Buy Ticket'}
-                      </button>
-                    )}
+                    >
+                      {step === PurchaseStep.Approving && '1️⃣ Approving CHESS...'}
+                      {step === PurchaseStep.ApproveConfirming && '1️⃣ Confirming Approval...'}
+                      {step === PurchaseStep.ReadyToPurchase && '2️⃣ Buy Ticket'}
+                      {step === PurchaseStep.Purchasing && '2️⃣ Buying Ticket...'}
+                      {step === PurchaseStep.PurchaseConfirming && '2️⃣ Confirming Purchase...'}
+                      {step === PurchaseStep.Saving && '2️⃣ Saving...'}
+                      {step === PurchaseStep.Idle && '1️⃣ Approve & 2️⃣ Buy Ticket'}
+                    </button>
+                  )}
 
                 </div>
               )}
 
-            {/* My Tickets Section - Collapsible */}
-            {userTickets.length > 0 && (
-              <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
-                <button 
-                  onClick={() => setIsMyTicketsOpen(!isMyTicketsOpen)}
-                  className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <FiUsers /> My Tickets ({userTickets.length})
-                  </div>
-                  {isMyTicketsOpen ? <FiChevronUp /> : <FiChevronDown />}
-                </button>
-                {isMyTicketsOpen && (
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {userTickets.slice(0, 8).map((ticket) => (
-                    <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-1">
-                          {ticket.side === 'sunny' ? (
-                            <FiSun className="w-3 h-3 text-orange-500" />
-                          ) : (
-                            <FiCloudRain className="w-3 h-3 text-blue-500" />
-                          )}
-                          <span className="font-medium capitalize text-xs text-gray-300">{ticket.side}</span>
-                          <span className="text-xs text-gray-400">#{ticket.round_number}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-yellow-400">{formatNumber(ticket.total_cost)}</span>
-                          <span className={`text-xs ${ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'text-green-400' : 'text-red-400') : 'text-yellow-400'}`}>
-                            {ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'Won' : 'Lost') : 'Active'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {userTickets.length > 0 && (() => {
-              // Filter tickets that can be claimed (winning tickets from completed rounds)
-              const claimableTickets = userTickets.filter(ticket => 
-                ticket.round_status === 'completed' && 
-                ticket.winning_side === ticket.side && 
-                ticket.payout_amount && 
-                parseInt(ticket.payout_amount) > 0
-              );
-              
-              return claimableTickets.length > 0 && (
+              {/* My Tickets Section - Collapsible */}
+              {userTickets.length > 0 && (
                 <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
-                  <button 
-                    onClick={() => setIsClaimableWinningsOpen(!isClaimableWinningsOpen)}
+                  <button
+                    onClick={() => setIsMyTicketsOpen(!isMyTicketsOpen)}
                     className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <FiDollarSign /> Claimable Winnings ({claimableTickets.length})
+                      <FiUsers /> My Tickets ({userTickets.length})
                     </div>
-                    {isClaimableWinningsOpen ? <FiChevronUp /> : <FiChevronDown />}
+                    {isMyTicketsOpen ? <FiChevronUp /> : <FiChevronDown />}
                   </button>
-                  {isClaimableWinningsOpen && (
+                  {isMyTicketsOpen && (
                     <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {claimableTickets.map((ticket) => (
-                      <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-1">
-                            {ticket.side === 'sunny' ? (
-                              <FiSun className="w-3 h-3 text-orange-500" />
-                            ) : (
-                              <FiCloudRain className="w-3 h-3 text-blue-500" />
-                            )}
-                            <span className="font-medium capitalize text-xs text-gray-300">{ticket.side}</span>
-                            <span className="text-xs text-gray-400">#{ticket.round_number}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-green-400 font-semibold">
-                              {ticket.payout_amount ? formatNumber(ticket.payout_amount) : 'Calculating...'} CHESS
-                            </span>
-                            {!ticket.is_claimed ? (
-                              <button
-                                onClick={() => handleClaimWinnings(ticket.id)}
-                                disabled={claimingTicket === ticket.id}
-                                className={`px-2 py-1 text-xs font-bold rounded transition-all duration-300 ${
-                                  claimingTicket === ticket.id
-                                    ? 'bg-yellow-600 text-white cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-105'
-                                }`}
-                              >
-                                {claimingTicket === ticket.id ? '⏳' : '💰'}
-                              </button>
-                            ) : (
-                              <span className="text-xs text-gray-400">✅</span>
-                            )}
+                      {userTickets.slice(0, 8).map((ticket) => (
+                        <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-1">
+                              {ticket.side === 'sunny' ? (
+                                <FiSun className="w-3 h-3 text-orange-500" />
+                              ) : (
+                                <FiCloudRain className="w-3 h-3 text-blue-500" />
+                              )}
+                              <span className="font-medium capitalize text-xs text-gray-300">{ticket.side}</span>
+                              <span className="text-xs text-gray-400">#{ticket.round_number}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-yellow-400">{formatNumber(ticket.total_cost)}</span>
+                              <span className={`text-xs ${ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'text-green-400' : 'text-red-400') : 'text-yellow-400'}`}>
+                                {ticket.round_status === 'completed' ? (ticket.winning_side === ticket.side ? 'Won' : 'Lost') : 'Active'}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                     </div>
                   )}
                 </div>
-              );
-            })()}
+              )}
+
+              {userTickets.length > 0 && (() => {
+                // Filter tickets that can be claimed (winning tickets from completed rounds)
+                const claimableTickets = userTickets.filter(ticket =>
+                  ticket.round_status === 'completed' &&
+                  ticket.winning_side === ticket.side &&
+                  ticket.payout_amount &&
+                  parseInt(ticket.payout_amount) > 0
+                );
+
+                return claimableTickets.length > 0 && (
+                  <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
+                    <button
+                      onClick={() => setIsClaimableWinningsOpen(!isClaimableWinningsOpen)}
+                      className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <FiDollarSign /> Claimable Winnings ({claimableTickets.length})
+                      </div>
+                      {isClaimableWinningsOpen ? <FiChevronUp /> : <FiChevronDown />}
+                    </button>
+                    {isClaimableWinningsOpen && (
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                        {claimableTickets.map((ticket) => (
+                          <div key={ticket.id} className="bg-gray-800/50 rounded p-2 border border-gray-600">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-1">
+                                {ticket.side === 'sunny' ? (
+                                  <FiSun className="w-3 h-3 text-orange-500" />
+                                ) : (
+                                  <FiCloudRain className="w-3 h-3 text-blue-500" />
+                                )}
+                                <span className="font-medium capitalize text-xs text-gray-300">{ticket.side}</span>
+                                <span className="text-xs text-gray-400">#{ticket.round_number}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-green-400 font-semibold">
+                                  {ticket.payout_amount ? formatNumber(ticket.payout_amount) : 'Calculating...'} CHESS
+                                </span>
+                                {!ticket.is_claimed ? (
+                                  <button
+                                    onClick={() => handleClaimWinnings(ticket.id)}
+                                    disabled={claimingTicket === ticket.id}
+                                    className={`px-2 py-1 text-xs font-bold rounded transition-all duration-300 ${claimingTicket === ticket.id
+                                        ? 'bg-yellow-600 text-white cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-105'
+                                      }`}
+                                  >
+                                    {claimingTicket === ticket.id ? '⏳' : '💰'}
+                                  </button>
+                                ) : (
+                                  <span className="text-xs text-gray-400">✅</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Last 10 Rounds Section - Collapsible */}
               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
-                <button 
+                <button
                   onClick={() => setIsLastRoundsOpen(!isLastRoundsOpen)}
                   className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
                 >
@@ -778,7 +773,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                     {recentRounds.length > 0 ? (() => {
                       // Filter out pending rounds and get only completed ones
                       const completedRounds = recentRounds.filter(round => round.status === 'completed' && round.winning_side);
-                      
+
                       return completedRounds.length > 0 ? (
                         <div className="space-y-1 max-h-32 overflow-y-auto">
                           {completedRounds.slice(0, 10).map((round) => (
@@ -821,7 +816,7 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
 
               {/* Rules Section - Collapsible */}
               <div className="bg-[#23283a] rounded-xl p-3 border border-[#a64d79] pulse-glow">
-                <button 
+                <button
                   onClick={() => setIsRulesOpen(!isRulesOpen)}
                   className="w-full flex items-center justify-between text-lg font-bold text-cyan-400 mb-2 hover:text-cyan-300 transition-colors"
                 >
@@ -832,22 +827,22 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
                 </button>
                 {isRulesOpen && (
                   <div className="space-y-1 text-xs text-gray-300">
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">1️⃣</span>
-                    <span>You can buy tickets for <span className="text-orange-400 font-semibold">both Sunny and Rainy</span> sides</span>
-                  </div>
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">2️⃣</span>
-                    <span><span className="text-green-400 font-semibold">Draw yourself, decide your fate!</span></span>
-                  </div>
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">3️⃣</span>
-                    <span>House provides <span className="text-purple-400 font-semibold">100k CHESS</span> base for each side</span>
-                  </div>
-                  <div className="flex items-start gap-1">
-                    <span className="text-yellow-400 font-bold text-xs">4️⃣</span>
-                    <span>Daily draw at <span className="text-cyan-400 font-semibold">20:05 UTC</span></span>
-                  </div>
+                    <div className="flex items-start gap-1">
+                      <span className="text-yellow-400 font-bold text-xs">1️⃣</span>
+                      <span>You can buy tickets for <span className="text-orange-400 font-semibold">both Sunny and Rainy</span> sides</span>
+                    </div>
+                    <div className="flex items-start gap-1">
+                      <span className="text-yellow-400 font-bold text-xs">2️⃣</span>
+                      <span><span className="text-green-400 font-semibold">Draw yourself, decide your fate!</span></span>
+                    </div>
+                    <div className="flex items-start gap-1">
+                      <span className="text-yellow-400 font-bold text-xs">3️⃣</span>
+                      <span>House provides <span className="text-purple-400 font-semibold">100k CHESS</span> base for each side</span>
+                    </div>
+                    <div className="flex items-start gap-1">
+                      <span className="text-yellow-400 font-bold text-xs">4️⃣</span>
+                      <span>Daily draw at <span className="text-cyan-400 font-semibold">20:05 UTC</span></span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -855,8 +850,8 @@ export default function WeatherLottoModal({ isOpen, onClose, userFid, onPurchase
               {/* Empty spacer block to prevent content from being hidden behind bottom buttons */}
               <div className="h-20"></div>
 
-          </div>
-        )}
+            </div>
+          )}
         </div>
       </div>
       <style jsx>{`

@@ -1,4 +1,4 @@
-// FÁJL: /src/app/api/promotions/route.ts
+// FILE: /src/app/api/promotions/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
@@ -6,7 +6,7 @@ import { FEATURES } from '@/config/features';
 
 const sql = neon(process.env.DATABASE_URL!);
 
-// Promóciók listázása (ez a rész változatlan)
+// List promotions (this part remains unchanged)
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Új promóció létrehozása (VÉGLEGES JAVÍTÁS)
+// Create new promotion (FINAL FIX)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -65,10 +65,10 @@ export async function POST(request: NextRequest) {
     `;
     const newPromotion = result[0];
 
-    // Automatikus értesítések trigger (nem blokkoló)
+    // Automatic notifications trigger (non-blocking)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    // 1. Email értesítés
+    // 1. Email notification
     try {
       const emailResponse = await fetch(`${baseUrl}/api/promotions/send-email`, {
         method: 'POST',
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Promotion email failed (non-blocking):', emailError);
     }
 
-    // 2. Farcaster cast értesítés
+    // 2. Farcaster cast notification
     try {
       const farcasterResponse = await fetch(`${baseUrl}/api/farcaster/notify-promotion`, {
         method: 'POST',

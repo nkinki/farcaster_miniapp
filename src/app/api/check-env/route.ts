@@ -1,4 +1,4 @@
-// Environment változók ellenőrzése
+// Checking environment variables
 import { NextRequest, NextResponse } from 'next/server';
 import { privateKeyToAccount } from 'viem/accounts';
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // BACKEND_WALLET_PRIVATE_KEY validálása
+    // Validate BACKEND_WALLET_PRIVATE_KEY
     if (checks.BACKEND_WALLET_PRIVATE_KEY.exists) {
       try {
         const account = privateKeyToAccount(process.env.BACKEND_WALLET_PRIVATE_KEY as `0x${string}`);
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const allValid = Object.values(checks).every(check => 
+    const allValid = Object.values(checks).every(check =>
       typeof check === 'object' && check.exists && check.valid
     );
 

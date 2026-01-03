@@ -1,4 +1,4 @@
-// FÁJL: /src/app/api/generate-claim-signature/route.ts
+// FILE: /src/app/api/generate-claim-signature/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'FID and a valid recipient address are required' }, { status: 400 });
   }
 
-  // DailyReward szerződés támogatása
+  // Supporting DailyReward contract
   const isDailyReward = contractAddress === '0xa5c59fb76f3e2012dfd572739b9d5516034f1ff8';
   console.log('Contract type:', isDailyReward ? 'DailyReward' : 'RewardsClaim');
 
@@ -30,63 +30,63 @@ export async function POST(request: NextRequest) {
     let amountInWei: bigint;
 
     if (isDailyReward) {
-      // DailyReward: fix 10,000 CHESS
+      // DailyReward: fixed 10,000 CHESS
       amountToClaim = fixedAmount ? Number(fixedAmount) : 10000;
       amountInWei = parseUnits(amountToClaim.toString(), 18);
       console.log('DailyReward amount:', amountToClaim, 'CHESS');
     } else {
-      // RewardsClaim: adatbázisból lekérdezett összeg (shares + follow_actions)
+      // RewardsClaim: amount queried from database (shares + follow_actions)
       const [sharesStats] = await sql`
         SELECT COALESCE(SUM(reward_amount), 0) as shares_earnings
         FROM shares WHERE sharer_fid = ${fid}
       `;
-      
+
       const [followStats] = await sql`
         SELECT COALESCE(SUM(reward_amount), 0) as follow_earnings
         FROM follow_actions WHERE user_fid = ${fid} AND status = 'verified'
       `;
-      
+
       const totalEarnings = Number(sharesStats.shares_earnings) + Number(followStats.follow_earnings);
       amountToClaim = totalEarnings;
       if (amountToClaim <= 0) {
         throw new Error('No rewards to claim.');
       }
-      
+
       // Check minimum claim amount (10,000 CHESS)
       const MIN_CLAIM_AMOUNT = 10000;
       if (amountToClaim < MIN_CLAIM_AMOUNT) {
         throw new Error(`Minimum claim amount is ${MIN_CLAIM_AMOUNT} CHESS. You have ${amountToClaim.toFixed(2)} CHESS pending.`);
       }
-      
+
       amountInWei = parseUnits(amountToClaim.toString(), 18);
       console.log('RewardsClaim amount:', amountToClaim, 'CHESS (shares:', sharesStats.shares_earnings, 'follows:', followStats.follow_earnings, ')');
     }
 
-    // Nonce lekérdezése (DailyReward esetén 0, mert nincs nonce rendszer)
+    // Nonce query (for DailyReward it's 0 because there's no nonce system)
     let nonce: bigint = BigInt(0);
-    
+
     if (!isDailyReward) {
-      // Csak RewardsClaim esetén kérdezzük le a nonce-t
+      // Only for RewardsClaim we query the nonce
       nonce = await publicClient.readContract({
-          address: rewardsClaimAddress,
-          abi: rewardsClaimABI,
-          functionName: 'nonces',
-          args: [recipientAddress as `0x${string}`]
+        address: rewardsClaimAddress,
+        abi: rewardsClaimABI,
+        functionName: 'nonces',
+        args: [recipientAddress as `0x${string}`]
       }) as bigint;
     }
-    
+
     console.log('Nonce:', nonce.toString());
 
-    // Domain beállítása a szerződés típusa alapján
+    // Set domain based on contract type
     const domain = isDailyReward ? {
-      name: 'DailyReward', 
+      name: 'DailyReward',
       version: '1',
-      chainId: 8453, 
+      chainId: 8453,
       verifyingContract: contractAddress as `0x${string}`,
     } : {
-      name: 'RewardsClaim', 
+      name: 'RewardsClaim',
       version: '1',
-      chainId: 8453, 
+      chainId: 8453,
       verifyingContract: rewardsClaimAddress,
     };
     const types = {
@@ -100,14 +100,14 @@ export async function POST(request: NextRequest) {
 
     console.log('Signing data:', { domain, types, message });
     console.log('Signer address:', signerAccount.address);
-    
+
     const signature = await signerAccount.signTypedData({ domain, types, primaryType: 'Claim', message });
 
     console.log('Generated signature:', signature);
     console.log('Amount in wei:', amountInWei.toString());
     console.log('Nonce:', nonce.toString());
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       signature,
       amount: amountInWei.toString(),
       nonce: nonce.toString(),
@@ -116,8 +116,8 @@ export async function POST(request: NextRequest) {
     console.error('Signature generation error:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
-    
-    // Részletesebb hibakezelés
+
+    // More detailed error handling
     let errorMessage = 'Failed to generate claim signature';
     if (error.message.includes('BACKEND_WALLET_PRIVATE_KEY')) {
       errorMessage = 'Backend wallet private key not configured';
@@ -128,8 +128,8 @@ export async function POST(request: NextRequest) {
     } else if (error.message.includes('No rewards to claim')) {
       errorMessage = 'No rewards to claim for this user';
     }
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       error: errorMessage,
       details: error.message,
       timestamp: new Date().toISOString()

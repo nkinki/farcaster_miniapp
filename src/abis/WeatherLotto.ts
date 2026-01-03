@@ -1,13 +1,13 @@
-// FÁJL: src/abis/WeatherLotto.ts
-// CÉL: A Weather Lotto okosszerződés ABI-ját és a kapcsolódó konstansokat tartalmazza.
+// FILE: src/abis/WeatherLotto.ts
+// PURPOSE: Contains the Weather Lotto smart contract ABI and related constants.
 
 import { parseUnits } from 'viem';
 
-// --- Weather Lotto Okosszerződés Cím ---
+// --- Weather Lotto Smart Contract Address ---
 export const WEATHER_LOTTO_ADDRESS = "0x37403306079daad88e3c9b1d1d14719ba1130f92" as const;
 
-// --- Weather Lotto Okosszerződés ABI ---
-// Ez a te Remix-ből másolt, teljes és helyes ABI-d.
+// --- Weather Lotto Smart Contract ABI ---
+// This is your full and correct ABI copied from Remix.
 export const WEATHER_LOTTO_ABI = [
 	{
 		"inputs": [
@@ -223,12 +223,12 @@ export const WEATHER_LOTTO_ABI = [
 	}
 ] as const;
 
-// --- Konstansok ---
+// --- Constants ---
 export const TICKET_PRICE = parseUnits("100000", 18); // 100,000 CHESS
-export const TREASURY_PERCENTAGE = 30; // 30% kincstár
-export const WINNERS_PERCENTAGE = 70; // 70% nyerteseknek
+export const TREASURY_PERCENTAGE = 30; // 30% treasury
+export const WINNERS_PERCENTAGE = 70; // 70% to winners
 
-// --- Weather Lotto típusok ---
+// --- Weather Lotto types ---
 export type WeatherSide = "sunny" | "rainy";
 
 export interface WeatherLottoTicket {

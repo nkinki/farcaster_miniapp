@@ -42,12 +42,12 @@ async function performLamboLotteryDraw() {
     const totalTicketsSold = ticketsResult.rows.length;
     console.log(`✅ Found ${totalTicketsSold} tickets.`);
 
-    // --- LOTTERY SORSOLÁS ---
+    // --- LOTTERY DRAW ---
     console.log('[4/8] Generating random winning number...');
     const winningNumber = Math.floor(Math.random() * 100) + 1;
     console.log(`🎲 Winning number: ${winningNumber}`);
 
-    // --- NYERTESEK KERESÉSE ---
+    // --- FINDING WINNERS ---
     console.log('[5/8] Finding winners...');
     const winnersResult = await client.query(`
       SELECT * FROM lottery_tickets 
@@ -57,7 +57,7 @@ async function performLamboLotteryDraw() {
     const winners = winnersResult.rows;
     console.log(`🏆 Found ${winners.length} winner(s) with number ${winningNumber}`);
 
-    // --- ROUND FRISSÍTÉSE ---
+    // --- UPDATING ROUND ---
     console.log('[6/8] Updating round status...');
     await client.query(`
       UPDATE lottery_draws 
@@ -69,7 +69,7 @@ async function performLamboLotteryDraw() {
     `, [winningNumber, round.id]);
     console.log('✅ Round marked as completed.');
 
-    // --- NYERTESEK FELDOLGOZÁSA ---
+    // --- PROCESSING WINNERS ---
     if (winners.length > 0) {
       console.log('[7/8] Processing winners...');
       const jackpotAmount = parseInt(round.jackpot || '0', 10);
@@ -91,7 +91,7 @@ async function performLamboLotteryDraw() {
       console.log('ℹ️ No winners this round - jackpot rolls over.');
     }
 
-    // --- ÚJ ROUND LÉTREHOZÁSA ---
+    // --- CREATING NEW ROUND ---
     console.log('[8/8] Creating new round...');
     const newRoundResult = await client.query(`
       INSERT INTO lottery_draws (
@@ -118,7 +118,7 @@ async function performLamboLotteryDraw() {
     await client.query('COMMIT');
     console.log('✅ Transaction committed successfully.');
 
-    // --- EMAIL ÉRTESÍTÉS ---
+    // --- EMAIL NOTIFICATION ---
     try {
       console.log('📧 Sending lottery results email...');
 

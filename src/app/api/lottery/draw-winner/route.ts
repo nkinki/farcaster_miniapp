@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-// Alap főnyeremény (jackpot) konstansként definiálva
+// Base jackpot defined as a constant
 const BASE_JACKPOT = 1000000;
 
 export async function POST(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     try {
       await client.query('BEGIN');
 
-      // Aktuális aktív kör lekérdezése
+      // Querying current active round
       let round;
       if (round_id) {
         const roundResult = await client.query(`SELECT * FROM lottery_draws WHERE id = $1 AND status = 'active'`, [round_id]);
@@ -29,34 +29,34 @@ export async function POST(request: NextRequest) {
         round = roundResult.rows[0];
       }
 
-      // Eladott szelvények lekérdezése az adott körben
+      // Querying sold tickets for the given round
       const ticketsResult = await client.query(`SELECT * FROM lottery_tickets WHERE draw_id = $1`, [round.id]);
       const totalTickets = ticketsResult.rows.length;
 
-      // Nyertes szám generálása (1-100)
+      // Generating winning number (1-100)
       const winningNumber = Math.floor(Math.random() * 100) + 1;
 
-      // Nyertes keresése
+      // Searching for winner
       const winner = totalTickets > 0 ? ticketsResult.rows.find(ticket => ticket.number === winningNumber) : undefined;
 
-      // Bevételek és a kincstárba/jackpotba kerülő összegek kiszámítása
-      const totalRevenue = totalTickets * 100000; // 100,000 token per szelvény
-      const carryOverAmount = Math.floor(totalRevenue * 0.7); // 70% a jackpothoz
-      const treasuryAmount = totalRevenue - carryOverAmount; // 30% a kincstárba
+      // Calculation of revenue and amounts going to treasury/jackpot
+      const totalRevenue = totalTickets * 100000; // 100,000 tokens per ticket
+      const carryOverAmount = Math.floor(totalRevenue * 0.7); // 70% to jackpot
+      const treasuryAmount = totalRevenue - carryOverAmount; // 30% to treasury
 
-      // --- JAVÍTÁS: Új jackpot számítása ---
+      // --- FIX: Calculating new jackpot ---
       let newRoundJackpot;
       if (winner) {
-        // Ha van nyertes, a következő kör jackpotja visszaáll az alap 1M-ra.
+        // If there is a winner, the next round's jackpot resets to the base 1M.
         newRoundJackpot = BASE_JACKPOT;
       } else {
-        // JAVÍTÁS: `parseInt` használata, hogy a `round.jackpot`-ot biztosan számként kezelje összeadás előtt.
-        // Ez megakadályozza a szövegek összefűzését (pl. '70000' + '70000' -> '7000070000').
+        // FIX: Using `parseInt` to ensure `round.jackpot` is handled as a number before adding.
+        // This prevents string concatenation (e.g. '70000' + '70000' -> '7000070000').
         const currentJackpot = parseInt(round.jackpot || '0', 10);
         newRoundJackpot = currentJackpot + carryOverAmount;
       }
 
-      // Jelenlegi kör lezárása 'completed' státusszal
+      // Closing current round with 'completed' status
       await client.query(`
         UPDATE lottery_draws 
         SET 
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         WHERE id = $3
       `, [winningNumber, totalTickets, round.id]);
 
-      // Új kör létrehozása a helyesen kiszámolt jackpottal
+      // Creating new round with correctly calculated jackpot
       const newRoundResult = await client.query(`
         INSERT INTO lottery_draws (
           draw_number, start_time, end_time, jackpot, status
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         console.log('⚠️ Lottery results email error (non-critical):', emailError);
       }
 
-      // Válasz küldése a frontend felé
+      // Send response to frontend
       if (winner) {
         return NextResponse.json({
           success: true,

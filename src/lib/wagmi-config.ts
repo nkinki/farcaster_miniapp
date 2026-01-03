@@ -3,10 +3,10 @@ import { base } from "wagmi/chains"
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector"
 import { injected, walletConnect } from "wagmi/connectors"
 
-// A createConnectors segédfüggvény változatlan, mert az helyesen működik.
+// The createConnectors helper function remains unchanged because it works correctly.
 const createConnectors = () => {
   const connectors = []
-  
+
   try {
     const farcasterConnector = miniAppConnector()
     if (farcasterConnector && typeof farcasterConnector === 'object') {
@@ -16,7 +16,7 @@ const createConnectors = () => {
   } catch (error) {
     console.warn('⚠️ Farcaster MiniApp connector failed to load:', error)
   }
-  
+
   try {
     connectors.push(injected({
       shimDisconnect: true,
@@ -25,7 +25,7 @@ const createConnectors = () => {
   } catch (error) {
     console.warn('⚠️ Injected connector failed to load:', error)
   }
-  
+
   const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
   if (projectId && projectId.trim() !== "") {
     try {
@@ -43,15 +43,15 @@ const createConnectors = () => {
       console.warn('⚠️ WalletConnect connector failed to load:', error)
     }
   }
-  
+
   return connectors
 }
 
-// VISSZAÁLLÍTÁS: Újra a Base hálózat publikus RPC végpontját használjuk.
+// RESTORED: We are using the public RPC endpoint of the Base network again.
 export const config = createConfig({
-  chains: [base], 
+  chains: [base],
   transports: {
-    [base.id]: http(), // Ha nem adunk meg URL-t, a wagmi az alapértelmezett publikus RPC-t használja.
+    [base.id]: http(), // If no URL is provided, wagmi uses the default public RPC.
   },
   connectors: createConnectors(),
   ssr: false,

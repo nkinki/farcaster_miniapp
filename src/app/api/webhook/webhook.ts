@@ -9,13 +9,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const event = req.body;
     if (event.event === 'miniapp_added' || event.event === 'notifications_enabled') {
       const { token, url } = event.notificationDetails;
-      // Mentsd el a tokent és az url-t a Neon adatbázisba
+      // Save the token and url to the Neon database
       await pool.query(
         'INSERT INTO notification_tokens (token, url, created_at) VALUES ($1, $2, NOW()) ON CONFLICT (token) DO NOTHING',
         [token, url]
       );
     }
-    // Törlés, ha leiratkozik:
+    // Delete if unsubscribed:
     if (event.event === 'miniapp_removed' || event.event === 'notifications_disabled') {
       await pool.query('DELETE FROM notification_tokens WHERE token = $1', [event.notificationDetails?.token]);
     }

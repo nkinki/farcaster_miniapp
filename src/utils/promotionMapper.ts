@@ -1,4 +1,4 @@
-// MOSTANTÓL CSAK INNEN IMPORTÁLJUK A TÍPUSOKAT
+// FROM NOW ON, ONLY IMPORT TYPES FROM HERE
 import type { PromoCast, Promotion } from "@/types/promotions"
 
 /**
@@ -27,7 +27,7 @@ export function mapPromotionToPromoCast(promotion: Promotion): PromoCast {
     remainingBudget: promotion.remaining_budget,
     status: promotion.status as "active" | "inactive" | "paused" | "completed",
     createdAt: promotion.created_at,
-    updatedAt: promotion.updated_at, // JAVÍTVA: updated_at-ra cserélve
+    updatedAt: promotion.updated_at, // FIXED: changed to updated_at
     // Add missing fields that PromoCast expects
     author: {
       fid: promotion.fid,

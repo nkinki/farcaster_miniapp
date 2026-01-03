@@ -5,7 +5,7 @@ import { useAccount } from "wagmi";
 import { useChessToken } from "@/hooks/useChessToken";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiUser, FiDollarSign, FiTrendingUp, FiCheck, FiX, FiAward, FiLoader, FiAlertTriangle, FiChevronDown, FiChevronUp, FiShare2 } from "react-icons/fi";
-// Már nem használjuk a szerződést, csak az API-t
+// No longer using the contract directly, only the API
 
 interface FarcasterUser {
   fid: number;
@@ -29,7 +29,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
   const { address } = useAccount();
   const { balance, formatChessAmount } = useChessToken();
 
-  // Összecsukható logika
+  // Collapsible logic
   const [collapsed, setCollapsed] = useState(true);
 
   const [isClaiming, setIsClaiming] = useState(false);
@@ -57,7 +57,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
     setSuccess(null);
 
     try {
-      // Használjuk a claim-rewards API-t (approve mechanizmus)
+      // Use the claim-rewards API (approve mechanism)
       const claimResponse = await fetch("/api/claim-rewards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
         throw new Error(claimData.error || "Claim failed.");
       }
 
-      // Sikeres claim - animáció és állapot beállítása
+      // Successful claim - set animation and state
       const claimedRewards = pendingRewards;
       setClaimedAmount(claimedRewards);
       setJustClaimed(true);
@@ -132,7 +132,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
         errorMessage = err.message;
       }
 
-      // Specifikus hibák kezelése
+      // Handle specific errors
       if (err.message?.includes('No rewards to claim')) {
         errorMessage = "No rewards available to claim.";
       } else if (err.message?.includes('Could not find a valid wallet')) {
@@ -184,7 +184,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
 
   return (
     <div className="bg-[#23283a] rounded-2xl p-6 border border-[#a64d79] pulse-glow">
-      {/* Összecsukható fejléc */}
+      {/* Collapsible header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center overflow-hidden border-2 border-white/10 relative">
@@ -224,7 +224,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Total Reward Info Blokk */}
+          {/* Total Reward Info Block */}
           <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-lg p-3 text-center min-w-[100px]">
             <div className="flex items-center justify-center gap-2 mb-1">
               <FiAward className="text-green-400" size={18} />
@@ -233,7 +233,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
             <p className="text-xs text-green-300 font-medium">Total Earned</p>
           </div>
 
-          {/* Összecsukó gomb - jobb szélre */}
+          {/* Collapse button - to the right */}
           <button
             onClick={() => setCollapsed((prev) => !prev)}
             className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors"
@@ -244,7 +244,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
         </div>
       </div>
 
-      {/* Tartalom csak ha nincs összecsukva */}
+      {/* Content only if not collapsed */}
       {!collapsed && <>
         <div className="grid grid-cols-2 gap-3 mb-6 text-white">
           <div className="p-3 bg-[#181c23] rounded-lg">
@@ -414,7 +414,7 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
         </div>
       </>}
 
-      {/* Share Modal - Egyszerű reklám ablak sikeres claim után */}
+      {/* Share Modal - Simple popup after successful claim */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 rounded-2xl p-6 max-w-md w-full border border-purple-500/30 shadow-2xl">

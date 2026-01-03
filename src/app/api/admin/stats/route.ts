@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     `;
     const avgReward = avgRewardResult[0] || { avg: 0 };
 
-    // FarChess statisztikák alapértelmezett értékekkel
+    // FarChess statistics with default values
     const farChessStats = {
       totalGames: 0,
       activeGames: 0,
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       totalGamesWon: 0
     };
 
-    // Lottery statisztikák alapértelmezett értékekkel
+    // Lottery statistics with default values
     let lotteryStats = {
       totalRounds: 0,
       activeRounds: 0,
@@ -111,18 +111,18 @@ export async function GET(request: NextRequest) {
       const totalRoundsResult = await sql`SELECT COUNT(*) as count FROM lottery_draws`;
       const activeRoundsResult = await sql`SELECT COUNT(*) as count FROM lottery_draws WHERE status = 'active'`;
       const completedRoundsResult = await sql`SELECT COUNT(*) as count FROM lottery_draws WHERE status = 'completed'`;
-      
+
       // Ticket stats
       const totalTicketsResult = await sql`SELECT COUNT(*) as count FROM lottery_tickets`;
       const totalRevenueResult = await sql`SELECT COALESCE(SUM(purchase_price), 0) as total FROM lottery_tickets`;
-      
+
       // Winner stats
       const totalWinnersResult = await sql`SELECT COUNT(*) as count FROM lottery_winnings`;
       const totalPrizesResult = await sql`SELECT COALESCE(SUM(amount_won), 0) as total FROM lottery_winnings`;
-      
+
       // Current jackpot (from active round)
       const currentJackpotResult = await sql`SELECT COALESCE(jackpot, 0) as jackpot FROM lottery_draws WHERE status = 'active' ORDER BY draw_number DESC LIMIT 1`;
-      
+
       // Average tickets per round
       const avgTicketsResult = await sql`
         SELECT COALESCE(AVG(ticket_count), 0) as avg_tickets 
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
           GROUP BY draw_id
         ) as round_tickets
       `;
-      
+
       // Most popular numbers
       const popularNumbersResult = await sql`
         SELECT number, COUNT(*) as count 
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
         ORDER BY count DESC 
         LIMIT 10
       `;
-      
+
       // Top winners
       const topWinnersResult = await sql`
         SELECT player_fid, SUM(amount_won) as total_winnings 
@@ -185,9 +185,9 @@ export async function GET(request: NextRequest) {
       totalBudget: Number(totalBudget.total) || 0,
       remainingBudget: Number(remainingBudget.total) || 0,
       avgReward: Number(avgReward.avg).toFixed(2) || '0.00',
-      // FarChess statisztikák
+      // FarChess statistics
       farChess: farChessStats,
-      // Lottery statisztikák
+      // Lottery statistics
       lottery: lotteryStats,
     };
 
@@ -196,9 +196,9 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Admin stats error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch admin stats', 
-      details: error.message 
+    return NextResponse.json({
+      error: 'Failed to fetch admin stats',
+      details: error.message
     }, { status: 500 });
   }
 }

@@ -61,7 +61,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: Date }) => {
   );
 };
 
-// Tipusok
+// Types
 interface Miniapp {
   id: string;
   rank: number;
@@ -87,7 +87,7 @@ interface Miniapp {
 
 type MiniappFromApi = Omit<Miniapp, 'id'>;
 
-// Ikonok definiálása
+// Define Icons
 const categoryIcons: Record<string, IconType> = {
   all: FiGrid,
   games: FiZap,

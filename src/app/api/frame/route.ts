@@ -4,24 +4,24 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { trustedData } = body;
-    
-    // User authentication ellenőrzés
+
+    // User authentication check
     interface UserData {
       fid: number;
       username: string;
       displayName: string;
     }
-    
+
     let userData: UserData | null = null;
     if (trustedData?.messageBytes) {
-      // Farcaster user adatok kinyerése (mock implementation)
+      // Extract Farcaster user data (mock implementation)
       userData = {
         fid: 1234,
         username: "user",
         displayName: "Farcaster User"
       };
     }
-    
+
     // Return HTML response for frame redirect
     return new Response(`
       <!DOCTYPE html>
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         </body>
       </html>
     `, {
-      headers: { 
+      headers: {
         'Content-Type': 'text/html',
         'Cache-Control': 'no-cache'
       },

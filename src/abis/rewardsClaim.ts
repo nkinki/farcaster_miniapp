@@ -1,9 +1,9 @@
-// FÁJL: /src/abis/rewardsClaim.ts
+// FILE: /src/abis/rewardsClaim.ts
 
-export const rewardsClaimAddress = '0xb8d08800d79850375c10a96e87fd196c0e52aa5a' as const; 
+export const rewardsClaimAddress = '0xb8d08800d79850375c10a96e87fd196c0e52aa5a' as const;
 
-// JAVÍTÁS: A felesleges külső szögletes zárójelet eltávolítottuk.
-export const rewardsClaimABI = [ 
+// FIX: Removed unnecessary outer square brackets.
+export const rewardsClaimABI = [
 	{
 		"inputs": [
 			{ "internalType": "address", "name": "_recipient", "type": "address" },

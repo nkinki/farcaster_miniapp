@@ -1,10 +1,10 @@
 "use client"
 
 import { useReadContract, useWriteContract, useAccount, useWaitForTransactionReceipt } from "wagmi"
-// JAVÍTÁS: Itt importáljuk a hiányzó `parseUnits` függvényt is.
+// FIX: We import the missing `parseUnits` function here as well.
 import { formatUnits, parseUnits } from 'viem'
 
-// JAVÍTÁS: A központi CONTRACTS import helyett mindent a saját ABI fájljából veszünk.
+// FIX: Instead of the central CONTRACTS import, we take everything from its own ABI file.
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken"
 import { treasuryDepositAddress } from "@/abis/treasuryDeposit"
 
@@ -47,7 +47,7 @@ export function useChessToken() {
     address: CHESS_TOKEN_ADDRESS,
     abi: CHESS_TOKEN_ABI,
     functionName: "allowance",
-    // JAVÍTÁS: Az `allowance`-t már az új TreasuryDeposit szerződésre ellenőrizzük!
+    // FIX: We already check the `allowance` for the new TreasuryDeposit contract!
     args: address ? [address, treasuryDepositAddress] : undefined,
     query: {
       enabled: !!address && isConnected,
@@ -71,7 +71,7 @@ export function useChessToken() {
   })
 
   const needsApproval = (amount: bigint) => {
-    if (!allowance) return true 
+    if (!allowance) return true
     return allowance < amount
   }
 
@@ -87,8 +87,8 @@ export function useChessToken() {
       args: [spender, amount],
     })
   }
-  
-  // JAVÍTÁS: Ezt a segédfüggvényt is átnevezzük, hogy az új szerződésre utaljon.
+
+  // FIX: We translate this helper function name to refer to the new contract.
   const approveTreasuryDeposit = (amount: bigint) => {
     return approve(treasuryDepositAddress, amount)
   }
@@ -104,27 +104,27 @@ export function useChessToken() {
 
   const parseChessAmount = (amount: string | number): bigint => {
     const amountAsString = typeof amount === 'number' ? amount.toString() : amount;
-    // Most már a `parseUnits` létezik és helyesen működik.
+    // Now `parseUnits` exists and works correctly.
     return parseUnits(amountAsString, tokenDecimals)
   }
 
   function safeBigInt(val: unknown): bigint {
     try {
-        if (typeof val === "bigint") return val
-        if (typeof val === "number" || typeof val === "boolean") return BigInt(val)
-        if (typeof val === "string" && /^\d+$/.test(val)) return BigInt(val)
+      if (typeof val === "bigint") return val
+      if (typeof val === "number" || typeof val === "boolean") return BigInt(val)
+      if (typeof val === "string" && /^\d+$/.test(val)) return BigInt(val)
     } catch (e) {
-        return BigInt(0)
+      return BigInt(0)
     }
     return BigInt(0)
   }
-  
+
   return {
     balance: safeBigInt(balance),
     allowance: safeBigInt(allowance),
     decimals: tokenDecimals,
     approve,
-    approveTreasuryDeposit, // JAVÍTÁS: Az új nevet exportáljuk.
+    approveTreasuryDeposit, // FIX: We export the new name.
     isApproving,
     isApprovalConfirming,
     isApproveSuccess,

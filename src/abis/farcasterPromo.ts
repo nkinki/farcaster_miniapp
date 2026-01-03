@@ -1,4 +1,4 @@
-// Fájl: /src/abis/farcasterPromo.ts
+// File: /src/abis/farcasterPromo.ts
 
 export const PROMO_CONTRACT_ADDRESS = '0xeca8a11700476863a976b841dc32e351acf6ed1f' as const;
 

@@ -1,4 +1,4 @@
-// Ez a központi típusdefiníciós fájl
+// This is the central type definition file
 export interface PromoCast {
   id: number
   fid: number
@@ -25,7 +25,7 @@ export interface PromoCast {
   allowCustomComments?: boolean // Allow users to add custom comments
 }
 
-// Database Promotion interface (az adatbázisból érkező adatokhoz)
+// Database Promotion interface (for data coming from the database)
 export interface Promotion {
   id: number
   fid: number

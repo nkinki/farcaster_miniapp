@@ -13,7 +13,7 @@ interface MyCampaignsDropdownProps {
   currentUserFid?: number;
 }
 
-// Helper függvény a progress bar kiszámításához
+// Helper function to calculate progress bar
 const calculateProgress = (promo: PromoCast): number => {
   if (promo.totalBudget === 0) {
     return 0;
@@ -27,7 +27,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
   const [showPendingComments, setShowPendingComments] = useState(false);
   const [showPendingFollows, setShowPendingFollows] = useState(false);
 
-  // Automatikus státusz korrekció: ha nincs elég budget, akkor completed
+  // Automatic status correction: if not enough budget, then completed
   const correctedPromos = myPromos.map(promo => {
     if (promo.status === 'active' && promo.remainingBudget < promo.rewardPerShare) {
       return { ...promo, status: 'completed' as const };
@@ -38,7 +38,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
     return promo;
   });
 
-  // Rendezés: még osztható active kampányok elöl, majd nem osztható active, paused, inactive, completed
+  // Sorting: active shareable campaigns first, then non-shareable active, paused, inactive, completed
   const sortedPromos = [...correctedPromos].sort((a, b) => {
     const statusOrder = { active: 1, paused: 2, inactive: 3, completed: 4 };
     const aIsShareable = a.status === 'active' && a.remainingBudget >= a.rewardPerShare;
@@ -79,7 +79,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                 </div>
                 <div className="w-4">{showPendingComments ? <FiChevronUp /> : <FiChevronDown />}</div>
               </button>
-              
+
               {showPendingComments && (
                 <div className="mt-3">
                   <PendingCommentsManager promoterFid={currentUserFid} />
@@ -101,7 +101,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                 </div>
                 <div className="w-4">{showPendingFollows ? <FiChevronUp /> : <FiChevronDown />}</div>
               </button>
-              
+
               {showPendingFollows && (
                 <div className="mt-3">
                   <PendingFollowsManager promoterFid={currentUserFid} />
@@ -112,7 +112,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
           <div className="space-y-4 max-h-[30rem] overflow-y-auto pr-2">
             {sortedPromos.map((promo) => (
               <div key={promo.id} className="bg-[#181c23] p-4 rounded-lg border border-gray-700">
-                {/* Felső szekció: Cast URL és Státusz */}
+                {/* Top section: Cast URL and Status */}
                 <div className="flex justify-between items-start mb-3">
                   <a
                     href={promo.castUrl}
@@ -123,18 +123,17 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                   >
                     {promo.castUrl}
                   </a>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap ${
-                    promo.status === "active" ? "bg-green-600 text-white" :
-                    promo.status === "paused" ? "bg-yellow-600 text-white" :
-                    promo.status === "inactive" ? "bg-blue-600 text-white" :
-                    promo.status === "completed" ? "bg-gray-500 text-white" :
-                    "bg-gray-600 text-white"
-                  }`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap ${promo.status === "active" ? "bg-green-600 text-white" :
+                      promo.status === "paused" ? "bg-yellow-600 text-white" :
+                        promo.status === "inactive" ? "bg-blue-600 text-white" :
+                          promo.status === "completed" ? "bg-gray-500 text-white" :
+                            "bg-gray-600 text-white"
+                    }`}>
                     {promo.status === 'inactive' ? 'Needs Funding' : promo.status}
                   </span>
                 </div>
 
-                {/* Statisztikai blokkok (2x2 rács) */}
+                {/* Statistical blocks (2x2 grid) */}
                 <div className="grid grid-cols-2 gap-3 mb-4 text-white">
                   <div className="p-3 bg-gray-800 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
@@ -166,7 +165,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                   </div>
                 </div>
 
-                {/* Progress bar a folyamat vizualizálásához */}
+                {/* Progress bar to visualize the process */}
                 <div className="w-full bg-gray-700 rounded-full h-2.5 mb-4">
                   <div
                     className="bg-gradient-to-r from-purple-600 to-blue-600 h-2.5 rounded-full"
@@ -174,7 +173,7 @@ export default function MyCampaignsDropdown({ myPromos, onManageClick, onDeleteC
                   ></div>
                 </div>
 
-                {/* Gomb logika: Manage ha nem completed, Delete ha completed */}
+                {/* Button logic: Manage if not completed, Delete if completed */}
                 {promo.status !== "completed" ? (
                   <button
                     onClick={() => onManageClick(promo)}

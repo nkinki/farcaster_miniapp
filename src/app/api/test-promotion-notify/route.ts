@@ -1,10 +1,10 @@
-// TESZT API - Promotion értesítő rendszer tesztelése
+// TEST API - Testing the promotion notification system
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🧪 Testing promotion notification system...');
-    
+
     // Mock promotion data
     const mockPromotions = [
       {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         created_at: new Date().toISOString()
       },
       {
-        id: 'test-2', 
+        id: 'test-2',
         fid: 67890,
         username: 'anotheruser',
         display_name: 'Another User',
@@ -32,9 +32,9 @@ export async function GET(request: NextRequest) {
         created_at: new Date().toISOString()
       }
     ];
-    
+
     console.log(`📊 Mock data: ${mockPromotions.length} promotions`);
-    
+
     return NextResponse.json({
       success: true,
       message: 'Promotion notification test endpoint',
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
       test: true
     }, { status: 200 });
-    
+
   } catch (error: any) {
     console.error('❌ Test API Error:', error);
     return NextResponse.json({
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log('🧪 Testing POST notification trigger:', body);
-    
+
     return NextResponse.json({
       success: true,
       message: 'Test notification triggered',
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       test: true
     }, { status: 200 });
-    
+
   } catch (error: any) {
     console.error('❌ Test POST Error:', error);
     return NextResponse.json({

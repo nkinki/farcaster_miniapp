@@ -8,7 +8,7 @@ import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI, TICKET_PRICE } 
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 import { sdk } from '@farcaster/miniapp-sdk';
 
-// --- Interface definíciók ---
+// --- Interface definitions ---
 interface LotteryRound { id: number; round_number: number; start_date: string; end_date: string; draw_date: string; prize_pool: number; status: string; winner_fid?: number; winner_number?: number; total_tickets_sold: number; }
 interface LotteryTicket { id: number; round_id: number; fid: number; ticket_number: number; purchase_price: number; purchased_at: string; }
 interface LotteryStats { total_rounds: number; total_tickets_sold: number; total_prize_distributed: number; treasury_balance: number; }
@@ -16,7 +16,7 @@ interface RecentRound { id: number; draw_number: number; winning_number: number;
 interface UserWinning { id: number; player_fid: number; draw_id: number; ticket_id: number; amount_won: number; claimed_at: string | null; created_at: string; draw_number: number; winning_number: number; ticket_number: number; }
 interface LamboLotteryProps { isOpen: boolean; onClose: () => void; userFid: number; onPurchaseSuccess?: () => void; }
 
-// Állapotgép a vásárlási folyamathoz, pont mint a PaymentForm-ban
+// State machine for the purchase process, just like in PaymentForm
 enum PurchaseStep {
   Idle,
   Approving,
@@ -30,10 +30,10 @@ enum PurchaseStep {
 export default function LamboLottery({ isOpen, onClose, userFid, onPurchaseSuccess }: LamboLotteryProps) {
   const { address, isConnected, chainId } = useAccount();
 
-  // Pontosan mint a PaymentForm.tsx-ben, csak a useWriteContract-ot használjuk
+  // Exactly like in PaymentForm.tsx, we just use writeContractAsync
   const { writeContractAsync, isPending } = useWriteContract();
 
-  // --- Állapotok ---
+  // --- States ---
   const [currentRound, setCurrentRound] = useState<LotteryRound | null>(null);
   const [userTickets, setUserTickets] = useState<LotteryTicket[]>([]);
   const [loading, setLoading] = useState(true);

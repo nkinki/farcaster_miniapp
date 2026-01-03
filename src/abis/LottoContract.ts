@@ -1,12 +1,12 @@
-// FÁJL: src/abis/LottoContract.ts
-// CÉL: Az új, továbbfejlesztett lottó okosszerződés ABI-ját és a kapcsolódó konstansokat tartalmazza.
+// FILE: src/abis/LottoContract.ts
+// PURPOSE: Contains the ABI and related constants for the new, improved lottery smart contract.
 
 import { parseUnits } from 'viem';
 
-// --- Új Okosszerződés Cím ---
+// --- New Smart Contract Address ---
 export const LOTTO_CONTRACT_ADDRESS = "0xe61029124a9a432e09ec47c999140c0d5e9d4df4" as const;
 
-// --- Új Okosszerződés ABI ---
+// --- New Smart Contract ABI ---
 export const LOTTO_CONTRACT_ABI = [
 	{
 		"inputs": [

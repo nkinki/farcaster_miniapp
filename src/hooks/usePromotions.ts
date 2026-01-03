@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { mapPromotionsToPromoCasts } from "@/utils/promotionMapper"
-// MOSTANTÓL CSAK INNEN IMPORTÁLJUK A TÍPUSOKAT
+// FROM NOW ON, ONLY IMPORT TYPES FROM HERE
 import type { PromoCast, Promotion } from "@/types/promotions"
 
 interface UsePromotionsParams {
@@ -12,7 +12,7 @@ interface UsePromotionsParams {
 }
 
 interface UsePromotionsReturn {
-  promotions: PromoCast[] // Visszatérési típus PromoCast[]
+  promotions: PromoCast[] // Return type PromoCast[]
   loading: boolean
   error: string | null
   refetch: () => void
@@ -48,7 +48,7 @@ export function usePromotions({ limit = 20, offset = 0, status }: UsePromotionsP
       console.log(`🔍 API Response:`, data)
       console.log(`🔍 Promotions count:`, data.promotions?.length || 0)
 
-      // Explicit típusmegadás, hogy Promotion[]-ként kezelje
+      // Explicit type definition to treat as Promotion[]
       const promotionsArray: Promotion[] = Array.isArray(data.promotions) ? data.promotions : []
 
       console.log(`🔍 Promotions array:`, promotionsArray)

@@ -6,10 +6,10 @@ import pool from '@/lib/db';
 export async function POST(request: NextRequest) {
   console.log('Webhook processing started.');
   try {
-    // 1. lépés: Beolvassuk a külső JSON objektumot
+    // Step 1: Read the external JSON object
     const body = await request.json();
 
-    // 2. lépés: Dekódoljuk a Base64 payload-ot, és JSON-ként értelmezzük
+    // Step 2: Decode the Base64 payload and interpret as JSON
     const event = JSON.parse(Buffer.from(body.payload, 'base64').toString());
 
     console.log('Successfully decoded event payload:', JSON.stringify(event, null, 2));
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const notificationDetails = event.notificationDetails;
     const fid = event.fid;
 
-    // Most már helyesen fog működni az ellenőrzés
+    // The check will now work correctly
     if (['miniapp_added', 'notifications_enabled', 'frame_added'].includes(event.event)) {
       if (notificationDetails && notificationDetails.token) {
         const { token, url } = notificationDetails;
@@ -46,15 +46,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Token törlése
+    // Delete token
     if (['miniapp_removed', 'notifications_disabled', 'frame_removed'].includes(event.event)) {
-      // A törlési logika is az 'event' objektumot használja, ami most már helyes
+      // The deletion logic also uses the 'event' object, which is now correct
       let tokenToRemove: string | undefined;
 
       if (event.event === 'frame_removed') {
-        // frame_removed esetén a payloadban nincs külön notificationDetails, a token máshol lehet.
-        // Ezt a részt a Farcaster dokumentáció alapján kell pontosítani, ha szükséges.
-        // Maradjunk az egyszerűbb esettnél:
+        // for frame_removed, the payload doesn't have a separate notificationDetails, the token might be elsewhere.
+        // This part needs to be clarified based on Farcaster documentation if necessary.
+        // Let's stick to the simpler case for now:
         console.log("INFO: 'frame_removed' event received. Deletion based on notificationDetails if available.");
       }
 

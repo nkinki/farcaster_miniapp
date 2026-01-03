@@ -1,4 +1,4 @@
-// Fájl: /src/abis/treasuryDeposit.ts
+// File: /src/abis/treasuryDeposit.ts
 
 export const treasuryDepositAddress = '0x6d1d60bbed4d75768db63761dc498c56e5e5bc6b' as const;
 

@@ -7,7 +7,7 @@ import { parseUnits, type Hash } from "viem";
 import { FiX, FiMessageSquare } from "react-icons/fi";
 import { FEATURES } from "@/config/features";
 
-// JAVÍTÁS: Pontos import útvonalak a képernyőfotód alapján
+// FIX: Accurate import paths based on your screenshot
 import { treasuryDepositAddress, treasuryDepositABI } from "@/abis/treasuryDeposit";
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken";
 interface FarcasterUser {
@@ -22,7 +22,7 @@ interface PaymentFormProps {
   onCancel: () => void;
 }
 
-// ÚJ: Létrehoztunk egyértelmű lépéseket a folyamathoz
+// NEW: Created clear steps for the process
 enum CreationStep {
   Idle,
   Approving,
@@ -105,23 +105,23 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
   const { writeContractAsync, isPending } = useWriteContract();
 
   const [castUrl, setCastUrl] = useState("");
-  const [shareText, setShareText] = useState(""); // User által látható/szerkeszthető szöveg
+  const [shareText, setShareText] = useState(""); // Text visible/editable by the user
   const [rewardPerShare, setRewardPerShare] = useState(rewardOptions[0].toString());
   const [totalBudget, setTotalBudget] = useState(budgetOptions[0].toString());
-  
+
   // Action selection state
   const [selectedAction, setSelectedAction] = useState<'quote' | 'like_recast' | 'comment' | 'follow'>('quote');
-  
+
   // Comment functionality state (only used if ENABLE_COMMENTS is true)
   const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
   const [customComment, setCustomComment] = useState('');
   const [allowCustomComments, setAllowCustomComments] = useState(true);
-  
+
   // Promoter comment verification state - removed test comment functionality
-  
+
   const [step, setStep] = useState<CreationStep>(CreationStep.Idle);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [approveTxHash, setApproveTxHash] = useState<Hash | undefined>();
   const [createTxHash, setCreateTxHash] = useState<Hash | undefined>();
 
@@ -139,18 +139,18 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       if (isCreated && step === CreationStep.CreateConfirming) {
         setStep(CreationStep.Saving);
         try {
-          // Most már a backendnek nem kell smart contractot hívnia
+          // Now the backend doesn't need to call the smart contract
           const response = await fetch('/api/promotions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               fid: user.fid, username: user.username, displayName: user.displayName,
-              castUrl: castUrl, 
-              shareText: Number(totalBudget) >= 5000000 ? shareText : (shareText ? `${shareText}` : ''), // Premium: reklám nélkül, normál: csak user szöveg
+              castUrl: castUrl,
+              shareText: Number(totalBudget) >= 5000000 ? shareText : (shareText ? `${shareText}` : ''), // Premium: no ad, normal: user text only
               rewardPerShare: Number(rewardPerShare), totalBudget: Number(totalBudget),
-              blockchainHash: createTxHash, // A befizetési tranzakció hash-ét mentjük
+              blockchainHash: createTxHash, // We save the deposit transaction hash
               status: 'active',
-              actionType: selectedAction, // 'quote' vagy 'like_recast'
+              actionType: selectedAction, // 'quote' or 'like_recast'
               // Comment functionality (only sent if comment action is selected)
               ...(selectedAction === 'comment' && {
                 commentTemplates: selectedTemplates,
@@ -160,7 +160,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             }),
           });
           if (!response.ok) throw new Error('Failed to save promotion to the database.');
-          
+
           onSuccess();
         } catch (err: any) {
           setError("On-chain deposit was successful, but saving failed. Please contact support.");
@@ -171,9 +171,9 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
     saveToDb();
   }, [isCreated, step, user, castUrl, shareText, rewardPerShare, totalBudget, createTxHash, onSuccess]);
 
-  // Template kiválasztás kezelése
+  // Handle template selection
   const handleTemplateSelect = (template: string) => {
-    
+
     setSelectedTemplates(prev => {
       if (prev.includes(template)) {
         return prev.filter(t => t !== template);
@@ -191,7 +191,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       setError("Please select a budget and connect your wallet.");
       return;
     }
-    
+
     setStep(CreationStep.Approving);
     try {
       const totalBudgetInWei = parseUnits(totalBudget, 18);
@@ -218,37 +218,36 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
 
     setStep(CreationStep.Creating);
     try {
-        const totalBudgetInWei = parseUnits(totalBudget, 18);
-        const hash = await writeContractAsync({
-            address: treasuryDepositAddress,
-            abi: treasuryDepositABI,
-            functionName: 'depositFunds',
-            args: [totalBudgetInWei],
-        });
-        setCreateTxHash(hash);
-        setStep(CreationStep.CreateConfirming);
+      const totalBudgetInWei = parseUnits(totalBudget, 18);
+      const hash = await writeContractAsync({
+        address: treasuryDepositAddress,
+        abi: treasuryDepositABI,
+        functionName: 'depositFunds',
+        args: [totalBudgetInWei],
+      });
+      setCreateTxHash(hash);
+      setStep(CreationStep.CreateConfirming);
     } catch (err: any) {
-        setError(err.shortMessage || "Deposit transaction failed.");
-        setStep(CreationStep.ReadyToCreate);
+      setError(err.shortMessage || "Deposit transaction failed.");
+      setStep(CreationStep.ReadyToCreate);
     }
   };
 
   const isLoading = isPending || isApproveConfirming || isCreateConfirming;
-  
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-white text-center">Create a New Promotion</h2>
-      
+
       {/* Action Selection Buttons */}
       <div className="flex gap-2 mb-4">
         <button
           type="button"
           onClick={() => setSelectedAction('quote')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'quote'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'quote'
               ? 'bg-orange-600 text-white border border-orange-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           💬 Quote
@@ -256,11 +255,10 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <button
           type="button"
           onClick={() => setSelectedAction('like_recast')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'like_recast'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'like_recast'
               ? 'bg-purple-600 text-white border border-purple-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           👍 Like & Recast
@@ -268,11 +266,10 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <button
           type="button"
           onClick={() => setSelectedAction('comment')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'comment'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'comment'
               ? 'bg-yellow-600 text-white border border-yellow-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           💬 Comment
@@ -280,36 +277,35 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
         <button
           type="button"
           onClick={() => setSelectedAction('follow')}
-          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selectedAction === 'follow'
+          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${selectedAction === 'follow'
               ? 'bg-pink-600 text-white border border-pink-500'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
-          }`}
+            }`}
           disabled={step >= CreationStep.ReadyToCreate}
         >
           👥 Follow
         </button>
       </div>
-      
+
       {/* Follow Development Notice */}
       {selectedAction === 'follow' && (
         <div className="text-xs text-yellow-400 text-center bg-yellow-900/20 py-2 px-3 rounded-md border border-yellow-600/30">
           👥 Follow & Earn CHESS
         </div>
       )}
-      
+
       <div>
         <label htmlFor="castUrl" className="block text-xs font-medium text-slate-400 mb-1">
           {selectedAction === 'follow' ? 'Target User Profile URL*' : 'Cast URL*'}
         </label>
-        <input 
-          type="text" 
-          id="castUrl" 
-          value={castUrl} 
-          onChange={(e) => setCastUrl(e.target.value)} 
+        <input
+          type="text"
+          id="castUrl"
+          value={castUrl}
+          onChange={(e) => setCastUrl(e.target.value)}
           placeholder={selectedAction === 'follow' ? 'https://farcaster.xyz/username' : 'https://farcaster.xyz/username/0x...'}
-          className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none" 
-          disabled={step >= CreationStep.ReadyToCreate} 
+          className="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white text-sm focus:border-slate-500 focus:outline-none"
+          disabled={step >= CreationStep.ReadyToCreate}
         />
         {selectedAction === 'follow' && (
           <p className="text-xs text-slate-500 mt-1">
@@ -327,7 +323,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             💬 Comment Process
           </h3>
           <p className="text-sm text-gray-300 mb-3">
-            Users will be able to comment on your post using the templates you select above. 
+            Users will be able to comment on your post using the templates you select above.
             The comment process will be guided with clear step-by-step instructions on the user interface.
           </p>
           <div className="text-xs text-gray-400">
@@ -347,7 +343,7 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
             👥 Follow Process
           </h3>
           <p className="text-sm text-gray-300 mb-3">
-            Users will be able to follow you on Farcaster to earn $CHESS tokens. 
+            Users will be able to follow you on Farcaster to earn $CHESS tokens.
             The follow process will be guided with clear step-by-step instructions.
           </p>
           <div className="text-xs text-pink-200 space-y-1">
@@ -469,18 +465,18 @@ export default function PaymentForm({ user, onSuccess, onCancel }: PaymentFormPr
       </div>
 
       {error && <p className="text-red-400 text-sm text-center bg-red-900/50 p-3 rounded-md">{error}</p>}
-      
+
       <div className="flex items-center gap-4 pt-4">
         <button onClick={onCancel} disabled={isLoading} className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50">Cancel</button>
-        
+
         {step < CreationStep.ReadyToCreate ? (
-            <button onClick={handleApprove} disabled={isLoading || !address} className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50">
-                {isApproveConfirming ? 'Confirming Approval...' : isPending ? 'Check Wallet...' : '1. Approve Budget'}
-            </button>
+          <button onClick={handleApprove} disabled={isLoading || !address} className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50">
+            {isApproveConfirming ? 'Confirming Approval...' : isPending ? 'Check Wallet...' : '1. Approve Budget'}
+          </button>
         ) : (
-            <button onClick={handleCreateAndDeposit} disabled={isLoading || !address} className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50">
-                {isCreateConfirming ? 'Confirming Deposit...' : isPending ? 'Check Wallet...' : '2. Create & Deposit'}
-            </button>
+          <button onClick={handleCreateAndDeposit} disabled={isLoading || !address} className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:opacity-50">
+            {isCreateConfirming ? 'Confirming Deposit...' : isPending ? 'Check Wallet...' : '2. Create & Deposit'}
+          </button>
         )}
       </div>
     </div>
