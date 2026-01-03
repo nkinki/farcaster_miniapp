@@ -172,7 +172,7 @@ export default function PromotePage() {
   });
 
   const currentPrice = presaleActive ? presalePrice : publicPrice;
-  const hasAllowance = chessAllowance && currentPrice ? BigInt(chessAllowance as string) >= BigInt(currentPrice as string) : false;
+  const hasAllowance = (chessAllowance !== undefined && currentPrice !== undefined) ? BigInt(chessAllowance as any) >= BigInt(currentPrice as any) : false;
 
   const { data: approveHash, writeContract: writeApprove, isPending: approvePending } = useWriteContract();
   const { data: mintHash, writeContract: writeMint, isPending: mintPending } = useWriteContract();
