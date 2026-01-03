@@ -20,6 +20,49 @@ import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 import { DIAMOND_VIP_ADDRESS, DIAMOND_VIP_ABI } from '@/abis/diamondVip';
 import { formatUnits } from 'viem';
 
+// --- Helper Components ---
+const CountdownTimer = ({ targetDate }: { targetDate: Date }) => {
+  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate.getTime() - now;
+
+      if (distance < 0) {
+        clearInterval(interval);
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + Math.floor(distance / (1000 * 60 * 60 * 24)) * 24; // Total hours
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeLeft({ hours, minutes, seconds });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return (
+    <div className="flex justify-center gap-2 text-white font-mono font-bold text-xl">
+      <div className="bg-black/50 p-2 rounded-lg min-w-[50px] text-center">
+        {String(timeLeft.hours).padStart(2, '0')}
+        <span className="text-[8px] block font-sans font-normal text-gray-400 mt-1">HOURS</span>
+      </div>
+      <div className="py-2 text-gray-500">:</div>
+      <div className="bg-black/50 p-2 rounded-lg min-w-[50px] text-center">
+        {String(timeLeft.minutes).padStart(2, '0')}
+        <span className="text-[8px] block font-sans font-normal text-gray-400 mt-1">MINS</span>
+      </div>
+      <div className="py-2 text-gray-500">:</div>
+      <div className="bg-black/50 p-2 rounded-lg min-w-[50px] text-center">
+        {String(timeLeft.seconds).padStart(2, '0')}
+        <span className="text-[8px] block font-sans font-normal text-gray-400 mt-1">SECS</span>
+      </div>
+    </div>
+  );
+};
+
 // Share szövegek promótereknek - $CHESS token és ingyenes promóció
 // TEMPORARILY DISABLED - No promotional messages
 const SHARE_TEXTS: string[] = [
@@ -2641,6 +2684,63 @@ export default function PromotePage() {
             {activeDailyCodeTab === 'vip' && !dailyCodeSuccess ? (
               <div className="space-y-6">
                 <div className="p-3 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
+                  {/* Countdown Timer */}
+                  <div className="bg-black/40 rounded-xl p-3 mb-4 border border-cyan-500/20 text-center">
+                    <p className="text-[10px] text-cyan-300 uppercase tracking-widest mb-1">Presale Ends In</p>
+                    <CountdownTimer targetDate={new Date(Date.now() + 48 * 60 * 60 * 1000)} />
+                  </div>
+
+                  {/* Top 3 Banner */}
+                  <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+                    <div className="text-2xl">🏆</div>
+                    <div>
+                      <p className="text-xs font-bold text-yellow-100">Season Top 3 Reward</p>
+                      <p className="text-[10px] text-yellow-200/70">Top 3 players automatically receive Diamond VIP status!</p>
+                    </div>
+                  </div>
+
+                  {/* Countdown Timer */}
+                  <div className="bg-black/40 rounded-xl p-4 mb-4 border border-cyan-500/20 text-center">
+                    <p className="text-[10px] text-cyan-300 uppercase tracking-widest mb-3 flex items-center justify-center gap-2">
+                      <FiClock /> Presale Price Ends In
+                    </p>
+                    <CountdownTimer targetDate={new Date(Date.now() + 49 * 60 * 60 * 1000)} />
+                  </div>
+
+                  {/* Top 3 Banner */}
+                  <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+                    <div className="text-2xl animate-bounce">🏆</div>
+                    <div>
+                      <p className="text-xs font-bold text-yellow-100 flex items-center gap-1">
+                        Season Top 3 Reward <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-[9px] rounded font-black">AUTO</span>
+                      </p>
+                      <p className="text-[10px] text-yellow-200/70 leading-tight">
+                        Top 3 players automatically receive <span className="text-white font-bold">Diamond VIP</span> status!
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Countdown Timer */}
+                  <div className="bg-black/40 rounded-xl p-4 mb-4 border border-cyan-500/20 text-center">
+                    <p className="text-[10px] text-cyan-300 uppercase tracking-widest mb-3 flex items-center justify-center gap-2">
+                      <FiClock /> Presale Price Ends In
+                    </p>
+                    <CountdownTimer targetDate={new Date(Date.now() + 48 * 60 * 60 * 1000)} />
+                  </div>
+
+                  {/* Top 3 Banner */}
+                  <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+                    <div className="text-2xl animate-bounce">🏆</div>
+                    <div>
+                      <p className="text-xs font-bold text-yellow-100 flex items-center gap-1">
+                        Season Top 3 Reward <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-[9px] rounded font-black">AUTO</span>
+                      </p>
+                      <p className="text-[10px] text-yellow-200/70 leading-tight">
+                        Top 3 players automatically receive <span className="text-white font-bold">Diamond VIP</span> status!
+                      </p>
+                    </div>
+                  </div>
+
                   <h3 className="text-cyan-300 font-black text-[10px] mb-2 flex items-center gap-2 uppercase tracking-wider">
                     <span className="text-lg">💎</span> VIP Daily Bundle
                   </h3>
