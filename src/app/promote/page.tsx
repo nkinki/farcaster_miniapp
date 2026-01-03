@@ -2931,6 +2931,7 @@ export default function PromotePage() {
           onClose={() => setShowSeasonModal(false)}
           userFid={profile?.fid}
         />
-      </div >
+            </div>
+    </div>
       );
 }
