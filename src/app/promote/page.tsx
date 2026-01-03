@@ -2676,7 +2676,7 @@ export default function PromotePage() {
                     <div className="flex items-center justify-between mb-4 bg-gray-900/50 p-3 rounded-xl border border-white/5">
                       <div className="text-[10px] font-bold text-gray-500 uppercase">Mint Price</div>
                       <div className="flex flex-col items-end">
-                        <div className="text-xs font-black text-cyan-400">{currentPrice ? Number(formatUnits(BigInt(currentPrice as string), 18)).toLocaleString() : "..."} $CHESS</div>
+                        <div className="text-xs font-black text-cyan-400">{currentPrice ? Number(formatUnits(BigInt(currentPrice as any), 18)).toLocaleString() : "..."} $CHESS</div>
                         {presaleActive && <div className="text-[8px] font-bold text-purple-400 uppercase tracking-widest">Presale 50% Off</div>}
                       </div>
                     </div>
@@ -2689,7 +2689,7 @@ export default function PromotePage() {
                         mintPending || isWaitingMint ? "Minting NFT..." :
                           !hasAllowance ? "Step 1: Approve $CHESS" : "Step 2: Mint Diamond VIP"}
                     </button>
-                    {chessBalance && currentPrice && BigInt(chessBalance as string) < BigInt(currentPrice as string) && (
+                    {chessBalance && currentPrice && BigInt(chessBalance as any) < BigInt(currentPrice as any) && (
                       <p className="mt-2 text-[9px] text-red-400 font-bold text-center">Insufficient $CHESS balance</p>
                     )}
                   </div>
