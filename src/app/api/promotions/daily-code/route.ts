@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
 
     // 2. Security: Validate reward amounts from body
     // Regular: Max 5,000 $CHESS per share (default 5k)
-    // VIP: Max 10,000 $CHESS per share (default 10k)
+    // VIP: Max 20,000 $CHESS per share (default 10k)
     const clientReward = body.rewardPerShare ? Number(body.rewardPerShare) : (isVip ? 10000 : 5000);
-    const MAX_LIMIT = isVip ? 10000 : 5000;
+    const MAX_LIMIT = isVip ? 20000 : 5000;
 
     // Ensure it doesn't exceed the limit
     const REWARD_PER_SHARE = Math.min(clientReward, MAX_LIMIT);

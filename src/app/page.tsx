@@ -179,7 +179,7 @@ export default function Home() {
       return
     }
 
-    if (DIAMOND_VIP_ADDRESS === "0x0000000000000000000000000000000000000000") {
+    if ((DIAMOND_VIP_ADDRESS as string) === "0x0000000000000000000000000000000000000000") {
       toast.error("Diamond VIP Contract not deployed yet! Please update the contract address.")
       return
     }

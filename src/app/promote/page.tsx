@@ -2726,18 +2726,18 @@ export default function PromotePage() {
                     <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-3 ml-1">
                       Choose Reward Per Share
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[1000, 5000, 10000].map((amt) => (
+                    <div className="grid grid-cols-4 gap-2">
+                      {[1000, 5000, 10000, 20000].map((amt) => (
                         <button
                           key={amt}
-                          onClick={() => setDailyCodeRewardPerShare(Math.min(amt, isVip ? 10000 : 5000))}
+                          onClick={() => setDailyCodeRewardPerShare(Math.min(amt, isVip ? 20000 : 5000))}
                           disabled={!isVip && amt > 5000}
-                          className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === Math.min(amt, isVip ? 10000 : 5000)
+                          className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === Math.min(amt, isVip ? 20000 : 5000)
                             ? 'bg-cyan-500 border-cyan-400 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
                             : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20'
                             } ${!isVip && amt > 5000 ? 'opacity-30 cursor-not-allowed' : ''}`}
                         >
-                          {amt.toLocaleString()}
+                          {amt >= 1000 ? `${amt / 1000}k` : amt}
                         </button>
                       ))}
                     </div>
