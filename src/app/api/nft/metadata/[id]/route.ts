@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const id = params.id;
+    const { id } = await params;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://farc-nu.vercel.app';
 
     // Minden Diamond VIP NFT ugyanazt a prémium képet és leírást kapja
