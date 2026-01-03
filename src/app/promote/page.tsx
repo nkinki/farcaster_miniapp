@@ -2722,6 +2722,27 @@ export default function PromotePage() {
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-3 ml-1">
+                      Choose Reward Per Share
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[1000, 5000, 10000].map((amt) => (
+                        <button
+                          key={amt}
+                          onClick={() => setDailyCodeRewardPerShare(Math.min(amt, isVip ? 10000 : 5000))}
+                          disabled={!isVip && amt > 5000}
+                          className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === Math.min(amt, isVip ? 10000 : 5000)
+                            ? 'bg-cyan-500 border-cyan-400 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                            : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20'
+                            } ${!isVip && amt > 5000 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                        >
+                          {amt.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     onClick={handleRedeemCode}
                     disabled={loading || (!isVip && !dailyCode) || !dailyCodeCastUrl}
@@ -2782,32 +2803,20 @@ export default function PromotePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-3">
-                    Choose Reward Per Share ($CHESS)
+                  <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-3 ml-1">
+                    Choose Reward Per Share
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { value: 1000, label: '1,000', sub: 'Max Shares 🚀' },
-                      { value: 2000, label: '2,000', sub: 'Balanced ⚖️' },
-                      { value: 5000, label: '5,000', sub: 'High Reward 🔥', className: 'col-span-2 bg-gradient-to-r from-[#1a1d26] to-[#2a2f42]' }
-                    ].map((opt) => (
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1000, 2000, 5000].map((amt) => (
                       <button
-                        key={opt.value}
-                        onClick={() => setDailyCodeRewardPerShare(opt.value)}
-                        className={`p-3 rounded-xl border transition-all duration-200 text-left relative overflow-hidden ${opt.className || ''} ${dailyCodeRewardPerShare === opt.value
-                          ? 'border-yellow-400 bg-yellow-400/10 shadow-lg scale-[1.02]'
-                          : 'border-gray-700 bg-[#1a1d26] hover:border-gray-500 hover:bg-[#23283a]'
+                        key={amt}
+                        onClick={() => setDailyCodeRewardPerShare(amt)}
+                        className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === amt
+                          ? 'bg-yellow-500 border-yellow-400 text-black shadow-[0_0_10px_rgba(234,179,8,0.4)]'
+                          : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20'
                           }`}
                       >
-                        <div className="font-bold text-lg text-white">{opt.label}</div>
-                        <div className={`text-xs ${dailyCodeRewardPerShare === opt.value ? 'text-yellow-400' : 'text-gray-400'}`}>
-                          {opt.sub}
-                        </div>
-                        {dailyCodeRewardPerShare === opt.value && (
-                          <div className="absolute top-2 right-2 text-yellow-400">
-                            <FiCheck size={16} />
-                          </div>
-                        )}
+                        {amt.toLocaleString()}
                       </button>
                     ))}
                   </div>

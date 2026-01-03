@@ -20,10 +20,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Secret code is required for non-VIP users.' }, { status: 400 });
     }
 
-    // 2. Security: Hardcode reward amounts instead of taking from body
-    // Regular: 5,000 $CHESS per share, 10,000 total budget
-    // VIP: 10,000 $CHESS per share, 100,000 total budget (per promotion)
-    const REWARD_PER_SHARE = isVip ? 10000 : 5000;
+    // 2. Security: Validate reward amounts from body
+    // Regular: Max 5,000 $CHESS per share (default 5k)
+    // VIP: Max 10,000 $CHESS per share (default 10k)
+    const clientReward = body.rewardPerShare ? Number(body.rewardPerShare) : (isVip ? 10000 : 5000);
+    const MAX_LIMIT = isVip ? 10000 : 5000;
+
+    // Ensure it doesn't exceed the limit
+    const REWARD_PER_SHARE = Math.min(clientReward, MAX_LIMIT);
+
     const REGULAR_BUDGET = 10000;
     const VIP_BUDGET = 100000;
 
