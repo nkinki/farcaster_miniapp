@@ -187,8 +187,27 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
       {/* Összecsukható fejléc */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
-            <FiUser className="text-white text-xl" />
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center overflow-hidden border-2 border-white/10 relative">
+            {user.pfpUrl ? (
+              <img
+                src={user.pfpUrl}
+                alt={user.displayName || user.username}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to icon on error
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement?.classList.add('fallback-icon');
+                }}
+              />
+            ) : (
+              <FiUser className="text-white text-xl" />
+            )}
+            {/* Fallback icon that shows if image fails or missing - controlled by CSS/JS opacity logic if needed, but simple conditinal above is safer */}
+            {user.pfpUrl && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 -z-10">
+                <FiUser className="text-white text-xl" />
+              </div>
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -263,10 +282,10 @@ const UserProfile = ({ user, userStats, onClaimSuccess, isVip }: UserProfileProp
             onClick={handleClaim}
             disabled={isLoading || !hasPendingRewards || justClaimed || !canClaim}
             className={`w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-500 flex items-center justify-center gap-2 ${justClaimed
-                ? 'bg-gradient-to-r from-green-500 to-green-600 animate-claimSuccess'
-                : canClaim && hasPendingRewards
-                  ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transform'
-                  : 'bg-gray-600 opacity-50 cursor-not-allowed'
+              ? 'bg-gradient-to-r from-green-500 to-green-600 animate-claimSuccess'
+              : canClaim && hasPendingRewards
+                ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transform'
+                : 'bg-gray-600 opacity-50 cursor-not-allowed'
               }`}
           >
             {isClaiming ? (
