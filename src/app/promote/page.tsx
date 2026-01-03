@@ -2189,464 +2189,462 @@ export default function PromotePage() {
             farcaster: {fcProfile?.username || 'connected'}
           </div>
         )}
-      </div>
-    </div>
 
-      {/* Lucky Box Modal - TEMPORARILY DISABLED */ }
-  {
-    false && (
-      <LuckyBox
-        isOpen={showLuckyBox}
-        onClose={handleLuckyBoxClose}
-        onClaim={handleLuckyBoxClaim}
-        isPreview={isLuckyBoxPreview}
-      />
-    )
-  }
+        {/* Lucky Box Modal - TEMPORARILY DISABLED */}
+        {
+          false && (
+            <LuckyBox
+              isOpen={showLuckyBox}
+              onClose={handleLuckyBoxClose}
+              onClaim={handleLuckyBoxClaim}
+              isPreview={isLuckyBoxPreview}
+            />
+          )
+        }
 
-  {/* Comment Modal */ }
-  {
-    showCommentModal && selectedCommentPromo && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-white">Choose Comment Template</h3>
-            <button
-              onClick={() => {
-                setShowCommentModal(false);
-                setSelectedCommentPromo(null);
-                setSelectedCommentTemplate('');
-              }}
-              className="text-gray-400 hover:text-white"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Original Post Preview */}
-          <div className="mb-4 p-3 bg-slate-700 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Original Post:</p>
-            <p className="text-sm text-white break-all">{selectedCommentPromo.castUrl}</p>
-          </div>
-
-          <div className="mb-4">
-            <p className="text-sm text-gray-300 mb-2">
-              Select a comment template to use:
-            </p>
-            {/* Static list removed from create flow */}
-          </div>
-
-          {selectedCommentTemplate && (
-            <div className="mb-4 p-3 bg-slate-700 rounded-lg">
-              <p className="text-xs text-gray-400 mb-1">Selected template:</p>
-              <p className="text-sm text-white">{selectedCommentTemplate}</p>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                setShowCommentModal(false);
-                setSelectedCommentPromo(null);
-                setSelectedCommentTemplate('');
-              }}
-              className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCommentSubmit}
-              disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-            >
-              {sharingPromoId === selectedCommentPromo.id.toString() ? 'Posting...' : 'Post Comment'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  {/* Comment Modal */ }
-  {
-    showCommentModal && selectedCommentPromo && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-slate-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-white">Comment on Post</h3>
-            <button
-              onClick={() => {
-                setShowCommentModal(false);
-                setSelectedCommentPromo(null);
-                setSelectedCommentTemplate('');
-                setShowCommentTemplates(false);
-              }}
-              className="text-gray-400 hover:text-white"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Comment Process Info Box */}
-          <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg">
-            <div className="flex items-start gap-2">
-              <span className="text-blue-400 text-sm">ℹ️</span>
-              <div className="text-blue-300 text-xs">
-                <p className="font-semibold mb-1">Comment Process:</p>
-                <ol className="list-decimal list-inside space-y-1 text-xs">
-                  <li>Choose a comment template below</li>
-                  <li>Click "1️⃣ Copy" to copy the template</li>
-                  <li>Click "2️⃣ Open Post" to open the original post</li>
-                  <li>Paste the comment as a reply</li>
-                  <li>Click "3️⃣ Verify" to claim your reward</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-
-          {/* Original Post Preview */}
-          <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-            <p className="text-sm text-gray-300 mb-2">📱 Original Post Preview:</p>
-
-            {/* Original Post Iframe */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <iframe
-                src={selectedCommentPromo.castUrl}
-                className="w-full h-96 border-0"
-                sandbox="allow-scripts allow-same-origin"
-                title="Original Post Preview"
-              />
-            </div>
-
-            {/* Instruction */}
-            <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
-              <p className="text-blue-300 text-sm">
-                📱 <strong>Above is the original post</strong> - Choose a comment template below, then copy and paste it as a reply
-              </p>
-            </div>
-          </div>
-
-          {/* Comment Templates - show promoter's selected templates */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <p className="text-sm text-gray-300">Choose a comment template:</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={toggleTemplateSort}
-                  className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                >
-                  {templateSortOrder === 'default' ? '🔄 Random' :
-                    templateSortOrder === 'random' ? '📦 Compact' : '📋 Default'}
-                </button>
-                {/* Display mode toggle removed - only compact view */}
-              </div>
-            </div>
-            <div className="grid gap-2 grid-cols-2">
-              {getSortedTemplates(
-                selectedCommentPromo.commentTemplates && selectedCommentPromo.commentTemplates.length > 0
-                  ? selectedCommentPromo.commentTemplates
-                  : COMMENT_TEMPLATES
-              ).map((template, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedCommentTemplate(template)}
-                  className={`p-2 text-xs rounded-lg font-medium transition-all duration-200 text-left ${selectedCommentTemplate === template
-                    ? 'bg-green-600 text-white border border-green-500'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
-                    }`}
-                >
-                  {template}
-                </button>
-              ))}
-            </div>
-
-            {/* Selected Template Preview */}
-            {selectedCommentTemplate && (
-              <div className="mt-4 p-3 bg-green-900 border border-green-600 rounded-lg">
-                <p className="text-green-300 text-sm mb-2">💬 Your comment:</p>
-                <div className="bg-slate-800 p-2 rounded border">
-                  <p className="text-white text-sm break-words">
-                    {selectedCommentTemplate}
-                  </p>
+        {/* Comment Modal */}
+        {
+          showCommentModal && selectedCommentPromo && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-white">Choose Comment Template</h3>
+                  <button
+                    onClick={() => {
+                      setShowCommentModal(false);
+                      setSelectedCommentPromo(null);
+                      setSelectedCommentTemplate('');
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
                 </div>
-                <button
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(selectedCommentTemplate);
-                      setShareError('📋 Comment copied to clipboard! Now paste it as a reply to the post above.');
-                    } catch (err) {
-                      console.error('Failed to copy:', err);
-                      setShareError('❌ Failed to copy to clipboard. Please copy manually.');
-                    }
-                  }}
-                  className="mt-2 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors active:scale-95"
-                >
-                  1️⃣ Copy Comment to Clipboard
-                </button>
+
+                {/* Original Post Preview */}
+                <div className="mb-4 p-3 bg-slate-700 rounded-lg">
+                  <p className="text-xs text-gray-400 mb-1">Original Post:</p>
+                  <p className="text-sm text-white break-all">{selectedCommentPromo.castUrl}</p>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-sm text-gray-300 mb-2">
+                    Select a comment template to use:
+                  </p>
+                  {/* Static list removed from create flow */}
+                </div>
+
+                {selectedCommentTemplate && (
+                  <div className="mb-4 p-3 bg-slate-700 rounded-lg">
+                    <p className="text-xs text-gray-400 mb-1">Selected template:</p>
+                    <p className="text-sm text-white">{selectedCommentTemplate}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowCommentModal(false);
+                      setSelectedCommentPromo(null);
+                      setSelectedCommentTemplate('');
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCommentSubmit}
+                    disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  >
+                    {sharingPromoId === selectedCommentPromo.id.toString() ? 'Posting...' : 'Post Comment'}
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-
-
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                setShowCommentModal(false);
-                setSelectedCommentPromo(null);
-                setSelectedCommentTemplate('');
-              }}
-              className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
-            >
-              Cancel
-            </button>
-
-            {/* Open Post Button - only show when template is selected */}
-            {selectedCommentTemplate && (
-              <button
-                onClick={handleCommentSubmit}
-                disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
-              >
-                {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '2️⃣ Open Post & Comment'}
-              </button>
-            )}
-
-            {/* Verify Comment Button - always show for manual verification */}
-            {selectedCommentTemplate && (
-              <button
-                onClick={async () => {
-                  if (!selectedCommentPromo || !selectedCommentTemplate) return;
-
-                  // Prevent multiple clicks
-                  if (sharingPromoId === selectedCommentPromo.id.toString()) {
-                    console.log('⏳ Already processing, please wait...');
-                    return;
-                  }
-
-                  console.log('🔍 Verifying comment manually...');
-                  setShareError('🔍 Verifying comment...');
-                  setSharingPromoId(selectedCommentPromo.id.toString());
-
-                  try {
-                    // Submit to backend for reward verification
-                    const response = await fetch('/api/comment-actions', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        promotionId: selectedCommentPromo.id,
-                        userFid: currentUser.fid,
-                        username: currentUser.username,
-                        actionType: 'comment',
-                        castHash: selectedCommentPromo.castUrl.split('/').pop() || '',
-                        rewardAmount: selectedCommentPromo.rewardPerShare,
-                        proofUrl: selectedCommentTemplate
-                      })
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                      throw new Error(data.error || 'Failed to verify comment');
-                    }
-
-                    console.log('✅ Comment submitted for approval');
-                    setShareError('✅ Comment submitted for admin approval! Reward will be credited after review.');
-
-                    // Mark action as completed
-                    setCompletedActions(prev => ({
-                      ...prev,
-                      [selectedCommentPromo.id]: true
-                    }));
-
-                    // Close modal immediately and refresh data
-                    setShowCommentModal(false);
-                    setSelectedCommentPromo(null);
-                    setSelectedCommentTemplate('');
-                    setShareError(null);
-                    setSharingPromoId(null);
-
-                    // Refresh data in background
-                    refreshAllData();
-
-                  } catch (error: any) {
-                    console.error('❌ Comment verification failed:', error);
-                    setShareError(`❌ Verification failed: ${error.message}`);
-                    setSharingPromoId(null);
-                  }
-                }}
-                disabled={sharingPromoId === selectedCommentPromo.id.toString()}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
-              >
-                {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '3️⃣ Verify Comment'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  {/* Follow Modal */ }
-  {
-    showFollowModal && selectedFollowPromo && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-white">Follow User</h3>
-            <button
-              onClick={() => {
-                setShowFollowModal(false);
-                setSelectedFollowPromo(null);
-              }}
-              className="text-gray-400 hover:text-white"
-            >
-              <FiX size={20} />
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-slate-700 rounded-lg p-4">
-              <h4 className="text-white font-medium mb-2">Follow Instructions</h4>
-              <p className="text-gray-300 text-sm mb-3">
-                To earn {selectedFollowPromo.rewardPerShare} $CHESS, please follow this user:
-              </p>
-              <div className="bg-slate-600 rounded p-3 mb-3">
-                <p className="text-white font-mono text-sm">
-                  @{selectedFollowPromo.castUrl.split('/').pop()}
-                </p>
-              </div>
-
-              <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3 mb-3">
-                <h5 className="text-blue-300 font-medium text-sm mb-2">📱 How to follow:</h5>
-                <ol className="text-gray-300 text-xs space-y-1 list-decimal list-inside">
-                  <li>Click "Open in Farcaster App" below</li>
-                  <li>This will open the user's profile</li>
-                  <li>Look for the "Follow" button on their profile</li>
-                  <li>Click the "Follow" button to follow them</li>
-                  <li>Come back here and click "Verify Follow"</li>
-                </ol>
-              </div>
-
-              <p className="text-yellow-400 text-xs">
-                ⚠️ One-time only - no back-and-forth follows
-              </p>
             </div>
+          )
+        }
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowFollowModal(false);
-                  setSelectedFollowPromo(null);
-                }}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
-                    console.log('🔗 Opening profile for:', targetUsername);
+        {/* Comment Modal */}
+        {
+          showCommentModal && selectedCommentPromo && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-slate-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-white">Comment on Post</h3>
+                  <button
+                    onClick={() => {
+                      setShowCommentModal(false);
+                      setSelectedCommentPromo(null);
+                      setSelectedCommentTemplate('');
+                      setShowCommentTemplates(false);
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
 
-                    // Try different methods to open profile
-                    try {
-                      // Method 1: Try miniAppSdk openUrl if available
-                      if ((miniAppSdk as any).actions?.openUrl) {
-                        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-                        await (miniAppSdk as any).actions.openUrl(profileUrl);
-                        console.log('✅ Profile opened via miniAppSdk.openUrl');
-                      } else {
-                        throw new Error('openUrl not available');
-                      }
-                    } catch (sdkError) {
-                      console.log('⚠️ miniAppSdk.openUrl failed, trying window.open...');
-                      try {
-                        // Method 2: Try window.open with _blank
-                        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-                        const newWindow = window.open(profileUrl, '_blank', 'noopener,noreferrer');
-                        if (!newWindow) {
-                          throw new Error('Popup blocked');
+                {/* Comment Process Info Box */}
+                <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-400 text-sm">ℹ️</span>
+                    <div className="text-blue-300 text-xs">
+                      <p className="font-semibold mb-1">Comment Process:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-xs">
+                        <li>Choose a comment template below</li>
+                        <li>Click "1️⃣ Copy" to copy the template</li>
+                        <li>Click "2️⃣ Open Post" to open the original post</li>
+                        <li>Paste the comment as a reply</li>
+                        <li>Click "3️⃣ Verify" to claim your reward</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Original Post Preview */}
+                <div className="mb-6 p-4 bg-slate-700 rounded-lg">
+                  <p className="text-sm text-gray-300 mb-2">📱 Original Post Preview:</p>
+
+                  {/* Original Post Iframe */}
+                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <iframe
+                      src={selectedCommentPromo.castUrl}
+                      className="w-full h-96 border-0"
+                      sandbox="allow-scripts allow-same-origin"
+                      title="Original Post Preview"
+                    />
+                  </div>
+
+                  {/* Instruction */}
+                  <div className="mt-3 p-3 bg-blue-900 border border-blue-600 rounded-lg">
+                    <p className="text-blue-300 text-sm">
+                      📱 <strong>Above is the original post</strong> - Choose a comment template below, then copy and paste it as a reply
+                    </p>
+                  </div>
+                </div>
+
+                {/* Comment Templates - show promoter's selected templates */}
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="text-sm text-gray-300">Choose a comment template:</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={toggleTemplateSort}
+                        className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                      >
+                        {templateSortOrder === 'default' ? '🔄 Random' :
+                          templateSortOrder === 'random' ? '📦 Compact' : '📋 Default'}
+                      </button>
+                      {/* Display mode toggle removed - only compact view */}
+                    </div>
+                  </div>
+                  <div className="grid gap-2 grid-cols-2">
+                    {getSortedTemplates(
+                      selectedCommentPromo.commentTemplates && selectedCommentPromo.commentTemplates.length > 0
+                        ? selectedCommentPromo.commentTemplates
+                        : COMMENT_TEMPLATES
+                    ).map((template, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedCommentTemplate(template)}
+                        className={`p-2 text-xs rounded-lg font-medium transition-all duration-200 text-left ${selectedCommentTemplate === template
+                          ? 'bg-green-600 text-white border border-green-500'
+                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                          }`}
+                      >
+                        {template}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Selected Template Preview */}
+                  {selectedCommentTemplate && (
+                    <div className="mt-4 p-3 bg-green-900 border border-green-600 rounded-lg">
+                      <p className="text-green-300 text-sm mb-2">💬 Your comment:</p>
+                      <div className="bg-slate-800 p-2 rounded border">
+                        <p className="text-white text-sm break-words">
+                          {selectedCommentTemplate}
+                        </p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(selectedCommentTemplate);
+                            setShareError('📋 Comment copied to clipboard! Now paste it as a reply to the post above.');
+                          } catch (err) {
+                            console.error('Failed to copy:', err);
+                            setShareError('❌ Failed to copy to clipboard. Please copy manually.');
+                          }
+                        }}
+                        className="mt-2 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors active:scale-95"
+                      >
+                        1️⃣ Copy Comment to Clipboard
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowCommentModal(false);
+                      setSelectedCommentPromo(null);
+                      setSelectedCommentTemplate('');
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
+                  >
+                    Cancel
+                  </button>
+
+                  {/* Open Post Button - only show when template is selected */}
+                  {selectedCommentTemplate && (
+                    <button
+                      onClick={handleCommentSubmit}
+                      disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
+                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
+                    >
+                      {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '2️⃣ Open Post & Comment'}
+                    </button>
+                  )}
+
+                  {/* Verify Comment Button - always show for manual verification */}
+                  {selectedCommentTemplate && (
+                    <button
+                      onClick={async () => {
+                        if (!selectedCommentPromo || !selectedCommentTemplate) return;
+
+                        // Prevent multiple clicks
+                        if (sharingPromoId === selectedCommentPromo.id.toString()) {
+                          console.log('⏳ Already processing, please wait...');
+                          return;
                         }
-                        console.log('✅ Profile opened via window.open');
-                      } catch (windowError) {
-                        console.log('⚠️ window.open failed, trying location.href...');
-                        // Method 3: Fallback to location.href
-                        const profileUrl = `https://farcaster.xyz/${targetUsername}`;
-                        window.location.href = profileUrl;
-                        console.log('✅ Profile opened via location.href');
-                      }
-                    }
 
-                    // Show instruction message
-                    setShareError('📱 Profile opened! Please follow the user, then click "Verify Follow" below...');
+                        console.log('🔍 Verifying comment manually...');
+                        setShareError('🔍 Verifying comment...');
+                        setSharingPromoId(selectedCommentPromo.id.toString());
 
-                  } catch (error) {
-                    console.error('❌ Error opening profile:', error);
-                  }
-                }}
-                className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors active:scale-95"
-              >
-                📱 Open in Farcaster App
-              </button>
-              <button
-                onClick={async () => {
-                  if (!selectedFollowPromo) return;
+                        try {
+                          // Submit to backend for reward verification
+                          const response = await fetch('/api/comment-actions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              promotionId: selectedCommentPromo.id,
+                              userFid: currentUser.fid,
+                              username: currentUser.username,
+                              actionType: 'comment',
+                              castHash: selectedCommentPromo.castUrl.split('/').pop() || '',
+                              rewardAmount: selectedCommentPromo.rewardPerShare,
+                              proofUrl: selectedCommentTemplate
+                            })
+                          });
 
-                  setSharingPromoId(selectedFollowPromo.id.toString());
-                  setShareError(null);
+                          const data = await response.json();
 
-                  try {
-                    console.log('🔍 Verifying follow action...');
-                    await handleFollowAction(selectedFollowPromo);
+                          if (!response.ok) {
+                            throw new Error(data.error || 'Failed to verify comment');
+                          }
 
-                    // Close modal and refresh data
-                    setShowFollowModal(false);
-                    setSelectedFollowPromo(null);
-                    setSharingPromoId(null);
+                          console.log('✅ Comment submitted for approval');
+                          setShareError('✅ Comment submitted for admin approval! Reward will be credited after review.');
 
-                    // Refresh all data to update pending state
-                    await refreshAllData();
+                          // Mark action as completed
+                          setCompletedActions(prev => ({
+                            ...prev,
+                            [selectedCommentPromo.id]: true
+                          }));
 
-                  } catch (error: any) {
-                    console.error('❌ Follow verification failed:', error);
-                    setShareError(`❌ Verification failed: ${error.message}`);
-                    setSharingPromoId(null);
-                  }
-                }}
-                disabled={sharingPromoId === selectedFollowPromo.id.toString()}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
-              >
-                {sharingPromoId === selectedFollowPromo.id.toString() ? '⏳ Verifying...' : '✅ Verify Follow'}
-              </button>
+                          // Close modal immediately and refresh data
+                          setShowCommentModal(false);
+                          setSelectedCommentPromo(null);
+                          setSelectedCommentTemplate('');
+                          setShareError(null);
+                          setSharingPromoId(null);
+
+                          // Refresh data in background
+                          refreshAllData();
+
+                        } catch (error: any) {
+                          console.error('❌ Comment verification failed:', error);
+                          setShareError(`❌ Verification failed: ${error.message}`);
+                          setSharingPromoId(null);
+                        }
+                      }}
+                      disabled={sharingPromoId === selectedCommentPromo.id.toString()}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
+                    >
+                      {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '3️⃣ Verify Comment'}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
+          )
+        }
+
+        {/* Follow Modal */}
+        {
+          showFollowModal && selectedFollowPromo && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-white">Follow User</h3>
+                  <button
+                    onClick={() => {
+                      setShowFollowModal(false);
+                      setSelectedFollowPromo(null);
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <FiX size={20} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-slate-700 rounded-lg p-4">
+                    <h4 className="text-white font-medium mb-2">Follow Instructions</h4>
+                    <p className="text-gray-300 text-sm mb-3">
+                      To earn {selectedFollowPromo.rewardPerShare} $CHESS, please follow this user:
+                    </p>
+                    <div className="bg-slate-600 rounded p-3 mb-3">
+                      <p className="text-white font-mono text-sm">
+                        @{selectedFollowPromo.castUrl.split('/').pop()}
+                      </p>
+                    </div>
+
+                    <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3 mb-3">
+                      <h5 className="text-blue-300 font-medium text-sm mb-2">📱 How to follow:</h5>
+                      <ol className="text-gray-300 text-xs space-y-1 list-decimal list-inside">
+                        <li>Click "Open in Farcaster App" below</li>
+                        <li>This will open the user's profile</li>
+                        <li>Look for the "Follow" button on their profile</li>
+                        <li>Click the "Follow" button to follow them</li>
+                        <li>Come back here and click "Verify Follow"</li>
+                      </ol>
+                    </div>
+
+                    <p className="text-yellow-400 text-xs">
+                      ⚠️ One-time only - no back-and-forth follows
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowFollowModal(false);
+                        setSelectedFollowPromo(null);
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:scale-95"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const targetUsername = selectedFollowPromo.castUrl.split('/').pop() || '';
+                          console.log('🔗 Opening profile for:', targetUsername);
+
+                          // Try different methods to open profile
+                          try {
+                            // Method 1: Try miniAppSdk openUrl if available
+                            if ((miniAppSdk as any).actions?.openUrl) {
+                              const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                              await (miniAppSdk as any).actions.openUrl(profileUrl);
+                              console.log('✅ Profile opened via miniAppSdk.openUrl');
+                            } else {
+                              throw new Error('openUrl not available');
+                            }
+                          } catch (sdkError) {
+                            console.log('⚠️ miniAppSdk.openUrl failed, trying window.open...');
+                            try {
+                              // Method 2: Try window.open with _blank
+                              const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                              const newWindow = window.open(profileUrl, '_blank', 'noopener,noreferrer');
+                              if (!newWindow) {
+                                throw new Error('Popup blocked');
+                              }
+                              console.log('✅ Profile opened via window.open');
+                            } catch (windowError) {
+                              console.log('⚠️ window.open failed, trying location.href...');
+                              // Method 3: Fallback to location.href
+                              const profileUrl = `https://farcaster.xyz/${targetUsername}`;
+                              window.location.href = profileUrl;
+                              console.log('✅ Profile opened via location.href');
+                            }
+                          }
+
+                          // Show instruction message
+                          setShareError('📱 Profile opened! Please follow the user, then click "Verify Follow" below...');
+
+                        } catch (error) {
+                          console.error('❌ Error opening profile:', error);
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors active:scale-95"
+                    >
+                      📱 Open in Farcaster App
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!selectedFollowPromo) return;
+
+                        setSharingPromoId(selectedFollowPromo.id.toString());
+                        setShareError(null);
+
+                        try {
+                          console.log('🔍 Verifying follow action...');
+                          await handleFollowAction(selectedFollowPromo);
+
+                          // Close modal and refresh data
+                          setShowFollowModal(false);
+                          setSelectedFollowPromo(null);
+                          setSharingPromoId(null);
+
+                          // Refresh all data to update pending state
+                          await refreshAllData();
+
+                        } catch (error: any) {
+                          console.error('❌ Follow verification failed:', error);
+                          setShareError(`❌ Verification failed: ${error.message}`);
+                          setSharingPromoId(null);
+                        }
+                      }}
+                      disabled={sharingPromoId === selectedFollowPromo.id.toString()}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
+                    >
+                      {sharingPromoId === selectedFollowPromo.id.toString() ? '⏳ Verifying...' : '✅ Verify Follow'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {/* Admin Access Button */}
+        <div className="mt-12 pt-8 border-t border-gray-700">
+          <div className="text-center">
+            <button
+              onClick={() => {
+                const code = prompt("Enter admin code:");
+                if (code === "admin123") {
+                  window.open("/admin", "_blank");
+                } else if (code) {
+                  alert("Invalid admin code");
+                }
+              }}
+              className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+            >
+              Admin Access
+            </button>
           </div>
         </div>
-      </div>
-    )
-  }
 
-  {/* Admin Access Button */ }
-      <div className="mt-12 pt-8 border-t border-gray-700">
-        <div className="text-center">
-          <button
-            onClick={() => {
-              const code = prompt("Enter admin code:");
-              if (code === "admin123") {
-                window.open("/admin", "_blank");
-              } else if (code) {
-                alert("Invalid admin code");
-              }
-            }}
-            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-          >
-            Admin Access
-          </button>
-        </div>
-      </div>
-
-      <style jsx global>{`
+        <style jsx global>{`
         @keyframes pulseGlow {
           0% {
             box-shadow: 0 0 4px #a259ff, 0 0 8px #a259ff, 0 0 16px #a259ff;
@@ -2667,272 +2665,272 @@ export default function PromotePage() {
         }
       `}</style>
 
-  {/* Daily Code Modal */ }
-  {
-    showDailyCodeModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
-        <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] max-w-md w-full p-4 sm:p-6 pulse-glow relative max-h-[95vh] overflow-y-auto">
-          <button
-            onClick={() => setShowDailyCodeModal(false)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white"
-          >
-            <FiX size={24} />
-          </button>
-
-          <h2 className="text-xl font-black text-white mb-6 flex items-center gap-2 italic tracking-tighter uppercase">
-            <FiGift className="text-yellow-400" />
-            Promotion Code
-          </h2>
-
-          {/* Tab Switcher */}
-          {!dailyCodeSuccess && (
-            <div className="flex p-1 bg-black/40 rounded-xl mb-6 border border-white/5">
-              <button
-                onClick={() => setActiveDailyCodeTab('standard')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeDailyCodeTab === 'standard'
-                  ? 'bg-gray-700 text-white shadow-lg'
-                  : 'text-gray-500 hover:text-gray-300'
-                  }`}
-              >
-                STANDARD
-              </button>
-              <button
-                onClick={() => setActiveDailyCodeTab('vip')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${activeDailyCodeTab === 'vip'
-                  ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]'
-                  : 'text-cyan-400/60 hover:text-cyan-400'
-                  }`}
-              >
-                DIAMOND VIP 💎 {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
-              </button>
-            </div>
-          )}
-
-          {activeDailyCodeTab === 'vip' && !dailyCodeSuccess ? (
-            <div className="space-y-6">
-              <div className="p-3 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
-                {/* Countdown Timer */}
-
-                <h3 className="text-cyan-300 font-black text-[10px] mb-2 flex items-center gap-2 uppercase tracking-wider">
-                  <span className="text-lg">💎</span> VIP Daily Bundle
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { icon: "🎟️", text: "1x FREE Lambo Lotto Ticket", color: "text-cyan-300" },
-                    { icon: "📈", text: "100k Like & Recast Promo", color: "text-purple-300" },
-                    { icon: "💬", text: "100k Quote Promotion", color: "text-cyan-300" },
-                    { icon: "📝", text: "100k Comment Promotion", color: "text-purple-300" }
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-2 bg-black/30 rounded-lg border border-white/5">
-                      <span className="text-lg">{item.icon}</span>
-                      <span className={`text-xs font-bold ${item.color}`}>{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2 p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
-                  <p className="text-[9px] text-cyan-200 leading-tight font-bold">
-                    VIP detected! Your full 300k bundle + Lotto ticket is ready.
-                  </p>
-                </div>
-              </div>
-
-              {!isVip && (
-                <div className="p-5 bg-black/60 border border-cyan-500/30 rounded-2xl shadow-2xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-2 opacity-20 transform group-hover:scale-110 transition-transform">
-                    <FiZap size={40} className="text-cyan-400" />
-                  </div>
-                  <h4 className="text-white font-black text-sm mb-2 uppercase tracking-tighter">Become a Diamond VIP</h4>
-                  <p className="text-[11px] text-gray-400 mb-4 leading-normal">
-                    Unlock lifetime rewards and become a legend in the AppRank ecosystem.
-                  </p>
-                  <div className="flex items-center justify-between mb-4 bg-gray-900/50 p-3 rounded-xl border border-white/5">
-                    <div className="text-[10px] font-bold text-gray-500 uppercase">Mint Price</div>
-                    <div className="flex flex-col items-end">
-                      <div className="text-xs font-black text-cyan-400">{currentPrice ? Number(formatUnits(BigInt(currentPrice as any), 18)).toLocaleString() : "..."} $CHESS</div>
-                      {presaleActive && <div className="text-[8px] font-bold text-purple-400 uppercase tracking-widest">Presale 50% Off</div>}
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleMintNft}
-                    disabled={approvePending || mintPending || isWaitingApprove || isWaitingMint || balanceLoading}
-                    className="w-full py-3 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-[0_5px_15px_rgba(6,182,212,0.2)] active:scale-95 disabled:opacity-50"
-                  >
-                    {approvePending || isWaitingApprove ? "Approving CHESS..." :
-                      mintPending || isWaitingMint ? "Minting NFT..." :
-                        !hasAllowance ? "Step 1: Approve $CHESS" : "Step 2: Mint Diamond VIP"}
-                  </button>
-                  {chessBalance && currentPrice && BigInt(chessBalance as any) < BigInt(currentPrice as any) && (
-                    <p className="mt-2 text-[9px] text-red-400 font-bold text-center">Insufficient $CHESS balance</p>
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1.5 ml-1">
-                    {isVip ? "VIP Status: ACTIVE (Optional Code)" : "Enter VIP or Daily Code"}
-                  </label>
-                  <input
-                    type="text"
-                    value={dailyCode}
-                    onChange={(e) => setDailyCode(e.target.value)}
-                    placeholder={isVip ? "✨ VIP DETECTED - NO CODE NEEDED ✨" : "Enter secret code..."}
-                    className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-white focus:ring-1 focus:outline-none transition-all font-black uppercase text-xs ${isVip
-                      ? 'border-cyan-400 ring-1 ring-cyan-400/50 placeholder:text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
-                      : 'border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400 placeholder:text-cyan-400/30'}`}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">
-                    Warpcast URL to Promote
-                  </label>
-                  <input
-                    type="text"
-                    value={dailyCodeCastUrl}
-                    onChange={(e) => setDailyCodeCastUrl(e.target.value)}
-                    placeholder="https://warpcast.com/..."
-                    className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-3 ml-1">
-                    Choose Reward Per Share
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[1000, 5000, 10000, 20000].map((amt) => (
-                      <button
-                        key={amt}
-                        onClick={() => setDailyCodeRewardPerShare(Math.min(amt, isVip ? 20000 : 5000))}
-                        disabled={!isVip && amt > 5000}
-                        className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === Math.min(amt, isVip ? 20000 : 5000)
-                          ? 'bg-cyan-500 border-cyan-400 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                          : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20'
-                          } ${!isVip && amt > 5000 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                      >
-                        {amt >= 1000 ? `${amt / 1000}k` : amt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
+        {/* Daily Code Modal */}
+        {
+          showDailyCodeModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+              <div className="bg-[#23283a] rounded-2xl border border-[#a64d79] max-w-md w-full p-4 sm:p-6 pulse-glow relative max-h-[95vh] overflow-y-auto">
                 <button
-                  onClick={handleRedeemCode}
-                  disabled={loading || (!isVip && !dailyCode) || !dailyCodeCastUrl}
-                  className="w-full py-4 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl font-black text-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 uppercase tracking-tighter"
+                  onClick={() => setShowDailyCodeModal(false)}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white"
                 >
-                  {loading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <FiZap className="animate-pulse" />
-                      Activate VIP Bundle
-                    </>
-                  )}
+                  <FiX size={24} />
                 </button>
-              </div>
-            </div>
-          ) : dailyCodeSuccess ? (
-            <div className="text-center py-8">
-              <div className="text-5xl mb-4">🎉</div>
-              <h3 className="text-xl font-bold text-green-400 mb-2">Success!</h3>
-              <p className="text-white mb-6">{dailyCodeSuccess}</p>
-              <button
-                onClick={() => {
-                  setShowDailyCodeModal(false);
-                  refreshAllData();
-                }}
-                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors"
-              >
-                Awesome!
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Secret Code
-                </label>
-                <input
-                  type="text"
-                  value={dailyCode}
-                  onChange={(e) => setDailyCode(e.target.value)}
-                  placeholder="Enter today's code..."
-                  className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
-                />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Cast URL to Promote
-                </label>
-                <input
-                  type="text"
-                  value={dailyCodeCastUrl}
-                  onChange={(e) => setDailyCodeCastUrl(e.target.value)}
-                  placeholder="https://warpcast.com/..."
-                  className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
-                />
-              </div>
+                <h2 className="text-xl font-black text-white mb-6 flex items-center gap-2 italic tracking-tighter uppercase">
+                  <FiGift className="text-yellow-400" />
+                  Promotion Code
+                </h2>
 
-              <div>
-                <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-3 ml-1">
-                  Choose Reward Per Share
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[1000, 2000, 5000].map((amt) => (
+                {/* Tab Switcher */}
+                {!dailyCodeSuccess && (
+                  <div className="flex p-1 bg-black/40 rounded-xl mb-6 border border-white/5">
                     <button
-                      key={amt}
-                      onClick={() => setDailyCodeRewardPerShare(amt)}
-                      className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === amt
-                        ? 'bg-yellow-500 border-yellow-400 text-black shadow-[0_0_10px_rgba(234,179,8,0.4)]'
-                        : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20'
+                      onClick={() => setActiveDailyCodeTab('standard')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeDailyCodeTab === 'standard'
+                        ? 'bg-gray-700 text-white shadow-lg'
+                        : 'text-gray-500 hover:text-gray-300'
                         }`}
                     >
-                      {amt.toLocaleString()}
+                      STANDARD
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {dailyCodeError && (
-                <div className="p-3 bg-red-900/50 border border-red-500/50 rounded-lg text-red-200 text-sm flex items-center gap-2">
-                  <FiAlertTriangle />
-                  {dailyCodeError}
-                </div>
-              )}
-
-              <button
-                onClick={handleRedeemCode}
-                disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl font-bold shadow-lg transform transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    <FiGift />
-                    Redeem & Launch
-                  </>
+                    <button
+                      onClick={() => setActiveDailyCodeTab('vip')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${activeDailyCodeTab === 'vip'
+                        ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                        : 'text-cyan-400/60 hover:text-cyan-400'
+                        }`}
+                    >
+                      DIAMOND VIP 💎 {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
+                    </button>
+                  </div>
                 )}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
 
-  {/* Season Modal */ }
-  <SeasonModal
-    isOpen={showSeasonModal}
-    onClose={() => setShowSeasonModal(false)}
-    userFid={profile?.fid}
-  />
-    </div >
-  );
+                {activeDailyCodeTab === 'vip' && !dailyCodeSuccess ? (
+                  <div className="space-y-6">
+                    <div className="p-3 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
+                      {/* Countdown Timer */}
+
+                      <h3 className="text-cyan-300 font-black text-[10px] mb-2 flex items-center gap-2 uppercase tracking-wider">
+                        <span className="text-lg">💎</span> VIP Daily Bundle
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { icon: "🎟️", text: "1x FREE Lambo Lotto Ticket", color: "text-cyan-300" },
+                          { icon: "📈", text: "100k Like & Recast Promo", color: "text-purple-300" },
+                          { icon: "💬", text: "100k Quote Promotion", color: "text-cyan-300" },
+                          { icon: "📝", text: "100k Comment Promotion", color: "text-purple-300" }
+                        ].map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-2 bg-black/30 rounded-lg border border-white/5">
+                            <span className="text-lg">{item.icon}</span>
+                            <span className={`text-xs font-bold ${item.color}`}>{item.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-2 p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                        <p className="text-[9px] text-cyan-200 leading-tight font-bold">
+                          VIP detected! Your full 300k bundle + Lotto ticket is ready.
+                        </p>
+                      </div>
+                    </div>
+
+                    {!isVip && (
+                      <div className="p-5 bg-black/60 border border-cyan-500/30 rounded-2xl shadow-2xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-2 opacity-20 transform group-hover:scale-110 transition-transform">
+                          <FiZap size={40} className="text-cyan-400" />
+                        </div>
+                        <h4 className="text-white font-black text-sm mb-2 uppercase tracking-tighter">Become a Diamond VIP</h4>
+                        <p className="text-[11px] text-gray-400 mb-4 leading-normal">
+                          Unlock lifetime rewards and become a legend in the AppRank ecosystem.
+                        </p>
+                        <div className="flex items-center justify-between mb-4 bg-gray-900/50 p-3 rounded-xl border border-white/5">
+                          <div className="text-[10px] font-bold text-gray-500 uppercase">Mint Price</div>
+                          <div className="flex flex-col items-end">
+                            <div className="text-xs font-black text-cyan-400">{currentPrice ? Number(formatUnits(BigInt(currentPrice as any), 18)).toLocaleString() : "..."} $CHESS</div>
+                            {presaleActive && <div className="text-[8px] font-bold text-purple-400 uppercase tracking-widest">Presale 50% Off</div>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleMintNft}
+                          disabled={approvePending || mintPending || isWaitingApprove || isWaitingMint || balanceLoading}
+                          className="w-full py-3 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-[0_5px_15px_rgba(6,182,212,0.2)] active:scale-95 disabled:opacity-50"
+                        >
+                          {approvePending || isWaitingApprove ? "Approving CHESS..." :
+                            mintPending || isWaitingMint ? "Minting NFT..." :
+                              !hasAllowance ? "Step 1: Approve $CHESS" : "Step 2: Mint Diamond VIP"}
+                        </button>
+                        {chessBalance && currentPrice && BigInt(chessBalance as any) < BigInt(currentPrice as any) && (
+                          <p className="mt-2 text-[9px] text-red-400 font-bold text-center">Insufficient $CHESS balance</p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1.5 ml-1">
+                          {isVip ? "VIP Status: ACTIVE (Optional Code)" : "Enter VIP or Daily Code"}
+                        </label>
+                        <input
+                          type="text"
+                          value={dailyCode}
+                          onChange={(e) => setDailyCode(e.target.value)}
+                          placeholder={isVip ? "✨ VIP DETECTED - NO CODE NEEDED ✨" : "Enter secret code..."}
+                          className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-white focus:ring-1 focus:outline-none transition-all font-black uppercase text-xs ${isVip
+                            ? 'border-cyan-400 ring-1 ring-cyan-400/50 placeholder:text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                            : 'border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400 placeholder:text-cyan-400/30'}`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">
+                          Warpcast URL to Promote
+                        </label>
+                        <input
+                          type="text"
+                          value={dailyCodeCastUrl}
+                          onChange={(e) => setDailyCodeCastUrl(e.target.value)}
+                          placeholder="https://warpcast.com/..."
+                          className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-3 ml-1">
+                          Choose Reward Per Share
+                        </label>
+                        <div className="grid grid-cols-4 gap-2">
+                          {[1000, 5000, 10000, 20000].map((amt) => (
+                            <button
+                              key={amt}
+                              onClick={() => setDailyCodeRewardPerShare(Math.min(amt, isVip ? 20000 : 5000))}
+                              disabled={!isVip && amt > 5000}
+                              className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === Math.min(amt, isVip ? 20000 : 5000)
+                                ? 'bg-cyan-500 border-cyan-400 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                                : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20'
+                                } ${!isVip && amt > 5000 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            >
+                              {amt >= 1000 ? `${amt / 1000}k` : amt}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={handleRedeemCode}
+                        disabled={loading || (!isVip && !dailyCode) || !dailyCodeCastUrl}
+                        className="w-full py-4 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl font-black text-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 uppercase tracking-tighter"
+                      >
+                        {loading ? (
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        ) : (
+                          <>
+                            <FiZap className="animate-pulse" />
+                            Activate VIP Bundle
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ) : dailyCodeSuccess ? (
+                  <div className="text-center py-8">
+                    <div className="text-5xl mb-4">🎉</div>
+                    <h3 className="text-xl font-bold text-green-400 mb-2">Success!</h3>
+                    <p className="text-white mb-6">{dailyCodeSuccess}</p>
+                    <button
+                      onClick={() => {
+                        setShowDailyCodeModal(false);
+                        refreshAllData();
+                      }}
+                      className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors"
+                    >
+                      Awesome!
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Secret Code
+                      </label>
+                      <input
+                        type="text"
+                        value={dailyCode}
+                        onChange={(e) => setDailyCode(e.target.value)}
+                        placeholder="Enter today's code..."
+                        className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Cast URL to Promote
+                      </label>
+                      <input
+                        type="text"
+                        value={dailyCodeCastUrl}
+                        onChange={(e) => setDailyCodeCastUrl(e.target.value)}
+                        placeholder="https://warpcast.com/..."
+                        className="w-full bg-[#1a1d26] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-3 ml-1">
+                        Choose Reward Per Share
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[1000, 2000, 5000].map((amt) => (
+                          <button
+                            key={amt}
+                            onClick={() => setDailyCodeRewardPerShare(amt)}
+                            className={`py-2 rounded-xl text-[10px] font-black transition-all border ${dailyCodeRewardPerShare === amt
+                              ? 'bg-yellow-500 border-yellow-400 text-black shadow-[0_0_10px_rgba(234,179,8,0.4)]'
+                              : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20'
+                              }`}
+                          >
+                            {amt.toLocaleString()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {dailyCodeError && (
+                      <div className="p-3 bg-red-900/50 border border-red-500/50 rounded-lg text-red-200 text-sm flex items-center gap-2">
+                        <FiAlertTriangle />
+                        {dailyCodeError}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleRedeemCode}
+                      disabled={loading}
+                      className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl font-bold shadow-lg transform transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <FiGift />
+                          Redeem & Launch
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        }
+
+        {/* Season Modal */}
+        <SeasonModal
+          isOpen={showSeasonModal}
+          onClose={() => setShowSeasonModal(false)}
+          userFid={profile?.fid}
+        />
+      </div >
+      );
 }
