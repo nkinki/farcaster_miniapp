@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import { FiX, FiZap, FiStar, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiX, FiZap, FiStar, FiChevronDown, FiChevronUp, FiGift } from "react-icons/fi";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { toast } from 'react-hot-toast';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
