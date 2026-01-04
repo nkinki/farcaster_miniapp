@@ -16,6 +16,8 @@ import LamboLottery from "@/components/LamboLottery"
 import WeatherLottoModal from "@/components/WeatherLottoModal"
 import SeasonStatusBanner from "@/components/SeasonStatusBanner"
 import DiamondCard from "@/components/DiamondCard"
+import VipRedeemModal from "@/components/VipRedeemModal"
+import { useProfile } from '@farcaster/auth-kit';
 
 const PRESALE_END_DATE = new Date('2026-01-10T23:59:59');
 
@@ -190,6 +192,21 @@ export default function Home() {
   const [fetchingMiniapps, setFetchingMiniapps] = useState(false)
 
   const { address } = useAccount()
+
+  const { isAuthenticated, profile } = useProfile();
+
+  const currentUser = useMemo(() => {
+    if (isAuthenticated && profile) {
+      return {
+        fid: profile.fid || 0,
+        username: profile.username || "user",
+        displayName: profile.displayName || "Current User"
+      };
+    }
+    return { fid: 0, username: "guest", displayName: "Guest" };
+  }, [isAuthenticated, profile]);
+
+  const [showVipModal, setShowVipModal] = useState(false);
 
   // Disabled auto-read to avoid DB/On-chain calls on start
   const { data: vipBalance } = useReadContract({
@@ -440,6 +457,20 @@ export default function Home() {
         onPurchaseSuccess={() => {
           console.log('Weather Lotto tickets purchased successfully!');
         }}
+      />
+
+      {/* VIP Redeem Modal */}
+      <VipRedeemModal
+        isOpen={showVipModal}
+        onClose={() => setShowVipModal(false)}
+        currentUser={currentUser}
+      />
+
+      {/* VIP Redeem Modal */}
+      <VipRedeemModal
+        isOpen={showVipModal}
+        onClose={() => setShowVipModal(false)}
+        currentUser={currentUser}
       />
 
 
@@ -829,7 +860,7 @@ export default function Home() {
                     }
 
                     if (category === 'games') {
-                      window.location.href = '/promote';
+                      setShowVipModal(true);
                       return;
                     }
 
