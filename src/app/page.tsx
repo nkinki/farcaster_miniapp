@@ -17,6 +17,7 @@ import WeatherLottoModal from "@/components/WeatherLottoModal"
 import SeasonStatusBanner from "@/components/SeasonStatusBanner"
 import DiamondCard from "@/components/DiamondCard"
 import VipRedeemModal from "@/components/VipRedeemModal"
+import SeasonModal from "@/components/SeasonModal"
 import { useProfile } from '@farcaster/auth-kit';
 
 const PRESALE_END_DATE = new Date('2026-01-10T23:59:59');
@@ -213,6 +214,7 @@ export default function Home() {
   }, [isAuthenticated, profile, userFid]);
 
   const [showVipModal, setShowVipModal] = useState(false);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
 
   // Disabled auto-read to avoid DB/On-chain calls on start
   const { data: vipBalance } = useReadContract({
@@ -905,7 +907,12 @@ export default function Home() {
                       return;
                     }
 
-                    if (['social', 'utility', 'finance'].includes(category)) {
+                    if (category === 'utility') {
+                      setShowSeasonModal(true);
+                      return;
+                    }
+
+                    if (['social', 'finance'].includes(category)) {
                       window.location.href = '/promote';
                       return;
                     }
@@ -917,11 +924,21 @@ export default function Home() {
                     <div className={category === 'games' ? 'animate-vip-icon-flash' : ''}>
                       <IconComponent size={18} />
                     </div>
-                    <span className={`text-[9px] font-black ${category === 'games' ? 'animate-vip-shimmer' : ''} ${['social', 'utility', 'finance'].includes(category) ? 'text-cyan-400' : ''}`}>
+                    <span className={`text-[9px] font-black leading-tight ${category === 'games' ? 'animate-vip-shimmer' : ''} ${['social', 'utility', 'finance'].includes(category) ? 'text-cyan-400' : ''}`}>
                       {category === 'games' ? 'VIP' :
                         category === 'social' ? 'Share & Earn' :
-                          category === 'utility' ? 'Daily Check' :
-                            category === 'finance' ? 'Redeem Code' :
+                          category === 'utility' ? (
+                            <span className="flex flex-col">
+                              <span>Daily</span>
+                              <span>Check</span>
+                            </span>
+                          ) :
+                            category === 'finance' ? (
+                              <span className="flex flex-col">
+                                <span>Redeem</span>
+                                <span>Code</span>
+                              </span>
+                            ) :
                               category.charAt(0).toUpperCase() + category.slice(1)}
                     </span>
                   </div>
@@ -950,6 +967,12 @@ export default function Home() {
 
           </div>
         </nav>
+
+        <SeasonModal
+          isOpen={showSeasonModal}
+          onClose={() => setShowSeasonModal(false)}
+          userFid={currentUser.fid}
+        />
       </div >
       <style jsx global>{`
         @keyframes chessneon {
