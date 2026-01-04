@@ -209,7 +209,7 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-[#1a1f2e] border border-cyan-500/30 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative animate-scaleIn scrollbar-thin scrollbar-thumb-cyan-500/20">
+            <div className="bg-[#1a1f2e] border border-cyan-500/30 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl relative animate-scaleIn scrollbar-thin scrollbar-thumb-cyan-500/20">
 
                 {/* Mint Success Overlay */}
                 {showMintSuccess && (
@@ -379,38 +379,36 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
                     {activeDailyCodeTab === 'vip' && !dailyCodeSuccess && (
                         <div className="p-4 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-cyan-300 font-black text-xs flex items-center gap-2 uppercase tracking-wider">
-                                    <span className="text-xl">💎</span> VIP Daily Bundle
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-cyan-300 font-black text-sm flex items-center gap-2 uppercase tracking-widest">
+                                    <span className="text-2xl">💎</span> VIP DAILY BUNDLE
                                 </h3>
-                                <div className="text-[8px] bg-cyan-400/20 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/30 font-black uppercase">
-                                    300k+ Total Reward
+                                <div className="text-[9px] bg-cyan-400/20 text-cyan-300 px-3 py-1 rounded-full border border-cyan-400/30 font-black uppercase tracking-tighter shadow-sm">
+                                    PREMIUM UNLOCKED
                                 </div>
                             </div>
 
-                            <p className="text-[10px] text-gray-300 mb-4 leading-relaxed font-medium">
-                                VIP members receive an exclusive daily package. Launch the bundle to distribute rewards across your target cast and secure your lotto entry.
-                            </p>
-
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-2.5">
                                 {[
-                                    { icon: "🎟️", text: "Lotto Ticket", color: "text-cyan-300", desc: "Auto-entry" },
-                                    { icon: "📈", text: "100k Like+", color: "text-purple-300", desc: "Boost rank" },
-                                    { icon: "💬", text: "100k Quote", color: "text-cyan-300", desc: "Engagement" },
-                                    { icon: "📝", text: "100k Comment", color: "text-purple-300", desc: "Visibility" }
+                                    { icon: "🎟️", text: "1x FREE Lambo Lotto Ticket", color: "text-cyan-300" },
+                                    { icon: "📈", text: "100k Like & Recast Promo", color: "text-purple-300" },
+                                    { icon: "💬", text: "100k Quote Promotion", color: "text-cyan-300" },
+                                    { icon: "📝", text: "100k Comment Promotion", color: "text-purple-300" }
                                 ].map((item, idx) => (
-                                    <div key={idx} className="flex flex-col p-2 bg-black/30 rounded-lg border border-white/5 hover:border-cyan-500/20 transition-colors">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-sm">{item.icon}</span>
-                                            <span className={`text-[9px] font-black uppercase tracking-tight ${item.color}`}>{item.text}</span>
+                                    <div key={idx} className="flex items-center gap-4 p-3 bg-black/40 rounded-xl border border-white/5 hover:border-cyan-500/30 transition-all group">
+                                        <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                                            {item.icon}
                                         </div>
-                                        <span className="text-[8px] text-gray-500 font-bold uppercase">{item.desc}</span>
+                                        <div className={`text-xs font-black uppercase tracking-tight ${item.color}`}>
+                                            {item.text}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-center">
-                                <p className="text-[11px] text-cyan-200 leading-tight font-bold italic">
-                                    {isVip ? "Diamond Status Active! Your premium 300k bundle + Lotto ticket is ready for launch." : "Upgrade to VIP to unlock the daily 300k automated rewards bundle!"}
+
+                            <div className="mt-5 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-center">
+                                <p className="text-xs text-cyan-200 leading-tight font-bold italic">
+                                    {isVip ? "Diamond Status Active! Your premium bundle is ready for launch." : "Upgrade to VIP to unlock these daily automated rewards!"}
                                 </p>
                             </div>
                         </div>
@@ -487,14 +485,14 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                         <button
                             onClick={handleRedeemCode}
                             disabled={loading || (!isVip && !dailyCode) || !dailyCodeCastUrl}
-                            className="w-full py-3 mt-1 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-xs shadow-lg transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest flex items-center justify-center gap-2"
+                            className="w-full py-5 mt-2 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl font-black text-sm shadow-xl transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[.2em] flex items-center justify-center gap-3"
                         >
                             {loading ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                             ) : (
                                 <>
-                                    <span>LAUNCH</span>
-                                    <FiZap size={14} className="animate-pulse" />
+                                    <span>LAUNCH BUNDLE</span>
+                                    <FiZap size={18} className="animate-pulse text-cyan-300" />
                                 </>
                             )}
                         </button>
