@@ -5,7 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk"
 import { DIAMOND_VIP_ADDRESS, DIAMOND_VIP_ABI } from "@/abis/diamondVip"
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from "@/abis/chessToken"
 import { toast } from "react-hot-toast"
-import { useAccount, useReadContract, useWriteContract } from "wagmi"
+import { useAccount, useReadContract, useWriteContract, useConnect, useDisconnect } from "wagmi"
 import { parseUnits } from "viem"
 import { useChessToken } from "@/hooks/useChessToken"
 import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2, FiExternalLink, FiClock } from "react-icons/fi"
@@ -191,7 +191,9 @@ export default function Home() {
   const [showMiniapps, setShowMiniapps] = useState(false)
   const [fetchingMiniapps, setFetchingMiniapps] = useState(false)
 
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
+  const { connect, connectors } = useConnect()
+  const { disconnect } = useDisconnect()
 
   const { isAuthenticated, profile } = useProfile();
 
@@ -524,9 +526,48 @@ export default function Home() {
               </div>
             </div>
             <p className="text-cyan-200/70 text-sm mb-1 font-medium">Farcaster Toplist, Stats, Promotions, and Growth</p>
-            <p className="text-purple-200 text-xs font-medium">
+            <p className="text-purple-200 text-xs font-medium mb-3">
               {`Snapshot date: ${snapshotDate}`}
             </p>
+
+            {/* Wallet Quick Connect for Mobile */}
+            <div className="flex justify-center mb-6 px-4">
+              <div className={`p-2 rounded-2xl border transition-all max-w-[280px] w-full ${isConnected ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-purple-500/5 border-purple-500/20 shadow-lg shadow-purple-500/10'}`}>
+                {isConnected ? (
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                      <span className="text-[10px] font-mono text-cyan-300">
+                        {address?.slice(0, 6)}...{address?.slice(-4)}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => disconnect()}
+                      className="text-[9px] font-black uppercase text-gray-500 hover:text-white transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="text-[8px] font-black text-purple-400 uppercase tracking-widest text-center">
+                      Connect Wallet for Minting
+                    </div>
+                    <div className="flex flex-wrap gap-1 justify-center">
+                      {connectors.map((connector) => (
+                        <button
+                          key={connector.id}
+                          onClick={() => connect({ connector })}
+                          className="px-3 py-1 text-[9px] font-bold bg-purple-600/20 hover:bg-purple-600/40 text-purple-100 rounded-lg border border-purple-500/20 transition-all active:scale-95"
+                        >
+                          {connector.name.replace('Extension', '').replace('Wallet', '')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </header>
 
           {/* 2x2 Grid Layout for Main Action Buttons */}

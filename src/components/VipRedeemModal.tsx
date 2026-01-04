@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { FiX, FiZap, FiStar, FiChevronDown, FiChevronUp, FiGift } from "react-icons/fi";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useConnect, useDisconnect } from 'wagmi';
 import { toast } from 'react-hot-toast';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 import { DIAMOND_VIP_ADDRESS, DIAMOND_VIP_ABI } from '@/abis/diamondVip';
@@ -22,6 +22,8 @@ interface VipRedeemModalProps {
 
 export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRedeemModalProps) {
     const { address, isConnected } = useAccount();
+    const { connect, connectors } = useConnect();
+    const { disconnect } = useDisconnect();
 
     // Local state for the modal
     const [dailyCode, setDailyCode] = useState('');
@@ -212,6 +214,48 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                 </div>
 
                 <div className="p-4 space-y-4">
+                    {/* Wallet Connection / Status */}
+                    <div className={`p-3 rounded-2xl border transition-all ${isConnected ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-purple-500/5 border-purple-500/20'}`}>
+                        {isConnected ? (
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-full bg-cyan-500/20 text-cyan-400">
+                                        <FiStar size={18} fill="currentColor" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[8px] uppercase font-black text-gray-500 tracking-widest">Connected Wallet</div>
+                                        <div className="text-[10px] font-mono text-cyan-300">
+                                            {address?.slice(0, 6)}...{address?.slice(-4)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => disconnect()}
+                                    className="px-2 py-1 text-[8px] font-black uppercase tracking-tighter bg-slate-800 hover:bg-slate-700 text-gray-400 hover:text-white rounded-md border border-white/5"
+                                >
+                                    Exit
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <div className="text-[9px] font-black text-purple-400 uppercase tracking-widest text-center mb-1">
+                                    Connect Wallet to Purchase VIP path
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 justify-center">
+                                    {connectors.map((connector) => (
+                                        <button
+                                            key={connector.id}
+                                            onClick={() => connect({ connector })}
+                                            className="px-3 py-1.5 text-[9px] font-bold bg-purple-600/20 hover:bg-purple-600/40 text-purple-200 rounded-lg border border-purple-500/20 transition-all active:scale-95"
+                                        >
+                                            {connector.name.replace('Extension', '')}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Status Badge */}
                     <div className={`p-2 rounded-xl border ${isVip ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-slate-800 border-white/10'}`}>
                         <div className="flex items-center gap-3">
