@@ -869,7 +869,7 @@ export default function Home() {
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
                     <IconComponent size={18} />
-                    <span className="text-[9px] font-black">
+                    <span className={`text-[9px] font-black ${category === 'games' ? 'animate-vip-shimmer' : ''}`}>
                       {category === 'games' ? 'VIP' : category.charAt(0).toUpperCase() + category.slice(1)}
                     </span>
                   </div>
@@ -933,6 +933,15 @@ export default function Home() {
         }
         .animate-fadeIn {
           animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes vipShimmer {
+          0% { color: #22d3ee; text-shadow: 0 0 2px rgba(34, 211, 238, 0.3); }
+          50% { color: #e879f9; text-shadow: 0 0 8px rgba(232, 121, 249, 0.6), 0 0 12px rgba(34, 211, 238, 0.4); }
+          100% { color: #22d3ee; text-shadow: 0 0 2px rgba(34, 211, 238, 0.3); }
+        }
+        .animate-vip-shimmer {
+          animation: vipShimmer 4s ease-in-out infinite;
         }
       `}</style>
     </>
