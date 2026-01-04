@@ -2355,7 +2355,7 @@ export default function PromotePage() {
                         }}
                         className="mt-2 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors active:scale-95"
                       >
-                        1️⃣ Copy Comment to Clipboard
+                        1. Copy Comment to Clipboard
                       </button>
                     </div>
                   )}
@@ -2383,7 +2383,7 @@ export default function PromotePage() {
                       disabled={!selectedCommentTemplate || sharingPromoId === selectedCommentPromo.id.toString()}
                       className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                     >
-                      {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '2️⃣ Open Post & Comment'}
+                      {sharingPromoId === selectedCommentPromo.id.toString() ? 'Opening...' : '2. Open Post & Comment'}
                     </button>
                   )}
 
@@ -2453,7 +2453,7 @@ export default function PromotePage() {
                       disabled={sharingPromoId === selectedCommentPromo.id.toString()}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed active:scale-95"
                     >
-                      {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '3️⃣ Verify Comment'}
+                      {sharingPromoId === selectedCommentPromo.id.toString() ? '⏳ Verifying...' : '3. Verify Comment'}
                     </button>
                   )}
                 </div>
