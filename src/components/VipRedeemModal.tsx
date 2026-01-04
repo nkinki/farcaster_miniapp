@@ -152,6 +152,11 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
             return;
         }
 
+        if (!currentUser?.fid) {
+            setDailyCodeError("Farcaster user not detected. Please try reopening the app.");
+            return;
+        }
+
         setLoading(true);
         setDailyCodeError(null);
         setDailyCodeSuccess(null);

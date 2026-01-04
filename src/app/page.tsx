@@ -198,13 +198,17 @@ export default function Home() {
   const currentUser = useMemo(() => {
     if (isAuthenticated && profile) {
       return {
-        fid: profile.fid || 0,
+        fid: profile.fid || userFid || 0,
         username: profile.username || "user",
         displayName: profile.displayName || "Current User"
       };
     }
-    return { fid: 0, username: "guest", displayName: "Guest" };
-  }, [isAuthenticated, profile]);
+    return {
+      fid: userFid || 0,
+      username: "user",
+      displayName: "Farcaster User"
+    };
+  }, [isAuthenticated, profile, userFid]);
 
   const [showVipModal, setShowVipModal] = useState(false);
 
@@ -935,21 +939,20 @@ export default function Home() {
         
         @keyframes vipShimmer {
           0% { color: #22d3ee; text-shadow: 0 0 2px rgba(34, 211, 238, 0.3); }
-          33% { color: #e879f9; text-shadow: 0 0 8px rgba(232, 121, 249, 0.6), 0 0 12px rgba(34, 211, 238, 0.4); }
-          66% { color: #facc15; text-shadow: 0 0 8px rgba(250, 204, 21, 0.6), 0 0 12px rgba(232, 121, 249, 0.4); }
+          33% { color: #e879f9; text-shadow: 0 0 10px rgba(232, 121, 249, 0.6), 0 0 15px rgba(34, 211, 238, 0.4); }
+          66% { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 15px rgba(232, 121, 249, 0.4); }
           100% { color: #22d3ee; text-shadow: 0 0 2px rgba(34, 211, 238, 0.3); }
         }
-        .animate-vip-shimmer {
-          animation: vipShimmer 6s ease-in-out infinite;
-        }
         @keyframes vipIconFlash {
-          0%, 100% { opacity: 1; filter: brightness(1) drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); transform: scale(1); }
-          25% { color: #22d3ee; filter: brightness(1.8) drop-shadow(0 0 8px #22d3ee); transform: scale(1.05); }
-          50% { color: #e879f9; filter: brightness(1.8) drop-shadow(0 0 12px #e879f9); transform: scale(1.1); }
-          75% { color: #facc15; filter: brightness(1.8) drop-shadow(0 0 8px #facc15); transform: scale(1.05); }
+          0% { filter: brightness(1) drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); transform: scale(1); }
+          50% { filter: brightness(1.5) drop-shadow(0 0 15px rgba(232, 121, 249, 0.8)); transform: scale(1.1); }
+          100% { filter: brightness(1) drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); transform: scale(1); }
+        }
+        .animate-vip-shimmer {
+          animation: vipShimmer 8s ease-in-out infinite;
         }
         .animate-vip-icon-flash {
-          animation: vipIconFlash 3s ease-in-out infinite;
+          animation: vipIconFlash 4s ease-in-out infinite;
         }
       `}</style>
     </>
