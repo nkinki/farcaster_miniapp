@@ -832,7 +832,7 @@ export default function Home() {
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
                     <IconComponent size={18} />
-                    <span className="text-[9px] font-black">{category}</span>
+                    <span className="text-[9px] font-black">{category.charAt(0).toUpperCase() + category.slice(1)}</span>
                   </div>
                 </button>
               );
