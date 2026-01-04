@@ -213,33 +213,47 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
                 {/* Mint Success Overlay */}
                 {showMintSuccess && (
-                    <div className="absolute inset-0 z-50 bg-[#0a0f1e]/95 flex flex-col items-center justify-center p-6 text-center animate-fadeIn overflow-hidden">
-                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse"></div>
+                    <div className="absolute inset-0 z-[60] bg-[#0a0f1e]/95 flex flex-col items-center justify-center p-6 text-center animate-fadeIn overflow-hidden">
+                        {/* Internal Close Button for Overlay */}
+                        <div className="absolute top-4 right-4 z-[70]">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowMintSuccess(false);
+                                }}
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
+                            >
+                                <FiX size={24} />
+                            </button>
+                        </div>
+
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse pointer-events-none"></div>
                         <div className="relative mb-6">
                             <div className="absolute inset-0 bg-cyan-400 rounded-full blur-3xl opacity-20 animate-pulse"></div>
                             <img
                                 src="/diamond-vip.png"
                                 alt="Diamond VIP NFT"
-                                className="w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(34,211,238,0.6)] animate-float"
+                                className="w-56 h-56 object-contain drop-shadow-[0_0_40px_rgba(34,211,238,0.7)] animate-float"
                                 onError={(e) => {
                                     e.currentTarget.src = "https://farc-nu.vercel.app/icon.png";
                                 }}
                             />
                         </div>
-                        <h2 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter bg-gradient-to-br from-white via-cyan-300 to-purple-400 bg-clip-text text-transparent">
+                        <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tighter bg-gradient-to-br from-white via-cyan-300 to-purple-400 bg-clip-text text-transparent">
                             CONGRATULATIONS!
                         </h2>
-                        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-4 py-2 mb-6">
-                            <p className="text-cyan-400 font-bold text-sm tracking-widest uppercase">
+                        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-6 py-2.5 mb-8">
+                            <p className="text-cyan-400 font-bold text-base tracking-widest uppercase italic">
                                 DIAMOND VIP STATUS ACTIVE
                             </p>
                         </div>
-                        <p className="text-gray-400 text-xs italic mb-8 max-w-[200px]">
-                            Your daily 300k bundle + Lotto ticket perks are now unlocked.
-                        </p>
+
                         <button
-                            onClick={() => setShowMintSuccess(false)}
-                            className="px-8 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-bold text-xs border border-white/10 transition-all uppercase tracking-widest active:scale-95"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowMintSuccess(false);
+                            }}
+                            className="relative z-[70] px-10 py-3 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white rounded-full font-black text-sm border border-white/10 shadow-2xl transition-all uppercase tracking-[.2em] active:scale-95 cursor-pointer"
                         >
                             BACK TO MODAL
                         </button>
