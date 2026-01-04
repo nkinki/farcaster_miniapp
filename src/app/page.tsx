@@ -466,12 +466,6 @@ export default function Home() {
         currentUser={currentUser}
       />
 
-      {/* VIP Redeem Modal */}
-      <VipRedeemModal
-        isOpen={showVipModal}
-        onClose={() => setShowVipModal(false)}
-        currentUser={currentUser}
-      />
 
 
       {openMiniapp && (
@@ -868,7 +862,9 @@ export default function Home() {
                   }}
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
-                    <IconComponent size={18} />
+                    <div className={category === 'games' ? 'animate-vip-icon-flash' : ''}>
+                      <IconComponent size={18} />
+                    </div>
                     <span className={`text-[9px] font-black ${category === 'games' ? 'animate-vip-shimmer' : ''}`}>
                       {category === 'games' ? 'VIP' : category.charAt(0).toUpperCase() + category.slice(1)}
                     </span>
@@ -940,8 +936,12 @@ export default function Home() {
           50% { color: #e879f9; text-shadow: 0 0 8px rgba(232, 121, 249, 0.6), 0 0 12px rgba(34, 211, 238, 0.4); }
           100% { color: #22d3ee; text-shadow: 0 0 2px rgba(34, 211, 238, 0.3); }
         }
-        .animate-vip-shimmer {
-          animation: vipShimmer 4s ease-in-out infinite;
+        @keyframes vipIconFlash {
+          0%, 100% { opacity: 1; filter: brightness(1); transform: scale(1); }
+          50% { opacity: 0.8; filter: brightness(1.8) drop-shadow(0 0 8px #e879f9); transform: scale(1.1); }
+        }
+        .animate-vip-icon-flash {
+          animation: vipIconFlash 1s ease-in-out infinite;
         }
       `}</style>
     </>
