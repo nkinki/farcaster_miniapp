@@ -2269,10 +2269,10 @@ export default function PromotePage() {
                       <p className="font-semibold mb-1">Comment Process:</p>
                       <ol className="list-decimal list-inside space-y-1 text-xs">
                         <li>Choose a comment template below</li>
-                        <li>Click "1️âŁ Copy" to copy the template</li>
-                        <li>Click "2️âŁ Open Post" to open the original post</li>
+                        <li>Click "1. Copy" to copy the template</li>
+                        <li>Click "2. Open Post" to open the original post</li>
                         <li>Paste the comment as a reply</li>
-                        <li>Click "3️âŁ Verify" to claim your reward</li>
+                        <li>Click "3. Verify" to claim your reward</li>
                       </ol>
                     </div>
                   </div>
