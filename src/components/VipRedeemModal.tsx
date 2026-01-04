@@ -242,21 +242,15 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                         <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tighter bg-gradient-to-br from-white via-cyan-300 to-purple-400 bg-clip-text text-transparent">
                             CONGRATULATIONS!
                         </h2>
-                        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-6 py-2.5 mb-8">
-                            <p className="text-cyan-400 font-bold text-base tracking-widest uppercase italic">
-                                DIAMOND VIP STATUS ACTIVE
+                        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl px-8 py-4 mb-8">
+                            <p className="text-cyan-400 font-black text-lg tracking-[.2em] uppercase italic">
+                                DIAMOND VIP ACTIVE
                             </p>
                         </div>
 
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowMintSuccess(false);
-                            }}
-                            className="relative z-[70] px-10 py-3 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white rounded-full font-black text-sm border border-white/10 shadow-2xl transition-all uppercase tracking-[.2em] active:scale-95 cursor-pointer"
-                        >
-                            BACK TO MODAL
-                        </button>
+                        <p className="text-white/40 text-sm font-bold animate-pulse">
+                            Tap 'X' to return
+                        </p>
                     </div>
                 )}
 
@@ -267,7 +261,7 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                     </button>
                 </div>
 
-                <div className="p-4 space-y-4">
+                <div className="p-4 pb-12 space-y-5">
                     {/* Wallet Connection / Status (Refined) */}
                     <div className={`p-4 rounded-2xl border transition-all ${isConnected ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-purple-500/5 border-purple-500/20 shadow-lg'}`}>
                         {isConnected ? (
@@ -321,11 +315,11 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                             </div>
                             <div>
                                 <div className="text-[9px] uppercase font-bold text-gray-500 tracking-widest mb-1">Membership Status</div>
-                                <div className={`text-sm font-black tracking-tight ${isVip ? 'text-cyan-400 flex items-center gap-2' : 'text-gray-300'}`}>
+                                <div className={`text-base font-black tracking-tight ${isVip ? 'text-cyan-400 flex items-center gap-3' : 'text-gray-300'}`}>
                                     {isVip ? (
                                         <>
                                             DIAMOND VIP
-                                            <span className="text-[9px] bg-cyan-400/20 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/30 animate-pulse">VIEW NFT 👁️</span>
+                                            <span className="text-xs bg-cyan-400/20 text-cyan-300 px-3 py-1 rounded-full border border-cyan-400/30 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.3)]">VIEW NFT 👁️</span>
                                         </>
                                     ) : "Regular Member"}
                                 </div>
