@@ -905,6 +905,11 @@ export default function Home() {
                       return;
                     }
 
+                    if (category === 'social') {
+                      window.location.href = '/promote';
+                      return;
+                    }
+
                     setFilter(category);
                   }}
                 >
@@ -912,8 +917,8 @@ export default function Home() {
                     <div className={category === 'games' ? 'animate-vip-icon-flash' : ''}>
                       <IconComponent size={18} />
                     </div>
-                    <span className={`text-[9px] font-black ${category === 'games' ? 'animate-vip-shimmer' : ''}`}>
-                      {category === 'games' ? 'VIP' : category.charAt(0).toUpperCase() + category.slice(1)}
+                    <span className={`text-[9px] font-black ${category === 'games' ? 'animate-vip-shimmer' : ''} ${category === 'social' ? 'text-cyan-400' : ''}`}>
+                      {category === 'games' ? 'VIP' : category === 'social' ? 'Share & Earn' : category.charAt(0).toUpperCase() + category.slice(1)}
                     </span>
                   </div>
                 </button>
