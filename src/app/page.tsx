@@ -815,7 +815,7 @@ export default function Home() {
               return (
                 <button
                   key={category}
-                  className={`flex-1 py-4 text-center font-sans tracking-wide uppercase transition-all duration-300 ${filter === category
+                  className={`flex-1 py-4 text-center font-sans tracking-wide uppercase transition-all duration-300 ${filter === category && category !== 'games'
                     ? "bg-cyan-500/10 text-cyan-400 border-t-2 border-cyan-400"
                     : "bg-transparent text-gray-500 hover:text-cyan-300"
                     }`}
@@ -827,12 +827,20 @@ export default function Home() {
                         console.log('Haptics error:', error);
                       }
                     }
+
+                    if (category === 'games') {
+                      window.location.href = '/promote';
+                      return;
+                    }
+
                     setFilter(category);
                   }}
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
                     <IconComponent size={18} />
-                    <span className="text-[9px] font-black">{category.charAt(0).toUpperCase() + category.slice(1)}</span>
+                    <span className="text-[9px] font-black">
+                      {category === 'games' ? 'VIP' : category.charAt(0).toUpperCase() + category.slice(1)}
+                    </span>
                   </div>
                 </button>
               );
