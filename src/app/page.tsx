@@ -905,7 +905,7 @@ export default function Home() {
                       return;
                     }
 
-                    if (category === 'social') {
+                    if (['social', 'utility', 'finance'].includes(category)) {
                       window.location.href = '/promote';
                       return;
                     }
@@ -917,8 +917,12 @@ export default function Home() {
                     <div className={category === 'games' ? 'animate-vip-icon-flash' : ''}>
                       <IconComponent size={18} />
                     </div>
-                    <span className={`text-[9px] font-black ${category === 'games' ? 'animate-vip-shimmer' : ''} ${category === 'social' ? 'text-cyan-400' : ''}`}>
-                      {category === 'games' ? 'VIP' : category === 'social' ? 'Share & Earn' : category.charAt(0).toUpperCase() + category.slice(1)}
+                    <span className={`text-[9px] font-black ${category === 'games' ? 'animate-vip-shimmer' : ''} ${['social', 'utility', 'finance'].includes(category) ? 'text-cyan-400' : ''}`}>
+                      {category === 'games' ? 'VIP' :
+                        category === 'social' ? 'Share & Earn' :
+                          category === 'utility' ? 'Daily Check' :
+                            category === 'finance' ? 'Redeem Code' :
+                              category.charAt(0).toUpperCase() + category.slice(1)}
                     </span>
                   </div>
                 </button>
