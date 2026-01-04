@@ -927,9 +927,9 @@ export default function Home() {
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
                     <div className={category === 'games' ? 'animate-vip-icon-flash' : ''}>
-                      <IconComponent size={18} />
+                      <IconComponent size={category === 'games' ? 22 : 18} />
                     </div>
-                    <span className={`text-[9px] font-black leading-tight ${category === 'games' ? 'animate-vip-shimmer' : ''} ${['social', 'utility', 'finance'].includes(category) ? 'text-cyan-400' : ''}`}>
+                    <span className={`font-black leading-tight ${category === 'games' ? 'animate-vip-shimmer text-xs' : 'text-[9px]'} ${['social', 'utility', 'finance'].includes(category) ? 'text-cyan-400' : ''}`}>
                       {category === 'games' ? 'VIP' :
                         category === 'social' ? 'Share & Earn' :
                           category === 'utility' ? (
@@ -1023,7 +1023,7 @@ export default function Home() {
         }
         @keyframes vipIconFlash {
           0% { filter: brightness(1) drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); transform: scale(1); }
-          50% { filter: brightness(1.5) drop-shadow(0 0 15px rgba(232, 121, 249, 0.8)); transform: scale(1.1); }
+          50% { filter: brightness(1.8) drop-shadow(0 0 20px rgba(232, 121, 249, 0.9)); transform: scale(1.25); }
           100% { filter: brightness(1) drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); transform: scale(1); }
         }
         .animate-vip-shimmer {
