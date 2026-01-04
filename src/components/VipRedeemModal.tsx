@@ -33,6 +33,7 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
     const [dailyCodeSuccess, setDailyCodeSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [activeDailyCodeTab, setActiveDailyCodeTab] = useState<'standard' | 'vip'>('standard');
+    const [showMintSuccess, setShowMintSuccess] = useState(false);
 
     // Wagmi Hooks for Contracts
     const { data: chessBalance, isLoading: balanceLoading } = useReadContract({
@@ -111,8 +112,12 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
     useEffect(() => {
         if (isMintSuccess) {
             toast.success("Diamond VIP Minted!");
+            setShowMintSuccess(true);
+            setTimeout(() => {
+                onClose();
+            }, 5000); // Close after 5 seconds to show the animation
         }
-    }, [isMintSuccess]);
+    }, [isMintSuccess, onClose]);
 
     useEffect(() => {
         if (isVip) {
@@ -206,6 +211,41 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
             <div className="bg-[#1a1f2e] border border-cyan-500/30 rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl relative animate-scaleIn">
 
+                {/* Mint Success Overlay */}
+                {showMintSuccess && (
+                    <div className="absolute inset-0 z-50 bg-[#0a0f1e]/95 flex flex-col items-center justify-center p-6 text-center animate-fadeIn overflow-hidden">
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse"></div>
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 bg-cyan-400 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+                            <img
+                                src="/diamond-vip.png"
+                                alt="Diamond VIP NFT"
+                                className="w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(34,211,238,0.6)] animate-float"
+                                onError={(e) => {
+                                    e.currentTarget.src = "https://farc-nu.vercel.app/icon.png";
+                                }}
+                            />
+                        </div>
+                        <h2 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter bg-gradient-to-br from-white via-cyan-300 to-purple-400 bg-clip-text text-transparent">
+                            CONGRATULATIONS!
+                        </h2>
+                        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-4 py-2 mb-6">
+                            <p className="text-cyan-400 font-bold text-sm tracking-widest uppercase">
+                                DIAMOND VIP STATUS ACTIVE
+                            </p>
+                        </div>
+                        <p className="text-gray-400 text-xs italic mb-8 max-w-[200px]">
+                            Your daily 300k bundle + Lotto ticket perks are now unlocked.
+                        </p>
+                        <button
+                            onClick={onClose}
+                            className="px-8 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-bold text-xs border border-white/10 transition-all uppercase tracking-widest active:scale-95"
+                        >
+                            CLOSE
+                        </button>
+                    </div>
+                )}
+
                 {/* Header (Compact) */}
                 <div className="absolute top-2 right-2 z-10">
                     <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-500 hover:text-white">
@@ -294,12 +334,13 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
                             <button
                                 onClick={handleMintNft}
-                                disabled={approvePending || mintPending || isWaitingApprove || isWaitingMint || balanceLoading}
+                                disabled={approvePending || mintPending || isWaitingApprove || isWaitingMint || balanceLoading || isMintSuccess}
                                 className="w-full py-3 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50"
                             >
                                 {approvePending || isWaitingApprove ? "Approving CHESS..." :
                                     mintPending || isWaitingMint ? "Minting NFT..." :
-                                        !hasAllowance ? "Step 1: Approve $CHESS" : "Step 2: Mint VIP Pass"}
+                                        isMintSuccess ? "VIP MINTED ✓" :
+                                            !hasAllowance ? "Step 1: Approve $CHESS" : "Step 2: Mint VIP Pass"}
                             </button>
                         </div>
                     )}
