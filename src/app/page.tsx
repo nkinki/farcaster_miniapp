@@ -8,7 +8,7 @@ import { toast } from "react-hot-toast"
 import { useAccount, useReadContract, useWriteContract, useConnect, useDisconnect } from "wagmi"
 import { parseUnits } from "viem"
 import { useChessToken } from "@/hooks/useChessToken"
-import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2, FiExternalLink, FiClock } from "react-icons/fi"
+import { FiSearch, FiGrid, FiZap, FiUsers, FiSettings, FiDollarSign, FiGift, FiAward, FiShare2, FiExternalLink, FiClock, FiCheckSquare, FiKey } from "react-icons/fi"
 import type { IconType } from "react-icons";
 import React from "react"
 import Image from "next/image"
@@ -95,8 +95,8 @@ const categoryIcons: Record<string, IconType> = {
   all: FiGrid,
   games: FiZap,
   social: FiUsers,
-  utility: FiSettings,
-  finance: FiDollarSign,
+  utility: FiCheckSquare,
+  finance: FiKey,
   chess: FiGift
 };
 
@@ -912,7 +912,12 @@ export default function Home() {
                       return;
                     }
 
-                    if (['social', 'finance'].includes(category)) {
+                    if (category === 'finance') {
+                      window.location.href = '/promote?redeem=true';
+                      return;
+                    }
+
+                    if (category === 'social') {
                       window.location.href = '/promote';
                       return;
                     }

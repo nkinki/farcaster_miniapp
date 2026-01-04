@@ -1,9 +1,10 @@
 ﻿"use client"
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { sdk as miniAppSdk } from "@farcaster/miniapp-sdk";
 import { FiArrowLeft, FiShare2, FiDollarSign, FiUsers, FiPlus, FiX, FiMoreHorizontal, FiEye, FiChevronDown, FiChevronUp, FiClock, FiStar, FiAlertTriangle, FiCalendar, FiInfo, FiCheck, FiGift, FiZap } from "react-icons/fi";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import UserProfile from "@/components/UserProfile";
 import PaymentForm from "../../components/PaymentForm";
 import CampaignManager from "../../components/CampaignManager";
@@ -151,7 +152,7 @@ const calculateProgress = (promo: PromoCast): number => {
   return Math.round((spent / promo.totalBudget) * 100);
 };
 
-export default function PromotePage() {
+function PromotePageContent() {
   // Wallet hooks
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
@@ -159,6 +160,9 @@ export default function PromotePage() {
 
   // Farcaster Auth hooks
   const { isAuthenticated: fcAuthenticated, profile: fcProfile } = useProfile();
+
+  // Search Params for deep linking
+  const searchParams = useSearchParams();
 
   // $CHESS token balance
   const { data: chessBalance, isLoading: balanceLoading } = useReadContract({
@@ -471,6 +475,14 @@ export default function PromotePage() {
       total_rewards: "10000000"
     });
   }, []);
+
+  // Handle deep linking to Redeem Code modal
+  useEffect(() => {
+    const redeem = searchParams.get('redeem');
+    if (redeem === 'true') {
+      setShowDailyCodeModal(true);
+    }
+  }, [searchParams]);
 
   const currentUser = useMemo(() => {
     if (isAuthenticated && profile) {
@@ -2909,5 +2921,13 @@ export default function PromotePage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function PromotePage() {
+  return (
+    <Suspense fallback={null}>
+      <PromotePageContent />
+    </Suspense>
   );
 }
