@@ -254,24 +254,24 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                 </div>
 
                 <div className="p-4 space-y-4">
-                    {/* Wallet Connection / Status */}
-                    <div className={`p-3 rounded-2xl border transition-all ${isConnected ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-purple-500/5 border-purple-500/20'}`}>
+                    {/* Wallet Connection / Status (Compacted) */}
+                    <div className={`p-2.5 rounded-2xl border transition-all ${isConnected ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-purple-500/5 border-purple-500/20'}`}>
                         {isConnected ? (
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-full bg-cyan-500/20 text-cyan-400">
-                                        <FiStar size={18} fill="currentColor" />
+                                <div className="flex items-center gap-2">
+                                    <div className="p-1.5 rounded-full bg-cyan-500/20 text-cyan-400">
+                                        <FiStar size={16} fill="currentColor" />
                                     </div>
                                     <div>
-                                        <div className="text-[8px] uppercase font-black text-gray-500 tracking-widest">Connected Wallet</div>
-                                        <div className="text-[10px] font-mono text-cyan-300">
+                                        <div className="text-[7px] uppercase font-black text-gray-500 tracking-widest leading-none mb-0.5">Wallet</div>
+                                        <div className="text-[9px] font-mono text-cyan-300 leading-none">
                                             {address?.slice(0, 6)}...{address?.slice(-4)}
                                         </div>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => disconnect()}
-                                    className="px-2 py-1 text-[8px] font-black uppercase tracking-tighter bg-slate-800 hover:bg-slate-700 text-gray-400 hover:text-white rounded-md border border-white/5"
+                                    className="px-1.5 py-0.5 text-[7px] font-black uppercase tracking-tighter bg-slate-800 hover:bg-slate-700 text-gray-400 hover:text-white rounded border border-white/5"
                                 >
                                     Exit
                                 </button>
@@ -296,16 +296,24 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                         )}
                     </div>
 
-                    {/* Status Badge */}
-                    <div className={`p-2 rounded-xl border ${isVip ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-slate-800 border-white/10'}`}>
+                    {/* Status Badge (Clickable for VIPs) */}
+                    <div
+                        onClick={() => isVip && setShowMintSuccess(true)}
+                        className={`p-2 rounded-xl border transition-all ${isVip ? 'bg-cyan-500/10 border-cyan-500/30 cursor-pointer hover:bg-cyan-500/20 hover:scale-[1.02] active:scale-[0.98]' : 'bg-slate-800 border-white/10'}`}
+                    >
                         <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-full ${isVip ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-400'}`}>
-                                <FiStar size={20} fill={isVip ? "currentColor" : "none"} />
+                            <div className={`p-2 rounded-full ${isVip ? 'bg-cyan-500 text-white shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-gray-700 text-gray-400'}`}>
+                                <FiStar size={18} fill={isVip ? "currentColor" : "none"} />
                             </div>
                             <div>
-                                <div className="text-[8px] uppercase font-bold text-gray-500 tracking-wider">Status</div>
-                                <div className={`text-xs font-black ${isVip ? 'text-cyan-400' : 'text-gray-300'}`}>
-                                    {isVip ? "DIAMOND VIP" : "Regular Member"}
+                                <div className="text-[7px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Membership Status</div>
+                                <div className={`text-xs font-black ${isVip ? 'text-cyan-400 flex items-center gap-1.5' : 'text-gray-300'}`}>
+                                    {isVip ? (
+                                        <>
+                                            DIAMOND VIP
+                                            <span className="text-[8px] bg-cyan-400/20 text-cyan-300 px-1.5 rounded-full border border-cyan-400/30 animate-pulse">PREVIEW 👁️</span>
+                                        </>
+                                    ) : "Regular Member"}
                                 </div>
                             </div>
                         </div>
