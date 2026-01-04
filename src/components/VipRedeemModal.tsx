@@ -30,6 +30,7 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
     const [dailyCodeError, setDailyCodeError] = useState<string | null>(null);
     const [dailyCodeSuccess, setDailyCodeSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [activeDailyCodeTab, setActiveDailyCodeTab] = useState<'standard' | 'vip'>('standard');
 
     // Wagmi Hooks for Contracts
     const { data: chessBalance, isLoading: balanceLoading } = useReadContract({
@@ -110,6 +111,12 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
             toast.success("Diamond VIP Minted!");
         }
     }, [isMintSuccess]);
+
+    useEffect(() => {
+        if (isVip) {
+            setActiveDailyCodeTab('vip');
+        }
+    }, [isVip]);
 
     const handleMintNft = async () => {
         if (!address || !currentPrice) {
@@ -251,6 +258,56 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                         </div>
                     )}
 
+                    {/* Tab Switcher */}
+                    {!dailyCodeSuccess && (
+                        <div className="flex p-1 bg-black/40 rounded-xl border border-white/5">
+                            <button
+                                onClick={() => setActiveDailyCodeTab('standard')}
+                                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeDailyCodeTab === 'standard'
+                                    ? 'bg-slate-700 text-white shadow-lg'
+                                    : 'text-gray-500 hover:text-gray-300'
+                                    }`}
+                            >
+                                STANDARD
+                            </button>
+                            <button
+                                onClick={() => setActiveDailyCodeTab('vip')}
+                                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 relative ${activeDailyCodeTab === 'vip'
+                                    ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                                    : 'text-cyan-400/60 hover:text-cyan-400'
+                                    }`}
+                            >
+                                DIAMOND VIP 💎 {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
+                            </button>
+                        </div>
+                    )}
+
+                    {activeDailyCodeTab === 'vip' && !dailyCodeSuccess && (
+                        <div className="p-3 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 border border-cyan-500/30 rounded-2xl shadow-xl">
+                            <h3 className="text-cyan-300 font-black text-[10px] mb-2 flex items-center gap-2 uppercase tracking-wider">
+                                <span className="text-lg">💎</span> VIP Daily Bundle
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    { icon: "🎟️", text: "1x FREE Lotto Ticket", color: "text-cyan-300" },
+                                    { icon: "📈", text: "100k Like/Recast Promo", color: "text-purple-300" },
+                                    { icon: "💬", text: "100k Quote Promotion", color: "text-cyan-300" },
+                                    { icon: "📝", text: "100k Comment Promotion", color: "text-purple-300" }
+                                ].map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 p-2 bg-black/30 rounded-lg border border-white/5">
+                                        <span className="text-sm">{item.icon}</span>
+                                        <span className={`text-[9px] font-bold ${item.color}`}>{item.text}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-2 p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-center">
+                                <p className="text-[9px] text-cyan-200 leading-tight font-bold italic">
+                                    {isVip ? "VIP detected! Your full 300k bundle + Lotto ticket is ready." : "Become VIP to unlock the daily 300k+ bundle!"}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Redeem Code Section */}
                     <div className="space-y-4 pt-2">
                         <div className="flex items-center gap-2 mb-2">
@@ -272,14 +329,14 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
                         <div>
                             <label className="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1.5 ml-1">
-                                {isVip ? "VIP Loophole (Optional Code)" : "Enter Secret Code"}
+                                {isVip && activeDailyCodeTab === 'vip' ? "VIP STATUS: ACTIVE (CODE OPTIONAL)" : "Enter Secret Code"}
                             </label>
                             <input
                                 type="text"
                                 value={dailyCode}
                                 onChange={(e) => setDailyCode(e.target.value)}
-                                placeholder={isVip ? "✨ VIP AUTO-PASS ACTIVE ✨" : "Enter code here..."}
-                                className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-white focus:ring-1 focus:outline-none transition-all font-bold text-sm ${isVip
+                                placeholder={isVip && activeDailyCodeTab === 'vip' ? "✨ VIP AUTO-PASS ACTIVE ✨" : "Enter code here..."}
+                                className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-white focus:ring-1 focus:outline-none transition-all font-bold text-sm ${isVip && activeDailyCodeTab === 'vip'
                                     ? 'border-cyan-400/50 ring-1 ring-cyan-400/20 placeholder:text-cyan-200/70'
                                     : 'border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400 placeholder:text-cyan-400/30'}`}
                             />
