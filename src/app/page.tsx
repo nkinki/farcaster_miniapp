@@ -843,7 +843,7 @@ export default function Home() {
                   className={`flex-1 py-4 text-center font-sans tracking-wide uppercase transition-all duration-300 ${filter === category && category !== 'games'
                     ? "bg-cyan-500/10 text-cyan-400 border-t-2 border-cyan-400"
                     : category === 'games' && showVipModal
-                      ? "bg-gradient-to-t from-purple-500/20 via-cyan-500/10 to-transparent text-white border-t-2 border-cyan-400 shadow-[0_-4px_12px_rgba(34,211,238,0.2)]"
+                      ? "bg-purple-500/10 text-purple-400 border-t-2 border-purple-400 shadow-[0_-4px_12px_rgba(232,121,249,0.15)]"
                       : "bg-transparent text-gray-500 hover:text-cyan-300"
                     }`}
                   onClick={async () => {
@@ -939,14 +939,17 @@ export default function Home() {
           66% { color: #facc15; text-shadow: 0 0 8px rgba(250, 204, 21, 0.6), 0 0 12px rgba(232, 121, 249, 0.4); }
           100% { color: #22d3ee; text-shadow: 0 0 2px rgba(34, 211, 238, 0.3); }
         }
+        .animate-vip-shimmer {
+          animation: vipShimmer 6s ease-in-out infinite;
+        }
         @keyframes vipIconFlash {
           0%, 100% { opacity: 1; filter: brightness(1) drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); transform: scale(1); }
-          25% { color: #22d3ee; filter: brightness(1.8) drop-shadow(0 0 8px #22d3ee); transform: scale(1.1); }
-          50% { color: #e879f9; filter: brightness(1.8) drop-shadow(0 0 12px #e879f9); transform: scale(1.2); }
-          75% { color: #facc15; filter: brightness(1.8) drop-shadow(0 0 8px #facc15); transform: scale(1.1); }
+          25% { color: #22d3ee; filter: brightness(1.8) drop-shadow(0 0 8px #22d3ee); transform: scale(1.05); }
+          50% { color: #e879f9; filter: brightness(1.8) drop-shadow(0 0 12px #e879f9); transform: scale(1.1); }
+          75% { color: #facc15; filter: brightness(1.8) drop-shadow(0 0 8px #facc15); transform: scale(1.05); }
         }
         .animate-vip-icon-flash {
-          animation: vipIconFlash 1s ease-in-out infinite;
+          animation: vipIconFlash 3s ease-in-out infinite;
         }
       `}</style>
     </>

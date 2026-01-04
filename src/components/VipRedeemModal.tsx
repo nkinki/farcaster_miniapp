@@ -197,29 +197,26 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-[#1a1f2e] border border-cyan-500/30 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative animate-scaleIn">
+            <div className="bg-[#1a1f2e] border border-cyan-500/30 rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl relative animate-scaleIn">
 
-                {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-white/10 bg-gradient-to-r from-slate-900 to-[#1a1f2e]">
-                    <h2 className="text-xl font-black text-white italic tracking-wider">
-                        <span className="text-cyan-400">VIP</span> CONTROL
-                    </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
-                        <FiX size={20} />
+                {/* Header (Compact) */}
+                <div className="absolute top-2 right-2 z-10">
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-500 hover:text-white">
+                        <FiX size={18} />
                     </button>
                 </div>
 
-                <div className="p-5 space-y-6">
+                <div className="p-4 space-y-4">
                     {/* Status Badge */}
-                    <div className={`p-3 rounded-xl border ${isVip ? 'bg-cyan-500/10 border-cyan-500/50' : 'bg-slate-800 border-white/10'}`}>
+                    <div className={`p-2 rounded-xl border ${isVip ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-slate-800 border-white/10'}`}>
                         <div className="flex items-center gap-3">
                             <div className={`p-2 rounded-full ${isVip ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-400'}`}>
                                 <FiStar size={20} fill={isVip ? "currentColor" : "none"} />
                             </div>
                             <div>
-                                <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Current Status</div>
-                                <div className={`text-sm font-black ${isVip ? 'text-cyan-400' : 'text-gray-300'}`}>
-                                    {isVip ? "DIAMOND VIP ACTIVE" : "Regular Member"}
+                                <div className="text-[8px] uppercase font-bold text-gray-500 tracking-wider">Status</div>
+                                <div className={`text-xs font-black ${isVip ? 'text-cyan-400' : 'text-gray-300'}`}>
+                                    {isVip ? "DIAMOND VIP" : "Regular Member"}
                                 </div>
                             </div>
                         </div>
@@ -227,16 +224,16 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
                     {/* Mint Section (if not VIP) */}
                     {!isVip && (
-                        <div className="p-5 bg-black/40 border border-cyan-500/30 rounded-2xl relative overflow-hidden group">
+                        <div className="p-4 bg-black/40 border border-cyan-500/20 rounded-2xl relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-2 opacity-20 pointer-events-none">
                                 <FiZap size={60} className="text-cyan-400" />
                             </div>
-                            <h4 className="text-white font-black text-sm mb-2 uppercase tracking-tight">Mint Diamond VIP Pass</h4>
-                            <p className="text-[10px] text-gray-400 mb-4">
-                                Unlock daily rewards and skip pass codes forever.
+                            <h4 className="text-white font-black text-xs mb-1 uppercase tracking-tight">Mint VIP Pass</h4>
+                            <p className="text-[9px] text-gray-400 mb-3">
+                                Unlock rewards and skip codes.
                             </p>
 
-                            <div className="flex items-center justify-between mb-4 bg-slate-900/80 p-3 rounded-xl border border-white/5">
+                            <div className="flex items-center justify-between mb-3 bg-slate-900/80 p-2 rounded-xl border border-white/5">
                                 <div className="text-[10px] font-bold text-gray-500 uppercase">Price</div>
                                 <div className="text-right">
                                     <div className="text-xs font-black text-cyan-400">
@@ -260,11 +257,11 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
                     {/* Tab Switcher */}
                     {!dailyCodeSuccess && (
-                        <div className="flex p-1 bg-black/40 rounded-xl border border-white/5">
+                        <div className="flex p-0.5 bg-black/40 rounded-xl border border-white/5">
                             <button
                                 onClick={() => setActiveDailyCodeTab('standard')}
-                                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeDailyCodeTab === 'standard'
-                                    ? 'bg-slate-700 text-white shadow-lg'
+                                className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${activeDailyCodeTab === 'standard'
+                                    ? 'bg-slate-700 text-white'
                                     : 'text-gray-500 hover:text-gray-300'
                                     }`}
                             >
@@ -272,12 +269,12 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                             </button>
                             <button
                                 onClick={() => setActiveDailyCodeTab('vip')}
-                                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 relative ${activeDailyCodeTab === 'vip'
-                                    ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                                className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 relative ${activeDailyCodeTab === 'vip'
+                                    ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white'
                                     : 'text-cyan-400/60 hover:text-cyan-400'
                                     }`}
                             >
-                                DIAMOND VIP 💎 {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
+                                VIP 💎 {isVip && <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
                             </button>
                         </div>
                     )}
@@ -287,16 +284,16 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                             <h3 className="text-cyan-300 font-black text-[10px] mb-2 flex items-center gap-2 uppercase tracking-wider">
                                 <span className="text-lg">💎</span> VIP Daily Bundle
                             </h3>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-1.5">
                                 {[
-                                    { icon: "🎟️", text: "1x FREE Lotto Ticket", color: "text-cyan-300" },
-                                    { icon: "📈", text: "100k Like/Recast Promo", color: "text-purple-300" },
-                                    { icon: "💬", text: "100k Quote Promotion", color: "text-cyan-300" },
-                                    { icon: "📝", text: "100k Comment Promotion", color: "text-purple-300" }
+                                    { icon: "🎟️", text: "Lotto Ticket", color: "text-cyan-300" },
+                                    { icon: "📈", text: "100k Like+", color: "text-purple-300" },
+                                    { icon: "💬", text: "100k Quote", color: "text-cyan-300" },
+                                    { icon: "📝", text: "100k Comment", color: "text-purple-300" }
                                 ].map((item, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 p-2 bg-black/30 rounded-lg border border-white/5">
-                                        <span className="text-sm">{item.icon}</span>
-                                        <span className={`text-[9px] font-bold ${item.color}`}>{item.text}</span>
+                                    <div key={idx} className="flex items-center gap-1.5 p-1.5 bg-black/30 rounded-lg border border-white/5">
+                                        <span className="text-xs">{item.icon}</span>
+                                        <span className={`text-[8px] font-bold ${item.color}`}>{item.text}</span>
                                     </div>
                                 ))}
                             </div>
@@ -310,9 +307,9 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
 
                     {/* Redeem Code Section */}
                     <div className="space-y-4 pt-2">
-                        <div className="flex items-center gap-2 mb-2">
-                            <FiGift className="text-purple-400" />
-                            <h3 className="font-bold text-white text-sm uppercase tracking-wide">Redeem Rewards</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                            <FiGift className="text-purple-400" size={14} />
+                            <h3 className="font-bold text-white text-xs uppercase tracking-wide">Redeem</h3>
                         </div>
 
                         {dailyCodeError && (
@@ -335,8 +332,8 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                                 type="text"
                                 value={dailyCode}
                                 onChange={(e) => setDailyCode(e.target.value)}
-                                placeholder={isVip && activeDailyCodeTab === 'vip' ? "✨ VIP AUTO-PASS ACTIVE ✨" : "Enter code here..."}
-                                className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-white focus:ring-1 focus:outline-none transition-all font-bold text-sm ${isVip && activeDailyCodeTab === 'vip'
+                                placeholder={isVip && activeDailyCodeTab === 'vip' ? "✨ AUTO-PASS ✨" : "Enter code..."}
+                                className={`w-full bg-black/60 border rounded-xl px-4 py-2.5 text-white focus:ring-1 focus:outline-none transition-all font-bold text-xs ${isVip && activeDailyCodeTab === 'vip'
                                     ? 'border-cyan-400/50 ring-1 ring-cyan-400/20 placeholder:text-cyan-200/70'
                                     : 'border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400 placeholder:text-cyan-400/30'}`}
                             />
@@ -351,7 +348,7 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                                 value={dailyCodeCastUrl}
                                 onChange={(e) => setDailyCodeCastUrl(e.target.value)}
                                 placeholder="https://warpcast.com/..."
-                                className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold text-xs"
+                                className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-4 py-2.5 text-white focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all placeholder:text-gray-600 font-bold text-[10px]"
                             />
                         </div>
 
@@ -379,14 +376,14 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                         <button
                             onClick={handleRedeemCode}
                             disabled={loading || (!isVip && !dailyCode) || !dailyCodeCastUrl}
-                            className="w-full py-4 mt-2 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-sm shadow-lg transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest flex items-center justify-center gap-2"
+                            className="w-full py-3 mt-1 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-xs shadow-lg transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                             ) : (
                                 <>
-                                    <span>CONFIRM & LAUNCH</span>
-                                    <FiZap className="animate-pulse" />
+                                    <span>LAUNCH</span>
+                                    <FiZap size={14} className="animate-pulse" />
                                 </>
                             )}
                         </button>
