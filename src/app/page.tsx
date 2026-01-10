@@ -215,6 +215,16 @@ export default function Home() {
 
   const [showVipModal, setShowVipModal] = useState(false);
   const [showSeasonModal, setShowSeasonModal] = useState(false);
+  const [isPresaleActive, setIsPresaleActive] = useState(true);
+
+  useEffect(() => {
+    const checkPresale = () => {
+      setIsPresaleActive(new Date() < PRESALE_END_DATE);
+    };
+    checkPresale();
+    const timer = setInterval(checkPresale, 60000); // Check every minute
+    return () => clearInterval(timer);
+  }, []);
 
   // Disabled auto-read to avoid DB/On-chain calls on start
   const { data: vipBalance } = useReadContract({
@@ -254,10 +264,11 @@ export default function Home() {
     }
 
     try {
-      const price = parseUnits("5000000", 18) // Presale price
+      const priceAmount = isPresaleActive ? "5000000" : "10000000";
+      const price = parseUnits(priceAmount, 18)
 
       if (!chessBalance || chessBalance < price) {
-        toast.error("Insufficient $CHESS balance! You need 5,000,000 $CHESS.")
+        toast.error(`Insufficient $CHESS balance! You need ${Number(priceAmount).toLocaleString()} $CHESS.`)
         return
       }
 
@@ -775,30 +786,34 @@ export default function Home() {
 
                   <div className="pt-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between md:justify-start gap-4">
-                      <div>
-                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Presale Price</div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-900/40 border border-cyan-500/30 rounded-lg">
-                          <span className="text-white font-bold text-sm">5,000,000 $CHESS</span>
+                      <div className={`transition-all duration-500 ${isPresaleActive ? 'scale-110' : 'opacity-50 grayscale scale-90'}`}>
+                        <div className={`text-[10px] uppercase tracking-wider mb-1 font-bold ${isPresaleActive ? 'text-cyan-400' : 'text-gray-500'}`}>
+                          Presale Price {isPresaleActive && "🔥"}
+                        </div>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 border rounded-lg ${isPresaleActive ? 'bg-cyan-900/40 border-cyan-500/30' : 'bg-black/20 border-white/5'}`}>
+                          <span className={`font-bold text-sm ${isPresaleActive ? 'text-white' : 'text-gray-500'}`}>5,000,000 $CHESS</span>
                         </div>
                       </div>
                       <div className="text-gray-600 font-bold hidden md:block">→</div>
-                      <div>
-                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Public Price</div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/40 border border-white/10 rounded-lg">
-                          <span className="text-gray-400 font-bold text-sm">10,000,000 $CHESS</span>
+                      <div className={`transition-all duration-500 ${!isPresaleActive ? 'scale-110' : 'opacity-50 grayscale scale-90'}`}>
+                        <div className={`text-[10px] uppercase tracking-wider mb-1 font-bold ${!isPresaleActive ? 'text-yellow-400' : 'text-gray-500'}`}>
+                          Public Price {!isPresaleActive && "🏷️"}
+                        </div>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 border rounded-lg ${!isPresaleActive ? 'bg-yellow-900/20 border-yellow-500/30' : 'bg-black/20 border-white/5'}`}>
+                          <span className={`font-bold text-sm ${!isPresaleActive ? 'text-white' : 'text-gray-500'}`}>10,000,000 $CHESS</span>
                         </div>
                       </div>
                     </div>
 
                     <button
                       onClick={handleMint}
-                      disabled={true} // Inactive for now
+                      disabled={isMinting || isAlreadyVip || !isConnected}
                       className={`w-full py-4 font-black text-xl rounded-2xl transition-all duration-300 diamond-shadow disabled:opacity-50 disabled:cursor-not-allowed ${isAlreadyVip
                         ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
                         : "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]"
                         }`}
                     >
-                      {isAlreadyVip ? "ALREADY A VIP 💎" : "COMING SOON 🚀"}
+                      {isAlreadyVip ? "ALREADY A VIP 💎" : isMinting ? "MINTING... 💎" : isConnected ? "MINT DIAMOND VIP 💎" : "CONNECT WALLET TO MINT"}
                     </button>
                     <p className="text-[9px] text-purple-400 text-center uppercase font-black tracking-widest">Limited Presale Active (50% OFF)</p>
                   </div>
