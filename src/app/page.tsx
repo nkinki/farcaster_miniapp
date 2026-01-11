@@ -819,7 +819,9 @@ export default function Home() {
                     >
                       {isAlreadyVip ? "ALREADY A VIP 💎" : isMinting ? "MINTING... 💎" : isConnected ? "MINT DIAMOND VIP 💎" : "CONNECT WALLET TO MINT"}
                     </button>
-                    <p className="text-[9px] text-purple-400 text-center uppercase font-black tracking-widest">Limited Presale Active (50% OFF)</p>
+                    {isPresaleActive && (
+                      <p className="text-[9px] text-purple-400 text-center uppercase font-black tracking-widest">Limited Presale Active (50% OFF)</p>
+                    )}
                   </div>
                 </div>
               </div>
