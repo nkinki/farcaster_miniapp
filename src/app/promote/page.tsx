@@ -275,6 +275,9 @@ function PromotePageContent() {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<FarcasterUser | null>(null);
+  const [username, setUsername] = useState<string>("user")
+  const [displayName, setDisplayName] = useState<string>("Farcaster User")
+  const [pfpUrl, setPfpUrl] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showCampaignManager, setShowCampaignManager] = useState(false);
@@ -460,7 +463,11 @@ function PromotePageContent() {
     miniAppSdk.context.then(ctx => {
       if (ctx.user?.fid) {
         setIsAuthenticated(true);
-        setProfile(ctx.user as FarcasterUser);
+        const u = ctx.user as FarcasterUser;
+        setProfile(u);
+        if (u.username) setUsername(u.username);
+        if (u.displayName) setDisplayName(u.displayName);
+        if (u.pfpUrl) setPfpUrl(u.pfpUrl);
       }
     }).catch(err => console.error("Farcaster context error:", err));
 
@@ -488,13 +495,18 @@ function PromotePageContent() {
     if (isAuthenticated && profile) {
       return {
         fid: profile.fid,
-        username: profile.username || "user",
-        displayName: profile.displayName || "Current User",
-        pfpUrl: profile.pfpUrl
+        username: profile.username || username || "user",
+        displayName: profile.displayName || displayName || "Current User",
+        pfpUrl: profile.pfpUrl || pfpUrl
       };
     }
-    return { fid: 0, username: "guest", displayName: "Guest" };
-  }, [isAuthenticated, profile]);
+    return {
+      fid: profile?.fid || 0,
+      username: username || "user",
+      displayName: displayName || "Farcaster User",
+      pfpUrl: pfpUrl
+    };
+  }, [isAuthenticated, profile, username, displayName, pfpUrl]);
 
   const fetchShareTimers = useCallback(async () => {
     if (!currentUser.fid) return;

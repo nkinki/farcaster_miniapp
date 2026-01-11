@@ -188,6 +188,8 @@ export default function Home() {
   const [showLamboLottery, setShowLamboLottery] = useState(false)
   const [showWeatherLotto, setShowWeatherLotto] = useState(false)
   const [userFid, setUserFid] = useState<number>(0)
+  const [username, setUsername] = useState<string>("user")
+  const [displayName, setDisplayName] = useState<string>("Farcaster User")
   const [seasonData, setSeasonData] = useState<any>(null)
   const [showMiniapps, setShowMiniapps] = useState(false)
   const [fetchingMiniapps, setFetchingMiniapps] = useState(false)
@@ -202,16 +204,16 @@ export default function Home() {
     if (isAuthenticated && profile) {
       return {
         fid: profile.fid || userFid || 0,
-        username: profile.username || "user",
-        displayName: profile.displayName || "Current User"
+        username: profile.username || username || "user",
+        displayName: profile.displayName || displayName || "Current User"
       };
     }
     return {
       fid: userFid || 0,
-      username: "user",
-      displayName: "Farcaster User"
+      username: username || "user",
+      displayName: displayName || "Farcaster User"
     };
-  }, [isAuthenticated, profile, userFid]);
+  }, [isAuthenticated, profile, userFid, username, displayName]);
 
   const [showVipModal, setShowVipModal] = useState(false);
   const [showSeasonModal, setShowSeasonModal] = useState(false);
@@ -337,6 +339,8 @@ export default function Home() {
         if (farcasterUser?.fid) {
           console.log('User authenticated:', farcasterUser)
           setUserFid(farcasterUser.fid)
+          if (farcasterUser.username) setUsername(farcasterUser.username)
+          if (farcasterUser.displayName) setDisplayName(farcasterUser.displayName)
           localStorage.setItem('userFid', farcasterUser.fid.toString())
         }
       } else {
