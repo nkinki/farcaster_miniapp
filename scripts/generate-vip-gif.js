@@ -6,7 +6,7 @@ const fs = require('fs');
 async function generateVipGif() {
     const width = 600;
     const height = 600;
-    const totalFrames = 50; // Optimized for size and smoothness
+    const totalFrames = 100; // Much smoother and longer loop
 
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -26,45 +26,54 @@ async function generateVipGif() {
     encoder.createReadStream().pipe(writeStream);
     encoder.start();
     encoder.setRepeat(0);
-    encoder.setDelay(60);
+    encoder.setDelay(80);  // 80ms delay = slow and smooth
     encoder.setQuality(10);
 
-    console.log(`Generating ${totalFrames} frames with CLEAN neon results...`);
+    console.log(`Generating ${totalFrames} frames with SUPER SLOW rotation and AURA glow...`);
 
     for (let i = 0; i < totalFrames; i++) {
         const angle = (i / totalFrames) * Math.PI * 2;
 
-        // Slightly more pronounced rotation
-        const rotateX = Math.sin(angle) * 15;
-        const rotateY = Math.cos(angle) * 15;
+        // Very subtle, slow oscillation
+        const rotateX = Math.sin(angle) * 8;
+        const rotateY = Math.cos(angle) * 8;
 
-        // 1. Solid Dark Background (Clean)
-        ctx.fillStyle = '#050a14'; // Very deep dark blue/black
+        // 1. Solid Dark Background
+        ctx.fillStyle = '#020617'; // Slate-950
         ctx.fillRect(0, 0, width, height);
 
-        // 2. Powerful Background Glow (Diamond style, vibrant)
-        const glowRadius = 300 + Math.sin(angle) * 40;
-        const glowGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, glowRadius);
-        glowGradient.addColorStop(0, 'rgba(0, 255, 255, 0.5)'); // Vibrant Cyan
-        glowGradient.addColorStop(0.3, 'rgba(0, 150, 255, 0.3)'); // Deep Blue
-        glowGradient.addColorStop(0.6, 'rgba(100, 0, 255, 0.1)'); // Purple tint
-        glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // 2. Large Soft "Aura" Glow (behind the card)
+        const glowPulse = 1 + Math.sin(angle) * 0.1;
+        const auraRadius = 350 * glowPulse;
+        const auraGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, auraRadius);
+        auraGradient.addColorStop(0, 'rgba(6, 182, 212, 0.4)'); // Cyan-500
+        auraGradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.2)'); // Blue-500
+        auraGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-        ctx.fillStyle = glowGradient;
+        ctx.fillStyle = auraGradient;
         ctx.fillRect(0, 0, width, height);
 
         ctx.save();
         ctx.translate(width / 2, height / 2);
 
-        // 3. 3D Perspective simulation for the card
+        // 3. 3D Perspective simulation
         const scaleX = Math.cos(rotateY * Math.PI / 180);
         const scaleY = Math.cos(rotateX * Math.PI / 180);
 
-        ctx.rotate(rotateX * 0.005);
+        ctx.rotate(rotateX * 0.003);
         ctx.scale(scaleX, scaleY);
 
         const cardW = 440;
         const cardH = 440;
+
+        // Add a "Outer Glow" stroke effect to the card itself
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.3)';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 32);
+        }
+        ctx.stroke();
 
         // Apply rounded corners clip
         ctx.beginPath();
@@ -87,13 +96,13 @@ async function generateVipGif() {
         // Draw the image
         ctx.drawImage(img, -cardW / 2, -cardH / 2, cardW, cardH);
 
-        // Holographic glare effect follow the rotation
-        const glareX = (Math.cos(angle) * 0.7 + 0.5) * cardW - cardW / 2;
-        const glareY = (Math.sin(angle) * 0.7 + 0.5) * cardH - cardH / 2;
+        // Holographic glare effect (slower)
+        const glareX = (Math.cos(angle * 0.5) * 0.7 + 0.5) * cardW - cardW / 2;
+        const glareY = (Math.sin(angle * 0.5) * 0.7 + 0.5) * cardH - cardH / 2;
 
-        const cardGlare = ctx.createRadialGradient(glareX, glareY, 0, glareX, glareY, cardW * 0.8);
-        cardGlare.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
-        cardGlare.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+        const cardGlare = ctx.createRadialGradient(glareX, glareY, 0, glareX, glareY, cardW * 0.9);
+        cardGlare.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+        cardGlare.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
         cardGlare.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
         ctx.fillStyle = cardGlare;
@@ -102,11 +111,11 @@ async function generateVipGif() {
         ctx.restore();
 
         encoder.addFrame(ctx);
-        if (i % 10 === 0) console.log(`Processed frame ${i}...`);
+        if (i % 20 === 0) console.log(`Processed frame ${i}...`);
     }
 
     encoder.finish();
-    console.log(`Success! Clean GIF with neon glow saved to ${outputPath}`);
+    console.log(`Success! Super slow GIF with Aura glow saved to ${outputPath}`);
 }
 
 generateVipGif().catch(err => {
