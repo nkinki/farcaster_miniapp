@@ -6,7 +6,7 @@ const fs = require('fs');
 async function generateVipGif() {
     const width = 600;
     const height = 600;
-    const totalFrames = 60; // Slower, smoother animation
+    const totalFrames = 60;
 
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -19,6 +19,17 @@ async function generateVipGif() {
 
     const img = await loadImage(imagePath);
 
+    // Predetermine particle positions for consistency
+    const particles = [];
+    for (let i = 0; i < 60; i++) {
+        particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 1.5 + 0.5,
+            opacity: Math.random() * 0.8 + 0.2
+        });
+    }
+
     const encoder = new GIFEncoder(width, height);
     const outputPath = path.join(__dirname, '../public/og-animated.gif');
     const writeStream = fs.createWriteStream(outputPath);
@@ -26,48 +37,52 @@ async function generateVipGif() {
     encoder.createReadStream().pipe(writeStream);
     encoder.start();
     encoder.setRepeat(0);
-    encoder.setDelay(60);  // Slower frame rate
+    encoder.setDelay(60);
     encoder.setQuality(10);
 
-    console.log(`Generating ${totalFrames} frames with POWERFUL glow...`);
+    console.log(`Generating ${totalFrames} frames with "Congratulations" style...`);
 
     for (let i = 0; i < totalFrames; i++) {
         const angle = (i / totalFrames) * Math.PI * 2;
 
-        const rotateX = Math.sin(angle) * 12;
-        const rotateY = Math.cos(angle) * 12;
+        const rotateX = Math.sin(angle) * 10;
+        const rotateY = Math.cos(angle) * 10;
 
-        // 1. Draw Background
-        const bgGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
-        bgGradient.addColorStop(0, '#111827'); // Darker background to make glow pop
-        bgGradient.addColorStop(1, '#000000');
-        ctx.fillStyle = bgGradient;
+        // 1. Draw Deep Teal Background
+        ctx.fillStyle = '#01161e'; // Very dark teal
         ctx.fillRect(0, 0, width, height);
 
-        // 2. Add POWERFUL dynamic glow behind the card
-        const glowRadius = 280 + Math.sin(angle) * 60;
-        const glowGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, glowRadius);
-        // More opaque and vibrant colors
-        glowGradient.addColorStop(0, 'rgba(6, 182, 212, 0.45)'); // More cyan
-        glowGradient.addColorStop(0.4, 'rgba(59, 130, 246, 0.25)'); // More blue
-        glowGradient.addColorStop(0.7, 'rgba(139, 92, 246, 0.1)'); // Subtle purple edge
-        glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // 2. Add Particles (Stars)
+        particles.forEach(p => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
 
-        ctx.fillStyle = glowGradient;
+        // 3. Add Large Soft Cyan/Teal Glow behind everything
+        const bgGlowRadius = 400 + Math.sin(angle) * 40;
+        const bgGlow = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, bgGlowRadius);
+        bgGlow.addColorStop(0, 'rgba(8, 145, 178, 0.4)'); // Cyan-700
+        bgGlow.addColorStop(0.4, 'rgba(6, 182, 212, 0.2)'); // Cyan-500
+        bgGlow.addColorStop(0.8, 'rgba(8, 51, 68, 0.1)'); // Deep teal
+        bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = bgGlow;
         ctx.fillRect(0, 0, width, height);
 
         ctx.save();
         ctx.translate(width / 2, height / 2);
 
-        // 3D Perspective simulation
+        // 4. 3D Perspective simulation for the card
         const scaleX = Math.cos(rotateY * Math.PI / 180);
         const scaleY = Math.cos(rotateX * Math.PI / 180);
 
-        ctx.rotate(rotateX * 0.004);
+        ctx.rotate(rotateX * 0.003);
         ctx.scale(scaleX, scaleY);
 
-        const cardW = 420;
-        const cardH = 420;
+        const cardW = 430;
+        const cardH = 430;
 
         // Apply rounded corners clip
         ctx.beginPath();
@@ -87,16 +102,16 @@ async function generateVipGif() {
         }
         ctx.clip();
 
-        // Draw the card image
+        // Draw the image
         ctx.drawImage(img, -cardW / 2, -cardH / 2, cardW, cardH);
 
         // Holographic glare effect
-        const glareX = (Math.cos(angle) * 0.7 + 0.5) * cardW - cardW / 2;
-        const glareY = (Math.sin(angle) * 0.7 + 0.5) * cardH - cardH / 2;
+        const glareX = (Math.cos(angle) * 0.8 + 0.5) * cardW - cardW / 2;
+        const glareY = (Math.sin(angle) * 0.8 + 0.5) * cardH - cardH / 2;
 
-        const cardGlare = ctx.createRadialGradient(glareX, glareY, 0, glareX, glareY, cardW * 0.9);
-        cardGlare.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-        cardGlare.addColorStop(0.5, 'rgba(125, 211, 252, 0.15)');
+        const cardGlare = ctx.createRadialGradient(glareX, glareY, 0, glareX, glareY, cardW * 0.8);
+        cardGlare.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+        cardGlare.addColorStop(0.5, 'rgba(165, 243, 252, 0.1)'); // Cyan-200
         cardGlare.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
         ctx.fillStyle = cardGlare;
@@ -109,7 +124,7 @@ async function generateVipGif() {
     }
 
     encoder.finish();
-    console.log(`Success! Animated GIF with POWERFUL glow saved to ${outputPath}`);
+    console.log(`Success! "Congratulations" style GIF saved to ${outputPath}`);
 }
 
 generateVipGif().catch(err => {
