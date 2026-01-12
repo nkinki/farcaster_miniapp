@@ -63,8 +63,8 @@ async function generateVipGif() {
         ctx.rotate(rotateX * 0.003);
         ctx.scale(scaleX, scaleY);
 
-        const cardW = 380;
-        const cardH = 240;
+        const cardW = 304;
+        const cardH = 264;
 
         // Create "Glass Effect" Border
         const borderGradient = ctx.createLinearGradient(-cardW / 2, -cardH / 2, cardW / 2, cardH / 2);
