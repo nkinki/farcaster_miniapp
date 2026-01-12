@@ -34,7 +34,7 @@ export const metadata: Metadata = {
       // Use og-animated.gif for a high-energy animated feed image (e.g. rotating Diamond VIP)
       imageUrl: "https://farc-nu.vercel.app/og-animated.gif",
       button: {
-        title: "🏆 View Rankings",
+        title: "💎 Diamond VIP NFT",
         action: {
           type: "launch_miniapp",
           url: "https://farc-nu.vercel.app/",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
       version: "1",
       imageUrl: "https://farc-nu.vercel.app/og-animated.gif",
       button: {
-        title: "🏆 View Rankings",
+        title: "💎 Diamond VIP NFT",
         action: {
           type: "launch_frame",
           url: "https://farc-nu.vercel.app/",
