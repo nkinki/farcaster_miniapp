@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     other: {
         "fc:frame": JSON.stringify({
             version: "next",
-            imageUrl: "https://lambo-lotto-frame.vercel.app/og-animated.gif?v=1",
+            imageUrl: "https://lambo-lotto-frame.vercel.app/og-animated.gif?v=2",
             button: {
                 title: "Play Lambo Lotto",
                 action: {

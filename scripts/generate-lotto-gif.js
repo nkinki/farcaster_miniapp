@@ -7,7 +7,7 @@ async function generateLottoGif() {
     // 1.91:1 Aspect Ratio (OG standard)
     const width = 600;
     const height = 314;
-    const totalFrames = 40;
+    const totalFrames = 50; // Increased frames for better flicker + smooth loop
 
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -27,16 +27,27 @@ async function generateLottoGif() {
     encoder.createReadStream().pipe(writeStream);
     encoder.start();
     encoder.setRepeat(0);
-    encoder.setDelay(100);  // 10fps
+    encoder.setDelay(80);  // Slightly faster for better flicker feel
     encoder.setQuality(20);
 
-    console.log(`Generating Lambo Lotto GIF (${totalFrames} frames)...`);
+    console.log(`Generating Lambo Lotto GIF with NEON FLICKER (${totalFrames} frames)...`);
 
     for (let i = 0; i < totalFrames; i++) {
         const progress = i / totalFrames;
 
-        // 1. Subtle Zoom effect (Ken Burns)
-        const scale = 1 + Math.sin(progress * Math.PI) * 0.05;
+        // 1. Neon Flicker Logic (First 15 frames)
+        let opacity = 1.0;
+        let showGlow = true;
+
+        if (i < 15) {
+            // Faulty flicker pattern: [0,1,1,0,1,0,1,1,1,0...]
+            const flickerPattern = [0.4, 1.0, 1.0, 0.3, 1.0, 0.4, 1.0, 1.0, 0.9, 0.3, 1.0, 1.0, 1.0, 0.5, 1.0];
+            opacity = flickerPattern[i];
+            showGlow = opacity > 0.6;
+        }
+
+        // 2. Subtle Zoom effect (Ken Burns) - slower oscillation
+        const scale = 1 + Math.sin(progress * Math.PI) * 0.04;
         const zoomWidth = width * scale;
         const zoomHeight = height * scale;
         const offX = (zoomWidth - width) / 2;
@@ -46,40 +57,47 @@ async function generateLottoGif() {
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, width, height);
 
-        // Draw image with zoom and center it
+        // Draw image with flicker opacity
+        ctx.globalAlpha = opacity;
         ctx.drawImage(img, -offX, -offY, zoomWidth, zoomHeight);
+        ctx.globalAlpha = 1.0;
 
-        // 2. Add moving glare/shine effect across the main text
-        // The text "BUY A LAMBO" is roughly in the center-top
-        // We'll create a linear gradient that moves across diagonally
-        const glareX = (progress * 2 - 1) * width * 1.5;
-        const glareWidth = 150;
+        // 3. Pink Neon Aura during flicker or always subtly
+        if (showGlow) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            const glowGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width * 0.6);
+            glowGradient.addColorStop(0, 'rgba(255, 0, 255, 0.15)'); // Vice Pink
+            glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = glowGradient;
+            ctx.fillRect(0, 0, width, height);
+            ctx.restore();
+        }
 
-        ctx.save();
-        // Create a diagonal clipping or area for the glare
-        const glareGradient = ctx.createLinearGradient(glareX, 0, glareX + glareWidth, height);
-        glareGradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        glareGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.25)'); // Bright white shine
-        glareGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        // 4. Moving glare/shine (sweeps after flicker)
+        if (i >= 10) {
+            const glareProgress = (i - 10) / (totalFrames - 10);
+            const glareX = (glareProgress * 2 - 1) * width * 1.5;
+            const glareWidth = 120;
 
-        ctx.fillStyle = glareGradient;
-        ctx.globalCompositeOperation = 'overlay'; // Overlay blend mode for nice shine
-        ctx.fillRect(0, 0, width, height);
-        ctx.restore();
+            ctx.save();
+            const glareGradient = ctx.createLinearGradient(glareX, 0, glareX + glareWidth, height);
+            glareGradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            glareGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)'); // Shine
+            glareGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
-        // 3. Optional: Subtle vignette
-        const vignette = ctx.createRadialGradient(width / 2, height / 2, height / 2, width / 2, height / 2, width * 0.7);
-        vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
-        ctx.fillStyle = vignette;
-        ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = glareGradient;
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.fillRect(0, 0, width, height);
+            ctx.restore();
+        }
 
         encoder.addFrame(ctx);
         if (i % 10 === 0) console.log(`Processed frame ${i}...`);
     }
 
     encoder.finish();
-    console.log(`Success! Animated Lambo Lotto GIF saved to ${outputPath}`);
+    console.log(`Success! Neon Flickering Lambo Lotto GIF saved to ${outputPath}`);
 }
 
 generateLottoGif().catch(err => {
