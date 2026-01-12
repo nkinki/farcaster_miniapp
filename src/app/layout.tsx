@@ -31,7 +31,8 @@ export const metadata: Metadata = {
   other: {
     "fc:miniapp": JSON.stringify({
       version: "1",
-      imageUrl: "https://farc-nu.vercel.app/og-image.png?v=2",
+      // Use og-animated.gif for a high-energy animated feed image (e.g. rotating Diamond VIP)
+      imageUrl: "https://farc-nu.vercel.app/og-animated.gif",
       button: {
         title: "🏆 View Rankings",
         action: {
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
     // For backward compatibility
     "fc:frame": JSON.stringify({
       version: "1",
-      imageUrl: "https://farc-nu.vercel.app/og-image.png?v=2",
+      imageUrl: "https://farc-nu.vercel.app/og-animated.gif",
       button: {
         title: "🏆 View Rankings",
         action: {
