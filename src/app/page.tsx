@@ -714,153 +714,152 @@ export default function Home() {
             )}
           </div>
 
-        </div>
-      </div>
 
-      {/* Diamond VIP Minting Section */}
-      <div className="max-w-2xl mx-auto mb-12 px-2 animate-fadeIn">
-        <div className="bg-gradient-to-br from-slate-900 via-[#1a1f2e] to-slate-900 rounded-3xl p-6 border-2 border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative overflow-hidden group">
-          {/* Background Glow */}
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full" />
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 blur-[100px] rounded-full" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            {/* 3D Card Component */}
-            <div className="w-full md:w-1/2">
-              <DiamondCard />
-            </div>
+          {/* Diamond VIP Minting Section */}
+          <div className="max-w-2xl mx-auto mb-12 px-2 animate-fadeIn">
+            <div className="bg-gradient-to-br from-slate-900 via-[#1a1f2e] to-slate-900 rounded-3xl p-6 border-2 border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative overflow-hidden group">
+              {/* Background Glow */}
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full" />
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 blur-[100px] rounded-full" />
 
-            {/* Text Content */}
-            <div className="w-full md:w-1/2 text-center md:text-left space-y-4">
-              <div className="inline-block px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-[10px] font-bold text-cyan-400 tracking-widest uppercase mb-2">
-                Diamond VIP Pass
-              </div>
-              <h2 className="text-3xl font-black text-white italic tracking-tight">
-                DIAMOND <span className="text-cyan-400">VIP</span> 💎
-              </h2>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Exclusive membership for the ultimate $CHESS holders.<br />
-                <span className="text-cyan-300 font-bold">Total Value: Over 400k $CHESS Daily — Forever.</span>
-              </p>
-
-              <div className="grid grid-cols-1 gap-2 pt-2">
-                {[
-                  "🎟️ 1. Free Lambo Lotto Ticket (100k Value)",
-                  "👍 2. Like & Share Promotion (100k Limit)",
-                  "💬 3. Quote Promotion (100k Limit)",
-                  "📝 4. Comment Promotion (100k Limit)",
-                  "💎 5. Exclusive NFT Ownership",
-                  "🚀 6. 2x Season Points Multiplier",
-                  "🏆 7. TOP 3 Season Reward (Automatic VIP)"
-                ].map((perk, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs font-semibold text-cyan-100/80">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                    {perk}
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 flex flex-col gap-3">
-                <div className="flex items-center justify-center pt-2">
-                  <div className="scale-110">
-                    <div className="text-[10px] uppercase tracking-wider mb-1 font-bold text-yellow-400 text-center">
-                      Public Price 🏷️
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-6 py-2 bg-yellow-900/20 border border-yellow-500/30 rounded-xl">
-                      <span className="font-bold text-lg text-white">10,000,000 $CHESS</span>
-                    </div>
-                  </div>
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                {/* 3D Card Component */}
+                <div className="w-full md:w-1/2">
+                  <DiamondCard />
                 </div>
 
-                <button
-                  onClick={handleMint}
-                  disabled={isMinting || isAlreadyVip || !isConnected}
-                  className={`w-full py-4 font-black text-xl rounded-2xl transition-all duration-300 diamond-shadow disabled:opacity-50 disabled:cursor-not-allowed ${isAlreadyVip
-                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-                    : "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]"
-                    }`}
-                >
-                  {isAlreadyVip ? "ALREADY A VIP 💎" : isMinting ? "MINTING... 💎" : isConnected ? "MINT DIAMOND VIP 💎" : "CONNECT WALLET TO MINT"}
-                </button>
+                {/* Text Content */}
+                <div className="w-full md:w-1/2 text-center md:text-left space-y-4">
+                  <div className="inline-block px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-[10px] font-bold text-cyan-400 tracking-widest uppercase mb-2">
+                    Diamond VIP Pass
+                  </div>
+                  <h2 className="text-3xl font-black text-white italic tracking-tight">
+                    DIAMOND <span className="text-cyan-400">VIP</span> 💎
+                  </h2>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    Exclusive membership for the ultimate $CHESS holders.<br />
+                    <span className="text-cyan-300 font-bold">Total Value: Over 400k $CHESS Daily — Forever.</span>
+                  </p>
 
+                  <div className="grid grid-cols-1 gap-2 pt-2">
+                    {[
+                      "🎟️ 1. Free Lambo Lotto Ticket (100k Value)",
+                      "👍 2. Like & Share Promotion (100k Limit)",
+                      "💬 3. Quote Promotion (100k Limit)",
+                      "📝 4. Comment Promotion (100k Limit)",
+                      "💎 5. Exclusive NFT Ownership",
+                      "🚀 6. 2x Season Points Multiplier",
+                      "🏆 7. TOP 3 Season Reward (Automatic VIP)"
+                    ].map((perk, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs font-semibold text-cyan-100/80">
+                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                        {perk}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-center pt-2">
+                      <div className="scale-110">
+                        <div className="text-[10px] uppercase tracking-wider mb-1 font-bold text-yellow-400 text-center">
+                          Public Price 🏷️
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-6 py-2 bg-yellow-900/20 border border-yellow-500/30 rounded-xl">
+                          <span className="font-bold text-lg text-white">10,000,000 $CHESS</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleMint}
+                      disabled={isMinting || isAlreadyVip || !isConnected}
+                      className={`w-full py-4 font-black text-xl rounded-2xl transition-all duration-300 diamond-shadow disabled:opacity-50 disabled:cursor-not-allowed ${isAlreadyVip
+                        ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
+                        : "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                        }`}
+                    >
+                      {isAlreadyVip ? "ALREADY A VIP 💎" : isMinting ? "MINTING... 💎" : isConnected ? "MINT DIAMOND VIP 💎" : "CONNECT WALLET TO MINT"}
+                    </button>
+
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {showMiniapps && (
-        <div className="relative glass-morphism rounded-2xl shadow-2xl p-1 w-full animate-fadeIn border border-white/10">
-          {favoriteApps.length > 0 && (
-            <div
-              className="sticky top-0 z-20 bg-[#23283a] py-2 cursor-pointer hover:bg-[#2a2f42] transition-colors"
-              onTouchStart={async () => {
-                if (hapticsSupported) {
-                  try {
-                    await sdk.haptics.impactOccurred('light');
-                  } catch (error) {
-                    console.log('Haptics error:', error);
-                  }
-                }
-              }}
-              onMouseDown={async () => {
-                if (hapticsSupported) {
-                  try {
-                    await sdk.haptics.impactOccurred('light');
-                  } catch (error) {
-                    console.log('Haptics error:', error);
-                  }
-                }
-              }}
-            >
-              <div className="flex items-center justify-between px-2 mb-1">
-                <div className="text-xs text-cyan-400 font-medium">⭐ Favorites</div>
-              </div>
+          {showMiniapps && (
+            <div className="relative glass-morphism rounded-2xl shadow-2xl p-1 w-full animate-fadeIn border border-white/10">
+              {favoriteApps.length > 0 && (
+                <div
+                  className="sticky top-0 z-20 bg-[#23283a] py-2 cursor-pointer hover:bg-[#2a2f42] transition-colors"
+                  onTouchStart={async () => {
+                    if (hapticsSupported) {
+                      try {
+                        await sdk.haptics.impactOccurred('light');
+                      } catch (error) {
+                        console.log('Haptics error:', error);
+                      }
+                    }
+                  }}
+                  onMouseDown={async () => {
+                    if (hapticsSupported) {
+                      try {
+                        await sdk.haptics.impactOccurred('light');
+                      } catch (error) {
+                        console.log('Haptics error:', error);
+                      }
+                    }
+                  }}
+                >
+                  <div className="flex items-center justify-between px-2 mb-1">
+                    <div className="text-xs text-cyan-400 font-medium">⭐ Favorites</div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {favoriteApps.map((app) => (
+                      <MiniappCard
+                        key={app.id}
+                        app={app}
+                        isFavorite={true}
+                        onOpen={() => {
+                          const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
+                          setOpenMiniapp(app);
+                          setOpenMiniappIndex(idx);
+                        }}
+                        onToggleFavorite={() => toggleFavorite(app.domain)}
+                      />
+                    ))}
+                  </div>
+                  <div className="h-px bg-cyan-400/30 my-2"></div>
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
-                {favoriteApps.map((app) => (
-                  <MiniappCard
-                    key={app.id}
-                    app={app}
-                    isFavorite={true}
-                    onOpen={() => {
-                      const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
-                      setOpenMiniapp(app);
-                      setOpenMiniappIndex(idx);
-                    }}
-                    onToggleFavorite={() => toggleFavorite(app.domain)}
-                  />
+                {nonFavoriteApps.map((app, index) => (
+                  <React.Fragment key={app.id}>
+                    <MiniappCard
+                      app={app}
+                      isFavorite={false}
+                      onOpen={() => {
+                        const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
+                        setOpenMiniapp(app);
+                        setOpenMiniappIndex(idx);
+                      }}
+                      onToggleFavorite={() => toggleFavorite(app.domain)}
+                    />
+                    {(index + 1 === 50 || index + 1 === 100) && (
+                      <div className="flex items-center justify-center py-2">
+                        <div className="flex-1 h-px bg-gray-600"></div>
+                        <span className="px-4 text-xs text-gray-500 font-medium">Reward Cutoff</span>
+                        <div className="flex-1 h-px bg-gray-600"></div>
+                      </div>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
-              <div className="h-px bg-cyan-400/30 my-2"></div>
             </div>
           )}
-
-          <div className="flex flex-col gap-2">
-            {nonFavoriteApps.map((app, index) => (
-              <React.Fragment key={app.id}>
-                <MiniappCard
-                  app={app}
-                  isFavorite={false}
-                  onOpen={() => {
-                    const idx = [...favoriteApps, ...nonFavoriteApps].findIndex(a => a.id === app.id);
-                    setOpenMiniapp(app);
-                    setOpenMiniappIndex(idx);
-                  }}
-                  onToggleFavorite={() => toggleFavorite(app.domain)}
-                />
-                {(index + 1 === 50 || index + 1 === 100) && (
-                  <div className="flex items-center justify-center py-2">
-                    <div className="flex-1 h-px bg-gray-600"></div>
-                    <span className="px-4 text-xs text-gray-500 font-medium">Reward Cutoff</span>
-                    <div className="flex-1 h-px bg-gray-600"></div>
-                  </div>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
         </div>
-      )}
-    </div >
 
         <nav className="fixed bottom-0 left-0 w-full z-50 glass-morphism border-t border-white/10">
           <div className="flex w-full max-w-6xl mx-auto">
@@ -960,8 +959,8 @@ export default function Home() {
           onClose={() => setShowSeasonModal(false)}
           userFid={currentUser.fid}
         />
-      </div >
-    <style jsx global>{`
+      </div>
+      <style jsx global>{`
         @keyframes chessneon {
           0% { color: #5D6AFF; text-shadow: 0 0 6px #5D6AFF, 0 0 12px #5D6AFF; }
           25% { color: #00fff7; text-shadow: 0 0 8px #00fff7, 0 0 16px #00fff7; }

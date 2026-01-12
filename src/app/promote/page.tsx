@@ -2931,14 +2931,13 @@ function PromotePageContent() {
           userFid={profile?.fid}
         />
       </div>
-    </div>
-  );
+      );
 }
 
-export default function PromotePage() {
+      export default function PromotePage() {
   return (
-    <Suspense fallback={null}>
-      <PromotePageContent />
-    </Suspense>
-  );
+      <Suspense fallback={null}>
+        <PromotePageContent />
+      </Suspense>
+      );
 }
