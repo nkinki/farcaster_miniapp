@@ -63,7 +63,7 @@ async function generateVipGif() {
         ctx.rotate(rotateX * 0.003);
         ctx.scale(scaleX, scaleY);
 
-        const cardW = 240;
+        const cardW = 380;
         const cardH = 240;
 
         // Add a "Outer Glow" stroke effect to the card itself
