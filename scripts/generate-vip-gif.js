@@ -38,8 +38,8 @@ async function generateVipGif() {
         const rotateX = Math.sin(angle) * 8;
         const rotateY = Math.cos(angle) * 8;
 
-        // 1. Solid Dark Background
-        ctx.fillStyle = '#020617'; // Slate-950
+        // 1. Solid Pure Black Background
+        ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, width, height);
 
         // 2. Large Soft "Aura" Glow (behind the card)
