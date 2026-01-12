@@ -88,7 +88,7 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
         query: { enabled: !!address && isConnected }
     });
 
-    const currentPrice = presaleActive ? presalePrice : publicPrice;
+    const currentPrice = publicPrice || BigInt("10000000000000000000000000"); // Fallback to 10M if call fails
     const hasAllowance = (chessAllowance !== undefined && currentPrice !== undefined) ? BigInt(chessAllowance as any) >= BigInt(currentPrice as any) : false;
 
     const { data: approveHash, writeContract: writeApprove, isPending: approvePending } = useWriteContract();
@@ -342,9 +342,8 @@ export default function VipRedeemModal({ isOpen, onClose, currentUser }: VipRede
                                 <div className="text-[10px] font-bold text-gray-500 uppercase">Price</div>
                                 <div className="text-right">
                                     <div className="text-xs font-black text-cyan-400">
-                                        {currentPrice ? Number(formatUnits(BigInt(currentPrice as any), 18)).toLocaleString() : "..."} $CHESS
+                                        10,000,000 $CHESS
                                     </div>
-                                    {presaleActive && <div className="text-[8px] font-bold text-purple-400 uppercase tracking-widest">50% OFF</div>}
                                 </div>
                             </div>
 

@@ -218,7 +218,7 @@ function PromotePageContent() {
     query: { enabled: !!address && isConnected }
   });
 
-  const currentPrice = presaleActive ? presalePrice : publicPrice;
+  const currentPrice = publicPrice || BigInt("10000000000000000000000000"); // Fallback to 10M if call fails
   const hasAllowance = (chessAllowance !== undefined && currentPrice !== undefined) ? BigInt(chessAllowance as any) >= BigInt(currentPrice as any) : false;
 
   const { data: approveHash, writeContract: writeApprove, isPending: approvePending } = useWriteContract();
@@ -2746,8 +2746,7 @@ function PromotePageContent() {
                         <div className="flex items-center justify-between mb-4 bg-gray-900/50 p-3 rounded-xl border border-white/5">
                           <div className="text-[10px] font-bold text-gray-500 uppercase">Mint Price</div>
                           <div className="flex flex-col items-end">
-                            <div className="text-xs font-black text-cyan-400">{currentPrice ? Number(formatUnits(BigInt(currentPrice as any), 18)).toLocaleString() : "..."} $CHESS</div>
-                            {presaleActive && <div className="text-[8px] font-bold text-purple-400 uppercase tracking-widest">Presale 50% Off</div>}
+                            <div className="text-xs font-black text-cyan-400">10,000,000 $CHESS</div>
                           </div>
                         </div>
                         <button
