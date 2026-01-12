@@ -4,9 +4,9 @@ const path = require('path');
 const fs = require('fs');
 
 async function generateVipGif() {
-    const width = 600;
-    const height = 600;
-    const totalFrames = 100; // Much smoother and longer loop
+    const width = 400;
+    const height = 400;
+    const totalFrames = 40; // Reduced for size compatibility
 
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -26,10 +26,10 @@ async function generateVipGif() {
     encoder.createReadStream().pipe(writeStream);
     encoder.start();
     encoder.setRepeat(0);
-    encoder.setDelay(80);  // 80ms delay = slow and smooth
-    encoder.setQuality(10);
+    encoder.setDelay(100);  // 100ms delay = slow motion (10fps)
+    encoder.setQuality(20); // Lower quality = smaller file
 
-    console.log(`Generating ${totalFrames} frames with SUPER SLOW rotation and AURA glow...`);
+    console.log(`Generating optimized ${totalFrames} frames...`);
 
     for (let i = 0; i < totalFrames; i++) {
         const angle = (i / totalFrames) * Math.PI * 2;
@@ -115,7 +115,7 @@ async function generateVipGif() {
     }
 
     encoder.finish();
-    console.log(`Success! Super slow GIF with Aura glow saved to ${outputPath}`);
+    console.log(`Success! Optimized GIF saved to ${outputPath}`);
 }
 
 generateVipGif().catch(err => {

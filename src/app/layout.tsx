@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     "fc:miniapp": JSON.stringify({
       version: "1",
       // Use og-animated.gif for a high-energy animated feed image (e.g. rotating Diamond VIP)
-      imageUrl: "https://farc-nu.vercel.app/og-animated.gif?v=5",
+      imageUrl: "https://farc-nu.vercel.app/og-animated.gif?v=6",
       button: {
         title: "💎 Mint Diamond VIP NFT",
         action: {
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     // For backward compatibility
     "fc:frame": JSON.stringify({
       version: "1",
-      imageUrl: "https://farc-nu.vercel.app/og-animated.gif?v=5",
+      imageUrl: "https://farc-nu.vercel.app/og-animated.gif?v=6",
       button: {
         title: "💎 Mint Diamond VIP NFT",
         action: {
