@@ -26,30 +26,31 @@ async function generateVipGif() {
     encoder.createReadStream().pipe(writeStream);
     encoder.start();
     encoder.setRepeat(0);
-    encoder.setDelay(60);  // Slower frame rate (~16fps for 60 frames = ~4s loop)
+    encoder.setDelay(60);  // Slower frame rate
     encoder.setQuality(10);
 
-    console.log(`Generating ${totalFrames} frames with slow rotation and glow...`);
+    console.log(`Generating ${totalFrames} frames with POWERFUL glow...`);
 
     for (let i = 0; i < totalFrames; i++) {
         const angle = (i / totalFrames) * Math.PI * 2;
 
-        // Slower oscillation
         const rotateX = Math.sin(angle) * 12;
         const rotateY = Math.cos(angle) * 12;
 
-        // 1. Draw Background with Diamond Glow
+        // 1. Draw Background
         const bgGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
-        bgGradient.addColorStop(0, '#1e293b'); // Dark slate
-        bgGradient.addColorStop(1, '#0f172a'); // Near black
+        bgGradient.addColorStop(0, '#111827'); // Darker background to make glow pop
+        bgGradient.addColorStop(1, '#000000');
         ctx.fillStyle = bgGradient;
         ctx.fillRect(0, 0, width, height);
 
-        // Add dynamic glow behind the card
-        const glowRadius = 250 + Math.sin(angle) * 50;
+        // 2. Add POWERFUL dynamic glow behind the card
+        const glowRadius = 280 + Math.sin(angle) * 60;
         const glowGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, glowRadius);
-        glowGradient.addColorStop(0, 'rgba(6, 182, 212, 0.2)'); // Cyan-500
-        glowGradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.1)'); // Blue-500
+        // More opaque and vibrant colors
+        glowGradient.addColorStop(0, 'rgba(6, 182, 212, 0.45)'); // More cyan
+        glowGradient.addColorStop(0.4, 'rgba(59, 130, 246, 0.25)'); // More blue
+        glowGradient.addColorStop(0.7, 'rgba(139, 92, 246, 0.1)'); // Subtle purple edge
         glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.fillStyle = glowGradient;
@@ -94,8 +95,8 @@ async function generateVipGif() {
         const glareY = (Math.sin(angle) * 0.7 + 0.5) * cardH - cardH / 2;
 
         const cardGlare = ctx.createRadialGradient(glareX, glareY, 0, glareX, glareY, cardW * 0.9);
-        cardGlare.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-        cardGlare.addColorStop(0.4, 'rgba(125, 211, 252, 0.1)'); // Sky-300
+        cardGlare.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+        cardGlare.addColorStop(0.5, 'rgba(125, 211, 252, 0.15)');
         cardGlare.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
         ctx.fillStyle = cardGlare;
@@ -108,7 +109,7 @@ async function generateVipGif() {
     }
 
     encoder.finish();
-    console.log(`Success! Animated GIF with glow saved to ${outputPath}`);
+    console.log(`Success! Animated GIF with POWERFUL glow saved to ${outputPath}`);
 }
 
 generateVipGif().catch(err => {
