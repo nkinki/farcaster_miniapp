@@ -66,9 +66,23 @@ async function generateVipGif() {
         const cardW = 380;
         const cardH = 240;
 
-        // Add a "Outer Glow" stroke effect to the card itself
-        ctx.strokeStyle = 'rgba(6, 182, 212, 0.3)';
-        ctx.lineWidth = 10;
+        // Create "Glass Effect" Border
+        const borderGradient = ctx.createLinearGradient(-cardW / 2, -cardH / 2, cardW / 2, cardH / 2);
+        borderGradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)'); // Bright top-left edge
+        borderGradient.addColorStop(0.5, 'rgba(6, 182, 212, 0.2)'); // Subtle cyan translucent middle
+        borderGradient.addColorStop(1, 'rgba(255, 255, 255, 0.4)'); // Bright bottom-right edge
+
+        ctx.strokeStyle = borderGradient;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 32);
+        }
+        ctx.stroke();
+
+        // Extra "Aura" glow just around the rectangular frame
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
+        ctx.lineWidth = 12;
         ctx.beginPath();
         if (ctx.roundRect) {
             ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 32);
