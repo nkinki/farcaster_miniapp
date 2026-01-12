@@ -4,9 +4,9 @@ const path = require('path');
 const fs = require('fs');
 
 async function generateVipGif() {
-    const width = 400;
-    const height = 400;
-    const totalFrames = 40; // Reduced for size compatibility
+    const width = 600;
+    const height = 314;
+    const totalFrames = 40; // Optimized for size and sharing
 
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -63,8 +63,8 @@ async function generateVipGif() {
         ctx.rotate(rotateX * 0.003);
         ctx.scale(scaleX, scaleY);
 
-        const cardW = 280;
-        const cardH = 280;
+        const cardW = 240;
+        const cardH = 240;
 
         // Add a "Outer Glow" stroke effect to the card itself
         ctx.strokeStyle = 'rgba(6, 182, 212, 0.3)';
