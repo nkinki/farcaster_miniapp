@@ -116,7 +116,8 @@ export async function POST(request: NextRequest) {
 
     // Recalculate points with 2x multiplier for Diamond VIPs
     const usersWithVIP = await Promise.all(users.map(async (user) => {
-      const isVip = await isDiamondVip(user.user_fid);
+      const vipResult = await isDiamondVip(user.user_fid);
+      const isVip = vipResult.isVip;
       const basePoints = parseInt(user.total_points);
       const finalPoints = isVip ? basePoints * 2 : basePoints;
 
