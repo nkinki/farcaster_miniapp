@@ -52,8 +52,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'You have already redeemed a code or VIP bundle today. Come back tomorrow!' }, { status: 400 });
     }
 
-    // 5. Validate Code (only if not using VIP bypass)
-    if (finalCode !== 'DIAMOND_VIP_FREE' && finalCode !== 'VIPTEST') {
+    // 5. Validate Code
+    if (finalCode === 'DIAMOND_VIP_FREE') {
+      if (!isVip) {
+        await client.query('ROLLBACK');
+        console.warn(`[daily-code] Non-VIP FID ${fid} tried to use DIAMOND_VIP_FREE bypass`);
+        return NextResponse.json({
+          error: 'DIAMOND_VIP_FREE is reserved for Diamond VIP NFT holders.',
+          debug: vipResult.debugInfo
+        }, { status: 403 });
+      }
+    } else if (finalCode === 'VIPTEST') {
+      // Only allow VIPTEST bypass for the owner (202051) or if isVip is true
+      if (!isVip && fid !== 202051) {
+        await client.query('ROLLBACK');
+        console.warn(`[daily-code] Unauthorized VIPTEST attempt by FID ${fid}`);
+        return NextResponse.json({ error: 'Unauthorized test code.' }, { status: 403 });
+      }
+    } else {
+      // Regular code validation against database
       const validCodes = await client.query(`
         SELECT * FROM daily_codes 
         WHERE code = $1 AND is_active = TRUE
