@@ -6,36 +6,32 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-async function checkPromotionsSchema() {
+async function checkSchema() {
     try {
-        console.log('🔍 Checking promotions table schema...');
+        console.log('--- PROMOTIONS TABLE SCHEMA ---');
+        const cols = await pool.query("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'promotions'");
+        console.table(cols.rows);
 
-        const { rows: columns } = await pool.query(`
-      SELECT column_name, data_type, is_nullable
-      FROM information_schema.columns 
-      WHERE table_name = 'promotions' 
-      ORDER BY ordinal_position
-    `);
-
-        console.log('📊 Promotions Table Columns:');
-        columns.forEach(col => {
-            console.log(`  - ${col.column_name}: ${col.data_type}`);
-        });
-
-        // Also peek at a few rows to see what data looks like
-        console.log('\n👀 Peeking at first 5 rows (status/active related columns):');
-        const { rows: data } = await pool.query(`SELECT * FROM promotions LIMIT 5`);
-        if (data.length > 0) {
-            console.log(JSON.stringify(data, null, 2));
-        } else {
-            console.log("Table is empty.");
-        }
-
-    } catch (error) {
-        console.error('❌ Error checking promotions:', error);
+        console.log('--- CONSTRAINTS ---');
+        const cons = await pool.query(`
+            SELECT 
+                tc.constraint_name, 
+                tc.table_name, 
+                kcu.column_name, 
+                tc.constraint_type
+            FROM 
+                information_schema.table_constraints AS tc 
+                JOIN information_schema.key_column_usage AS kcu
+                  ON tc.constraint_name = kcu.constraint_name
+                  AND tc.table_schema = kcu.table_schema
+            WHERE tc.table_name = 'promotions';
+        `);
+        console.table(cons.rows);
+    } catch (err) {
+        console.error(err);
     } finally {
         await pool.end();
     }
 }
 
-checkPromotionsSchema();
+checkSchema();

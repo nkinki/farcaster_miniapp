@@ -4,7 +4,7 @@
     "payload": "eyJkb21haW4iOiJmYXJjLW51LnZlcmNlbC5hcHAifQ",
     "signature": "MHgyYTk5NDM5MDcwZjFhMmFiYTI5NzE4NzJjMWUzNjQ4YmViMWE4N2UwNjM1MmJiN2I2YzFjNmFlMmY5YWRkZDg1NzllMWUzYmVlZWRhM2Q0NWUyMWIzZjhiOGFmNWEyM2VjYzMwNTM5MzIzMDUxMjllZTRiNGE1MmU5OTAzMGY4MjFi"
   },
-  "miniapp": {
+  "frame": {
     "version": "1",
     "name": "AppRank",
     "iconUrl": "https://farc-nu.vercel.app/icon.png",
@@ -19,7 +19,13 @@
     "heroImageUrl": "https://farc-nu.vercel.app/hero.png",
     "splashImageUrl": "https://farc-nu.vercel.app/splash.png",
     "splashBackgroundColor": "#6200EA",
-    "tags": ["ranking", "search", "favorites", "utility", "farcaster"],
+    "tags": [
+      "ranking",
+      "search",
+      "favorites",
+      "utility",
+      "farcaster"
+    ],
     "tagline": "Farcaster miniapp explorer",
     "buttonTitle": "Open AppRank",
     "ogTitle": "AppRank: Miniapp Explorer",
@@ -30,6 +36,8 @@
     "webhookUrl": "https://farc-nu.vercel.app/api/webhook"
   },
   "baseBuilder": {
-    "allowedAddresses": ["0x05f2901e2C895a10fdbAa60E346de027b14A1875"]
+    "allowedAddresses": [
+      "0x05f2901e2C895a10fdbAa60E346de027b14A1875"
+    ]
   }
 }
