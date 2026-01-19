@@ -54,7 +54,8 @@ export async function POST(request: NextRequest) {
       // Perform onchain payout using the LottoPaymentRouter contract
       let transactionHash = null;
 
-      const treasuryPrivateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
+      // Use TREASURY_PRIVATE_KEY if available, fallback to BACKEND_WALLET_PRIVATE_KEY
+      const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY;
 
       if (treasuryPrivateKey) {
         try {
