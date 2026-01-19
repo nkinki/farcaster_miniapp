@@ -12,8 +12,10 @@ if (!process.env.BACKEND_WALLET_PRIVATE_KEY) throw new Error('BACKEND_WALLET_PRI
 if (!process.env.NEYNAR_API_KEY) throw new Error('NEYNAR_API_KEY is not set');
 
 const sql = neon(process.env.NEON_DB_URL || 'postgresql://user:password@localhost:5432/dummy?sslmode=disable');
-const privateKey = process.env.BACKEND_WALLET_PRIVATE_KEY as `0x${string}`;
-const treasuryAccount = privateKeyToAccount(privateKey);
+
+// Support TREASURY_PRIVATE_KEY or fallback to BACKEND_WALLET_PRIVATE_KEY
+const payoutPrivateKey = (process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY) as `0x${string}`;
+const treasuryAccount = privateKeyToAccount(payoutPrivateKey);
 
 const publicClient = createPublicClient({ chain: base, transport: http() });
 const walletClient = createWalletClient({ account: treasuryAccount, chain: base, transport: http() });
@@ -42,9 +44,17 @@ async function setupDatabase() {
         ticket_id INTEGER NOT NULL,
         amount_won BIGINT NOT NULL,
         claimed_at TIMESTAMP WITH TIME ZONE,
+        transaction_hash VARCHAR(66),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `;
+
+  // Add transaction_hash column to lottery_winnings if it doesn't exist
+  try {
+    await sql`ALTER TABLE lottery_winnings ADD COLUMN IF NOT EXISTS transaction_hash VARCHAR(66)`;
+  } catch (e) {
+    console.log('transaction_hash column might already exist, continuing...');
+  }
 
   // Add reward_claimed column to shares table if it doesn't exist
   try {
@@ -118,10 +128,10 @@ export async function POST(request: NextRequest) {
         throw new Error('On-chain transfer transaction failed.');
       }
 
-      // Mark lottery winning as claimed
+      // Mark lottery winning as claimed with transaction hash
       await sql`
         UPDATE lottery_winnings 
-        SET claimed_at = NOW()
+        SET claimed_at = NOW(), transaction_hash = ${txHash}
         WHERE id = ${winningId}
       `;
 

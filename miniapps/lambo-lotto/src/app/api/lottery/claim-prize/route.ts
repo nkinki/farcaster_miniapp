@@ -3,6 +3,7 @@ import { createPublicClient, createWalletClient, http, parseUnits } from 'viem';
 import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import pool from '../../../../lib/db';
+import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '../../../../abis/chessToken';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,15 +47,23 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Perform onchain payout using the LottoPaymentRouter contract
+      // Perform onchain payout
       let transactionHash = null;
 
-      const treasuryPrivateKey = process.env.BACKEND_WALLET_PRIVATE_KEY;
+      // Use TREASURY_PRIVATE_KEY if available, fallback to BACKEND_WALLET_PRIVATE_KEY
+      const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY;
+
+      console.log('🔑 Treasury Key Status (miniapp):', {
+        hasTreasuryKey: !!process.env.TREASURY_PRIVATE_KEY,
+        hasBackendKey: !!process.env.BACKEND_WALLET_PRIVATE_KEY,
+        usingCombined: !!treasuryPrivateKey
+      });
 
       if (treasuryPrivateKey) {
         try {
           // Create wallet client for treasury operations
           const account = privateKeyToAccount(treasuryPrivateKey as `0x${string}`);
+          console.log('🏦 Payout Account derived (miniapp):', account.address);
 
           const publicClient = createPublicClient({
             chain: base,
@@ -70,47 +79,32 @@ export async function POST(request: NextRequest) {
           // Convert amount to wei (assuming amount_won is in CHESS tokens, not wei)
           const amountInWei = parseUnits(winning.amount_won.toString(), 18);
 
-          // Get CHESS token address from environment
-          const chessTokenAddress = process.env.NEXT_PUBLIC_CHESS_TOKEN_ADDRESS;
-          if (!chessTokenAddress) {
-            throw new Error('CHESS token address not configured');
-          }
-
-          // ERC20 transfer function ABI
-          const erc20Abi = [
-            {
-              "inputs": [
-                { "internalType": "address", "name": "to", "type": "address" },
-                { "internalType": "uint256", "name": "amount", "type": "uint256" }
-              ],
-              "name": "transfer",
-              "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-              "stateMutability": "nonpayable",
-              "type": "function"
-            }
-          ] as const;
-
-          // Direct ERC20 transfer from backend wallet to winner
+          // Direct ERC20 transfer from treasury wallet to winner
           const hash = await walletClient.writeContract({
-            address: chessTokenAddress as `0x${string}`,
-            abi: erc20Abi,
+            address: CHESS_TOKEN_ADDRESS,
+            abi: CHESS_TOKEN_ABI,
             functionName: 'transfer',
             args: [winning.player_address as `0x${string}`, amountInWei]
           });
 
           transactionHash = hash;
-          console.log('✅ Onchain payout successful:', hash);
+          console.log('✅ Onchain payout successful (miniapp):', hash);
 
         } catch (onchainError) {
-          console.error('❌ Onchain payout failed:', onchainError);
-          // Don't mark as claimed if onchain payment fails
+          console.error('❌ Onchain payout failed (miniapp):', onchainError);
+          client.release();
           return NextResponse.json({
             success: false,
             error: 'Onchain payment failed: ' + (onchainError as Error).message
           }, { status: 500 });
         }
       } else {
-        console.log('⚠️ Backend wallet private key not configured - marking as claimed without onchain payment');
+        console.log('⚠️ No payout account configured in miniapp - aborting claim');
+        client.release();
+        return NextResponse.json({
+          success: false,
+          error: 'Payout system not configured. Please contact administrator.'
+        }, { status: 500 });
       }
 
       // Update treasury balance (subtract the claimed amount)
