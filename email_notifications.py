@@ -86,22 +86,117 @@ def send_email_notification(subject, body, recipient_email=None):
         print(f"❌ Email sending error: {e}")
         return False
 
+def get_vice_city_lambo_promo(jackpot_formatted, next_jackpot_formatted):
+    """Returns a GTA Vice City styled HTML promotional block"""
+    
+    bg_image = "https://farc-nu.vercel.app/lambo-vice-city.png" 
+    
+    return f"""
+    <div style="background: #121212; border-radius: 12px; overflow: hidden; margin: 20px 0; border: 3px solid #00ffff; box-shadow: 0 0 20px #ff00ff;">
+        <!-- Background with Overlay -->
+        <div style="background-color: #121212; background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.6)), url('{bg_image}'); background-size: cover; background-position: center; padding: 40px 20px; text-align: center; color: white; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+            
+            <div style="margin-bottom: 25px;">
+                <h2 style="margin: 0; color: #ff00ff; text-transform: uppercase; font-style: italic; font-size: 32px; font-weight: 900; text-shadow: 3px 3px #000, 0 0 15px #ff00ff; letter-spacing: 2px;">BUY A LAMBO</h2>
+                <div style="height: 3px; width: 100px; background: #00ffff; margin: 10px auto; box-shadow: 0 0 10px #00ffff;"></div>
+            </div>
+            
+            <div style="margin: 30px 0;">
+                <p style="margin: 0; font-size: 14px; color: #00ffff; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; text-shadow: 1px 1px 2px #000;">Current Jackpot</p>
+                <h1 style="margin: 10px 0; font-size: 52px; color: white; text-shadow: 0 0 20px #00ffff, 2px 2px 5px #000; letter-spacing: -1px; font-weight: 900;">{jackpot_formatted} $CHESS</h1>
+            </div>
+            
+            <div style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); border: 2px solid #ff00ff; border-radius: 12px; padding: 20px; display: inline-block; min-width: 280px; box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);">
+                <p style="margin: 0; font-size: 13px; color: #ff00ff; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Tonight's Estimated Prize</p>
+                <div style="font-size: 28px; color: #00ffff; font-weight: 900; margin-top: 8px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);">🔥 {next_jackpot_formatted} $CHESS 🔥</div>
+            </div>
+            
+            <div style="margin-top: 35px;">
+                <a href="https://farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto" 
+                   style="display: inline-block; background: #00ffff; color: #000000; padding: 18px 45px; text-decoration: none; border-radius: 8px; font-weight: 900; font-size: 20px; text-transform: uppercase; box-shadow: 0 6px 0 #008888, 0 10px 20px rgba(0, 255, 255, 0.3); transform: skew(-10deg); transition: all 0.2s ease;">
+                   PLAY NOW
+                </a>
+            </div>
+            
+            <p style="margin-top: 25px; font-size: 14px; color: #ff00ff; letter-spacing: 4px; font-weight: 900; text-transform: uppercase; text-shadow: 1px 1px 3px #000;">✨ PLAY EVERY DAY ✨</p>
+            <div style="margin-top: 20px; font-size: 11px; opacity: 0.8;">
+                <a href="https://farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto" style="color: #00ffff; text-decoration: none; font-family: monospace; letter-spacing: 0.5px;">https://farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto</a>
+            </div>
+        </div>
+    </div>
+    """
+
+def get_lambo_winner_block(fid, name, prize_formatted, round_number):
+    """Returns a high-impact winner announcement block"""
+    
+    display_name = name if name and name != "None" else f"FID {fid}"
+    bg_image = "https://farc-nu.vercel.app/lambo_winner_bg.png" # Placeholder if available, or just use CSS
+    
+    return f"""
+    <div style="background: linear-gradient(135deg, #ff00ff 0%, #764ba2 100%); border-radius: 12px; overflow: hidden; margin: 20px 0; border: 4px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); position: relative;">
+        <div style="padding: 30px 20px; text-align: center; color: white; font-family: 'Segoe UI', Roboto, sans-serif;">
+            <div style="background: #ffd700; color: #000; display: inline-block; padding: 5px 20px; border-radius: 20px; font-weight: 900; font-size: 14px; text-transform: uppercase; margin-bottom: 15px; box-shadow: 0 0 15px #ffd700;">
+                🏆 WE HAVE A WINNER! 🏆
+            </div>
+            
+            <h2 style="margin: 0; font-size: 36px; text-transform: uppercase; font-weight: 900; text-shadow: 2px 2px 0px #000, 0 0 10px rgba(255,255,255,0.5);">ROUND #{round_number} DRAWN</h2>
+            
+            <div style="margin: 20px 0; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: 1px dashed #ffd700;">
+                <p style="margin: 0; font-size: 14px; opacity: 0.9; letter-spacing: 1px;">Congratulations to</p>
+                <h3 style="margin: 5px 0; font-size: 28px; color: #00ffff; text-shadow: 1px 1px 2px #000;">⭐ {display_name} ⭐</h3>
+                <p style="margin: 5px 0 0 0; font-size: 12px; font-family: monospace; opacity: 0.7;">(FID: {fid})</p>
+            </div>
+            
+            <div style="margin: 25px 0;">
+                <p style="margin: 0; font-size: 16px; font-weight: bold; letter-spacing: 2px;">PRIZE WON:</p>
+                <h1 style="margin: 5px 0; font-size: 48px; color: #ffd700; text-shadow: 2px 2px 10px rgba(0,0,0,0.5), 0 0 15px rgba(255,215,0,0.5); font-weight: 900;">{prize_formatted} $CHESS</h1>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <p style="font-size: 14px; font-weight: bold; font-style: italic; color: #00ffff;">THE LAMBO DREAM IS REAL! 🏎️💨</p>
+            </div>
+        </div>
+        
+        <!-- Animated-like corner labels -->
+        <div style="position: absolute; top: 10px; right: 10px; font-size: 20px;">🤑</div>
+        <div style="position: absolute; bottom: 10px; left: 10px; font-size: 20px;">🔥</div>
+    </div>
+    """
+
+
 def send_success_notification(miniapps_count, top_gainers, top_overall):
     """Successful update notification with enhanced template"""
     
     subject = f"✅ AppRank Update: {miniapps_count} miniapps updated! - {date.today()}"
     
-    # Adatbázis kapcsolat a kódok lekéréséhez
+    # Format jackpot helper
+    def format_jackpot(amount):
+        try:
+            val = int(amount)
+            if val >= 1000000:
+                return f"{(val / 1000000):.1f}M"
+            if val >= 1000:
+                return f"{int(val / 1000)}K"
+            return str(val)
+        except:
+            return "1.0M"
+
+    # Default values to prevent NameError
     apprank_code = "N/A"
     lotto_code = "N/A"
+    jackpot_amount = 1000000 # Default to 1M if DB fails
+    jackpot_formatted = "1.0M"
+    winner_block_html = ""
+    sub_stats_html = "<ul><li>No data available</li></ul>"
+    apprank_usages_html = "<ul><li>No data available</li></ul>"
+    lotto_usages_html = "<ul><li>No data available</li></ul>"
+    lotto_info_html = "No active round info"
     
     db_url = os.getenv("DATABASE_URL") or os.getenv("NEON_DB_URL")
     
     if not db_url:
         print("❌ DATABASE_URL/NEON_DB_URL missing from environment!")
         sub_stats_html = "<p style='color:red;'>Error: Database URL missing</p>"
-        apprank_usages_html = lotto_usages_html = "<ul><li>N/A</li></ul>"
-        lotto_info_html = "N/A"
     else:
         try:
             # Force SSL for Neon
@@ -162,14 +257,7 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
                 lotto_info_html = f"Active Round (#{active_draw[1]}): <strong>{ticket_count} tickets sold</strong>"
             
             # Format jackpot
-            def format_jackpot(amount):
-                if amount >= 1000000:
-                    return f"{(amount / 1000000):.1f}M"
-                if amount >= 1000:
-                    return f"{int(amount / 1000)}K"
-                return str(amount)
-            
-            jackpot_formatted = format_jackpot(jackpot_amount) if jackpot_amount > 0 else "1.0M"
+            jackpot_formatted = format_jackpot(jackpot_amount)
 
             # 5. Rising Stars (apps with positive change, not in top 10)
             cursor.execute("""
@@ -189,12 +277,25 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
             num_stars = random.randint(5, min(8, len(rising_stars_all)))
             rising_stars = random.sample(rising_stars_all, num_stars) if rising_stars_all else []
 
+            # 6. Fetch Latest Winners for Winner Block
+            cursor.execute("""
+                SELECT ld.id, ld.draw_number, ld.jackpot, lt.player_fid, lt.player_name
+                FROM lottery_draws ld
+                JOIN lottery_tickets lt ON ld.id = lt.draw_id AND ld.winning_number = lt.number
+                WHERE ld.status = 'completed'
+                ORDER BY ld.draw_number DESC
+                LIMIT 1
+            """)
+            winner_row = cursor.fetchone()
+            winner_block_html = ""
+            if winner_row:
+                draw_id, win_draw_num, win_jackpot, win_fid, win_name = winner_row
+                winner_block_html = get_lambo_winner_block(win_fid, win_name, format_jackpot(int(win_jackpot)), win_draw_num)
+
             conn.close()
         except Exception as e:
             print(f"❌ Error fetching statistics: {e}")
-            sub_stats_html = f"<p style='color:red;'>Error: {e}</p>"
-            apprank_usages_html = lotto_usages_html = "<ul><li>N/A</li></ul>"
-            lotto_info_html = "N/A"
+            # Keep existing default values on error
     
     
     # 1. HTML list of changes (Clickable names)
@@ -347,6 +448,12 @@ def send_success_notification(miniapps_count, top_gainers, top_overall):
         
         <p style="font-size: 11px; color: #999; margin-top: 15px;">Copy the texts above and share with the community! 😉</p>
     </div>
+
+    <!-- WINNER NOTIFICATION -->
+    {winner_block_html if 'winner_block_html' in locals() and winner_block_html else ""}
+
+    <!-- GTA VICE CITY LOTTO PROMO -->
+    {get_vice_city_lambo_promo(jackpot_formatted, format_jackpot(int(jackpot_amount * 1.25)))}
 
     <div style="background: #e3f2fd; padding: 15px; border: 1px solid #2196f3; border-radius: 5px; margin: 15px 0;">
         <h3 style="margin-top:0; color: #1976d2;">📊 Detailed Stats (Real-time):</h3>
