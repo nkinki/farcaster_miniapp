@@ -57,10 +57,17 @@ export async function POST(request: NextRequest) {
       // Use TREASURY_PRIVATE_KEY if available, fallback to BACKEND_WALLET_PRIVATE_KEY
       const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY;
 
+      console.log('🔑 Treasury Key Status:', {
+        hasTreasuryKey: !!process.env.TREASURY_PRIVATE_KEY,
+        hasBackendKey: !!process.env.BACKEND_WALLET_PRIVATE_KEY,
+        usingCombined: !!treasuryPrivateKey
+      });
+
       if (treasuryPrivateKey) {
         try {
           // Create wallet client for treasury operations
           const account = privateKeyToAccount(treasuryPrivateKey as `0x${string}`);
+          console.log('🏦 Payout Account derived:', account.address);
 
           const publicClient = createPublicClient({
             chain: base,
@@ -89,14 +96,19 @@ export async function POST(request: NextRequest) {
 
         } catch (onchainError) {
           console.error('❌ Onchain payout failed:', onchainError);
-          // Don't mark as claimed if onchain payment fails
+          client.release();
           return NextResponse.json({
             success: false,
             error: 'Onchain payment failed: ' + (onchainError as Error).message
           }, { status: 500 });
         }
       } else {
-        console.log('⚠️ Backend wallet private key not configured - marking as claimed without onchain payment');
+        console.log('⚠️ No payout account configured - aborting claim');
+        client.release();
+        return NextResponse.json({
+          success: false,
+          error: 'Payout system not configured. Please contact administrator.'
+        }, { status: 500 });
       }
 
       // Update treasury balance (subtract the claimed amount)
