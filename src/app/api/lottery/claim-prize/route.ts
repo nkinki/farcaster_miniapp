@@ -56,12 +56,21 @@ export async function POST(request: NextRequest) {
       let transactionHash = null;
 
       // Use TREASURY_PRIVATE_KEY if available, fallback to BACKEND_WALLET_PRIVATE_KEY
-      const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY;
+      let treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY;
+
+      if (treasuryPrivateKey) {
+        // Sanitize private key: remove quotes, spaces and ensure 0x prefix
+        treasuryPrivateKey = treasuryPrivateKey.trim().replace(/^["'](.+)["']$/, '$1');
+        if (!treasuryPrivateKey.startsWith('0x')) {
+          treasuryPrivateKey = `0x${treasuryPrivateKey}`;
+        }
+      }
 
       console.log('🔑 Treasury Key Status:', {
         hasTreasuryKey: !!process.env.TREASURY_PRIVATE_KEY,
         hasBackendKey: !!process.env.BACKEND_WALLET_PRIVATE_KEY,
-        usingCombined: !!treasuryPrivateKey
+        usingCombined: !!treasuryPrivateKey,
+        keyLength: treasuryPrivateKey ? treasuryPrivateKey.length : 0
       });
 
       if (treasuryPrivateKey) {
