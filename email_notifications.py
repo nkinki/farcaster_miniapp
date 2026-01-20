@@ -101,8 +101,12 @@ def get_vice_city_lambo_promo(jackpot_formatted, next_jackpot_formatted):
         
         <div style="position: relative; z-index: 1; padding: 40px 20px; text-align: center;">
             <div style="margin-bottom: 25px;">
-                <h2 style="margin: 0; color: {vice_pink}; text-transform: uppercase; font-style: italic; font-size: 42px; font-weight: 900; text-shadow: 0 0 10px {vice_pink}, 0 0 20px {vice_pink}; letter-spacing: 2px;">BUY A LAMBO</h2>
-                <div style="height: 3px; width: 120px; background: {vice_cyan}; margin: 10px auto; box-shadow: 0 0 10px {vice_cyan};"></div>
+                <!-- NEON LOGO -->
+                <div style="display: inline-block; margin-bottom: 10px;">
+                    <span style="color: {vice_cyan}; font-size: 38px; font-weight: 900; vertical-align: middle; margin-right: 12px; text-shadow: 0 0 15px {vice_cyan}; font-family: 'Segoe UI', Arial, sans-serif;">$</span>
+                    <h2 style="display: inline-block; margin: 0; color: white; text-transform: uppercase; font-style: italic; font-size: 38px; font-weight: 900; text-shadow: 3px 3px {vice_pink}, 0 0 20px {vice_pink}; letter-spacing: 2px; vertical-align: middle; font-family: 'Segoe UI', Arial, sans-serif;">BUY A LAMBO</h2>
+                </div>
+                <div style="height: 3px; width: 140px; background: {vice_cyan}; margin: 5px auto; box-shadow: 0 0 10px {vice_cyan};"></div>
             </div>
             
             <div style="margin: 30px 0;">
@@ -148,6 +152,15 @@ def get_lambo_winner_block(fid, name, prize_formatted, round_number):
         <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 150px; background-image: linear-gradient({vice_gold}22 1px, transparent 1px), linear-gradient(90deg, {vice_gold}22 1px, transparent 1px); background-size: 30px 30px; transform: perspective(100px) rotateX(45deg); transform-origin: top; opacity: 0.3; z-index: 0;"></div>
         
         <div style="position: relative; z-index: 1; padding: 40px 20px; text-align: center; color: white;">
+            <div style="margin-bottom: 25px;">
+                <!-- NEON LOGO (Winner variant) -->
+                <div style="display: inline-block; margin-bottom: 10px;">
+                    <span style="color: {vice_cyan}; font-size: 38px; font-weight: 900; vertical-align: middle; margin-right: 12px; text-shadow: 0 0 15px {vice_cyan};">$</span>
+                    <h2 style="display: inline-block; margin: 0; color: white; text-transform: uppercase; font-style: italic; font-size: 38px; font-weight: 900; text-shadow: 3px 3px {vice_pink}, 0 0 20px {vice_pink}; letter-spacing: 2px; vertical-align: middle;">BUY A LAMBO</h2>
+                </div>
+                <div style="height: 3px; width: 140px; background: {vice_gold}; margin: 5px auto; box-shadow: 0 0 10px {vice_gold};"></div>
+            </div>
+
             <div style="background: {vice_gold}; color: {vice_navy}; display: inline-block; padding: 6px 25px; border-radius: 4px; font-weight: 900; font-size: 14px; text-transform: uppercase; margin-bottom: 20px; box-shadow: 0 0 20px {vice_gold}; transform: skew(-10deg);">
                 🏆 WE HAVE A WINNER! 🏆
             </div>
