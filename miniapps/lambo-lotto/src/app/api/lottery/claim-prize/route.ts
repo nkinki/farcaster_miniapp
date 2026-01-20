@@ -3,6 +3,7 @@ import { createPublicClient, createWalletClient, http, parseUnits } from 'viem';
 import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import pool from '../../../../lib/db';
+// Redeploy to apply secrets
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '../../../../abis/chessToken';
 
 export async function POST(request: NextRequest) {

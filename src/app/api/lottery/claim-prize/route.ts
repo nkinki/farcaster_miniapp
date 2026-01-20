@@ -5,6 +5,7 @@ import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CHESS_TOKEN_ADDRESS, CHESS_TOKEN_ABI } from '@/abis/chessToken';
 
+// Redploy to apply new TREASURY_PRIVATE_KEY secret
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
