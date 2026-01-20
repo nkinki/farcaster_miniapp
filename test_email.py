@@ -56,10 +56,22 @@ def test_email_config():
         print("   ❌ Test email failed!")
     print()
     
-    # Test success notification
+    # Test success notification with realistic data
     print("4. Test Success Notification:")
     try:
-        send_success_notification(246, "<ul><li>Teszt frissítés sikeres</li></ul>")
+        test_gainers = [
+            {"name": "Polling Center", "username": "poll", "rank": 1, "change": 12, "domain": "poll.xyz"},
+            {"name": "Degen", "username": "degen", "rank": 5, "change": 8, "domain": "degen.tips"},
+            {"name": "Lambo Lotto", "username": "lambo", "rank": 12, "change": 5, "domain": "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"}
+        ]
+        test_top = [
+            {"name": "Polling Center", "username": "poll", "rank": 1, "domain": "poll.xyz"},
+            {"name": "Warpcast", "username": "warpcast", "rank": 2, "domain": "warpcast.com"},
+            {"name": "Supercast", "username": "supercast", "rank": 3, "domain": "supercast.xyz"},
+            {"name": "Degen", "username": "degen", "rank": 4, "domain": "degen.tips"},
+            {"name": "Lambo Lotto", "username": "lambo", "rank": 5, "domain": "farcaster.xyz/miniapps/LDihmHy56jDm/lambo-lotto"}
+        ]
+        send_success_notification(246, test_gainers, test_top)
         print("   ✅ Success notification sent!")
     except Exception as e:
         print(f"   ❌ Success notification failed: {e}")
