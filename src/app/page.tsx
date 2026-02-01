@@ -322,10 +322,10 @@ export default function Home() {
     // TODO: Remember to update or restore fetch for the next season!
     setSeasonData({
       id: 1,
-      name: "Growth Galaxy",
-      status: "completed",
-      start_date: "2024-01-01",
-      end_date: "2026-01-31",
+      name: "Cosmic Jester",
+      status: "active",
+      start_date: "2026-02-01",
+      end_date: "2026-02-28",
       total_rewards: "10000000"
     });
 
