@@ -139,7 +139,7 @@ export default function SeasonStatusBanner({ seasonData }: SeasonStatusBannerPro
             {seasonData.status === 'active' && (
               <div className="text-right">
                 <div className="text-xs font-black text-cyan-300 italic tracking-tighter">
-                  {seasonData.name === "Growth Galaxy" ? "ENDS JAN 31" : timeLeft}
+                  {seasonData.name === "Growth Galaxy" ? "ENDED" : timeLeft}
                 </div>
               </div>
             )}

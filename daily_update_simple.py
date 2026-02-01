@@ -59,59 +59,93 @@ def update_database(miniapps_data):
         
         print("Updating database...")
 
+        print(f"Updating database for {len(miniapps_data)} miniapps...")
+        
+        # 1. Prepare batch data for miniapps metadata
+        miniapp_meta_data = []
         for item in miniapps_data:
-            miniapp = item['miniApp']
-            current_rank = item['rank']
-            miniapp_id = miniapp['id']
-
-            # 1. Update miniapp metadata
-            cursor.execute("""
-                INSERT INTO miniapps (id, name, domain, home_url, icon_url, primary_category, author_fid, author_username, author_display_name, author_follower_count)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id) DO UPDATE SET
-                    name = EXCLUDED.name, domain = EXCLUDED.domain, home_url = EXCLUDED.home_url,
-                    icon_url = EXCLUDED.icon_url, primary_category = EXCLUDED.primary_category,
-                    author_fid = EXCLUDED.author_fid, author_username = EXCLUDED.author_username,
-                    author_display_name = EXCLUDED.author_display_name,
-                    author_follower_count = EXCLUDED.author_follower_count;
-            """, (
-                miniapp_id, miniapp['name'], miniapp['domain'], miniapp.get('homeUrl'),
-                miniapp.get('iconUrl'), miniapp.get('primaryCategory'),
-                miniapp.get('author', {}).get('fid'), miniapp.get('author', {}).get('username'),
-                miniapp.get('author', {}).get('displayName'), miniapp.get('author', {}).get('followerCount')
+            m = item['miniApp']
+            miniapp_meta_data.append((
+                m['id'], m['name'], m['domain'], m.get('homeUrl'),
+                m.get('iconUrl'), m.get('primaryCategory'),
+                m.get('author', {}).get('fid'), m.get('author', {}).get('username'),
+                m.get('author', {}).get('displayName'), m.get('author', {}).get('followerCount')
             ))
 
-            # 2. Get past ranks for change calculation
-            rank_1d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=1))
-            rank_3d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=3))
-            rank_7d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=7))
-            rank_30d_ago = get_past_rank(cursor, miniapp_id, today - timedelta(days=30))
+        # Bulk insert/update miniapps metadata
+        from psycopg2.extras import execute_values
+        execute_values(cursor, """
+            INSERT INTO miniapps (id, name, domain, home_url, icon_url, primary_category, author_fid, author_username, author_display_name, author_follower_count)
+            VALUES %s
+            ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name, domain = EXCLUDED.domain, home_url = EXCLUDED.home_url,
+                icon_url = EXCLUDED.icon_url, primary_category = EXCLUDED.primary_category,
+                author_fid = EXCLUDED.author_fid, author_username = EXCLUDED.author_username,
+                author_display_name = EXCLUDED.author_display_name,
+                author_follower_count = EXCLUDED.author_follower_count;
+        """, miniapp_meta_data)
 
-            # 3. Calculate changes
-            rank_24h_change = (rank_1d_ago - current_rank) if rank_1d_ago is not None else None
-            rank_72h_change = (rank_3d_ago - current_rank) if rank_3d_ago is not None else None
-            rank_7d_change = (rank_7d_ago - current_rank) if rank_7d_ago is not None else None
-            rank_30d_change = (rank_30d_ago - current_rank) if rank_30d_ago is not None else None
+        # 2. Pre-fetch historical ranks to avoid N+1 queries
+        # We need ranks for 1, 3, 7, and 30 days ago
+        past_dates = [today - timedelta(days=d) for d in [1, 3, 7, 30]]
+        cursor.execute("""
+            SELECT miniapp_id, stat_date, current_rank 
+            FROM miniapp_statistics 
+            WHERE stat_date IN %s
+        """, (tuple(past_dates),))
+        
+        hist_ranks = {} # (miniapp_id, date) -> rank
+        for mid, d, r in cursor.fetchall():
+            hist_ranks[(mid, d)] = r
+
+        # Pre-fetch aggregate stats
+        cursor.execute("""
+            SELECT miniapp_id, AVG(current_rank), MIN(current_rank) 
+            FROM miniapp_statistics 
+            WHERE current_rank > 0 
+            GROUP BY miniapp_id
+        """)
+        agg_stats = {r[0]: (r[1], r[2]) for r in cursor.fetchall()}
+
+        # 3. Prepare batch data for miniapp_statistics
+        stats_batch_data = []
+        for item in miniapps_data:
+            mid = item['miniApp']['id']
+            curr = item['rank']
             
-            # Get aggregate stats
-            avg_rank, best_rank = get_aggregate_stats(cursor, miniapp_id)
+            # Calculate changes using pre-fetched data
+            r1 = hist_ranks.get((mid, today - timedelta(days=1)))
+            r3 = hist_ranks.get((mid, today - timedelta(days=3)))
+            r7 = hist_ranks.get((mid, today - timedelta(days=7)))
+            r30 = hist_ranks.get((mid, today - timedelta(days=30)))
             
-            # 4. Insert or update today's statistics
-            cursor.execute("""
-                INSERT INTO miniapp_statistics (
-                    miniapp_id, stat_date, current_rank, 
-                    rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change,
-                    avg_rank, best_rank
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (miniapp_id, stat_date) DO UPDATE SET
-                    current_rank = EXCLUDED.current_rank,
-                    rank_24h_change = EXCLUDED.rank_24h_change,
-                    rank_72h_change = EXCLUDED.rank_72h_change,
-                    rank_7d_change = EXCLUDED.rank_7d_change,
-                    rank_30d_change = EXCLUDED.rank_30d_change,
-                    avg_rank = EXCLUDED.avg_rank,
-                    best_rank = EXCLUDED.best_rank;
-            """, (miniapp_id, today, current_rank, rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change, avg_rank, best_rank))
+            c24h = (r1 - curr) if r1 is not None else None
+            c72h = (r3 - curr) if r3 is not None else None
+            c7d = (r7 - curr) if r7 is not None else None
+            c30d = (r30 - curr) if r30 is not None else None
+            
+            avg_r, best_r = agg_stats.get(mid, (None, None))
+            
+            stats_batch_data.append((
+                mid, today, curr, c24h, c72h, c7d, c30d, avg_r, best_r
+            ))
+
+        # Bulk insert/update statistics
+        execute_values(cursor, """
+            INSERT INTO miniapp_statistics (
+                miniapp_id, stat_date, current_rank, 
+                rank_24h_change, rank_72h_change, rank_7d_change, rank_30d_change,
+                avg_rank, best_rank
+            ) VALUES %s
+            ON CONFLICT (miniapp_id, stat_date) DO UPDATE SET
+                current_rank = EXCLUDED.current_rank,
+                rank_24h_change = EXCLUDED.rank_24h_change,
+                rank_72h_change = EXCLUDED.rank_72h_change,
+                rank_7d_change = EXCLUDED.rank_7d_change,
+                rank_30d_change = EXCLUDED.rank_30d_change,
+                avg_rank = EXCLUDED.avg_rank,
+                best_rank = EXCLUDED.best_rank;
+        """, stats_batch_data)
         
         # 6. Fetch top 5 gainers and current top 5 for the notification
         cursor.execute("""
