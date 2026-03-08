@@ -141,7 +141,9 @@ export const LOTTO_PAYMENT_ROUTER_ABI = [
 
 
 // --- Smart Contract Addresses ---
-export const LOTTO_PAYMENT_ROUTER_ADDRESS = "0xdae08347a8a2d508d9f7a890b9997d771aab6d71";
+// --- Smart Contract Addresses ---
+// --- Smart Contract Addresses ---
+export const LOTTO_PAYMENT_ROUTER_ADDRESS = "0x5D23Aa4106683F5382D5c7a256d6dB17eB975978";
 
 // --- Constants from the Contract ---
 // The ticket price must be formatted according to the 18 decimals of the CHESS token.
