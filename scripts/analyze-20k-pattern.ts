@@ -15,14 +15,14 @@ async function main() {
 
     try {
         const currentBlock = await publicClient.getBlockNumber();
-        const fromBlock = currentBlock - 100000n; // Roughly last few days on Base (Base does 2s blocks, so 200k = ~4.6 days)
+        const fromBlock = currentBlock - BigInt(100000); // Roughly last few days on Base (Base does 2s blocks, so 200k = ~4.6 days)
 
-        const CHUNK_SIZE = 10000n;
+        const CHUNK_SIZE = BigInt(10000);
         console.log(`Fetching Transfer events from block ${fromBlock} to ${currentBlock} in ${CHUNK_SIZE} increments...`);
 
         let logs: any[] = [];
         for (let start = fromBlock; start < currentBlock; start += CHUNK_SIZE) {
-            let end = start + CHUNK_SIZE - 1n;
+            let end = start + CHUNK_SIZE - BigInt(1);
             if (end > currentBlock) end = currentBlock;
             console.log(`Fetching ${start} to ${end}...`);
             const chunkLogs = await publicClient.getLogs({
@@ -43,7 +43,7 @@ async function main() {
 
         for (const log of logs) {
             const { to, value } = log.args;
-            const amountFormat = formatUnits(value || 0n, 18);
+            const amountFormat = formatUnits(value || BigInt(0), 18);
 
             if (amountFormat === "20000") {
                 pattern20kCount++;
