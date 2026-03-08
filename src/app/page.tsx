@@ -323,7 +323,7 @@ export default function Home() {
     setSeasonData({
       id: 1,
       name: "Cosmic Jester",
-      status: "active",
+      status: "completed",
       start_date: "2026-02-01",
       end_date: "2026-02-28",
       total_rewards: "10000000"
