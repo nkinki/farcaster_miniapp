@@ -321,11 +321,11 @@ export default function Home() {
     // Temporarily static season name to reduce DB usage on start
     // TODO: Remember to update or restore fetch for the next season!
     setSeasonData({
-      id: 1,
-      name: "Cosmic Jester",
-      status: "completed",
-      start_date: "2026-02-01",
-      end_date: "2026-02-28",
+      id: 10,
+      name: "Season 10",
+      status: "active",
+      start_date: "2026-03-08",
+      end_date: "2026-04-07",
       total_rewards: "10000000"
     });
 
