@@ -20,33 +20,31 @@ export async function POST(request: NextRequest) {
     const client = await pool.connect();
 
     try {
-      // Check if the winning exists and is not already claimed
+      await client.query('BEGIN');
+      // Fix Race condition: Check if the winning exists and atomically lock it by setting claimed_at
       const checkResult = await client.query(`
-        SELECT 
+        UPDATE lottery_winnings lw
+        SET claimed_at = NOW()
+        FROM lottery_tickets lt
+        WHERE lw.id = $1 
+          AND lw.player_fid = $2 
+          AND lw.claimed_at IS NULL
+          AND lw.ticket_id = lt.id
+        RETURNING 
           lw.id,
           lw.amount_won,
-          lw.claimed_at,
           lt.player_address
-        FROM lottery_winnings lw
-        JOIN lottery_tickets lt ON lw.ticket_id = lt.id
-        WHERE lw.id = $1 AND lw.player_fid = $2
       `, [winningId, playerFid]);
 
       if (checkResult.rows.length === 0) {
+        await client.query('ROLLBACK');
         return NextResponse.json(
-          { success: false, error: 'Winning not found or not owned by user' },
+          { success: false, error: 'Winning not found, not owned by user, or already being claimed' },
           { status: 404 }
         );
       }
-
       const winning = checkResult.rows[0];
-
-      if (winning.claimed_at) {
-        return NextResponse.json(
-          { success: false, error: 'Prize already claimed' },
-          { status: 400 }
-        );
-      }
+      await client.query('COMMIT');
 
       // Perform onchain payout
       let transactionHash = null;
@@ -102,6 +100,7 @@ export async function POST(request: NextRequest) {
 
         } catch (onchainError) {
           console.error('❌ Onchain payout failed (miniapp):', onchainError);
+          await client.query(`UPDATE lottery_winnings SET claimed_at = NULL WHERE id = $1`, [winningId]).catch(() => { });
           client.release();
           return NextResponse.json({
             success: false,
@@ -110,6 +109,7 @@ export async function POST(request: NextRequest) {
         }
       } else {
         console.log('⚠️ No payout account configured in miniapp - aborting claim');
+        await client.query(`UPDATE lottery_winnings SET claimed_at = NULL WHERE id = $1`, [winningId]).catch(() => { });
         client.release();
         return NextResponse.json({
           success: false,
@@ -124,10 +124,10 @@ export async function POST(request: NextRequest) {
         WHERE id = 1
       `, [winning.amount_won]);
 
-      // Mark as claimed with transaction hash
+      // Update transaction hash (claimed_at is already set from the lock)
       const updateResult = await client.query(`
         UPDATE lottery_winnings 
-        SET claimed_at = NOW(), transaction_hash = $2
+        SET transaction_hash = $2
         WHERE id = $1
         RETURNING *
       `, [winningId, transactionHash]);
@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (error) {
+      await client.query(`UPDATE lottery_winnings SET claimed_at = NULL WHERE id = $1 AND transaction_hash IS NULL`, [winningId]).catch(() => { });
       client.release();
       throw error;
     }

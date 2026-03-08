@@ -1,9 +1,9 @@
 // FÁJL: src/app/api/lottery/verify-purchase/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createPublicClient, http, fallback } from 'viem';
+import { createPublicClient, http, fallback, decodeEventLog } from 'viem';
 import { base } from 'viem/chains';
-import { LOTTO_PAYMENT_ROUTER_ADDRESS } from '@/abis/LottoPaymentRouter';
+import { LOTTO_PAYMENT_ROUTER_ADDRESS, LOTTO_PAYMENT_ROUTER_ABI } from '@/abis/LottoPaymentRouter';
 import pool from '../../../../lib/db';
 
 // Szerver-oldali viem kliens a blokklánc ellenőrzéséhez
@@ -111,6 +111,32 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[Verifier] Contract interaction verified (${isDirectCall ? 'Direct' : 'Account Abstraction'})`);
+
+    // --- NEW: DECODE EVENTS TO PREVENT SPOOFING ---
+    const ticketEvents = receipt.logs
+      .filter(log => log.address?.toLowerCase() === LOTTO_PAYMENT_ROUTER_ADDRESS.toLowerCase())
+      .map(log => {
+        try {
+          return decodeEventLog({
+            abi: LOTTO_PAYMENT_ROUTER_ABI,
+            data: log.data,
+            topics: log.topics
+          });
+        } catch {
+          return null;
+        }
+      })
+      .filter(event => event?.eventName === 'TicketPurchased');
+
+    if (ticketEvents.length === 0) {
+      console.error(`[Verifier] No TicketPurchased events found in tx ${txHash}`);
+      return NextResponse.json({ error: 'No ticket was purchased in this transaction.' }, { status: 400 });
+    }
+
+    if (ticket_numbers.length !== ticketEvents.length) {
+      console.error(`[Verifier] Security Spoofing Attempt! Claimed ${ticket_numbers.length} tickets, but paid for ${ticketEvents.length} tickets in tx ${txHash}`);
+      return NextResponse.json({ error: 'Mismatch between claimed tickets and actual purchased tickets' }, { status: 400 });
+    }
 
     // For direct calls, verify the sender matches
     // For AA calls, skip this check as the sender is the smart wallet, not the user's EOA
