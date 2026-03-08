@@ -10,10 +10,10 @@ const pool = new Pool({
 });
 
 // Treasury wallet setup
-if (!process.env.BACKEND_WALLET_PRIVATE_KEY) throw new Error('BACKEND_WALLET_PRIVATE_KEY is not set');
+if (!process.env.BACKEND_WALLET_PRIVATE_KEY && !process.env.TREASURY_PRIVATE_KEY) throw new Error('TREASURY_PRIVATE_KEY or BACKEND_WALLET_PRIVATE_KEY is not set');
 if (!process.env.NEYNAR_API_KEY) throw new Error('NEYNAR_API_KEY is not set');
 
-const privateKey = process.env.BACKEND_WALLET_PRIVATE_KEY as `0x${string}`;
+const privateKey = (process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY) as `0x${string}`;
 const treasuryAccount = privateKeyToAccount(privateKey);
 
 const publicClient = createPublicClient({ chain: base, transport: http() });

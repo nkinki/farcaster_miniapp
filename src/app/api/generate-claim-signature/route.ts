@@ -8,7 +8,7 @@ import { base } from 'viem/chains';
 import { rewardsClaimAddress, rewardsClaimABI } from '@/abis/rewardsClaim';
 
 const sql = neon(process.env.NEON_DB_URL!);
-const privateKey = process.env.BACKEND_WALLET_PRIVATE_KEY as `0x${string}`;
+const privateKey = (process.env.TREASURY_PRIVATE_KEY || process.env.BACKEND_WALLET_PRIVATE_KEY) as `0x${string}`;
 const signerAccount = privateKeyToAccount(privateKey);
 
 const publicClient = createPublicClient({ chain: base, transport: http() });
